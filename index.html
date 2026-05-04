@@ -14,12 +14,23 @@
 </head>
 <body>
      <main class="planner-desk">
-          <div class="sticky-note" aria-hidden="true"></div>
+          <button class="sticky-note" type="button" data-create-item aria-label="Add sticky note"></button>
+
+          <div class="posca-marker" aria-hidden="true">
+               <div class="marker-tool">
+                    <span class="marker-neck"></span>
+                    <span class="marker-grip"></span>
+                    <span class="marker-body"></span>
+                    <span class="marker-cap"></span>
+               </div>
+          </div>
 
           <section class="notebook" aria-label="Open Perfect Planner notebook">
-               <div class="page page-left"></div>
-               <div class="page page-right"></div>
+               <div class="page page-left" data-page></div>
+               <div class="page page-right" data-page></div>
           </section>
      </main>
+
+     <script src="script.js"></script>
 </body>
 </html>
