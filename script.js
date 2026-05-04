@@ -4,7 +4,6 @@ const plannerSettings = document.querySelector(".planner-settings");
 const notebook = document.querySelector(".notebook");
 const sourceSticky = document.querySelector("[data-create-item]");
 const paperSelect = document.querySelector("[data-setting='paper']");
-const orientationSelect = document.querySelector("[data-setting='orientation']");
 const gridSelect = document.querySelector("[data-setting='grid']");
 const paperColorSelect = document.querySelector("[data-setting='paper-color']");
 const deskColorSelect = document.querySelector("[data-setting='desk-color']");
@@ -151,7 +150,6 @@ function convertLength(value, fromUnit, toUnit) {
 
 function buildPlannerConfig() {
      const paperKey = paperSelect ? paperSelect.value : "letter";
-     const orientation = orientationSelect ? orientationSelect.value : "portrait";
      const gridKey = gridSelect ? gridSelect.value : "quarter-inch";
      const paperColorKey = paperColorSelect ? paperColorSelect.value : "white";
      const deskColorKey = deskColorSelect ? deskColorSelect.value : "pink";
@@ -162,10 +160,8 @@ function buildPlannerConfig() {
      };
      const paper = paperSizes[paperKey];
      const grid = gridSizes[gridKey];
-     const portraitWidth = convertLength(paper.width, paper.unit, grid.unit);
-     const portraitHeight = convertLength(paper.height, paper.unit, grid.unit);
-     const pageWidth = orientation === "landscape" ? portraitHeight : portraitWidth;
-     const pageHeight = orientation === "landscape" ? portraitWidth : portraitHeight;
+     const pageWidth = convertLength(paper.width, paper.unit, grid.unit);
+     const pageHeight = convertLength(paper.height, paper.unit, grid.unit);
      const gridColumns = pageWidth / grid.size;
      const gridRows = pageHeight / grid.size;
      const guideColumns = Math.round(gridColumns);
@@ -178,6 +174,7 @@ function buildPlannerConfig() {
      const outerFourthColumns = Math.floor((halfColumn - outerEdgeLeewayColumns) / 2);
      const thirdColumnOffset = Math.floor(guideColumns / 6);
      const thirdRowOffset = Math.floor(guideRows / 6);
+     const fourthRowOffset = Math.floor(guideRows / 4);
 
      guideInputs.forEach((input) => {
           guides[input.dataset.guide] = input.checked;
@@ -188,7 +185,6 @@ function buildPlannerConfig() {
           gridKey,
           paperColorKey,
           deskColorKey,
-          orientation,
           guides,
           paper,
           paperColor: paperColors[paperColorKey],
@@ -213,9 +209,9 @@ function buildPlannerConfig() {
           fourthColumnOne: Math.round(guideColumns / 4),
           fourthColumnTwo: Math.round(guideColumns / 2),
           fourthColumnThree: Math.round(guideColumns * 3 / 4),
-          fourthRowOne: Math.floor(guideRows / 4),
+          fourthRowOne: halfRow - fourthRowOffset,
           fourthRowTwo: halfRow,
-          fourthRowThree: Math.floor(guideRows / 4) * 3,
+          fourthRowThree: halfRow + fourthRowOffset,
           fourthLeftColumnOne: guideColumns - (halfColumn + outerFourthColumns),
           fourthLeftColumnTwo: halfLeftColumn,
           fourthLeftColumnThree: guideColumns - (halfColumn - outerFourthColumns),
@@ -303,7 +299,6 @@ function applyPlannerConfig() {
      document.documentElement.dataset.paper = plannerConfig.paperKey;
      document.documentElement.dataset.paperColor = plannerConfig.paperColorKey;
      document.documentElement.dataset.deskColor = plannerConfig.deskColorKey;
-     document.documentElement.dataset.orientation = plannerConfig.orientation;
      document.documentElement.dataset.grid = plannerConfig.gridKey;
      document.documentElement.dataset.guideHalves = String(plannerConfig.guides.halves);
      document.documentElement.dataset.guideThirds = String(plannerConfig.guides.thirds);
@@ -485,14 +480,18 @@ function getDeskTemplateBox(item) {
 }
 
 function getPageTemplateItems() {
-     return pages.flatMap((page) => {
-          return Array.from(page.querySelectorAll(".planner-item:not(.is-floating-source)")).map((item) => {
-               return {
-                    item,
-                    page,
-                    grid: getGridTemplateBox(item, page)
-               };
-          });
+     return getPlannerItems().flatMap((item) => {
+          const page = getItemPage(item);
+
+          if (!page) {
+               return [];
+          }
+
+          return {
+               item,
+               page,
+               grid: getGridTemplateBox(item, page)
+          };
      });
 }
 
@@ -513,7 +512,7 @@ function resizePageTemplateItems(items) {
 }
 
 function serializePlannerItem(item) {
-     const page = item.closest("[data-page]");
+     const page = getItemPage(item);
      const baseItem = {
           id: item.dataset.templateId,
           type: "sticky-note",
@@ -548,7 +547,6 @@ function serializePlannerTemplate() {
           page: {
                size: plannerConfig.paperKey,
                label: plannerConfig.paper.label,
-               orientation: plannerConfig.orientation,
                width: Number(plannerConfig.pageWidth.toFixed(4)),
                height: Number(plannerConfig.pageHeight.toFixed(4)),
                unit: plannerConfig.grid.unit,
@@ -653,6 +651,14 @@ function getDeskGrid() {
      };
 }
 
+function getItemPage(item) {
+     if (item.dataset.pageId) {
+          return pages.find((page) => getPageId(page) === item.dataset.pageId) || null;
+     }
+
+     return item.closest("[data-page]");
+}
+
 function snapToGridOrigin(value, origin, gridSize) {
      return origin + snap(value - origin, gridSize);
 }
@@ -667,12 +673,22 @@ function getItemBox(item) {
 }
 
 function setItemBox(item, box) {
+     const page = getItemPage(item);
+
      item.dataset.x = String(box.x);
      item.dataset.y = String(box.y);
      item.dataset.width = String(box.width);
      item.dataset.height = String(box.height);
-     item.style.left = `${box.x}px`;
-     item.style.top = `${box.y}px`;
+     if (page && item.parentElement === plannerDesk) {
+          const deskRect = plannerDesk.getBoundingClientRect();
+          const pageRect = page.getBoundingClientRect();
+
+          item.style.left = `${pageRect.left - deskRect.left + box.x}px`;
+          item.style.top = `${pageRect.top - deskRect.top + box.y}px`;
+     } else {
+          item.style.left = `${box.x}px`;
+          item.style.top = `${box.y}px`;
+     }
      item.style.width = `${box.width}px`;
      item.style.height = `${box.height}px`;
      updateItemSizeLabel(item);
@@ -759,12 +775,66 @@ function clearDragOver() {
      pages.forEach((page) => page.classList.remove("is-drag-over"));
 }
 
+function getItemControls(item) {
+     return document.querySelector(`.item-controls[data-owner-id="${item.dataset.templateId}"]`);
+}
+
+function positionItemControls(item) {
+     const controls = getItemControls(item);
+
+     if (!controls || !controls.classList.contains("is-floating")) {
+          return;
+     }
+
+     const itemRect = item.getBoundingClientRect();
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const menuWidth = controls.offsetWidth || 148;
+     const menuHeight = controls.offsetHeight || 0;
+     const gap = 8;
+     const preferRight = itemRect.right + gap + menuWidth <= deskRect.right;
+     const left = preferRight
+          ? itemRect.right - deskRect.left + gap
+          : itemRect.left - deskRect.left - menuWidth - gap;
+     const top = clamp(itemRect.top - deskRect.top, gap, Math.max(gap, deskRect.height - menuHeight - gap));
+
+     controls.style.left = `${Math.max(gap, left)}px`;
+     controls.style.top = `${top}px`;
+}
+
+function openItemMenu(item) {
+     const controls = getItemControls(item);
+
+     if (!controls) {
+          return;
+     }
+
+     closeItemMenus(item);
+     plannerDesk.append(controls);
+     controls.classList.add("is-floating");
+     item.classList.add("is-menu-open");
+     positionItemControls(item);
+}
+
+function closeItemMenu(item) {
+     const controls = getItemControls(item);
+
+     item.classList.remove("is-menu-open");
+     if (!controls) {
+          return;
+     }
+
+     controls.classList.remove("is-floating");
+     controls.removeAttribute("style");
+     item.append(controls);
+}
+
 function getPlannerItems() {
      return Array.from(document.querySelectorAll(".planner-item:not(.is-floating-source)"));
 }
 
 function clearItemSelectionClasses(item) {
-     item.classList.remove("is-selected", "is-menu-open", "is-resizing", "is-resize-ew", "is-resize-ns", "is-resize-nwse", "is-resize-nesw");
+     closeItemMenu(item);
+     item.classList.remove("is-selected", "is-resizing", "is-resize-ew", "is-resize-ns", "is-resize-nwse", "is-resize-nesw");
 }
 
 function setItemSelected(item, isSelected) {
@@ -813,7 +883,7 @@ function clearSelection() {
 function closeItemMenus(exceptItem = null) {
      document.querySelectorAll(".planner-item.is-menu-open").forEach((item) => {
           if (item !== exceptItem) {
-               item.classList.remove("is-menu-open");
+               closeItemMenu(item);
           }
      });
 }
@@ -857,8 +927,13 @@ function updateGroupButton(button) {
      button.setAttribute("aria-label", isGrouped ? "Ungroup selected sticky notes" : "Group selected sticky notes");
 }
 
-function markGridState(item, isOnGrid) {
+function markGridState(item, isOnGrid, page = null) {
      item.classList.toggle("is-on-grid", isOnGrid);
+     if (isOnGrid && page) {
+          item.dataset.pageId = getPageId(page);
+     } else if (!isOnGrid) {
+          delete item.dataset.pageId;
+     }
 }
 
 function markSnapReady(item, isSnapReady) {
@@ -1154,7 +1229,7 @@ function updateItemSizeLabel(item) {
           return;
      }
 
-     const page = item.closest("[data-page]");
+     const page = getItemPage(item);
      const box = getItemBox(item);
      const width = page ? Math.round(box.width / getGridSize(page).x) : Math.round(box.width);
      const height = page ? Math.round(box.height / getGridSize(page).y) : Math.round(box.height);
@@ -1186,6 +1261,7 @@ function makePlannerItem() {
      sizeLabel.className = "item-size-label";
      sizeLabel.setAttribute("aria-hidden", "true");
      controls.className = "item-controls";
+     controls.dataset.ownerId = item.dataset.templateId;
      controls.setAttribute("role", "menu");
      duplicateButton.className = "item-control";
      duplicateButton.type = "button";
@@ -1283,7 +1359,7 @@ function makePlannerItem() {
           }
           closeItemMenus(item);
           updateGroupButton(groupButton);
-          item.classList.add("is-menu-open");
+          openItemMenu(item);
      });
      controls.addEventListener("pointerdown", (event) => event.stopPropagation());
      controls.addEventListener("click", (event) => event.stopPropagation());
@@ -1336,9 +1412,9 @@ function addItemToPage(page, x = 4, y = 4) {
           height: grid.y * stickyGridUnits
      };
 
-     page.append(item);
+     markGridState(item, true, page);
+     plannerDesk.append(item);
      setItemBox(item, box);
-     markGridState(item, true);
      selectItem(item);
 
      return item;
@@ -1350,10 +1426,10 @@ function duplicateItem(item) {
           return;
      }
 
-     const page = item.closest("[data-page]");
+     const page = getItemPage(item);
      const box = getItemBox(item);
      const duplicate = makePlannerItem();
-     const parent = page || plannerDesk;
+     const parent = plannerDesk;
      const nextBox = page
           ? {
                ...box,
@@ -1372,8 +1448,8 @@ function duplicateItem(item) {
           borderColor: item.dataset.borderColor,
           borderWidth: item.dataset.borderWidth
      });
+     markGridState(duplicate, Boolean(page), page);
      setItemBox(duplicate, nextBox);
-     markGridState(duplicate, Boolean(page));
      selectItem(duplicate);
      notifyTemplateChanged();
 }
@@ -1383,10 +1459,10 @@ function duplicateSelectedItems() {
      const copiedGroupIds = new Map();
 
      selectedItems.forEach((item) => {
-          const page = item.closest("[data-page]");
+          const page = getItemPage(item);
           const box = getItemBox(item);
           const duplicate = makePlannerItem();
-          const parent = page || plannerDesk;
+          const parent = plannerDesk;
           const offset = page ? getGridSize(page).x : 16;
           const nextBox = page
                ? {
@@ -1406,8 +1482,8 @@ function duplicateSelectedItems() {
                borderColor: item.dataset.borderColor,
                borderWidth: item.dataset.borderWidth
           });
+          markGridState(duplicate, Boolean(page), page);
           setItemBox(duplicate, nextBox);
-          markGridState(duplicate, Boolean(page));
 
           if (item.dataset.groupId) {
                if (!copiedGroupIds.has(item.dataset.groupId)) {
@@ -1427,6 +1503,7 @@ function duplicateSelectedItems() {
 
 function deleteItem(item) {
      selectedItems.delete(item);
+     closeItemMenu(item);
      item.remove();
      selectedItem = selectedItems.size ? Array.from(selectedItems).at(-1) : null;
      notifyTemplateChanged();
@@ -1453,9 +1530,9 @@ function placeItemOnDesk(item, event) {
 function snapItemToPage(item, page, event) {
      const snappedSize = getGridSnappedSize(item, page);
 
-     page.append(item);
+     plannerDesk.append(item);
      item.classList.remove("is-floating-source");
-     markGridState(item, true);
+     markGridState(item, true, page);
      setItemBox(item, {
           ...getItemBox(item),
           width: snappedSize.width,
@@ -1496,7 +1573,8 @@ function moveGroupItemsToDestination(destinationPage, activeStart, activeFinalRe
           if (destinationPage) {
                const grid = getGridSize(destinationPage);
 
-               destinationPage.append(item);
+               plannerDesk.append(item);
+               markGridState(item, true, destinationPage);
                setItemBox(item, {
                     ...nextBox,
                     x: snap(nextBox.x, grid.x),
@@ -1504,7 +1582,6 @@ function moveGroupItemsToDestination(destinationPage, activeStart, activeFinalRe
                     width: current.width,
                     height: current.height
                });
-               markGridState(item, true);
           } else {
                plannerDesk.append(item);
                setItemBox(item, nextBox);
@@ -1573,7 +1650,7 @@ function startMarquee(event) {
 }
 
 function startMove(item, event) {
-     const page = item.closest("[data-page]");
+     const page = getItemPage(item);
      const itemRect = item.getBoundingClientRect();
 
      event.preventDefault();
@@ -1589,7 +1666,7 @@ function startMove(item, event) {
           items: movingItems.map((movingItem) => {
                return {
                     item: movingItem,
-                    page: movingItem.closest("[data-page]"),
+                    page: getItemPage(movingItem),
                     box: getItemBox(movingItem),
                     rect: movingItem.getBoundingClientRect()
                };
@@ -1644,7 +1721,7 @@ function startResize(item, event, mode) {
      activeAction = {
           type: "resize",
           item,
-          page: item.closest("[data-page]"),
+          page: getItemPage(item),
           mode
      };
      item.classList.add("is-dragging", "is-resizing");
@@ -1729,10 +1806,7 @@ function moveActiveItem(event) {
                     x: box.x + deltaX,
                     y: box.y + deltaY
                });
-               markGridState(item, Boolean(page) && false);
           });
-
-          activeAction.items.forEach(({ item }) => markGridState(item, false));
      }
 
      if (activeAction.type === "resize") {
@@ -1828,7 +1902,6 @@ window.perfectPlanner = {
 initializeCustomSelects();
 applyPlannerConfig();
 paperSelect.addEventListener("change", changePlannerSetting);
-orientationSelect.addEventListener("change", changePlannerSetting);
 gridSelect.addEventListener("change", changePlannerSetting);
 paperColorSelect.addEventListener("change", changePlannerSetting);
 deskColorSelect.addEventListener("change", changePlannerSetting);

@@ -792,6 +792,15 @@ body {
      gap: 6px;
 }
 
+.item-controls.is-floating {
+     z-index: 100;
+     right: auto;
+     width: max-content;
+     min-width: 148px;
+     display: grid;
+     transform: none;
+}
+
 .planner-item.is-menu-open .item-controls {
      display: grid;
 }
