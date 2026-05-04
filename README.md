@@ -1,6 +1,6 @@
 # Perfect Planner
 
-Perfect Planner is a planner layout template builder. The current page is a fullscreen desk view where users can arrange sticky-note style layout blocks on an 8.5 x 11 inch two-page spread.
+Perfect Planner is a planner layout template builder. The current page is a fullscreen desk view where users can choose paper settings and arrange sticky-note style layout blocks on a two-page spread.
 
 ## Project Files
 
@@ -20,11 +20,16 @@ The frontend exposes a backend-ready layout snapshot at:
 window.perfectPlanner.serializeTemplate()
 ```
 
-The returned object uses grid-cell coordinates for notes placed on a page. Each page is treated as letter paper with a 0.25 inch grid:
+The returned object uses grid-cell coordinates for notes placed on a page.
 
-- `gridColumns`: 34
-- `gridRows`: 44
-- `gridIntervalInches`: 0.25
+Current page settings are included in the serialized template:
+
+- paper size: Letter, Half Letter, A4, or A5
+- paper color: white, vanilla, beige, or black
+- orientation: portrait or landscape
+- grid: 1/4 inch, 1/8 inch, 1/2 cm, or 1/4 cm
+- guide visibility for halves, thirds, and fourths
+- calculated grid columns and rows for the selected paper and grid
 
 Items placed off the notebook are stored as normalized desk-frame coordinates so future backend logic can decide whether to save, ignore, or treat them as workspace-only objects.
 

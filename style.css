@@ -54,9 +54,9 @@
      --font-bungee: "Bungee Shade", monospace;
      --font-dancing: "Dancing Script", cursive;
      --font-symbol: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", sans-serif;
-     --font-size-lg: clamp(2rem, calc(-1rem + 8.75vw), 6rem);
-     --font-size-md: clamp(1.5rem, calc(1rem + 3vw), 3rem);
-     --font-size-sm: clamp(1rem, calc(1.1rem + 0.5vw), 1.5rem);
+     --font-size-lg: clamp(2rem, 2rem, 2rem);
+     --font-size-md: clamp(1.5rem, 1.5rem, 1.5rem);
+     --font-size-sm: clamp(1rem, 1rem, 1rem);
 
      --desk: var(--mocha-02);
      --paper: #fff8fb;
@@ -64,12 +64,53 @@
      --dot-grid-color: var(--color-gray3);
      --dot-grid-size-x: calc(100% / 34);
      --dot-grid-size-y: calc(100% / 44);
+     --notebook-dot-grid-size-x: calc(50% / 34);
+     --half-x: 50%;
+     --half-left-x: var(--half-x);
+     --half-right-x: var(--half-x);
+     --half-y: 50%;
+     --third-x-1: calc(var(--dot-grid-size-x) * 11);
+     --third-x-2: calc(var(--dot-grid-size-x) * 23);
+     --third-left-x-1: var(--third-x-1);
+     --third-left-x-2: var(--third-x-2);
+     --third-right-x-1: var(--third-x-1);
+     --third-right-x-2: var(--third-x-2);
+     --third-y-1: calc(var(--dot-grid-size-y) * 15);
+     --third-y-2: calc(var(--dot-grid-size-y) * 29);
+     --fourth-x-1: 25%;
+     --fourth-x-2: 50%;
+     --fourth-x-3: 75%;
+     --fourth-left-x-1: 25%;
+     --fourth-left-x-2: 50%;
+     --fourth-left-x-3: 75%;
+     --fourth-right-x-1: 25%;
+     --fourth-right-x-2: 50%;
+     --fourth-right-x-3: 75%;
+     --fourth-y-1: 25%;
+     --fourth-y-2: 50%;
+     --fourth-y-3: 75%;
+     --half-guide-opacity: 0.25;
+     --third-guide-opacity: 0.25;
+     --fourth-guide-opacity: 0.25;
+     --source-sticky-size: calc(var(--notebook-width) * 0.1764705882);
      --sticky-grid-units: 12;
      --ink: var(--color-gray1);
      --page-aspect: 8.5 / 11;
      --spread-aspect: 17 / 11;
      --notebook-width: min(78vw, 1120px, calc((100vh - 112px) * (17 / 11)));
      --notebook-height: min(50.47vw, 724px, calc(100vh - 112px));
+     --side-panel-width: calc(var(--notebook-width) / 4);
+     --notebook-grid-cell-width: calc(var(--notebook-width) / 68);
+     --side-panel-left: calc(((100vw - var(--notebook-width)) / 2) - var(--side-panel-width) - (var(--notebook-grid-cell-width) * 3));
+     --notebook-side-gap: calc(((100vw - var(--notebook-width)) / 2) - var(--side-panel-left) - var(--side-panel-width));
+     --tool-rail-left: calc(((100vw + var(--notebook-width)) / 2) + var(--notebook-side-gap));
+     --spine-notch-width: calc(var(--notebook-dot-grid-size-x) * 2.45);
+     --spine-notch-height: calc(var(--dot-grid-size-y) * 0.9);
+     --page-notch-width: calc(var(--dot-grid-size-x) * 4.2);
+     --page-notch-height: calc(var(--dot-grid-size-y) * 0.94);
+     --print-page-width: 8.5in;
+     --print-page-height: 11in;
+     --print-spread-width: 17in;
 }
 
 * {
@@ -80,6 +121,10 @@ html,
 body {
      margin: 0;
      min-height: 100%;
+}
+
+html {
+     font-size: 10px;
 }
 
 body {
@@ -101,6 +146,203 @@ body {
           linear-gradient(135deg, var(--mocha-02), var(--mocha-12));
 }
 
+.planner-settings {
+     position: absolute;
+     z-index: 5;
+     top: 50%;
+     left: var(--side-panel-left);
+     width: var(--side-panel-width);
+     height: var(--notebook-height);
+     min-width: var(--side-panel-width);
+     display: grid;
+     grid-template-columns: 1fr;
+     grid-template-rows: auto minmax(0, 1fr);
+     align-content: stretch;
+     gap: 0;
+     padding: 0;
+     border: 0;
+     background: transparent;
+     filter: drop-shadow(0 12px 12px rgba(17, 17, 17, 0.1));
+     transform: translateY(-50%);
+     --active-settings-color: var(--mocha-11);
+}
+
+.settings-tabs {
+     display: grid;
+     grid-template-columns: repeat(3, minmax(0, 1fr));
+     align-items: end;
+     gap: 0;
+     overflow: visible;
+}
+
+.settings-tab {
+     position: relative;
+     min-width: 0;
+     min-height: 34px;
+     padding: 4px 5px 5px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-radius: 7px 7px 0 0;
+     border-bottom-color: rgba(17, 17, 17, 0.22);
+     background: var(--tab-color, var(--active-settings-color));
+     color: var(--color-gray2);
+     cursor: pointer;
+     font: 700 var(--font-size-sm) var(--font-noto);
+     line-height: 1.1;
+     text-align: center;
+}
+
+.settings-tab[data-settings-tab="paper-picker"] {
+     --tab-color: var(--mocha-11);
+}
+
+.settings-tab[data-settings-tab="stickers"] {
+     --tab-color: var(--mocha-05);
+}
+
+.settings-tab[data-settings-tab="templates"] {
+     --tab-color: var(--mocha-07);
+}
+
+.settings-tab[aria-selected="true"] {
+     cursor: grab;
+}
+
+.planner-settings.is-dragging .settings-tab[aria-selected="true"] {
+     cursor: grabbing;
+}
+
+.planner-settings.is-resize-ns,
+.planner-settings.is-resizing {
+     cursor: ns-resize;
+}
+
+.settings-tab + .settings-tab {
+     margin-left: -1px;
+}
+
+.settings-tab.is-active,
+.settings-tab[aria-selected="true"] {
+     z-index: 1;
+     border-bottom-color: transparent;
+     color: var(--color-gray1);
+}
+
+.settings-panel {
+     display: grid;
+     align-content: start;
+     gap: 8px;
+     height: auto;
+     min-height: 0;
+     padding: 8px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-top: 0;
+     border-radius: 0 0 8px 8px;
+     background: var(--active-settings-color);
+     backdrop-filter: blur(8px);
+}
+
+.settings-panel[hidden] {
+     display: none;
+}
+
+.planner-settings label,
+.setting-field,
+.guide-settings {
+     display: grid;
+     gap: 4px;
+     color: var(--color-gray1);
+     font: 700 var(--font-size-sm) var(--font-noto);
+}
+
+.planner-settings select {
+     min-width: 0;
+     min-height: 30px;
+     padding: 0 28px 0 8px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-radius: 6px;
+     appearance: none;
+     background:
+          linear-gradient(45deg, transparent 50%, var(--color-gray2) 50%) calc(100% - 14px) 50% / 5px 5px no-repeat,
+          linear-gradient(135deg, var(--color-gray2) 50%, transparent 50%) calc(100% - 9px) 50% / 5px 5px no-repeat,
+          rgba(255, 255, 255, 0.48);
+     color: var(--color-gray1);
+     font: 700 var(--font-size-sm) var(--font-noto);
+}
+
+.guide-settings {
+     position: relative;
+     margin: 0;
+     padding: 0;
+     border: 0;
+}
+
+.guide-settings summary {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     min-height: 30px;
+     padding: 0 28px 0 8px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-radius: 6px;
+     background:
+          linear-gradient(45deg, transparent 50%, var(--color-gray2) 50%) calc(100% - 13px) 50% / 5px 5px no-repeat,
+          linear-gradient(135deg, var(--color-gray2) 50%, transparent 50%) calc(100% - 8px) 50% / 5px 5px no-repeat,
+          rgba(255, 255, 255, 0.48);
+     color: var(--color-gray1);
+     cursor: pointer;
+     font: 700 var(--font-size-sm) var(--font-noto);
+     list-style: none;
+     overflow: hidden;
+}
+
+.guide-settings summary::-webkit-details-marker {
+     display: none;
+}
+
+.guide-settings label {
+     grid-template-columns: auto auto;
+     align-items: center;
+     justify-content: start;
+     gap: 5px;
+     padding: 5px 8px;
+}
+
+.guide-settings input {
+     margin: 0;
+}
+
+.guide-settings[open] {
+     z-index: 6;
+}
+
+.guide-settings[open] label {
+     display: grid;
+     border-left: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-right: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     background: rgba(255, 255, 255, 0.48);
+}
+
+.guide-settings[open] label:last-child {
+     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-radius: 0 0 6px 6px;
+}
+
+[data-guide-option="halves"] input {
+     accent-color: var(--mocha-12);
+}
+
+[data-guide-option="thirds"] input {
+     accent-color: var(--mocha-05);
+}
+
+[data-guide-option="fourths"] input {
+     accent-color: var(--mocha-08);
+}
+
+.guide-settings:not([open]) label {
+     display: none;
+}
+
 .notebook {
      position: relative;
      z-index: 2;
@@ -117,12 +359,79 @@ body {
      z-index: 3;
      top: 0;
      bottom: 0;
-     left: calc(50% - 34px);
-     width: 68px;
+     left: calc(50% - (var(--spine-notch-width) / 2));
+     width: var(--spine-notch-width);
      pointer-events: none;
-     background: linear-gradient(90deg, transparent, rgba(17, 17, 17, 0.1) 46%, rgba(17, 17, 17, 0.1) 54%, transparent);
-     filter: blur(4px);
-     mix-blend-mode: multiply;
+     clip-path: polygon(
+          0 0,
+          50% var(--spine-notch-height),
+          100% 0,
+          100% 100%,
+          50% calc(100% - var(--spine-notch-height)),
+          0 100%
+     );
+     background:
+          linear-gradient(90deg, transparent, rgba(17, 17, 17, 0.08) 38%, rgba(102, 102, 102, 0.45) 50%, rgba(17, 17, 17, 0.08) 62%, transparent);
+}
+
+.notebook-spine-edge {
+     position: absolute;
+     z-index: 5;
+     left: calc(50% - (var(--spine-notch-width) / 2));
+     width: var(--spine-notch-width);
+     height: var(--spine-notch-height);
+     pointer-events: none;
+}
+
+.notebook-spine-edge-top {
+     top: 0;
+}
+
+.notebook-spine-edge-bottom {
+     bottom: 0;
+}
+
+.notebook-spine-edge::before,
+.notebook-spine-edge::after {
+     content: "";
+     position: absolute;
+     width: var(--border-sm);
+     height: calc(var(--spine-notch-width) * 0.72);
+     background:
+          linear-gradient(180deg, rgba(17, 17, 17, 0.22), rgba(17, 17, 17, 0.16)),
+          linear-gradient(180deg, rgba(102, 102, 102, 0.26), transparent);
+     transform-origin: top center;
+}
+
+.notebook-spine-edge-top::before {
+     top: 0;
+     left: 0;
+     transform: rotate(-45deg);
+}
+
+.notebook-spine-edge-top::after {
+     top: 0;
+     right: 0;
+     transform: rotate(45deg);
+}
+
+.notebook-spine-edge-bottom::before,
+.notebook-spine-edge-bottom::after {
+     bottom: 0;
+     transform-origin: bottom center;
+     background:
+          linear-gradient(0deg, rgba(17, 17, 17, 0.22), rgba(17, 17, 17, 0.16)),
+          linear-gradient(0deg, rgba(102, 102, 102, 0.26), transparent);
+}
+
+.notebook-spine-edge-bottom::before {
+     left: 0;
+     transform: rotate(45deg);
+}
+
+.notebook-spine-edge-bottom::after {
+     right: 0;
+     transform: rotate(-45deg);
 }
 
 .page {
@@ -131,28 +440,109 @@ body {
      min-width: 0;
      padding: clamp(28px, 4vw, 60px);
      overflow: visible;
+     --dot-x: var(--dot-grid-size-x);
+     --dot-grid-position: 0 0;
+     --half-page-x: var(--half-x);
+     --third-x-start: var(--third-x-1);
+     --third-x-end: var(--third-x-2);
+     --fourth-x-start: var(--fourth-x-1);
+     --fourth-x-mid: var(--fourth-x-2);
+     --fourth-x-end: var(--fourth-x-3);
      background:
-          radial-gradient(circle at 0 0, var(--dot-grid-color) 0 1px, transparent 1.35px),
-          linear-gradient(90deg, transparent calc(50% - 4px), rgba(203, 166, 247, 0.25) 50%, transparent calc(50% + 4px)),
-          linear-gradient(180deg, transparent calc(50% - 4px), rgba(203, 166, 247, 0.25) 50%, transparent calc(50% + 4px)),
-          linear-gradient(90deg, transparent calc((var(--dot-grid-size-x) * 11) - 4px), rgba(166, 227, 161, 0.25) calc(var(--dot-grid-size-x) * 11), transparent calc((var(--dot-grid-size-x) * 11) + 4px), transparent calc((var(--dot-grid-size-x) * 23) - 4px), rgba(166, 227, 161, 0.25) calc(var(--dot-grid-size-x) * 23), transparent calc((var(--dot-grid-size-x) * 23) + 4px)),
-          linear-gradient(180deg, transparent calc((var(--dot-grid-size-y) * 15) - 4px), rgba(166, 227, 161, 0.25) calc(var(--dot-grid-size-y) * 15), transparent calc((var(--dot-grid-size-y) * 15) + 4px), transparent calc((var(--dot-grid-size-y) * 29) - 4px), rgba(166, 227, 161, 0.25) calc(var(--dot-grid-size-y) * 29), transparent calc((var(--dot-grid-size-y) * 29) + 4px)),
+          linear-gradient(var(--paper), var(--paper)) 0 0 / 100% var(--dot-grid-size-y) no-repeat,
+          linear-gradient(var(--paper), var(--paper)) 0 0 / var(--dot-grid-size-x) 100% no-repeat,
+          linear-gradient(var(--paper), var(--paper)) 0 100% / 100% calc(var(--dot-grid-size-y) * 0.5) no-repeat,
+          radial-gradient(circle at var(--dot-x) var(--dot-grid-size-y), var(--dot-grid-color) 0 1px, transparent 1.35px),
+          linear-gradient(90deg, transparent calc(var(--half-page-x) - 4px), rgba(245, 194, 231, var(--half-guide-opacity)) var(--half-page-x), transparent calc(var(--half-page-x) + 4px)),
+          linear-gradient(180deg, transparent calc(var(--half-y) - 4px), rgba(245, 194, 231, var(--half-guide-opacity)) var(--half-y), transparent calc(var(--half-y) + 4px)),
+          linear-gradient(90deg, transparent calc(var(--third-x-start) - 4px), rgba(166, 227, 161, var(--third-guide-opacity)) var(--third-x-start), transparent calc(var(--third-x-start) + 4px), transparent calc(var(--third-x-end) - 4px), rgba(166, 227, 161, var(--third-guide-opacity)) var(--third-x-end), transparent calc(var(--third-x-end) + 4px)),
+          linear-gradient(180deg, transparent calc(var(--third-y-1) - 4px), rgba(166, 227, 161, var(--third-guide-opacity)) var(--third-y-1), transparent calc(var(--third-y-1) + 4px), transparent calc(var(--third-y-2) - 4px), rgba(166, 227, 161, var(--third-guide-opacity)) var(--third-y-2), transparent calc(var(--third-y-2) + 4px)),
+          linear-gradient(90deg, transparent calc(var(--fourth-x-start) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-x-start), transparent calc(var(--fourth-x-start) + 4px), transparent calc(var(--fourth-x-mid) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-x-mid), transparent calc(var(--fourth-x-mid) + 4px), transparent calc(var(--fourth-x-end) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-x-end), transparent calc(var(--fourth-x-end) + 4px)),
+          linear-gradient(180deg, transparent calc(var(--fourth-y-1) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-y-1), transparent calc(var(--fourth-y-1) + 4px), transparent calc(var(--fourth-y-2) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-y-2), transparent calc(var(--fourth-y-2) + 4px), transparent calc(var(--fourth-y-3) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-y-3), transparent calc(var(--fourth-y-3) + 4px)),
           var(--paper);
      background-size:
+          100% var(--dot-grid-size-y),
+          var(--dot-grid-size-x) 100%,
+          100% calc(var(--dot-grid-size-y) * 0.5),
           var(--dot-grid-size-x) var(--dot-grid-size-y),
-          auto,
-          auto,
-          auto,
-          auto,
+          100% calc(100% - var(--dot-grid-size-y)),
+          calc(100% - var(--dot-grid-size-x)) 100%,
+          100% calc(100% - var(--dot-grid-size-y)),
+          calc(100% - var(--dot-grid-size-x)) 100%,
+          100% calc(100% - var(--dot-grid-size-y)),
+          calc(100% - var(--dot-grid-size-x)) 100%,
           auto;
      background-position:
+          var(--dot-grid-position),
           0 0,
+          0 100%,
           0 0,
-          0 0,
-          0 0,
-          0 0,
+          0 var(--dot-grid-size-y),
+          var(--dot-grid-size-x) 0,
+          0 var(--dot-grid-size-y),
+          var(--dot-grid-size-x) 0,
+          0 var(--dot-grid-size-y),
+          var(--dot-grid-size-x) 0,
           0 0;
-     border: var(--border-sm) solid rgba(17, 17, 17, 0.16);
+     background-repeat:
+          no-repeat,
+          no-repeat,
+          no-repeat,
+          repeat,
+          no-repeat,
+          no-repeat,
+          no-repeat,
+          no-repeat,
+          no-repeat,
+          no-repeat,
+          no-repeat;
+     border: 0;
+}
+
+.page-left::after,
+.page-right::after {
+     content: "";
+     position: absolute;
+     z-index: 2;
+     top: 0;
+     bottom: 0;
+     width: max(10px, calc(var(--dot-grid-size-x) * 0.65));
+     pointer-events: none;
+     background: var(--paper);
+}
+
+.page-left::before,
+.page-right::before {
+     content: "";
+     position: absolute;
+     z-index: 2;
+     top: 0;
+     bottom: 0;
+     width: calc(var(--page-notch-width) / 2);
+     pointer-events: none;
+     background:
+          linear-gradient(
+               180deg,
+               var(--paper) 0 var(--page-notch-height),
+               transparent var(--page-notch-height) calc(100% - var(--page-notch-height)),
+               var(--paper) calc(100% - var(--page-notch-height)) 100%
+          );
+}
+
+.page-left::before {
+     right: 0;
+}
+
+.page-right::before {
+     left: 0;
+}
+
+.page-left::after {
+     right: 0;
+}
+
+.page-right::after {
+     left: 0;
 }
 
 .page.is-drag-over {
@@ -161,21 +551,49 @@ body {
 }
 
 .page-left {
+     --dot-x: var(--dot-grid-size-x);
+     --dot-grid-position: calc(100% + var(--dot-grid-size-x)) 0;
+     --half-page-x: var(--half-left-x);
+     --third-x-start: var(--third-left-x-1);
+     --third-x-end: var(--third-left-x-2);
+     --fourth-x-start: var(--fourth-left-x-1);
+     --fourth-x-mid: var(--fourth-left-x-2);
+     --fourth-x-end: var(--fourth-left-x-3);
      border-radius: var(--border-radius) 0 0 var(--border-radius);
-     border-right: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     clip-path: polygon(
+          0 0,
+          calc(100% - (var(--page-notch-width) / 2)) 0,
+          100% var(--page-notch-height),
+          100% calc(100% - var(--page-notch-height)),
+          calc(100% - (var(--page-notch-width) / 2)) 100%,
+          0 100%
+     );
 }
 
 .page-right {
+     --half-page-x: var(--half-right-x);
+     --third-x-start: var(--third-right-x-1);
+     --third-x-end: var(--third-right-x-2);
+     --fourth-x-start: var(--fourth-right-x-1);
+     --fourth-x-mid: var(--fourth-right-x-2);
+     --fourth-x-end: var(--fourth-right-x-3);
      border-radius: 0 var(--border-radius) var(--border-radius) 0;
-     border-left: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     clip-path: polygon(
+          calc(var(--page-notch-width) / 2) 0,
+          100% 0,
+          100% 100%,
+          calc(var(--page-notch-width) / 2) 100%,
+          0 calc(100% - var(--page-notch-height)),
+          0 var(--page-notch-height)
+     );
 }
 
 .sticky-note {
      position: absolute;
      z-index: 1;
-     top: clamp(58px, 14vh, 132px);
-     left: clamp(16px, 6vw, 92px);
-     width: calc(var(--notebook-width) * 0.1764705882);
+     top: calc(50% - (var(--notebook-height) / 2));
+     left: var(--tool-rail-left);
+     width: var(--source-sticky-size);
      aspect-ratio: 1;
      border-radius: 5px;
      background: linear-gradient(135deg, var(--mocha-04), #fff3c4);
@@ -185,93 +603,15 @@ body {
      touch-action: none;
 }
 
-.posca-marker {
-     position: absolute;
-     z-index: 1;
-     right: clamp(18px, 3.5vw, 56px);
-     top: calc(50% - (var(--notebook-height) / 4));
-     transform: translateY(-50%);
-     filter: drop-shadow(0 15px 10px rgba(17, 17, 17, 0.18));
-     pointer-events: none;
+.stickers-panel {
+     justify-items: start;
 }
 
-.marker-tool {
+.stickers-panel .sticky-note {
      position: relative;
-     width: clamp(195px, 21vw, 315px);
-     height: clamp(44px, 4.7vw, 68px);
-     color: var(--mocha-04);
-}
-
-.marker-cap,
-.marker-body,
-.marker-grip,
-.marker-neck,
-.marker-cap::before,
-.marker-cap::after {
-     position: absolute;
-}
-
-.marker-neck {
-     left: 8.333%;
-     top: 28%;
-     width: 8.333%;
-     height: 46%;
-     border-radius: 4px 0 0 5px;
-     clip-path: polygon(0 0, 100% 0, 100% 100%, 28% 100%);
-     background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 44% 72%, rgba(0, 0, 0, 0.14)),
-          currentColor;
-}
-
-.marker-grip {
-     left: 16.666%;
-     top: 20%;
-     width: 8.333%;
-     height: 62%;
-     border-radius: 6px 0 0 6px;
-     background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 40% 72%, rgba(0, 0, 0, 0.14)),
-          currentColor;
-}
-
-.marker-body {
-     left: 24.999%;
-     top: 12%;
-     width: 8.333%;
-     height: 76%;
-     border-radius: 6px 0 0 6px;
-     background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 40% 72%, rgba(0, 0, 0, 0.14)),
-          currentColor;
-}
-
-.marker-cap {
-     left: 33.332%;
-     top: 13%;
-     width: 66.668%;
-     height: 74%;
-     border: var(--border-sm) solid rgba(17, 17, 17, 0.34);
-     border-radius: 0 8px 8px 0;
-     background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 42% 70%, rgba(0, 0, 0, 0.18)),
-          var(--color-gray2);
-}
-
-.marker-cap::before,
-.marker-cap::after {
-     content: "";
-     left: 7%;
-     width: 84%;
-     height: var(--border-sm);
-     background: rgba(255, 255, 255, 0.16);
-}
-
-.marker-cap::before {
-     top: 18%;
-}
-
-.marker-cap::after {
-     bottom: 18%;
+     top: auto;
+     left: auto;
+     width: min(var(--source-sticky-size), 100%);
 }
 
 .planner-item {
@@ -310,8 +650,23 @@ body {
      outline-offset: 2px;
 }
 
+.planner-item.is-selected {
+     z-index: 7;
+     outline: var(--border-md) solid rgba(234, 118, 203, 0.72);
+     outline-offset: 2px;
+}
+
+.planner-item.is-menu-open {
+     z-index: 12;
+}
+
 .planner-item:focus {
      outline: none;
+}
+
+.planner-item.is-selected:focus {
+     outline: var(--border-md) solid rgba(234, 118, 203, 0.72);
+     outline-offset: 2px;
 }
 
 .item-size-label {
@@ -337,6 +692,7 @@ body {
 
 .item-controls {
      position: absolute;
+     z-index: 13;
      right: 0;
      top: 0;
      display: none;
@@ -416,6 +772,14 @@ body {
      cursor: nesw-resize;
 }
 
+.selection-marquee {
+     position: absolute;
+     z-index: 9;
+     border: var(--border-sm) solid rgba(234, 118, 203, 0.7);
+     background: rgba(234, 118, 203, 0.12);
+     pointer-events: none;
+}
+
 @media (max-width: 880px) {
      body {
           overflow: auto;
@@ -423,7 +787,19 @@ body {
 
      .planner-desk {
           align-items: start;
-          padding: 24px;
+          padding: 112px 24px 24px;
+     }
+
+     .planner-settings {
+          top: 24px;
+          width: calc(100% - 48px);
+          height: var(--notebook-height);
+          grid-template-columns: 1fr;
+          transform: none;
+     }
+
+     .settings-panel {
+          height: auto;
      }
 
      .notebook {
@@ -439,24 +815,21 @@ body {
 
      .page-left {
           border-radius: var(--border-radius) var(--border-radius) 0 0;
-          border-right: var(--border-sm) solid rgba(17, 17, 17, 0.16);
-          border-bottom: var(--border-md) solid rgba(17, 17, 17, 0.3);
+          clip-path: none;
      }
 
      .page-right {
           border-radius: 0 0 var(--border-radius) var(--border-radius);
-          border-left: var(--border-sm) solid rgba(17, 17, 17, 0.16);
-          border-top: var(--border-md) solid rgba(17, 17, 17, 0.3);
+          clip-path: none;
      }
 
-     .sticky-note,
-     .posca-marker {
+     .planner-desk > .sticky-note {
           display: none;
      }
 }
 
 @page {
-     size: 17in 11in;
+     size: var(--print-spread-width) var(--print-page-height);
      margin: 0;
 }
 
@@ -469,9 +842,9 @@ body {
      html,
      body,
      .planner-desk {
-          width: 17in;
-          height: 11in;
-          min-height: 11in;
+          width: var(--print-spread-width);
+          height: var(--print-page-height);
+          min-height: var(--print-page-height);
           overflow: hidden;
      }
 
@@ -482,21 +855,21 @@ body {
      }
 
      .notebook {
-          width: 17in;
-          height: 11in;
+          width: var(--print-spread-width);
+          height: var(--print-page-height);
           aspect-ratio: auto;
           filter: none;
      }
 
      .page {
-          width: 8.5in;
-          height: 11in;
+          width: var(--print-page-width);
+          height: var(--print-page-height);
           aspect-ratio: auto;
           border-radius: 0;
      }
 
-     .sticky-note,
-     .posca-marker {
+     .planner-settings,
+     .sticky-note {
           display: none;
      }
 

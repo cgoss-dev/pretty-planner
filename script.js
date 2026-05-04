@@ -1,23 +1,297 @@
 const pages = Array.from(document.querySelectorAll("[data-page]"));
 const plannerDesk = document.querySelector(".planner-desk");
+const plannerSettings = document.querySelector(".planner-settings");
+const notebook = document.querySelector(".notebook");
 const sourceSticky = document.querySelector("[data-create-item]");
+const paperSelect = document.querySelector("[data-setting='paper']");
+const orientationSelect = document.querySelector("[data-setting='orientation']");
+const gridSelect = document.querySelector("[data-setting='grid']");
+const paperColorSelect = document.querySelector("[data-setting='paper-color']");
+const guideInputs = Array.from(document.querySelectorAll("[data-guide]"));
+const guideDetails = document.querySelector(".guide-settings");
+const guideSummary = document.querySelector(".guide-settings summary");
+const settingsTabs = Array.from(document.querySelectorAll("[data-settings-tab]"));
+const settingsPanels = Array.from(document.querySelectorAll("[data-settings-panel]"));
 
 const resizeEdgeSize = 12;
 const pageStickDepth = 2;
 const stickyGridUnits = 12;
 const templateSchemaVersion = 1;
+const inchToCentimeters = 2.54;
+const paperSizes = {
+     "letter": {
+          label: "ANSI A Letter",
+          unit: "in",
+          width: 8.5,
+          height: 11
+     },
+     "half-letter": {
+          label: "Half Letter",
+          unit: "in",
+          width: 5.5,
+          height: 8.5
+     },
+     "a4": {
+          label: "ISO A4",
+          unit: "cm",
+          width: 21,
+          height: 29.7
+     },
+     "a5": {
+          label: "ISO A5",
+          unit: "cm",
+          width: 14.8,
+          height: 21
+     }
+};
+const gridSizes = {
+     "quarter-inch": {
+          label: "1/4 inch",
+          unit: "in",
+          size: 0.25
+     },
+     "eighth-inch": {
+          label: "1/8 inch",
+          unit: "in",
+          size: 0.125
+     },
+     "half-centimeter": {
+          label: "1/2 cm",
+          unit: "cm",
+          size: 0.5
+     },
+     "quarter-centimeter": {
+          label: "1/4 cm",
+          unit: "cm",
+          size: 0.25
+     }
+};
+const paperColors = {
+     "white": {
+          label: "White",
+          color: "#fff8fb"
+     },
+     "vanilla": {
+          label: "Vanilla",
+          color: "#f4ecde"
+     },
+     "beige": {
+          label: "Beige",
+          color: "#ead9bd"
+     },
+     "black": {
+          label: "Black",
+          color: "#333"
+     }
+};
+const guideLabels = {
+     halves: "Halves",
+     thirds: "Thirds",
+     fourths: "Fourths"
+};
+const guideOrder = ["halves", "thirds", "fourths"];
 
 let activeAction = null;
 let selectedItem = null;
+let selectedItems = new Set();
 let nextTemplateItemId = 1;
+let nextGroupId = 1;
+let shouldSkipNextClear = false;
+let shouldSkipNextItemClick = false;
+let shouldSkipNextTabClick = false;
+let plannerConfig = buildPlannerConfig();
+
+function convertLength(value, fromUnit, toUnit) {
+     if (fromUnit === toUnit) {
+          return value;
+     }
+
+     return fromUnit === "in" ? value * inchToCentimeters : value / inchToCentimeters;
+}
+
+function buildPlannerConfig() {
+     const paperKey = paperSelect ? paperSelect.value : "letter";
+     const orientation = orientationSelect ? orientationSelect.value : "portrait";
+     const gridKey = gridSelect ? gridSelect.value : "quarter-inch";
+     const paperColorKey = paperColorSelect ? paperColorSelect.value : "white";
+     const guides = {
+          halves: true,
+          thirds: true,
+          fourths: true
+     };
+     const paper = paperSizes[paperKey];
+     const grid = gridSizes[gridKey];
+     const portraitWidth = convertLength(paper.width, paper.unit, grid.unit);
+     const portraitHeight = convertLength(paper.height, paper.unit, grid.unit);
+     const pageWidth = orientation === "landscape" ? portraitHeight : portraitWidth;
+     const pageHeight = orientation === "landscape" ? portraitWidth : portraitHeight;
+     const gridColumns = pageWidth / grid.size;
+     const gridRows = pageHeight / grid.size;
+     const guideColumns = Math.round(gridColumns);
+     const guideRows = Math.round(gridRows);
+     const outerEdgeLeewayColumns = 1;
+     const halfColumn = Math.round(guideColumns / 2);
+     const halfLeftColumn = guideColumns - halfColumn;
+     const halfRightColumn = halfColumn;
+     const halfRow = Math.floor(guideRows / 2);
+     const outerFourthColumns = Math.floor((halfColumn - outerEdgeLeewayColumns) / 2);
+     const thirdColumnOffset = Math.floor(guideColumns / 6);
+     const thirdRowOffset = Math.floor(guideRows / 6);
+
+     guideInputs.forEach((input) => {
+          guides[input.dataset.guide] = input.checked;
+     });
+
+     return {
+          paperKey,
+          gridKey,
+          paperColorKey,
+          orientation,
+          guides,
+          paper,
+          paperColor: paperColors[paperColorKey],
+          grid,
+          pageWidth,
+          pageHeight,
+          gridColumns,
+          gridRows,
+          halfColumn,
+          halfLeftColumn,
+          halfRightColumn,
+          halfRow,
+          thirdColumnOne: halfColumn - thirdColumnOffset,
+          thirdColumnTwo: halfColumn + thirdColumnOffset,
+          thirdLeftColumnOne: halfLeftColumn - thirdColumnOffset,
+          thirdLeftColumnTwo: halfLeftColumn + thirdColumnOffset,
+          thirdRightColumnOne: halfRightColumn - thirdColumnOffset,
+          thirdRightColumnTwo: halfRightColumn + thirdColumnOffset,
+          thirdRowOne: halfRow - thirdRowOffset,
+          thirdRowTwo: halfRow + thirdRowOffset,
+          fourthColumnOne: Math.round(guideColumns / 4),
+          fourthColumnTwo: Math.round(guideColumns / 2),
+          fourthColumnThree: Math.round(guideColumns * 3 / 4),
+          fourthRowOne: Math.floor(guideRows / 4),
+          fourthRowTwo: halfRow,
+          fourthRowThree: Math.floor(guideRows / 4) * 3,
+          fourthLeftColumnOne: guideColumns - (halfColumn + outerFourthColumns),
+          fourthLeftColumnTwo: halfLeftColumn,
+          fourthLeftColumnThree: guideColumns - (halfColumn - outerFourthColumns),
+          fourthRightColumnOne: halfColumn - outerFourthColumns,
+          fourthRightColumnTwo: halfRightColumn,
+          fourthRightColumnThree: halfColumn + outerFourthColumns
+     };
+}
 
 function getGridSize(page) {
      const rect = page.getBoundingClientRect();
 
      return {
-          x: rect.width / 34,
-          y: rect.height / 44
+          x: rect.width / plannerConfig.gridColumns,
+          y: rect.height / plannerConfig.gridRows
      };
+}
+
+function setRootNumber(name, value) {
+     document.documentElement.style.setProperty(name, String(value));
+}
+
+function setRootLength(name, value) {
+     document.documentElement.style.setProperty(name, `${value}%`);
+}
+
+function applyPlannerConfig() {
+     const pageWidthInches = convertLength(plannerConfig.pageWidth, plannerConfig.grid.unit, "in");
+     const pageHeightInches = convertLength(plannerConfig.pageHeight, plannerConfig.grid.unit, "in");
+     const notebookHeightRatio = Math.min(50.47, 78 / (pageWidthInches * 2 / pageHeightInches));
+     const sourceStickyRatio = 50 / plannerConfig.gridColumns * stickyGridUnits;
+
+     setRootNumber("--page-aspect", `${pageWidthInches} / ${pageHeightInches}`);
+     setRootNumber("--spread-aspect", `${pageWidthInches * 2} / ${pageHeightInches}`);
+     setRootNumber("--dot-grid-size-x", `calc(100% / ${plannerConfig.gridColumns})`);
+     setRootNumber("--dot-grid-size-y", `calc(100% / ${plannerConfig.gridRows})`);
+     setRootNumber("--notebook-dot-grid-size-x", `calc(50% / ${plannerConfig.gridColumns})`);
+     setRootNumber("--notebook-grid-cell-width", `calc(var(--notebook-width) / ${plannerConfig.gridColumns * 2})`);
+     setRootNumber("--notebook-width", `min(78vw, 1120px, calc((100vh - 112px) * (${pageWidthInches * 2} / ${pageHeightInches})))`);
+     setRootNumber("--notebook-height", `min(${notebookHeightRatio}vw, 724px, calc(100vh - 112px))`);
+     setRootNumber("--source-sticky-size", `calc(var(--notebook-width) * ${sourceStickyRatio / 100})`);
+     setRootNumber("--print-page-width", `${pageWidthInches}in`);
+     setRootNumber("--print-page-height", `${pageHeightInches}in`);
+     setRootNumber("--print-spread-width", `${pageWidthInches * 2}in`);
+     setRootNumber("--paper", plannerConfig.paperColor.color);
+     setRootLength("--half-x", plannerConfig.halfColumn / plannerConfig.gridColumns * 100);
+     setRootLength("--half-left-x", plannerConfig.halfLeftColumn / plannerConfig.gridColumns * 100);
+     setRootLength("--half-right-x", plannerConfig.halfRightColumn / plannerConfig.gridColumns * 100);
+     setRootLength("--half-y", plannerConfig.halfRow / plannerConfig.gridRows * 100);
+     setRootLength("--third-x-1", plannerConfig.thirdColumnOne / plannerConfig.gridColumns * 100);
+     setRootLength("--third-x-2", plannerConfig.thirdColumnTwo / plannerConfig.gridColumns * 100);
+     setRootLength("--third-left-x-1", plannerConfig.thirdLeftColumnOne / plannerConfig.gridColumns * 100);
+     setRootLength("--third-left-x-2", plannerConfig.thirdLeftColumnTwo / plannerConfig.gridColumns * 100);
+     setRootLength("--third-right-x-1", plannerConfig.thirdRightColumnOne / plannerConfig.gridColumns * 100);
+     setRootLength("--third-right-x-2", plannerConfig.thirdRightColumnTwo / plannerConfig.gridColumns * 100);
+     setRootLength("--third-y-1", plannerConfig.thirdRowOne / plannerConfig.gridRows * 100);
+     setRootLength("--third-y-2", plannerConfig.thirdRowTwo / plannerConfig.gridRows * 100);
+     setRootLength("--fourth-x-1", plannerConfig.fourthColumnOne / plannerConfig.gridColumns * 100);
+     setRootLength("--fourth-x-2", plannerConfig.fourthColumnTwo / plannerConfig.gridColumns * 100);
+     setRootLength("--fourth-x-3", plannerConfig.fourthColumnThree / plannerConfig.gridColumns * 100);
+     setRootLength("--fourth-left-x-1", plannerConfig.fourthLeftColumnOne / plannerConfig.gridColumns * 100);
+     setRootLength("--fourth-left-x-2", plannerConfig.fourthLeftColumnTwo / plannerConfig.gridColumns * 100);
+     setRootLength("--fourth-left-x-3", plannerConfig.fourthLeftColumnThree / plannerConfig.gridColumns * 100);
+     setRootLength("--fourth-right-x-1", plannerConfig.fourthRightColumnOne / plannerConfig.gridColumns * 100);
+     setRootLength("--fourth-right-x-2", plannerConfig.fourthRightColumnTwo / plannerConfig.gridColumns * 100);
+     setRootLength("--fourth-right-x-3", plannerConfig.fourthRightColumnThree / plannerConfig.gridColumns * 100);
+     setRootLength("--fourth-y-1", plannerConfig.fourthRowOne / plannerConfig.gridRows * 100);
+     setRootLength("--fourth-y-2", plannerConfig.fourthRowTwo / plannerConfig.gridRows * 100);
+     setRootLength("--fourth-y-3", plannerConfig.fourthRowThree / plannerConfig.gridRows * 100);
+     setRootNumber("--half-guide-opacity", plannerConfig.guides.halves ? "0.25" : "0");
+     setRootNumber("--third-guide-opacity", plannerConfig.guides.thirds ? "0.25" : "0");
+     setRootNumber("--fourth-guide-opacity", plannerConfig.guides.fourths ? "0.25" : "0");
+
+     if (!plannerSettings.dataset.x && !plannerSettings.dataset.y) {
+          delete plannerSettings.dataset.width;
+          delete plannerSettings.dataset.height;
+          plannerSettings.style.width = "";
+          plannerSettings.style.height = "";
+     }
+
+     document.documentElement.dataset.paper = plannerConfig.paperKey;
+     document.documentElement.dataset.paperColor = plannerConfig.paperColorKey;
+     document.documentElement.dataset.orientation = plannerConfig.orientation;
+     document.documentElement.dataset.grid = plannerConfig.gridKey;
+     document.documentElement.dataset.guideHalves = String(plannerConfig.guides.halves);
+     document.documentElement.dataset.guideThirds = String(plannerConfig.guides.thirds);
+     document.documentElement.dataset.guideFourths = String(plannerConfig.guides.fourths);
+     updateGuideSummary();
+}
+
+function updateGuideSummary() {
+     if (!guideSummary) {
+          return;
+     }
+
+     const selectedGuides = guideOrder.filter((guide) => plannerConfig.guides[guide]);
+
+     guideSummary.textContent = selectedGuides.length === guideOrder.length
+          ? "All"
+          : selectedGuides.map((guide) => guideLabels[guide]).join(", ") || "None";
+}
+
+function selectSettingsTab(tabName) {
+     settingsTabs.forEach((tab) => {
+          const isActive = tab.dataset.settingsTab === tabName;
+
+          tab.classList.toggle("is-active", isActive);
+          tab.setAttribute("aria-selected", String(isActive));
+     });
+
+     settingsPanels.forEach((panel) => {
+          panel.hidden = panel.dataset.settingsPanel !== tabName;
+     });
+
+     const activeTab = settingsTabs.find((tab) => tab.dataset.settingsTab === tabName);
+
+     if (activeTab) {
+          plannerSettings.style.setProperty("--active-settings-color", `var(${activeTab.dataset.tabColor})`);
+     }
 }
 
 function getPageId(page) {
@@ -48,11 +322,40 @@ function getDeskTemplateBox(item) {
      };
 }
 
+function getPageTemplateItems() {
+     return pages.flatMap((page) => {
+          return Array.from(page.querySelectorAll(".planner-item:not(.is-floating-source)")).map((item) => {
+               return {
+                    item,
+                    page,
+                    grid: getGridTemplateBox(item, page)
+               };
+          });
+     });
+}
+
+function resizePageTemplateItems(items) {
+     items.forEach(({ item, page, grid }) => {
+          const nextGrid = getGridSize(page);
+          const maxX = plannerConfig.gridColumns - Math.max(1, grid.width);
+          const maxY = plannerConfig.gridRows - Math.max(1, grid.height);
+          const nextBox = {
+               x: clamp(grid.x, 0, maxX) * nextGrid.x,
+               y: clamp(grid.y, 0, maxY) * nextGrid.y,
+               width: Math.max(1, grid.width) * nextGrid.x,
+               height: Math.max(1, grid.height) * nextGrid.y
+          };
+
+          setItemBox(item, nextBox);
+     });
+}
+
 function serializePlannerItem(item) {
      const page = item.closest("[data-page]");
      const baseItem = {
           id: item.dataset.templateId,
           type: "sticky-note",
+          groupId: item.dataset.groupId || null,
           style: {
                fillColor: item.dataset.fillColor,
                borderColor: item.dataset.borderColor,
@@ -81,16 +384,33 @@ function serializePlannerTemplate() {
           schemaVersion: templateSchemaVersion,
           type: "planner-layout-template",
           page: {
-               size: "letter",
-               widthInches: 8.5,
-               heightInches: 11,
-               gridIntervalInches: 0.25,
-               gridColumns: 34,
-               gridRows: 44
+               size: plannerConfig.paperKey,
+               label: plannerConfig.paper.label,
+               orientation: plannerConfig.orientation,
+               width: Number(plannerConfig.pageWidth.toFixed(4)),
+               height: Number(plannerConfig.pageHeight.toFixed(4)),
+               unit: plannerConfig.grid.unit,
+               color: plannerConfig.paperColorKey,
+               colorLabel: plannerConfig.paperColor.label,
+               colorValue: plannerConfig.paperColor.color,
+               widthInches: Number(convertLength(plannerConfig.pageWidth, plannerConfig.grid.unit, "in").toFixed(4)),
+               heightInches: Number(convertLength(plannerConfig.pageHeight, plannerConfig.grid.unit, "in").toFixed(4)),
+               grid: plannerConfig.gridKey,
+               gridLabel: plannerConfig.grid.label,
+               gridInterval: plannerConfig.grid.size,
+               gridUnit: plannerConfig.grid.unit,
+               gridIntervalInches: Number(convertLength(plannerConfig.grid.size, plannerConfig.grid.unit, "in").toFixed(4)),
+               gridColumns: plannerConfig.gridColumns,
+               gridRows: plannerConfig.gridRows
           },
           spread: {
                pages: ["left", "right"],
                spineLeewayGridColumns: 1
+          },
+          guides: {
+               halves: plannerConfig.guides.halves,
+               thirds: plannerConfig.guides.thirds,
+               fourths: plannerConfig.guides.fourths
           },
           items: Array.from(document.querySelectorAll(".planner-item:not(.is-floating-source)")).map(serializePlannerItem)
      };
@@ -129,6 +449,46 @@ function snap(value, gridSize) {
 
 function clamp(value, min, max) {
      return Math.min(max, Math.max(min, value));
+}
+
+function boxesIntersect(first, second) {
+     return !(
+          first.x + first.width < second.x ||
+          second.x + second.width < first.x ||
+          first.y + first.height < second.y ||
+          second.y + second.height < first.y
+     );
+}
+
+function getDeskRelativeRect(element) {
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const rect = element.getBoundingClientRect();
+
+     return {
+          x: rect.left - deskRect.left,
+          y: rect.top - deskRect.top,
+          width: rect.width,
+          height: rect.height
+     };
+}
+
+function getDeskGrid() {
+     const page = pages[0];
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const pageRect = page.getBoundingClientRect();
+     const grid = getGridSize(page);
+     const squareGridSize = grid.x;
+
+     return {
+          x: squareGridSize,
+          y: squareGridSize,
+          originX: pageRect.left - deskRect.left,
+          originY: pageRect.top - deskRect.top
+     };
+}
+
+function snapToGridOrigin(value, origin, gridSize) {
+     return origin + snap(value - origin, gridSize);
 }
 
 function getItemBox(item) {
@@ -233,21 +593,54 @@ function clearDragOver() {
      pages.forEach((page) => page.classList.remove("is-drag-over"));
 }
 
-function selectItem(item) {
-     if (selectedItem && selectedItem !== item) {
-          selectedItem.classList.remove("is-selected", "is-menu-open", "is-resizing", "is-resize-ew", "is-resize-ns", "is-resize-nwse", "is-resize-nesw");
-     }
-
-     selectedItem = item;
-     selectedItem.classList.add("is-selected");
+function getPlannerItems() {
+     return Array.from(document.querySelectorAll(".planner-item:not(.is-floating-source)"));
 }
 
-function clearSelection() {
-     if (!selectedItem) {
+function clearItemSelectionClasses(item) {
+     item.classList.remove("is-selected", "is-menu-open", "is-resizing", "is-resize-ew", "is-resize-ns", "is-resize-nwse", "is-resize-nesw");
+}
+
+function setItemSelected(item, isSelected) {
+     item.classList.toggle("is-selected", isSelected);
+
+     if (isSelected) {
+          selectedItems.add(item);
+          selectedItem = item;
           return;
      }
 
-     selectedItem.classList.remove("is-selected", "is-menu-open", "is-resizing", "is-resize-ew", "is-resize-ns", "is-resize-nwse", "is-resize-nesw");
+     selectedItems.delete(item);
+     clearItemSelectionClasses(item);
+
+     if (selectedItem === item) {
+          selectedItem = selectedItems.size ? Array.from(selectedItems).at(-1) : null;
+     }
+}
+
+function selectItems(items) {
+     clearSelection();
+     items.forEach((item) => setItemSelected(item, true));
+}
+
+function selectItem(item, shouldAdd = false) {
+     if (shouldAdd) {
+          setItemSelected(item, !selectedItems.has(item));
+          return;
+     }
+
+     if (item.dataset.groupId) {
+          selectItems(getPlannerItems().filter((plannerItem) => plannerItem.dataset.groupId === item.dataset.groupId));
+          selectedItem = item;
+          return;
+     }
+
+     selectItems([item]);
+}
+
+function clearSelection() {
+     selectedItems.forEach((item) => clearItemSelectionClasses(item));
+     selectedItems = new Set();
      selectedItem = null;
 }
 
@@ -257,6 +650,45 @@ function closeItemMenus(exceptItem = null) {
                item.classList.remove("is-menu-open");
           }
      });
+}
+
+function groupSelectedItems() {
+     if (selectedItems.size < 2) {
+          return;
+     }
+
+     const groupId = `group-${nextGroupId}`;
+     nextGroupId += 1;
+     selectedItems.forEach((item) => {
+          item.dataset.groupId = groupId;
+     });
+     notifyTemplateChanged();
+}
+
+function ungroupSelectedItems() {
+     const groupIds = new Set(Array.from(selectedItems).map((item) => item.dataset.groupId).filter(Boolean));
+
+     if (!groupIds.size) {
+          return;
+     }
+
+     getPlannerItems().forEach((item) => {
+          if (groupIds.has(item.dataset.groupId)) {
+               delete item.dataset.groupId;
+          }
+     });
+     notifyTemplateChanged();
+}
+
+function selectedItemsHaveGroup() {
+     return Array.from(selectedItems).some((item) => item.dataset.groupId);
+}
+
+function updateGroupButton(button) {
+     const isGrouped = selectedItemsHaveGroup();
+
+     button.textContent = isGrouped ? "Ungroup" : "Group";
+     button.setAttribute("aria-label", isGrouped ? "Ungroup selected sticky notes" : "Group selected sticky notes");
 }
 
 function markGridState(item, isOnGrid) {
@@ -413,6 +845,142 @@ function setResizeCursor(item, resizeMode) {
      }
 }
 
+function getSidebarBox() {
+     const rect = getDeskRelativeRect(plannerSettings);
+
+     return {
+          x: Number(plannerSettings.dataset.x) || rect.x,
+          y: Number(plannerSettings.dataset.y) || rect.y,
+          width: Number(plannerSettings.dataset.width) || rect.width,
+          height: Number(plannerSettings.dataset.height) || rect.height
+     };
+}
+
+function setSidebarBox(box) {
+     plannerSettings.dataset.x = String(box.x);
+     plannerSettings.dataset.y = String(box.y);
+     plannerSettings.dataset.width = String(box.width);
+     plannerSettings.dataset.height = String(box.height);
+     plannerSettings.style.left = `${box.x}px`;
+     plannerSettings.style.top = `${box.y}px`;
+     plannerSettings.style.width = `${box.width}px`;
+     plannerSettings.style.height = `${box.height}px`;
+     plannerSettings.style.transform = "none";
+}
+
+function getMovedSidebarBox(clientX, clientY) {
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const grid = getDeskGrid();
+     const current = activeAction.box;
+     const rawX = clientX - deskRect.left - activeAction.offsetX;
+     const rawY = clientY - deskRect.top - activeAction.offsetY;
+     const maxX = deskRect.width - current.width;
+     const maxY = deskRect.height - current.height;
+
+     return {
+          ...current,
+          x: clamp(snapToGridOrigin(rawX, grid.originX, grid.x), 0, maxX),
+          y: clamp(snapToGridOrigin(rawY, grid.originY, grid.y), 0, maxY)
+     };
+}
+
+function getSidebarVerticalResizeMode(event) {
+     const rect = plannerSettings.getBoundingClientRect();
+     const isTopEdge = event.clientY >= rect.top - resizeEdgeSize && event.clientY <= rect.top + resizeEdgeSize;
+     const isBottomEdge = event.clientY >= rect.bottom - resizeEdgeSize && event.clientY <= rect.bottom + resizeEdgeSize;
+
+     if (isTopEdge) {
+          return "top";
+     }
+
+     if (isBottomEdge) {
+          return "bottom";
+     }
+
+     return "";
+}
+
+function getSidebarHeightBounds() {
+     const pageRect = pages[0].getBoundingClientRect();
+     const notebookRect = notebook.getBoundingClientRect();
+     const fullHeight = pageRect.height || notebookRect.height;
+     const gridRowHeight = fullHeight / plannerConfig.gridRows;
+
+     return {
+          min: fullHeight / 2,
+          max: fullHeight,
+          grid: gridRowHeight
+     };
+}
+
+function getResizedSidebarBox(clientY) {
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const current = activeAction.box;
+     const bounds = getSidebarHeightBounds();
+     const bottom = current.y + current.height;
+     const pointerY = snap(clientY - deskRect.top, bounds.grid);
+
+     if (activeAction.mode === "top") {
+          const nextTop = clamp(pointerY, bottom - bounds.max, bottom - bounds.min);
+
+          return {
+               ...current,
+               y: nextTop,
+               height: bottom - nextTop
+          };
+     }
+
+     return {
+          ...current,
+          height: clamp(snap(pointerY - current.y, bounds.grid), bounds.min, bounds.max)
+     };
+}
+
+function startSidebarMove(event) {
+     const tab = event.target.closest("[data-settings-tab]");
+
+     if (event.button !== 0 || !tab || tab.getAttribute("aria-selected") !== "true") {
+          return;
+     }
+
+     const box = getSidebarBox();
+     const rect = plannerSettings.getBoundingClientRect();
+
+     event.preventDefault();
+     setSidebarBox(box);
+     activeAction = {
+          type: "sidebar-move",
+          box,
+          offsetX: event.clientX - rect.left,
+          offsetY: event.clientY - rect.top,
+          hasMoved: false
+     };
+     plannerSettings.classList.add("is-dragging");
+
+     try {
+          plannerSettings.setPointerCapture(event.pointerId);
+     } catch {
+     }
+}
+
+function startSidebarResize(event, mode) {
+     const box = getSidebarBox();
+
+     event.preventDefault();
+     setSidebarBox(box);
+     activeAction = {
+          type: "sidebar-resize",
+          box,
+          mode
+     };
+     plannerSettings.classList.add("is-resizing");
+
+     try {
+          plannerSettings.setPointerCapture(event.pointerId);
+     } catch {
+     }
+}
+
 function updateItemSizeLabel(item) {
      const label = item.querySelector(".item-size-label");
 
@@ -433,6 +1001,7 @@ function makePlannerItem() {
      const sizeLabel = document.createElement("span");
      const controls = document.createElement("div");
      const duplicateButton = document.createElement("button");
+     const groupButton = document.createElement("button");
      const fillLabel = document.createElement("label");
      const fillInput = document.createElement("input");
      const borderColorLabel = document.createElement("label");
@@ -456,6 +1025,10 @@ function makePlannerItem() {
      duplicateButton.type = "button";
      duplicateButton.textContent = "Duplicate";
      duplicateButton.setAttribute("aria-label", "Duplicate sticky note");
+     groupButton.className = "item-control";
+     groupButton.type = "button";
+     groupButton.textContent = "Group";
+     groupButton.setAttribute("aria-label", "Group selected sticky notes");
      fillLabel.className = "item-control-row";
      fillLabel.textContent = "Fill";
      fillInput.type = "color";
@@ -487,7 +1060,7 @@ function makePlannerItem() {
      fillLabel.append(fillInput);
      borderColorLabel.append(borderColorInput);
      borderWidthLabel.append(borderWidthSelect);
-     controls.append(duplicateButton, fillLabel, borderColorLabel, borderWidthLabel, deleteButton);
+     controls.append(duplicateButton, groupButton, fillLabel, borderColorLabel, borderWidthLabel, deleteButton);
      item.append(sizeLabel, controls);
      setItemStyle(item, {
           fillColor: fillInput.value,
@@ -497,6 +1070,13 @@ function makePlannerItem() {
 
      item.addEventListener("pointerdown", (event) => {
           if (event.target.closest(".item-controls")) {
+               return;
+          }
+
+          if (event.metaKey || event.ctrlKey) {
+               event.preventDefault();
+               selectItem(item, true);
+               shouldSkipNextItemClick = true;
                return;
           }
 
@@ -517,12 +1097,26 @@ function makePlannerItem() {
      item.addEventListener("pointerleave", () => {
           setResizeCursor(item, "");
      });
-     item.addEventListener("click", () => selectItem(item));
+     item.addEventListener("click", (event) => {
+          if (shouldSkipNextItemClick) {
+               shouldSkipNextItemClick = false;
+               return;
+          }
+
+          if (event.metaKey || event.ctrlKey) {
+               selectItem(item, true);
+          } else if (!activeAction) {
+               selectItem(item);
+          }
+     });
      item.addEventListener("focus", () => selectItem(item));
      item.addEventListener("contextmenu", (event) => {
           event.preventDefault();
-          selectItem(item);
+          if (!selectedItems.has(item)) {
+               selectItem(item);
+          }
           closeItemMenus(item);
+          updateGroupButton(groupButton);
           item.classList.add("is-menu-open");
      });
      controls.addEventListener("pointerdown", (event) => event.stopPropagation());
@@ -530,6 +1124,15 @@ function makePlannerItem() {
      duplicateButton.addEventListener("click", (event) => {
           event.stopPropagation();
           duplicateItem(item);
+     });
+     groupButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          if (selectedItemsHaveGroup()) {
+               ungroupSelectedItems();
+          } else {
+               groupSelectedItems();
+          }
+          updateGroupButton(groupButton);
      });
      fillInput.addEventListener("input", () => {
           setItemStyle(item, {
@@ -576,6 +1179,11 @@ function addItemToPage(page, x = 4, y = 4) {
 }
 
 function duplicateItem(item) {
+     if (selectedItems.size > 1 && selectedItems.has(item)) {
+          duplicateSelectedItems();
+          return;
+     }
+
      const page = item.closest("[data-page]");
      const box = getItemBox(item);
      const duplicate = makePlannerItem();
@@ -604,9 +1212,57 @@ function duplicateItem(item) {
      notifyTemplateChanged();
 }
 
+function duplicateSelectedItems() {
+     const copies = [];
+     const copiedGroupIds = new Map();
+
+     selectedItems.forEach((item) => {
+          const page = item.closest("[data-page]");
+          const box = getItemBox(item);
+          const duplicate = makePlannerItem();
+          const parent = page || plannerDesk;
+          const offset = page ? getGridSize(page).x : 16;
+          const nextBox = page
+               ? {
+                    ...box,
+                    x: clamp(box.x + offset, 0, page.clientWidth - box.width),
+                    y: clamp(box.y + offset, 0, page.clientHeight - box.height)
+               }
+               : {
+                    ...box,
+                    x: box.x + offset,
+                    y: box.y + offset
+               };
+
+          parent.append(duplicate);
+          setItemStyle(duplicate, {
+               fillColor: item.dataset.fillColor,
+               borderColor: item.dataset.borderColor,
+               borderWidth: item.dataset.borderWidth
+          });
+          setItemBox(duplicate, nextBox);
+          markGridState(duplicate, Boolean(page));
+
+          if (item.dataset.groupId) {
+               if (!copiedGroupIds.has(item.dataset.groupId)) {
+                    copiedGroupIds.set(item.dataset.groupId, `group-${nextGroupId}`);
+                    nextGroupId += 1;
+               }
+
+               duplicate.dataset.groupId = copiedGroupIds.get(item.dataset.groupId);
+          }
+
+          copies.push(duplicate);
+     });
+
+     selectItems(copies);
+     notifyTemplateChanged();
+}
+
 function deleteItem(item) {
+     selectedItems.delete(item);
      item.remove();
-     selectedItem = null;
+     selectedItem = selectedItems.size ? Array.from(selectedItems).at(-1) : null;
      notifyTemplateChanged();
 }
 
@@ -652,9 +1308,102 @@ function snapItemToPage(item, page, event) {
      );
 }
 
+function moveGroupItemsToDestination(destinationPage, activeStart, activeFinalRect) {
+     const deltaLeft = activeFinalRect.left - activeStart.rect.left;
+     const deltaTop = activeFinalRect.top - activeStart.rect.top;
+     const destinationRect = destinationPage ? destinationPage.getBoundingClientRect() : plannerDesk.getBoundingClientRect();
+
+     activeAction.items.forEach(({ item, rect }) => {
+          if (item === activeAction.item) {
+               return;
+          }
+
+          const nextLeft = rect.left + deltaLeft;
+          const nextTop = rect.top + deltaTop;
+          const current = getItemBox(item);
+          const nextBox = {
+               ...current,
+               x: nextLeft - destinationRect.left,
+               y: nextTop - destinationRect.top
+          };
+
+          if (destinationPage) {
+               const grid = getGridSize(destinationPage);
+
+               destinationPage.append(item);
+               setItemBox(item, {
+                    ...nextBox,
+                    x: snap(nextBox.x, grid.x),
+                    y: snap(nextBox.y, grid.y),
+                    width: current.width,
+                    height: current.height
+               });
+               markGridState(item, true);
+          } else {
+               plannerDesk.append(item);
+               setItemBox(item, nextBox);
+               markGridState(item, false);
+          }
+     });
+}
+
 function setFloatingBox(item, clientX, clientY, offsetX, offsetY) {
      item.style.left = `${clientX - offsetX}px`;
      item.style.top = `${clientY - offsetY}px`;
+}
+
+function setMarqueeBox(marquee, startX, startY, currentX, currentY) {
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const left = Math.min(startX, currentX) - deskRect.left;
+     const top = Math.min(startY, currentY) - deskRect.top;
+     const width = Math.abs(currentX - startX);
+     const height = Math.abs(currentY - startY);
+
+     marquee.style.left = `${left}px`;
+     marquee.style.top = `${top}px`;
+     marquee.style.width = `${width}px`;
+     marquee.style.height = `${height}px`;
+
+     return {
+          x: left,
+          y: top,
+          width,
+          height
+     };
+}
+
+function updateMarqueeSelection(selectionBox) {
+     const selectedFromMarquee = getPlannerItems().filter((item) => boxesIntersect(getDeskRelativeRect(item), selectionBox));
+     const nextSelection = new Set(activeAction.baseSelection);
+
+     selectedFromMarquee.forEach((item) => nextSelection.add(item));
+     selectItems(Array.from(nextSelection));
+}
+
+function startMarquee(event) {
+     if (event.button !== 0 || event.target.closest(".planner-item, .sticky-note, .planner-settings")) {
+          return;
+     }
+
+     const marquee = document.createElement("div");
+
+     event.preventDefault();
+     closeItemMenus();
+
+     if (!event.metaKey && !event.ctrlKey) {
+          clearSelection();
+     }
+
+     marquee.className = "selection-marquee";
+     plannerDesk.append(marquee);
+     activeAction = {
+          type: "select",
+          marquee,
+          startX: event.clientX,
+          startY: event.clientY,
+          baseSelection: event.metaKey || event.ctrlKey ? new Set(selectedItems) : new Set()
+     };
+     setMarqueeBox(marquee, event.clientX, event.clientY, event.clientX, event.clientY);
 }
 
 function startMove(item, event) {
@@ -663,15 +1412,29 @@ function startMove(item, event) {
 
      event.preventDefault();
      closeItemMenus();
-     selectItem(item);
+     if (!selectedItems.has(item)) {
+          selectItem(item);
+     }
+
+     const movingItems = Array.from(selectedItems);
      activeAction = {
           type: "move",
           item,
+          items: movingItems.map((movingItem) => {
+               return {
+                    item: movingItem,
+                    page: movingItem.closest("[data-page]"),
+                    box: getItemBox(movingItem),
+                    rect: movingItem.getBoundingClientRect()
+               };
+          }),
           page,
+          startX: event.clientX,
+          startY: event.clientY,
           offsetX: event.clientX - itemRect.left,
           offsetY: event.clientY - itemRect.top
      };
-     item.classList.add("is-dragging");
+     movingItems.forEach((movingItem) => movingItem.classList.add("is-dragging"));
 
      try {
           item.setPointerCapture(event.pointerId);
@@ -731,6 +1494,22 @@ function moveActiveItem(event) {
           return;
      }
 
+     if (activeAction.type === "sidebar-move") {
+          activeAction.hasMoved = true;
+          setSidebarBox(getMovedSidebarBox(event.clientX, event.clientY));
+          return;
+     }
+
+     if (activeAction.type === "sidebar-resize") {
+          setSidebarBox(getResizedSidebarBox(event.clientY));
+          return;
+     }
+
+     if (activeAction.type === "select") {
+          updateMarqueeSelection(setMarqueeBox(activeAction.marquee, activeAction.startX, activeAction.startY, event.clientX, event.clientY));
+          return;
+     }
+
      const pointerPage = getPageFromPoint(event.clientX, event.clientY);
      const overlapPage = activeAction.type === "source" || activeAction.type === "move"
           ? getPageFromDraggedBox(activeAction.item, event.clientX, event.clientY, activeAction.offsetX, activeAction.offsetY)
@@ -769,7 +1548,25 @@ function moveActiveItem(event) {
                );
           }
 
-          markGridState(activeAction.item, false);
+          const movedBox = getItemBox(activeAction.item);
+          const startingBox = activeAction.items.find(({ item }) => item === activeAction.item).box;
+          const deltaX = movedBox.x - startingBox.x;
+          const deltaY = movedBox.y - startingBox.y;
+
+          activeAction.items.forEach(({ item, page, box }) => {
+               if (item === activeAction.item) {
+                    return;
+               }
+
+               setItemBox(item, {
+                    ...box,
+                    x: box.x + deltaX,
+                    y: box.y + deltaY
+               });
+               markGridState(item, Boolean(page) && false);
+          });
+
+          activeAction.items.forEach(({ item }) => markGridState(item, false));
      }
 
      if (activeAction.type === "resize") {
@@ -780,6 +1577,28 @@ function moveActiveItem(event) {
 
 function endActiveItem(event) {
      if (!activeAction) {
+          return;
+     }
+
+     if (activeAction.type === "sidebar-move" || activeAction.type === "sidebar-resize") {
+          try {
+               plannerSettings.releasePointerCapture(event.pointerId);
+          } catch {
+          }
+
+          if (activeAction.type === "sidebar-move" && activeAction.hasMoved) {
+               shouldSkipNextTabClick = true;
+          }
+
+          plannerSettings.classList.remove("is-dragging", "is-resizing");
+          activeAction = null;
+          return;
+     }
+
+     if (activeAction.type === "select") {
+          activeAction.marquee.remove();
+          shouldSkipNextClear = true;
+          activeAction = null;
           return;
      }
 
@@ -803,8 +1622,16 @@ function endActiveItem(event) {
                placeItemOnDesk(activeAction.item, event);
           }
 
-          activeAction.item.classList.remove("is-dragging");
-          selectItem(activeAction.item);
+          if (activeAction.type === "move" && activeAction.items.length > 1) {
+               moveGroupItemsToDestination(page, activeAction.items.find(({ item }) => item === activeAction.item), activeAction.item.getBoundingClientRect());
+          }
+
+          if (activeAction.type === "move") {
+               activeAction.items.forEach(({ item }) => item.classList.remove("is-dragging"));
+          } else {
+               activeAction.item.classList.remove("is-dragging");
+               selectItem(activeAction.item);
+          }
      } else {
           activeAction.item.classList.remove("is-dragging", "is-resizing");
           selectItem(activeAction.item);
@@ -816,13 +1643,77 @@ function endActiveItem(event) {
      clearDragOver();
 }
 
+function changePlannerSetting() {
+     const pageItems = getPageTemplateItems();
+
+     plannerConfig = buildPlannerConfig();
+     applyPlannerConfig();
+
+     requestAnimationFrame(() => {
+          resizePageTemplateItems(pageItems);
+          notifyTemplateChanged();
+     });
+}
+
 window.perfectPlanner = {
      serializeTemplate: serializePlannerTemplate
 };
 
+applyPlannerConfig();
+paperSelect.addEventListener("change", changePlannerSetting);
+orientationSelect.addEventListener("change", changePlannerSetting);
+gridSelect.addEventListener("change", changePlannerSetting);
+paperColorSelect.addEventListener("change", changePlannerSetting);
+guideInputs.forEach((input) => {
+     input.addEventListener("change", changePlannerSetting);
+});
+settingsTabs.forEach((tab) => {
+     tab.addEventListener("pointerdown", startSidebarMove);
+     tab.addEventListener("click", () => {
+          if (shouldSkipNextTabClick) {
+               shouldSkipNextTabClick = false;
+               return;
+          }
+
+          selectSettingsTab(tab.dataset.settingsTab);
+     });
+});
+plannerSettings.addEventListener("pointerdown", (event) => {
+     if (event.target.closest("[data-settings-tab]")) {
+          return;
+     }
+
+     const resizeMode = getSidebarVerticalResizeMode(event);
+
+     if (resizeMode) {
+          startSidebarResize(event, resizeMode);
+     }
+});
+plannerSettings.addEventListener("pointermove", (event) => {
+     if (activeAction) {
+          return;
+     }
+
+     plannerSettings.classList.toggle("is-resize-ns", Boolean(getSidebarVerticalResizeMode(event)));
+});
+plannerSettings.addEventListener("pointerleave", () => {
+     if (!activeAction) {
+          plannerSettings.classList.remove("is-resize-ns");
+     }
+});
 sourceSticky.addEventListener("pointerdown", startSourceMove);
+plannerDesk.addEventListener("pointerdown", startMarquee);
 document.addEventListener("click", (event) => {
-     if (!event.target.closest(".planner-item")) {
+     if (shouldSkipNextClear) {
+          shouldSkipNextClear = false;
+          return;
+     }
+
+     if (guideDetails && !event.target.closest(".guide-settings")) {
+          guideDetails.removeAttribute("open");
+     }
+
+     if (!event.target.closest(".planner-item") && !event.target.closest(".planner-settings")) {
           clearSelection();
      }
 });
