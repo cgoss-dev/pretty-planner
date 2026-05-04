@@ -7,11 +7,15 @@ const paperSelect = document.querySelector("[data-setting='paper']");
 const orientationSelect = document.querySelector("[data-setting='orientation']");
 const gridSelect = document.querySelector("[data-setting='grid']");
 const paperColorSelect = document.querySelector("[data-setting='paper-color']");
+const deskColorSelect = document.querySelector("[data-setting='desk-color']");
+const settingSelects = Array.from(document.querySelectorAll("[data-setting]"));
 const guideInputs = Array.from(document.querySelectorAll("[data-guide]"));
 const guideDetails = document.querySelector(".guide-settings");
 const guideSummary = document.querySelector(".guide-settings summary");
+const guideToggle = document.querySelector("[data-guide-toggle]");
 const settingsTabs = Array.from(document.querySelectorAll("[data-settings-tab]"));
 const settingsPanels = Array.from(document.querySelectorAll("[data-settings-panel]"));
+let customSelectDetails = [];
 
 const resizeEdgeSize = 12;
 const pageStickDepth = 2;
@@ -84,10 +88,46 @@ const paperColors = {
           color: "#333"
      }
 };
+const deskColors = {
+     "pink": {
+          label: "Pink",
+          color: "var(--mocha-02)",
+          accent: "var(--mocha-12)"
+     },
+     "gray": {
+          label: "Gray",
+          color: "var(--color-gray3)",
+          accent: "var(--color-gray3)"
+     },
+     "black": {
+          label: "Black",
+          color: "var(--color-black)",
+          accent: "var(--color-black)"
+     },
+     "white": {
+          label: "White",
+          color: "#f1ebef",
+          accent: "#f1ebef"
+     },
+     "wood-white": {
+          label: "White Wood",
+          color: "#edece8",
+          accent: "#edece8",
+          image: "url('images/desk/desk-wood-white.png')",
+          size: "cover"
+     },
+     "wood-brown": {
+          label: "Brown Wood",
+          color: "#8d6243",
+          accent: "#8d6243",
+          image: "url('images/desk/desk-wood-brown.png')",
+          size: "cover"
+     }
+};
 const guideLabels = {
-     halves: "Halves",
-     thirds: "Thirds",
-     fourths: "Fourths"
+     halves: "1/2",
+     thirds: "1/3",
+     fourths: "1/4"
 };
 const guideOrder = ["halves", "thirds", "fourths"];
 
@@ -114,6 +154,7 @@ function buildPlannerConfig() {
      const orientation = orientationSelect ? orientationSelect.value : "portrait";
      const gridKey = gridSelect ? gridSelect.value : "quarter-inch";
      const paperColorKey = paperColorSelect ? paperColorSelect.value : "white";
+     const deskColorKey = deskColorSelect ? deskColorSelect.value : "pink";
      const guides = {
           halves: true,
           thirds: true,
@@ -146,10 +187,12 @@ function buildPlannerConfig() {
           paperKey,
           gridKey,
           paperColorKey,
+          deskColorKey,
           orientation,
           guides,
           paper,
           paperColor: paperColors[paperColorKey],
+          deskColor: deskColors[deskColorKey],
           grid,
           pageWidth,
           pageHeight,
@@ -218,6 +261,10 @@ function applyPlannerConfig() {
      setRootNumber("--print-page-height", `${pageHeightInches}in`);
      setRootNumber("--print-spread-width", `${pageWidthInches * 2}in`);
      setRootNumber("--paper", plannerConfig.paperColor.color);
+     setRootNumber("--desk", plannerConfig.deskColor.color);
+     setRootNumber("--desk-accent", plannerConfig.deskColor.accent || plannerConfig.deskColor.color);
+     setRootNumber("--desk-image", plannerConfig.deskColor.image || "none");
+     setRootNumber("--desk-size", plannerConfig.deskColor.size || "auto");
      setRootLength("--half-x", plannerConfig.halfColumn / plannerConfig.gridColumns * 100);
      setRootLength("--half-left-x", plannerConfig.halfLeftColumn / plannerConfig.gridColumns * 100);
      setRootLength("--half-right-x", plannerConfig.halfRightColumn / plannerConfig.gridColumns * 100);
@@ -255,6 +302,7 @@ function applyPlannerConfig() {
 
      document.documentElement.dataset.paper = plannerConfig.paperKey;
      document.documentElement.dataset.paperColor = plannerConfig.paperColorKey;
+     document.documentElement.dataset.deskColor = plannerConfig.deskColorKey;
      document.documentElement.dataset.orientation = plannerConfig.orientation;
      document.documentElement.dataset.grid = plannerConfig.gridKey;
      document.documentElement.dataset.guideHalves = String(plannerConfig.guides.halves);
@@ -269,10 +317,124 @@ function updateGuideSummary() {
      }
 
      const selectedGuides = guideOrder.filter((guide) => plannerConfig.guides[guide]);
+     const hasAllGuides = selectedGuides.length === guideOrder.length;
+     const summaryList = document.createElement("span");
 
-     guideSummary.textContent = selectedGuides.length === guideOrder.length
-          ? "All"
-          : selectedGuides.map((guide) => guideLabels[guide]).join(", ") || "None";
+     summaryList.className = "guide-summary-list";
+     if (selectedGuides.length) {
+          selectedGuides.forEach((guide) => {
+               const option = document.createElement("span");
+               const checkbox = document.createElement("input");
+               const label = document.createElement("span");
+
+               option.className = "guide-summary-option";
+               option.dataset.guideOption = guide;
+               checkbox.type = "checkbox";
+               checkbox.checked = true;
+               checkbox.tabIndex = -1;
+               checkbox.setAttribute("aria-hidden", "true");
+               label.textContent = guideLabels[guide];
+               option.append(checkbox, label);
+               summaryList.append(option);
+          });
+     } else {
+          summaryList.textContent = "None";
+     }
+
+     guideSummary.replaceChildren(summaryList);
+
+     if (guideToggle) {
+          guideToggle.textContent = hasAllGuides ? "None" : "All";
+     }
+}
+
+function updateCustomSelectDisplay(select) {
+     const dropdown = select.nextElementSibling;
+
+     if (!dropdown || !dropdown.classList.contains("custom-select")) {
+          return;
+     }
+
+     const summary = dropdown.querySelector("summary");
+     const selectedOption = select.options[select.selectedIndex];
+
+     summary.textContent = selectedOption ? selectedOption.textContent : "";
+     dropdown.querySelectorAll(".custom-select-option").forEach((option) => {
+          const isSelected = option.dataset.value === select.value;
+
+          option.classList.toggle("is-selected", isSelected);
+          option.setAttribute("aria-selected", String(isSelected));
+     });
+}
+
+function makeCustomSelect(select) {
+     const dropdown = document.createElement("details");
+     const summary = document.createElement("summary");
+     const optionsBox = document.createElement("div");
+
+     select.classList.add("native-select");
+     dropdown.className = "custom-select";
+     dropdown.dataset.customSelect = select.dataset.setting;
+     summary.setAttribute("role", "button");
+     optionsBox.className = "custom-select-options";
+
+     Array.from(select.options).forEach((selectOption) => {
+          const option = document.createElement("button");
+
+          option.className = "custom-select-option";
+          option.type = "button";
+          option.dataset.value = selectOption.value;
+          option.setAttribute("role", "option");
+          option.textContent = selectOption.textContent;
+          option.addEventListener("click", (event) => {
+               event.preventDefault();
+               event.stopPropagation();
+               select.value = selectOption.value;
+               select.dispatchEvent(new Event("change", { bubbles: true }));
+               updateCustomSelectDisplay(select);
+               dropdown.removeAttribute("open");
+          });
+          optionsBox.append(option);
+     });
+
+     dropdown.append(summary, optionsBox);
+     select.after(dropdown);
+     updateCustomSelectDisplay(select);
+
+     return dropdown;
+}
+
+function initializeCustomSelects() {
+     customSelectDetails = settingSelects.map(makeCustomSelect);
+}
+
+function toggleAllGuides() {
+     const shouldSelectAll = guideInputs.some((input) => !input.checked);
+
+     guideInputs.forEach((input) => {
+          input.checked = shouldSelectAll;
+     });
+     changePlannerSetting();
+}
+
+function removeGuideFromSummary(event) {
+     const option = event.target.closest(".guide-summary-option");
+
+     if (!option) {
+          return;
+     }
+
+     const input = guideInputs.find((guideInput) => guideInput.dataset.guide === option.dataset.guideOption);
+
+     event.preventDefault();
+     event.stopPropagation();
+
+     if (!input) {
+          return;
+     }
+
+     input.checked = false;
+     changePlannerSetting();
 }
 
 function selectSettingsTab(tabName) {
@@ -393,6 +555,10 @@ function serializePlannerTemplate() {
                color: plannerConfig.paperColorKey,
                colorLabel: plannerConfig.paperColor.label,
                colorValue: plannerConfig.paperColor.color,
+               deskColor: plannerConfig.deskColorKey,
+               deskColorLabel: plannerConfig.deskColor.label,
+               deskColorValue: plannerConfig.deskColor.color,
+               deskImageValue: plannerConfig.deskColor.image || null,
                widthInches: Number(convertLength(plannerConfig.pageWidth, plannerConfig.grid.unit, "in").toFixed(4)),
                heightInches: Number(convertLength(plannerConfig.pageHeight, plannerConfig.grid.unit, "in").toFixed(4)),
                grid: plannerConfig.gridKey,
@@ -1659,14 +1825,25 @@ window.perfectPlanner = {
      serializeTemplate: serializePlannerTemplate
 };
 
+initializeCustomSelects();
 applyPlannerConfig();
 paperSelect.addEventListener("change", changePlannerSetting);
 orientationSelect.addEventListener("change", changePlannerSetting);
 gridSelect.addEventListener("change", changePlannerSetting);
 paperColorSelect.addEventListener("change", changePlannerSetting);
+deskColorSelect.addEventListener("change", changePlannerSetting);
+settingSelects.forEach((select) => {
+     select.addEventListener("change", () => updateCustomSelectDisplay(select));
+});
 guideInputs.forEach((input) => {
      input.addEventListener("change", changePlannerSetting);
 });
+if (guideToggle) {
+     guideToggle.addEventListener("click", toggleAllGuides);
+}
+if (guideSummary) {
+     guideSummary.addEventListener("click", removeGuideFromSummary);
+}
 settingsTabs.forEach((tab) => {
      tab.addEventListener("pointerdown", startSidebarMove);
      tab.addEventListener("click", () => {
@@ -1712,6 +1889,12 @@ document.addEventListener("click", (event) => {
      if (guideDetails && !event.target.closest(".guide-settings")) {
           guideDetails.removeAttribute("open");
      }
+
+     customSelectDetails.forEach((details) => {
+          if (!details.contains(event.target)) {
+               details.removeAttribute("open");
+          }
+     });
 
      if (!event.target.closest(".planner-item") && !event.target.closest(".planner-settings")) {
           clearSelection();

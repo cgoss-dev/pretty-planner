@@ -59,6 +59,9 @@
      --font-size-sm: clamp(1rem, 1rem, 1rem);
 
      --desk: var(--mocha-02);
+     --desk-accent: var(--mocha-12);
+     --desk-image: none;
+     --desk-size: auto;
      --paper: #fff8fb;
      --paper-shadow: rgba(17, 17, 17, 0.28);
      --dot-grid-color: var(--color-gray3);
@@ -141,9 +144,17 @@ body {
      place-items: center;
      padding: clamp(18px, 4vw, 56px);
      background:
-          radial-gradient(circle at 18% 18%, rgba(245, 194, 231, 0.55), transparent 20%),
-          radial-gradient(circle at 86% 16%, rgba(250, 179, 135, 0.34), transparent 14%),
-          linear-gradient(135deg, var(--mocha-02), var(--mocha-12));
+          var(--desk-image),
+          linear-gradient(135deg, var(--desk), var(--desk-accent));
+     background-size:
+          var(--desk-size),
+          auto;
+     background-position:
+          center,
+          0 0;
+     background-repeat:
+          no-repeat,
+          no-repeat;
 }
 
 .planner-settings {
@@ -269,13 +280,20 @@ body {
      font: 700 var(--font-size-sm) var(--font-noto);
 }
 
+.native-select {
+     display: none;
+}
+
+.custom-select,
 .guide-settings {
      position: relative;
+     gap: 0;
      margin: 0;
      padding: 0;
      border: 0;
 }
 
+.custom-select summary,
 .guide-settings summary {
      display: flex;
      align-items: center;
@@ -295,16 +313,82 @@ body {
      overflow: hidden;
 }
 
+.custom-select summary::-webkit-details-marker,
 .guide-settings summary::-webkit-details-marker {
      display: none;
 }
 
-.guide-settings label {
+.custom-select-options {
+     display: none;
+}
+
+.custom-select[open] {
+     z-index: 6;
+}
+
+.custom-select[open] .custom-select-options {
+     display: grid;
+}
+
+.custom-select-option {
+     min-height: 30px;
+     padding: 5px 8px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-top: 0;
+     background: rgba(255, 255, 255, 0.48);
+     color: var(--color-gray1);
+     cursor: pointer;
+     font: 700 var(--font-size-sm) var(--font-noto);
+     text-align: left;
+}
+
+.custom-select-option:last-child {
+     border-radius: 0 0 6px 6px;
+}
+
+.custom-select-option.is-selected {
+     background: rgba(255, 255, 255, 0.66);
+}
+
+.guide-summary-list {
+     display: flex;
+     align-items: center;
+     gap: 16px;
+     min-width: 0;
+     overflow: hidden;
+}
+
+.guide-summary-option {
+     display: inline-flex;
+     align-items: center;
+     gap: 4px;
+     min-width: 0;
+}
+
+.guide-summary-option input {
+     margin: 0;
+}
+
+.guide-settings label,
+.guide-toggle {
      grid-template-columns: auto auto;
      align-items: center;
      justify-content: start;
      gap: 5px;
      padding: 5px 8px;
+}
+
+.guide-toggle {
+     display: none;
+     width: 100%;
+     border: 0;
+     border-left: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-right: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     background: rgba(255, 255, 255, 0.48);
+     color: var(--color-gray1);
+     cursor: pointer;
+     font: 700 var(--font-size-sm) var(--font-noto);
+     text-align: left;
 }
 
 .guide-settings input {
@@ -315,15 +399,15 @@ body {
      z-index: 6;
 }
 
-.guide-settings[open] label {
+.guide-settings[open] label,
+.guide-settings[open] .guide-toggle {
      display: grid;
-     border-left: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-     border-right: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-top: 0;
      background: rgba(255, 255, 255, 0.48);
 }
 
 .guide-settings[open] label:last-child {
-     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.22);
      border-radius: 0 0 6px 6px;
 }
 
@@ -339,7 +423,8 @@ body {
      accent-color: var(--mocha-08);
 }
 
-.guide-settings:not([open]) label {
+.guide-settings:not([open]) label,
+.guide-settings:not([open]) .guide-toggle {
      display: none;
 }
 
@@ -397,6 +482,7 @@ body {
      position: absolute;
      width: var(--border-sm);
      height: calc(var(--spine-notch-width) * 0.72);
+     border-radius: 999px;
      background:
           linear-gradient(180deg, rgba(17, 17, 17, 0.22), rgba(17, 17, 17, 0.16)),
           linear-gradient(180deg, rgba(102, 102, 102, 0.26), transparent);
