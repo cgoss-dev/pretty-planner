@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfect Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee+Shade&family=Dancing+Script:wght@400..700&display=swap"
+  >
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="planner-desk" aria-labelledby="page-title">
+    <div class="sticky-stack sticky-stack-top" aria-hidden="true"></div>
+    <div class="sticky-stack sticky-stack-bottom" aria-hidden="true"></div>
+    <div class="marker-set" aria-hidden="true">
+      <span class="marker marker-coral"></span>
+      <span class="marker marker-pink"></span>
+      <span class="marker marker-blue"></span>
+    </div>
+
+    <section class="notebook" aria-label="Open Perfect Planner notebook">
+      <div class="page page-left">
+        <p class="eyebrow">Planner workspace</p>
+        <h1 id="page-title">Perfect Planner</h1>
+        <p class="intro">
+          Shape the day, track priorities, and keep plans moving.
+        </p>
+
+        <div class="daily-list" aria-label="Today planning list">
+          <h2>Today</h2>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+
+      <div class="spiral" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <div class="page page-right">
+        <div class="month-header">
+          <p class="eyebrow">Monthly view</p>
+          <h2>May</h2>
+        </div>
+
+        <div class="calendar-grid" aria-label="Monthly planner preview">
+          <span>Mon</span>
+          <span>Tue</span>
+          <span>Wed</span>
+          <span>Thu</span>
+          <span>Fri</span>
+          <span>Sat</span>
+          <span>Sun</span>
+          <b></b>
+          <b></b>
+          <b class="event event-coral"></b>
+          <b></b>
+          <b class="event event-blue"></b>
+          <b></b>
+          <b></b>
+          <b></b>
+          <b class="event event-green"></b>
+          <b></b>
+          <b></b>
+          <b></b>
+          <b class="event event-pink"></b>
+          <b></b>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
