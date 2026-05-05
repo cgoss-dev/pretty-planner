@@ -14,10 +14,12 @@ const guideSummary = document.querySelector(".guide-settings summary");
 const guideToggle = document.querySelector("[data-guide-toggle]");
 const settingsTabs = Array.from(document.querySelectorAll("[data-settings-tab]"));
 const settingsPanels = Array.from(document.querySelectorAll("[data-settings-panel]"));
-const viewZoomButton = document.querySelector("[data-view-zoom]");
-const viewPanButtons = Array.from(document.querySelectorAll("[data-view-pan]"));
-const viewTiltButtons = Array.from(document.querySelectorAll("[data-view-tilt]"));
+const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]"));
+const sidebarSnapControls = document.querySelector(".sidebar-snap-controls");
+const sidebarSnapButtons = Array.from(document.querySelectorAll("[data-sidebar-snap]"));
+const sidebarCollapseButton = document.querySelector("[data-sidebar-collapse]");
 let customSelectDetails = [];
+const singlePageViewportQuery = window.matchMedia("(max-width: 880px)");
 
 const resizeEdgeSize = 12;
 const pageStickDepth = 2;
@@ -66,11 +68,14 @@ const viewZoomLevels = [
           value: 1.5
      }
 ];
+const sidebarSnapPositions = ["left", "center", "right"];
 const viewFocusPoints = ["left", "center", "right"];
 const viewVerticalFocusPoints = ["top", "center", "bottom"];
 let viewZoomIndex = 0;
 let viewFocusIndex = 1;
 let viewVerticalFocusIndex = 1;
+let isSinglePageViewport = singlePageViewportQuery.matches;
+let responsiveViewFrame = 0;
 const paperSizes = {
      "letter": {
           label: "ANSI A Letter",
@@ -306,14 +311,79 @@ function applyViewControls() {
      };
 
      setRootNumber("--view-zoom", zoom.value);
-     setRootNumber("--view-pan-x", pan[focus]);
+     setRootNumber("--view-pan-x", isSinglePageViewport ? "0px" : pan[focus]);
      setRootNumber("--view-pan-y", tilt[verticalFocus]);
 
-     if (viewZoomButton) {
-          viewZoomButton.textContent = zoom.label;
+     syncResponsivePageCenter();
+     updatePageSnapButtons();
+     requestAnimationFrame(refreshPageItemViews);
+}
+
+function syncResponsivePageCenter() {
+     window.cancelAnimationFrame(responsiveViewFrame);
+
+     if (!isSinglePageViewport) {
+          return;
      }
 
-     requestAnimationFrame(refreshPageItemViews);
+     responsiveViewFrame = window.requestAnimationFrame(() => {
+          const page = viewFocusPoints[viewFocusIndex] === "left" ? pages[0] : pages[1];
+
+          if (!page) {
+               return;
+          }
+
+          const pageRect = page.getBoundingClientRect();
+          const deskRect = plannerDesk.getBoundingClientRect();
+          const pageCenter = pageRect.left + pageRect.width / 2;
+          const pageMiddle = pageRect.top + pageRect.height / 2;
+          const deskCenter = deskRect.left + deskRect.width / 2;
+          const deskMiddle = deskRect.top + deskRect.height / 2;
+
+          if (viewFocusIndex !== 1) {
+               setRootNumber("--view-pan-x", `${deskCenter - pageCenter}px`);
+          }
+
+          if (viewVerticalFocusIndex === 1) {
+               setRootNumber("--view-pan-y", `${deskMiddle - pageMiddle}px`);
+          }
+
+          requestAnimationFrame(refreshPageItemViews);
+     });
+}
+
+function getNotebookWidthFormula(pageWidthInches, pageHeightInches) {
+     const spreadRatio = pageWidthInches * 2 / pageHeightInches;
+     const maxViewportWidth = isSinglePageViewport ? 156 : 92;
+
+     return `min(${maxViewportWidth}vw, 1120px, calc((100vh - 112px) * (${spreadRatio})))`;
+}
+
+function applyResponsiveViewMode() {
+     const nextIsSinglePageViewport = singlePageViewportQuery.matches;
+
+     if (nextIsSinglePageViewport === isSinglePageViewport) {
+          if (isSinglePageViewport) {
+               applyViewControls();
+          }
+          return false;
+     }
+
+     isSinglePageViewport = nextIsSinglePageViewport;
+     if (isSinglePageViewport && viewFocusIndex === 1) {
+          viewFocusIndex = 0;
+     } else if (!isSinglePageViewport) {
+          viewFocusIndex = 1;
+     }
+
+     applyPlannerConfig();
+     applyViewControls();
+     return true;
+}
+
+function handleWindowResize() {
+     applyResponsiveViewMode();
+     syncSidebarSnap();
 }
 
 function cycleViewZoom() {
@@ -326,6 +396,33 @@ function moveViewFocus(direction) {
 
      viewFocusIndex = clamp(viewFocusIndex + step, 0, viewFocusPoints.length - 1);
      applyViewControls();
+}
+
+function snapViewToPage(pageSide) {
+     const nextFocusIndex = viewFocusPoints.indexOf(pageSide);
+
+     if (nextFocusIndex === -1 || pageSide === "center") {
+          return;
+     }
+
+     viewFocusIndex = nextFocusIndex;
+     applyViewControls();
+}
+
+function updatePageSnapButtons() {
+     pageSnapButtons.forEach((button) => {
+          const direction = button.dataset.pageSnap;
+
+          button.disabled = direction === "previous" ? viewFocusIndex <= 0 : viewFocusIndex >= viewFocusPoints.length - 1;
+     });
+}
+
+function movePageSnap(direction) {
+     if (direction === "previous") {
+          snapViewToPage("left");
+     } else {
+          snapViewToPage("right");
+     }
 }
 
 function moveViewVerticalFocus(direction) {
@@ -351,7 +448,7 @@ function applyPlannerConfig() {
      setRootNumber("--dot-grid-size-y", `calc(100% / ${plannerConfig.gridRows})`);
      setRootNumber("--notebook-dot-grid-size-x", `calc(50% / ${plannerConfig.gridColumns})`);
      setRootNumber("--notebook-grid-cell-width", `calc(var(--notebook-width) / ${plannerConfig.gridColumns * 2})`);
-     setRootNumber("--notebook-width", `min(78vw, 1120px, calc((100vh - 112px) * (${pageWidthInches * 2} / ${pageHeightInches})))`);
+     setRootNumber("--notebook-width", getNotebookWidthFormula(pageWidthInches, pageHeightInches));
      setRootNumber("--notebook-height", `min(${notebookHeightRatio}vw, 724px, calc(100vh - 112px))`);
      setRootNumber("--source-sticky-size", `calc(var(--notebook-width) * ${sourceStickyRatio / 100})`);
      setRootNumber("--print-page-width", `${pageWidthInches}in`);
@@ -550,6 +647,102 @@ function selectSettingsTab(tabName) {
      if (activeTab) {
           plannerSettings.style.setProperty("--active-settings-color", `var(${activeTab.dataset.tabColor})`);
      }
+}
+
+function openSidebar() {
+     plannerSettings.classList.add("is-open");
+}
+
+function closeSidebar() {
+     plannerSettings.classList.remove("is-open");
+}
+
+function syncSidebarSnap() {
+     const box = getSidebarBox();
+     const bounds = getSidebarHeightBounds();
+     const snapPosition = plannerSettings.dataset.snapPosition || "center";
+     const nextHeight = clamp(box.height, bounds.min, bounds.max);
+
+     setSidebarBox({
+          ...box,
+          y: plannerDesk.getBoundingClientRect().height - nextHeight,
+          centerX: getSidebarSnapCenter(box.width, snapPosition),
+          height: nextHeight
+     });
+     updateSidebarSnapButtons();
+}
+
+function setSidebarSnapControlsBox(box) {
+     if (!sidebarSnapControls) {
+          return;
+     }
+
+     sidebarSnapControls.style.left = `${box.centerX}px`;
+     sidebarSnapControls.style.width = `${box.width}px`;
+}
+
+function updateSidebarSnapButtons() {
+     const snapPosition = plannerSettings.dataset.snapPosition || "center";
+     const snapIndex = sidebarSnapPositions.indexOf(snapPosition);
+
+     sidebarSnapButtons.forEach((button) => {
+          const direction = button.dataset.sidebarSnap;
+          const isDisabled = direction === "previous" ? snapIndex <= 0 : snapIndex >= sidebarSnapPositions.length - 1;
+
+          button.disabled = isDisabled;
+     });
+}
+
+function moveSidebarSnap(direction) {
+     const currentPosition = plannerSettings.dataset.snapPosition || "center";
+     const currentIndex = Math.max(sidebarSnapPositions.indexOf(currentPosition), 0);
+     const delta = direction === "previous" ? -1 : 1;
+     const nextIndex = clamp(currentIndex + delta, 0, sidebarSnapPositions.length - 1);
+     const snapPosition = sidebarSnapPositions[nextIndex];
+     const box = getSidebarBox();
+
+     plannerSettings.dataset.snapPosition = snapPosition;
+     setSidebarBox({
+          ...box,
+          centerX: getSidebarSnapCenter(box.width, snapPosition)
+     });
+     updateSidebarSnapButtons();
+}
+
+function getSidebarSnapCenter(width, snapPosition = plannerSettings.dataset.snapPosition || "center") {
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const snapRatios = {
+          left: 0.1,
+          center: 0.5,
+          right: 0.9
+     };
+     const ratio = snapRatios[snapPosition] || snapRatios.center;
+     const minCenter = width / 2 + 12;
+     const maxCenter = deskRect.width - width / 2 - 12;
+
+     return clamp(deskRect.width * ratio, minCenter, maxCenter);
+}
+
+function getNearestSidebarSnapPosition(centerX) {
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const positions = [
+          {
+               name: "left",
+               center: deskRect.width * 0.1
+          },
+          {
+               name: "center",
+               center: deskRect.width * 0.5
+          },
+          {
+               name: "right",
+               center: deskRect.width * 0.9
+          }
+     ];
+
+     return positions.reduce((nearest, position) => {
+          return Math.abs(position.center - centerX) < Math.abs(nearest.center - centerX) ? position : nearest;
+     }, positions[1]).name;
 }
 
 function getPageId(page) {
@@ -1247,55 +1440,52 @@ function setResizeCursor(item, resizeMode) {
 }
 
 function getSidebarBox() {
-     const rect = getDeskRelativeRect(plannerSettings);
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const rect = plannerSettings.getBoundingClientRect();
+     const width = Number(plannerSettings.dataset.width) || rect.width;
+     const height = Number(plannerSettings.dataset.height) || rect.height;
+     const centerX = Number(plannerSettings.dataset.centerX) || getSidebarSnapCenter(width);
 
      return {
-          x: Number(plannerSettings.dataset.x) || rect.x,
-          y: Number(plannerSettings.dataset.y) || rect.y,
-          width: Number(plannerSettings.dataset.width) || rect.width,
-          height: Number(plannerSettings.dataset.height) || rect.height
+          x: centerX - width / 2,
+          y: deskRect.height - height,
+          centerX,
+          width,
+          height
      };
 }
 
 function setSidebarBox(box) {
-     plannerSettings.dataset.x = String(box.x);
-     plannerSettings.dataset.y = String(box.y);
      plannerSettings.dataset.width = String(box.width);
      plannerSettings.dataset.height = String(box.height);
-     plannerSettings.style.left = `${box.x}px`;
-     plannerSettings.style.top = `${box.y}px`;
+     plannerSettings.dataset.centerX = String(box.centerX);
+     plannerSettings.style.left = `${box.centerX}px`;
      plannerSettings.style.width = `${box.width}px`;
      plannerSettings.style.height = `${box.height}px`;
-     plannerSettings.style.transform = "none";
+     setSidebarSnapControlsBox(box);
 }
 
 function getMovedSidebarBox(clientX, clientY) {
      const deskRect = plannerDesk.getBoundingClientRect();
-     const grid = getDeskGrid();
      const current = activeAction.box;
      const rawX = clientX - deskRect.left - activeAction.offsetX;
-     const rawY = clientY - deskRect.top - activeAction.offsetY;
-     const maxX = deskRect.width - current.width;
-     const maxY = deskRect.height - current.height;
+     const minX = 12;
+     const maxX = deskRect.width - current.width - 12;
+     const x = clamp(rawX, minX, maxX);
 
      return {
           ...current,
-          x: clamp(snapToGridOrigin(rawX, grid.originX, grid.x), 0, maxX),
-          y: clamp(snapToGridOrigin(rawY, grid.originY, grid.y), 0, maxY)
+          x,
+          centerX: x + current.width / 2
      };
 }
 
 function getSidebarVerticalResizeMode(event) {
      const rect = plannerSettings.getBoundingClientRect();
      const isTopEdge = event.clientY >= rect.top - resizeEdgeSize && event.clientY <= rect.top + resizeEdgeSize;
-     const isBottomEdge = event.clientY >= rect.bottom - resizeEdgeSize && event.clientY <= rect.bottom + resizeEdgeSize;
 
      if (isTopEdge) {
           return "top";
-     }
-
-     if (isBottomEdge) {
-          return "bottom";
      }
 
      return "";
@@ -1304,12 +1494,15 @@ function getSidebarVerticalResizeMode(event) {
 function getSidebarHeightBounds() {
      const pageRect = pages[0].getBoundingClientRect();
      const notebookRect = notebook.getBoundingClientRect();
-     const fullHeight = pageRect.height || notebookRect.height;
-     const gridRowHeight = fullHeight / plannerConfig.gridRows;
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const measuredHeight = Math.max(pageRect.height, notebookRect.height);
+     const fullHeight = measuredHeight > 220 ? measuredHeight : deskRect.height * 0.68;
+     const gridRowHeight = Math.max(fullHeight / plannerConfig.gridRows, 8);
+     const maxHeight = Math.min(fullHeight, deskRect.height * 0.78);
 
      return {
-          min: fullHeight / 2,
-          max: fullHeight,
+          min: Math.min(Math.max(fullHeight / 2, 220), maxHeight),
+          max: maxHeight,
           grid: gridRowHeight
      };
 }
@@ -1318,22 +1511,15 @@ function getResizedSidebarBox(clientY) {
      const deskRect = plannerDesk.getBoundingClientRect();
      const current = activeAction.box;
      const bounds = getSidebarHeightBounds();
-     const bottom = current.y + current.height;
+     const bottom = deskRect.height;
      const pointerY = snap(clientY - deskRect.top, bounds.grid);
 
-     if (activeAction.mode === "top") {
-          const nextTop = clamp(pointerY, bottom - bounds.max, bottom - bounds.min);
-
-          return {
-               ...current,
-               y: nextTop,
-               height: bottom - nextTop
-          };
-     }
+     const nextTop = clamp(pointerY, bottom - bounds.max, bottom - bounds.min);
 
      return {
           ...current,
-          height: clamp(snap(pointerY - current.y, bounds.grid), bounds.min, bounds.max)
+          y: nextTop,
+          height: bottom - nextTop
      };
 }
 
@@ -1347,7 +1533,6 @@ function startSidebarMove(event) {
      const box = getSidebarBox();
      const rect = plannerSettings.getBoundingClientRect();
 
-     event.preventDefault();
      setSidebarBox(box);
      activeAction = {
           type: "sidebar-move",
@@ -2060,7 +2245,7 @@ function updateMarqueeSelection(selectionBox) {
 }
 
 function startMarquee(event) {
-     if (event.button !== 0 || event.target.closest(".planner-item, .sticky-note, .planner-settings, .navPad")) {
+     if (event.button !== 0 || event.target.closest(".planner-item, .sticky-note, .planner-settings, .page-snap-controls")) {
           return;
      }
 
@@ -2264,6 +2449,14 @@ function endActiveItem(event) {
           }
 
           if (activeAction.type === "sidebar-move" && activeAction.hasMoved) {
+               const snapPosition = getNearestSidebarSnapPosition(getSidebarBox().centerX);
+               const box = {
+                    ...getSidebarBox(),
+                    centerX: getSidebarSnapCenter(getSidebarBox().width, snapPosition)
+               };
+
+               plannerSettings.dataset.snapPosition = snapPosition;
+               setSidebarBox(box);
                shouldSkipNextTabClick = true;
           }
 
@@ -2333,12 +2526,17 @@ function changePlannerSetting() {
 }
 
 window.perfectPlanner = {
-     serializeTemplate: serializePlannerTemplate
+     serializeTemplate: serializePlannerTemplate,
+     snapViewToPage
 };
 
 initializeCustomSelects();
 applyPlannerConfig();
+if (isSinglePageViewport) {
+     viewFocusIndex = 0;
+}
 applyViewControls();
+syncSidebarSnap();
 paperSelect.addEventListener("change", changePlannerSetting);
 gridSelect.addEventListener("change", changePlannerSetting);
 paperColorSelect.addEventListener("change", changePlannerSetting);
@@ -2355,28 +2553,35 @@ if (guideToggle) {
 if (guideSummary) {
      guideSummary.addEventListener("click", removeGuideFromSummary);
 }
-if (viewZoomButton) {
-     viewZoomButton.addEventListener("click", cycleViewZoom);
-}
-viewPanButtons.forEach((button) => {
-     button.addEventListener("click", () => moveViewFocus(button.dataset.viewPan));
-});
-viewTiltButtons.forEach((button) => {
-     button.addEventListener("click", () => moveViewVerticalFocus(button.dataset.viewTilt));
+pageSnapButtons.forEach((button) => {
+     button.addEventListener("click", () => movePageSnap(button.dataset.pageSnap));
 });
 settingsTabs.forEach((tab) => {
-     tab.addEventListener("pointerdown", startSidebarMove);
-     tab.addEventListener("click", () => {
+     tab.addEventListener("click", (event) => {
           if (shouldSkipNextTabClick) {
                shouldSkipNextTabClick = false;
                return;
           }
 
+          const isActiveTab = tab.getAttribute("aria-selected") === "true";
+
+          if (isActiveTab && plannerSettings.classList.contains("is-open")) {
+               closeSidebar();
+               return;
+          }
+
           selectSettingsTab(tab.dataset.settingsTab);
+          openSidebar();
      });
 });
+sidebarSnapButtons.forEach((button) => {
+     button.addEventListener("click", () => moveSidebarSnap(button.dataset.sidebarSnap));
+});
+if (sidebarCollapseButton) {
+     sidebarCollapseButton.addEventListener("click", closeSidebar);
+}
 plannerSettings.addEventListener("pointerdown", (event) => {
-     if (event.target.closest("[data-settings-tab]")) {
+     if (event.target.closest("[data-settings-tab], [data-sidebar-snap], [data-sidebar-collapse]")) {
           return;
      }
 
@@ -2418,10 +2623,12 @@ document.addEventListener("click", (event) => {
           }
      });
 
-     if (!event.target.closest(".planner-item") && !event.target.closest(".planner-settings") && !event.target.closest(".navPad")) {
+     if (!event.target.closest(".planner-item") && !event.target.closest(".planner-settings") && !event.target.closest(".page-snap-controls")) {
           clearSelection();
      }
 });
 window.addEventListener("pointermove", moveActiveItem);
 window.addEventListener("pointerup", endActiveItem);
 window.addEventListener("pointercancel", endActiveItem);
+window.addEventListener("resize", handleWindowResize);
+singlePageViewportQuery.addEventListener("change", applyResponsiveViewMode);

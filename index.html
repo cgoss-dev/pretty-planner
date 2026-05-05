@@ -14,7 +14,19 @@
 </head>
 <body>
      <main class="planner-desk">
+          <div class="sidebar-snap-controls" aria-label="Settings menu position controls">
+               <button class="sidebar-snap-button sidebar-snap-button-left" type="button" data-sidebar-snap="previous" aria-label="Snap settings menu left">‹</button>
+               <button class="sidebar-snap-button sidebar-snap-button-right" type="button" data-sidebar-snap="next" aria-label="Snap settings menu right">›</button>
+          </div>
+
+          <div class="page-snap-controls" aria-label="Planner page navigation">
+               <button class="page-snap-button page-snap-button-prev" type="button" data-page-snap="previous">Prev Page</button>
+               <button class="page-snap-button page-snap-button-next" type="button" data-page-snap="next">Next Page</button>
+          </div>
+
           <form class="planner-settings" aria-label="Planner page settings">
+               <button class="sidebar-collapse-button" type="button" data-sidebar-collapse aria-label="Minimize settings menu">⌄</button>
+
                <div class="settings-tabs" role="tablist" aria-label="Planner setting tabs">
                     <button class="settings-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="paper-picker-panel" data-settings-tab="paper-picker" data-tab-color="--mocha-11">Paper</button>
                     <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="stickers-panel" data-settings-tab="stickers" data-tab-color="--mocha-05">Stickers</button>
@@ -83,6 +95,7 @@
                               <option value="wood-brown">Brown Wood</option>
                          </select>
                     </label>
+
                </div>
 
                <div class="settings-panel stickers-panel" id="stickers-panel" role="tabpanel" data-settings-panel="stickers" hidden>
@@ -103,17 +116,9 @@
                     <div class="page page-left" data-page></div>
                     <div class="page page-right" data-page></div>
                </section>
-
-               <div class="navPad" aria-label="Planner navigation pad">
-                    <button class="navPad-button navPad-button-up" type="button" data-view-tilt="previous" aria-label="Move view up">⌃</button>
-                    <button class="navPad-button navPad-button-left" type="button" data-view-pan="previous" aria-label="Move view left">‹</button>
-                    <button class="navPad-zoom" type="button" data-view-zoom aria-label="Change zoom">100%</button>
-                    <button class="navPad-button navPad-button-right" type="button" data-view-pan="next" aria-label="Move view right">›</button>
-                    <button class="navPad-button navPad-button-down" type="button" data-view-tilt="next" aria-label="Move view down">⌄</button>
-               </div>
           </div>
      </main>
 
-     <script src="script.js"></script>
+     <script src="script.js?v=page-snap-buttons"></script>
 </body>
 </html>
