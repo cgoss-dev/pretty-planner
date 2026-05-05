@@ -64,6 +64,9 @@
      --desk-size: auto;
      --paper: #fff8fb;
      --paper-shadow: rgba(17, 17, 17, 0.28);
+     --view-zoom: 1;
+     --view-pan-x: 0px;
+     --view-pan-y: 0px;
      --dot-grid-color: var(--color-gray3);
      --dot-grid-size-x: calc(100% / 34);
      --dot-grid-size-y: calc(100% / 44);
@@ -157,9 +160,15 @@ body {
           no-repeat;
 }
 
+.notebook-stage {
+     display: grid;
+     justify-items: center;
+     gap: 18px;
+}
+
 .planner-settings {
      position: absolute;
-     z-index: 5;
+     z-index: 200;
      top: 50%;
      left: var(--side-panel-left);
      width: var(--side-panel-width);
@@ -210,7 +219,7 @@ body {
      --tab-color: var(--mocha-05);
 }
 
-.settings-tab[data-settings-tab="templates"] {
+.settings-tab[data-settings-tab="widgets"] {
      --tab-color: var(--mocha-07);
 }
 
@@ -435,7 +444,81 @@ body {
      aspect-ratio: var(--spread-aspect);
      display: grid;
      grid-template-columns: 1fr 1fr;
+     transform: translate(var(--view-pan-x), var(--view-pan-y)) scale(var(--view-zoom));
+     transform-origin: center center;
      filter: drop-shadow(0 28px 26px var(--paper-shadow));
+}
+
+/* NOTE: navPad */
+
+.navPad {
+     align-self: end;
+     position: relative;
+     z-index: 200;
+     display: grid;
+     grid-template-columns: repeat(3, 34px);
+     grid-template-rows: repeat(3, 34px);
+     justify-content: center;
+     align-content: center;
+     place-items: center;
+     gap: 4px;
+     width: 125px;
+     height: 125px;
+     margin-top: calc(-62px - (var(--notebook-height) * 0.015));
+     padding: 10px;
+     border: var(--border-sm) solid var(--opacity-med);
+     border-radius: 50%;
+     background: var(--opacity-min);
+     box-shadow: 0 12px 22px rgba(17, 17, 17, 0.16);
+     backdrop-filter: blur(3px);
+}
+
+.navPad-button-up {
+     grid-column: 2;
+}
+
+.navPad-button-left {
+     grid-column: 1;
+     grid-row: 2;
+}
+
+.navPad-zoom {
+     grid-column: 2;
+     grid-row: 2;
+}
+
+.navPad-button-right {
+     grid-column: 3;
+     grid-row: 2;
+}
+
+.navPad-button-down {
+     grid-column: 2;
+     grid-row: 3;
+}
+
+.navPad-button,
+.navPad-zoom {
+     display: grid;
+     place-items: center;
+     width: 34px;
+     height: 34px;
+     border: 0;
+     border-radius: 50%;
+     background: var(--opacity-max);
+     color: var(--color-gray1);
+     cursor: pointer;
+     font: 700 var(--font-size-lg) var(--font-noto);
+     transition: transform 140ms ease;
+}
+
+.navPad-button:hover,
+.navPad-zoom:hover {
+     transform: scale(1.1);
+}
+
+.navPad-zoom {
+     font-size: var(--font-size-sm);
 }
 
 .notebook::after {
@@ -693,11 +776,19 @@ body {
      justify-items: start;
 }
 
-.stickers-panel .sticky-note {
+.stickers-panel .sticky-note,
+.widgets-panel .mini-cal-source {
      position: relative;
      top: auto;
      left: auto;
+}
+
+.stickers-panel .sticky-note {
      width: min(var(--source-sticky-size), 100%);
+}
+
+.widgets-panel {
+     justify-items: start;
 }
 
 .planner-item {
@@ -715,35 +806,114 @@ body {
      position: absolute;
      z-index: 4;
      width: calc(var(--dot-grid-size-x) * var(--sticky-grid-units));
-     aspect-ratio: 1;
      box-shadow: 0 8px 16px rgba(17, 17, 17, 0.12);
 }
 
+.planner-item-sticky {
+     aspect-ratio: 1;
+}
+
+/* NOTE: miniCal */
+
+.mini-cal-source {
+     display: grid;
+     place-items: center;
+     width: min(calc(var(--source-sticky-size) * 0.95), 100%);
+     aspect-ratio: 1;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
+     border-radius: 5px;
+     background:
+          repeating-linear-gradient(90deg, transparent 0 calc(12.5% - 1px), rgba(17, 17, 17, 0.14) calc(12.5% - 1px) 12.5%),
+          repeating-linear-gradient(180deg, transparent 0 calc(12.5% - 1px), rgba(17, 17, 17, 0.14) calc(12.5% - 1px) 12.5%),
+          var(--opacity-med);
+     color: var(--color-gray1);
+     cursor: grab;
+     font: 700 var(--font-size-sm) var(--font-noto);
+     touch-action: none;
+}
+
+.planner-item-mini-cal {
+     padding: 0;
+     overflow: hidden;
+     background: var(--sticky-fill, transparent);
+}
+
+.mini-cal {
+     display: grid;
+     width: 100%;
+     height: 100%;
+     grid-template-columns: repeat(8, 1fr);
+     grid-template-rows: repeat(8, 1fr);
+}
+
+.mini-cal:not(.has-week-numbers) {
+     grid-template-columns: repeat(7, 1fr);
+}
+
+.mini-cal-cell {
+     display: grid;
+     place-items: center;
+     min-width: 0;
+     min-height: 0;
+     border-right: var(--border-sm) solid rgba(17, 17, 17, 0.16);
+     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.16);
+     color: var(--color-gray2);
+     font: 700 var(--font-size-sm) var(--font-noto);
+     line-height: 1;
+}
+
+.mini-cal-month {
+     grid-column: 1 / -1;
+     border-right: 0;
+}
+
+.mini-cal:not(.has-week-numbers) .mini-cal-month {
+     grid-column: 1 / -1;
+}
+
+.mini-cal-hidden {
+     display: none;
+}
+
+.mini-cal-edge-right {
+     border-right: 0;
+}
+
+.mini-cal-edge-bottom {
+     border-bottom: 0;
+}
+
+.mini-cal-month,
+.mini-cal-week,
+.mini-cal-day-name {
+     color: var(--color-gray1);
+}
+
 .planner-item.is-dragging {
-     z-index: 8;
+     z-index: 30;
      cursor: grabbing;
-     opacity: 0.86;
+     opacity: var(--translu-med);
 }
 
 .planner-item.is-floating-source {
      position: fixed;
-     z-index: 10;
+     z-index: 35;
      pointer-events: none;
 }
 
 .planner-item.is-snap-ready {
-     outline: var(--border-md) solid rgba(234, 118, 203, 0.68);
+     outline: var(--border-lg) solid rgba(234, 118, 203, 0.68);
      outline-offset: 2px;
 }
 
 .planner-item.is-selected {
-     z-index: 7;
+     z-index: 25;
      outline: var(--border-md) solid rgba(234, 118, 203, 0.72);
      outline-offset: 2px;
 }
 
 .planner-item.is-menu-open {
-     z-index: 12;
+     z-index: 40;
 }
 
 .planner-item:focus {
@@ -778,31 +948,84 @@ body {
 
 .item-controls {
      position: absolute;
-     z-index: 13;
+     z-index: 45;
      right: 0;
      top: 0;
      display: none;
-     min-width: 148px;
+     min-width: 184px;
      transform: translate(calc(100% + 8px), 0);
-     padding: 6px;
-     border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
+     padding: 0;
+     border: 0;
      border-radius: 8px;
-     background: rgba(255, 255, 255, 0.95);
+     background: transparent;
      box-shadow: 0 10px 18px rgba(17, 17, 17, 0.16);
-     gap: 6px;
+     gap: 0;
 }
 
 .item-controls.is-floating {
-     z-index: 100;
+     z-index: 45;
      right: auto;
      width: max-content;
-     min-width: 148px;
+     min-width: 184px;
      display: grid;
      transform: none;
 }
 
 .planner-item.is-menu-open .item-controls {
      display: grid;
+}
+
+.item-control-tabs {
+     display: grid;
+     grid-template-columns: repeat(2, minmax(0, 1fr));
+     align-items: end;
+     overflow: visible;
+}
+
+.item-controls-mini-cal .item-control-tabs {
+     grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.item-control-tab {
+     position: relative;
+     min-width: 0;
+     min-height: 28px;
+     padding: 4px 6px 5px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-radius: 7px 7px 0 0;
+     border-bottom-color: rgba(17, 17, 17, 0.22);
+     background: rgba(255, 255, 255, 0.95);
+     color: var(--color-gray2);
+     cursor: pointer;
+     font: 700 0.78rem var(--font-noto);
+     line-height: 1.1;
+     text-align: center;
+}
+
+.item-control-tab + .item-control-tab {
+     margin-left: -1px;
+}
+
+.item-control-tab.is-active,
+.item-control-tab[aria-selected="true"] {
+     z-index: 1;
+     border-bottom-color: transparent;
+     color: var(--color-gray1);
+}
+
+.item-control-panel {
+     display: grid;
+     gap: 6px;
+     min-width: 184px;
+     padding: 6px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
+     border-top: 0;
+     border-radius: 0 0 8px 8px;
+     background: rgba(255, 255, 255, 0.95);
+}
+
+.item-control-panel[hidden] {
+     display: none;
 }
 
 .item-control,
@@ -844,6 +1067,19 @@ body {
 
 .item-control-row select {
      width: 54px;
+}
+
+.item-widget-control select {
+     width: 86px;
+}
+
+.item-widget-control {
+     display: none;
+}
+
+.planner-item-mini-cal.is-menu-open .item-widget-control,
+.item-controls-mini-cal.is-floating .item-widget-control {
+     display: grid;
 }
 
 .item-control:last-child {

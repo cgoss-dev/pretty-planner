@@ -2,7 +2,7 @@ const pages = Array.from(document.querySelectorAll("[data-page]"));
 const plannerDesk = document.querySelector(".planner-desk");
 const plannerSettings = document.querySelector(".planner-settings");
 const notebook = document.querySelector(".notebook");
-const sourceSticky = document.querySelector("[data-create-item]");
+const sourceItems = Array.from(document.querySelectorAll("[data-create-item]"));
 const paperSelect = document.querySelector("[data-setting='paper']");
 const gridSelect = document.querySelector("[data-setting='grid']");
 const paperColorSelect = document.querySelector("[data-setting='paper-color']");
@@ -14,13 +14,63 @@ const guideSummary = document.querySelector(".guide-settings summary");
 const guideToggle = document.querySelector("[data-guide-toggle]");
 const settingsTabs = Array.from(document.querySelectorAll("[data-settings-tab]"));
 const settingsPanels = Array.from(document.querySelectorAll("[data-settings-panel]"));
+const viewZoomButton = document.querySelector("[data-view-zoom]");
+const viewPanButtons = Array.from(document.querySelectorAll("[data-view-pan]"));
+const viewTiltButtons = Array.from(document.querySelectorAll("[data-view-tilt]"));
 let customSelectDetails = [];
 
 const resizeEdgeSize = 12;
 const pageStickDepth = 2;
 const stickyGridUnits = 12;
+const itemGridUnits = {
+     sticky: {
+          width: 12,
+          height: 12
+     },
+     "mini-cal": {
+          width: 8,
+          height: 8
+     }
+};
 const templateSchemaVersion = 1;
 const inchToCentimeters = 2.54;
+const calendarMonthNames = [
+     "January",
+     "February",
+     "March",
+     "April",
+     "May",
+     "June",
+     "July",
+     "August",
+     "September",
+     "October",
+     "November",
+     "December"
+];
+const calendarYearRange = {
+     start: 2024,
+     end: 2035
+};
+const viewZoomLevels = [
+     {
+          label: "100%",
+          value: 1
+     },
+     {
+          label: "125%",
+          value: 1.25
+     },
+     {
+          label: "150%",
+          value: 1.5
+     }
+];
+const viewFocusPoints = ["left", "center", "right"];
+const viewVerticalFocusPoints = ["top", "center", "bottom"];
+let viewZoomIndex = 0;
+let viewFocusIndex = 1;
+let viewVerticalFocusIndex = 1;
 const paperSizes = {
      "letter": {
           label: "ANSI A Letter",
@@ -223,10 +273,11 @@ function buildPlannerConfig() {
 
 function getGridSize(page) {
      const rect = page.getBoundingClientRect();
+     const viewZoom = getViewZoom();
 
      return {
-          x: rect.width / plannerConfig.gridColumns,
-          y: rect.height / plannerConfig.gridRows
+          x: rect.width / viewZoom / plannerConfig.gridColumns,
+          y: rect.height / viewZoom / plannerConfig.gridRows
      };
 }
 
@@ -236,6 +287,56 @@ function setRootNumber(name, value) {
 
 function setRootLength(name, value) {
      document.documentElement.style.setProperty(name, `${value}%`);
+}
+
+function applyViewControls() {
+     const zoom = viewZoomLevels[viewZoomIndex];
+     const focus = viewFocusPoints[viewFocusIndex];
+     const verticalFocus = viewVerticalFocusPoints[viewVerticalFocusIndex];
+     const panFactor = 0.25 * zoom.value;
+     const pan = {
+          left: `calc(var(--notebook-width) * ${panFactor})`,
+          center: "0px",
+          right: `calc(var(--notebook-width) * -${panFactor})`
+     };
+     const tilt = {
+          top: `calc(var(--notebook-height) * ${panFactor})`,
+          center: "0px",
+          bottom: `calc(var(--notebook-height) * -${panFactor})`
+     };
+
+     setRootNumber("--view-zoom", zoom.value);
+     setRootNumber("--view-pan-x", pan[focus]);
+     setRootNumber("--view-pan-y", tilt[verticalFocus]);
+
+     if (viewZoomButton) {
+          viewZoomButton.textContent = zoom.label;
+     }
+
+     requestAnimationFrame(refreshPageItemViews);
+}
+
+function cycleViewZoom() {
+     viewZoomIndex = (viewZoomIndex + 1) % viewZoomLevels.length;
+     applyViewControls();
+}
+
+function moveViewFocus(direction) {
+     const step = direction === "next" ? 1 : -1;
+
+     viewFocusIndex = clamp(viewFocusIndex + step, 0, viewFocusPoints.length - 1);
+     applyViewControls();
+}
+
+function moveViewVerticalFocus(direction) {
+     const step = direction === "next" ? 1 : -1;
+
+     viewVerticalFocusIndex = clamp(viewVerticalFocusIndex + step, 0, viewVerticalFocusPoints.length - 1);
+     applyViewControls();
+}
+
+function getViewZoom() {
+     return viewZoomLevels[viewZoomIndex].value;
 }
 
 function applyPlannerConfig() {
@@ -515,13 +616,22 @@ function serializePlannerItem(item) {
      const page = getItemPage(item);
      const baseItem = {
           id: item.dataset.templateId,
-          type: "sticky-note",
+          type: item.dataset.itemType || "sticky",
           groupId: item.dataset.groupId || null,
           style: {
                fillColor: item.dataset.fillColor,
                borderColor: item.dataset.borderColor,
                borderWidth: Number(item.dataset.borderWidth)
-          }
+          },
+          widget: item.dataset.itemType === "mini-cal"
+               ? {
+                    weekNumbers: item.dataset.weekNumbers !== "false",
+                    weekStart: item.dataset.weekStart || "sunday",
+                    month: Number(item.dataset.month) || 0,
+                    monthLabel: calendarMonthNames[Number(item.dataset.month) || 0],
+                    year: Number(item.dataset.year) || new Date().getFullYear()
+               }
+               : null
      };
 
      if (page) {
@@ -672,19 +782,32 @@ function getItemBox(item) {
      };
 }
 
+function refreshPageItemViews() {
+     getPlannerItems().forEach((item) => {
+          if (getItemPage(item)) {
+               setItemBox(item, getItemBox(item));
+               positionItemControls(item);
+          }
+     });
+}
+
 function setItemBox(item, box) {
      const page = getItemPage(item);
+     const shouldScaleWithPage = page && item.parentElement === plannerDesk;
+     const viewZoom = shouldScaleWithPage ? getViewZoom() : 1;
 
      item.dataset.x = String(box.x);
      item.dataset.y = String(box.y);
      item.dataset.width = String(box.width);
      item.dataset.height = String(box.height);
-     if (page && item.parentElement === plannerDesk) {
+     item.style.transformOrigin = "top left";
+     item.style.transform = shouldScaleWithPage ? `scale(${viewZoom})` : "";
+     if (shouldScaleWithPage) {
           const deskRect = plannerDesk.getBoundingClientRect();
           const pageRect = page.getBoundingClientRect();
 
-          item.style.left = `${pageRect.left - deskRect.left + box.x}px`;
-          item.style.top = `${pageRect.top - deskRect.top + box.y}px`;
+          item.style.left = `${pageRect.left - deskRect.left + (box.x * viewZoom)}px`;
+          item.style.top = `${pageRect.top - deskRect.top + (box.y * viewZoom)}px`;
      } else {
           item.style.left = `${box.x}px`;
           item.style.top = `${box.y}px`;
@@ -702,11 +825,12 @@ function setItemStyle(item, style) {
      item.style.setProperty("--sticky-border-color", item.dataset.borderColor);
      item.style.setProperty("--sticky-border-size", `${item.dataset.borderWidth}px`);
 
-     const fillInput = item.querySelector("[data-style-control='fill']");
-     const borderColorInput = item.querySelector("[data-style-control='border-color']");
-     const borderWidthSelect = item.querySelector("[data-style-control='border-width']");
+     const controls = getItemControls(item) || item;
+     const fillInput = controls.querySelector("[data-style-control='fill']");
+     const borderColorInput = controls.querySelector("[data-style-control='border-color']");
+     const borderWidthSelect = controls.querySelector("[data-style-control='border-width']");
 
-     if (fillInput) {
+     if (fillInput && item.dataset.fillColor.startsWith("#")) {
           fillInput.value = item.dataset.fillColor;
      }
 
@@ -756,9 +880,10 @@ function hasRequiredGridOverlap(box, page) {
 function getGridSnappedSize(item, page) {
      const grid = getGridSize(page);
      const current = getItemBox(item);
+     const units = getItemGridUnits(item);
      const fallbackSize = {
-          width: grid.x * stickyGridUnits,
-          height: grid.y * stickyGridUnits
+          width: grid.x * units.width,
+          height: grid.y * units.height
      };
 
      if (item.classList.contains("is-floating-source")) {
@@ -769,6 +894,10 @@ function getGridSnappedSize(item, page) {
           width: current.width ? Math.round(current.width / grid.x) * grid.x : fallbackSize.width,
           height: current.height ? Math.round(current.height / grid.y) * grid.y : fallbackSize.height
      };
+}
+
+function getItemGridUnits(item) {
+     return itemGridUnits[item.dataset.itemType] || itemGridUnits.sticky;
 }
 
 function clearDragOver() {
@@ -927,6 +1056,35 @@ function updateGroupButton(button) {
      button.setAttribute("aria-label", isGrouped ? "Ungroup selected sticky notes" : "Group selected sticky notes");
 }
 
+function getActionItems(item) {
+     if (selectedItems.has(item)) {
+          return Array.from(selectedItems);
+     }
+
+     if (item.dataset.groupId) {
+          return getPlannerItems().filter((plannerItem) => plannerItem.dataset.groupId === item.dataset.groupId);
+     }
+
+     return [item];
+}
+
+function applyStyleToActionItems(item, style) {
+     getActionItems(item).forEach((targetItem) => setItemStyle(targetItem, style));
+     notifyTemplateChanged();
+}
+
+function setItemControlsTab(controls, tabName) {
+     controls.querySelectorAll("[data-item-control-tab]").forEach((tab) => {
+          const isActive = tab.dataset.itemControlTab === tabName;
+
+          tab.classList.toggle("is-active", isActive);
+          tab.setAttribute("aria-selected", String(isActive));
+     });
+     controls.querySelectorAll("[data-item-control-panel]").forEach((panel) => {
+          panel.hidden = panel.dataset.itemControlPanel !== tabName;
+     });
+}
+
 function markGridState(item, isOnGrid, page = null) {
      item.classList.toggle("is-on-grid", isOnGrid);
      if (isOnGrid && page) {
@@ -988,16 +1146,17 @@ function getResizeMode(item, event) {
 
 function getMovedBox(item, page, clientX, clientY, offsetX, offsetY, shouldClamp = true) {
      const pageRect = page.getBoundingClientRect();
+     const viewZoom = getViewZoom();
      const grid = getGridSize(page);
      const current = getItemBox(item);
-     const rawX = clientX - pageRect.left - offsetX;
-     const rawY = clientY - pageRect.top - offsetY;
+     const rawX = (clientX - pageRect.left - offsetX) / viewZoom;
+     const rawY = (clientY - pageRect.top - offsetY) / viewZoom;
      const nextX = shouldClamp ? snap(rawX, grid.x) : rawX;
      const nextY = shouldClamp ? snap(rawY, grid.y) : rawY;
      const minX = grid.x * pageStickDepth - current.width;
      const minY = grid.y * pageStickDepth - current.height;
-     const maxX = pageRect.width - grid.x * pageStickDepth;
-     const maxY = pageRect.height - grid.y * pageStickDepth;
+     const maxX = (pageRect.width / viewZoom) - grid.x * pageStickDepth;
+     const maxY = (pageRect.height / viewZoom) - grid.y * pageStickDepth;
 
      return {
           ...current,
@@ -1035,17 +1194,18 @@ function getResizedBox(item, page, clientX, clientY, mode) {
      }
 
      const pageRect = page.getBoundingClientRect();
+     const viewZoom = getViewZoom();
      const grid = getGridSize(page);
      const minWidth = grid.x * 2;
      const minHeight = grid.y * 2;
      const right = current.x + current.width;
      const bottom = current.y + current.height;
-     const pointerX = snap(clientX - pageRect.left, grid.x);
-     const pointerY = snap(clientY - pageRect.top, grid.y);
+     const pointerX = snap((clientX - pageRect.left) / viewZoom, grid.x);
+     const pointerY = snap((clientY - pageRect.top) / viewZoom, grid.y);
      const nextLeft = resizeLeft ? clamp(pointerX, grid.x * pageStickDepth - current.width, right - minWidth) : current.x;
      const nextTop = resizeTop ? clamp(pointerY, grid.y * pageStickDepth - current.height, bottom - minHeight) : current.y;
-     const nextRight = resizeRight ? clamp(pointerX, current.x + minWidth, pageRect.width - grid.x * pageStickDepth + current.width) : right;
-     const nextBottom = resizeBottom ? clamp(pointerY, current.y + minHeight, pageRect.height - grid.y * pageStickDepth + current.height) : bottom;
+     const nextRight = resizeRight ? clamp(pointerX, current.x + minWidth, (pageRect.width / viewZoom) - grid.x * pageStickDepth + current.width) : right;
+     const nextBottom = resizeBottom ? clamp(pointerY, current.y + minHeight, (pageRect.height / viewZoom) - grid.y * pageStickDepth + current.height) : bottom;
 
      return {
           ...current,
@@ -1237,10 +1397,157 @@ function updateItemSizeLabel(item) {
      label.textContent = `${width} x ${height}`;
 }
 
-function makePlannerItem() {
+function getWeekStartDate(date, weekStart) {
+     const nextDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+     const offset = weekStart === "monday"
+          ? (nextDate.getDay() + 6) % 7
+          : nextDate.getDay();
+
+     nextDate.setDate(nextDate.getDate() - offset);
+     return nextDate;
+}
+
+function getCalendarWeekNumber(date, weekStart) {
+     if (weekStart === "monday") {
+          const nextDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+          const day = nextDate.getDay() || 7;
+
+          nextDate.setDate(nextDate.getDate() + 4 - day);
+
+          const yearStart = new Date(nextDate.getFullYear(), 0, 1);
+
+          return Math.ceil((((nextDate - yearStart) / 86400000) + 1) / 7);
+     }
+
+     const weekStartDate = getWeekStartDate(date, weekStart);
+     const yearStart = getWeekStartDate(new Date(weekStartDate.getFullYear(), 0, 1), weekStart);
+
+     return Math.floor((weekStartDate - yearStart) / 604800000) + 1;
+}
+
+function renderMiniCal(item) {
+     let calendar = item.querySelector(".mini-cal");
+     const weekNumbersEnabled = item.dataset.weekNumbers !== "false";
+     const weekStart = item.dataset.weekStart || "sunday";
+     const month = Number(item.dataset.month) || 0;
+     const year = Number(item.dataset.year) || new Date().getFullYear();
+     const firstDay = new Date(year, month, 1);
+     const daysInMonth = new Date(year, month + 1, 0).getDate();
+     const firstDayOffset = weekStart === "monday"
+          ? (firstDay.getDay() + 6) % 7
+          : firstDay.getDay();
+     const dayLabels = weekStart === "monday"
+          ? ["M", "T", "W", "T", "F", "S", "S"]
+          : ["S", "M", "T", "W", "T", "F", "S"];
+     const weekendIndexes = weekStart === "monday" ? [5, 6] : [0, 6];
+
+     if (!calendar) {
+          calendar = document.createElement("div");
+          calendar.className = "mini-cal";
+          item.append(calendar);
+     }
+
+     calendar.replaceChildren();
+     calendar.classList.toggle("has-week-numbers", weekNumbersEnabled);
+     for (let row = 0; row < 8; row += 1) {
+          for (let column = 0; column < 8; column += 1) {
+               const cell = document.createElement("span");
+               const dayIndex = column - 1;
+
+               cell.className = "mini-cal-cell";
+               if (!weekNumbersEnabled && column === 0) {
+                    cell.classList.add("mini-cal-hidden");
+                    cell.setAttribute("aria-hidden", "true");
+                    calendar.append(cell);
+                    continue;
+               }
+
+               if (row === 0) {
+                    if ((weekNumbersEnabled && column === 0) || (!weekNumbersEnabled && column === 1)) {
+                         cell.classList.add("mini-cal-month");
+                         cell.textContent = `${calendarMonthNames[month]} ${year}`;
+                    } else {
+                         cell.classList.add("mini-cal-hidden");
+                         cell.setAttribute("aria-hidden", "true");
+                    }
+               } else if (column === 0) {
+                    cell.classList.add("mini-cal-week");
+                    if (row === 1) {
+                         cell.textContent = "#";
+                    } else {
+                         const weekDate = new Date(year, month, 1 - firstDayOffset + ((row - 2) * 7));
+
+                         cell.textContent = String(getCalendarWeekNumber(weekDate, weekStart));
+                    }
+               } else if (row === 1) {
+                    cell.classList.add("mini-cal-day-name");
+                    cell.textContent = dayLabels[dayIndex];
+                    if (weekendIndexes.includes(dayIndex)) {
+                         cell.classList.add("mini-cal-weekend");
+                    }
+               } else {
+                    const dayNumber = ((row - 2) * 7) + column - firstDayOffset;
+
+                    if (weekendIndexes.includes(dayIndex)) {
+                         cell.classList.add("mini-cal-weekend");
+                    }
+                    cell.textContent = dayNumber >= 1 && dayNumber <= daysInMonth ? String(dayNumber) : "";
+               }
+               if (column === 7) {
+                    cell.classList.add("mini-cal-edge-right");
+               }
+               if (row === 7) {
+                    cell.classList.add("mini-cal-edge-bottom");
+               }
+
+               calendar.append(cell);
+          }
+     }
+}
+
+function setMiniCalSettings(item, settings = {}) {
+     const today = new Date();
+
+     item.dataset.weekNumbers = settings.weekNumbers || item.dataset.weekNumbers || "true";
+     item.dataset.weekStart = settings.weekStart || item.dataset.weekStart || "sunday";
+     item.dataset.month = settings.month || item.dataset.month || String(today.getMonth());
+     item.dataset.year = settings.year || item.dataset.year || String(today.getFullYear());
+     renderMiniCal(item);
+
+     const controls = getItemControls(item) || item;
+     const weekNumberInput = controls.querySelector("[data-widget-control='week-numbers']");
+     const weekStartSelect = controls.querySelector("[data-widget-control='week-start']");
+     const monthSelect = controls.querySelector("[data-widget-control='month']");
+     const yearSelect = controls.querySelector("[data-widget-control='year']");
+
+     if (weekNumberInput) {
+          weekNumberInput.checked = item.dataset.weekNumbers !== "false";
+     }
+
+     if (weekStartSelect) {
+          weekStartSelect.value = item.dataset.weekStart;
+     }
+
+     if (monthSelect) {
+          monthSelect.value = item.dataset.month;
+     }
+
+     if (yearSelect) {
+          yearSelect.value = item.dataset.year;
+     }
+}
+
+function makePlannerItem(type = "sticky") {
      const item = document.createElement("div");
      const sizeLabel = document.createElement("span");
      const controls = document.createElement("div");
+     const controlTabs = document.createElement("div");
+     const actionsTab = document.createElement("button");
+     const styleTab = document.createElement("button");
+     const widgetTab = document.createElement("button");
+     const actionsPanel = document.createElement("div");
+     const stylePanel = document.createElement("div");
+     const widgetPanel = document.createElement("div");
      const duplicateButton = document.createElement("button");
      const groupButton = document.createElement("button");
      const fillLabel = document.createElement("label");
@@ -1249,20 +1556,55 @@ function makePlannerItem() {
      const borderColorInput = document.createElement("input");
      const borderWidthLabel = document.createElement("label");
      const borderWidthSelect = document.createElement("select");
+     const weekNumberLabel = document.createElement("label");
+     const weekNumberInput = document.createElement("input");
+     const weekStartLabel = document.createElement("label");
+     const weekStartSelect = document.createElement("select");
+     const monthLabel = document.createElement("label");
+     const monthSelect = document.createElement("select");
+     const yearLabel = document.createElement("label");
+     const yearSelect = document.createElement("select");
      const deleteButton = document.createElement("button");
 
-     item.className = "planner-item";
-     item.dataset.templateId = `sticky-${nextTemplateItemId}`;
+     item.className = `planner-item planner-item-${type}`;
+     item.dataset.itemType = type;
+     item.dataset.templateId = `${type}-${nextTemplateItemId}`;
      nextTemplateItemId += 1;
      item.tabIndex = 0;
      item.setAttribute("role", "button");
-     item.setAttribute("aria-label", "Sticky note");
+     item.setAttribute("aria-label", type === "mini-cal" ? "Mini calendar widget" : "Sticky note");
 
      sizeLabel.className = "item-size-label";
      sizeLabel.setAttribute("aria-hidden", "true");
-     controls.className = "item-controls";
+     controls.className = `item-controls item-controls-${type}`;
      controls.dataset.ownerId = item.dataset.templateId;
      controls.setAttribute("role", "menu");
+     controlTabs.className = "item-control-tabs";
+     controlTabs.setAttribute("role", "tablist");
+     actionsTab.className = "item-control-tab";
+     actionsTab.type = "button";
+     actionsTab.textContent = "Actions";
+     actionsTab.dataset.itemControlTab = "actions";
+     actionsTab.setAttribute("role", "tab");
+     styleTab.className = "item-control-tab";
+     styleTab.type = "button";
+     styleTab.textContent = "Style";
+     styleTab.dataset.itemControlTab = "style";
+     styleTab.setAttribute("role", "tab");
+     widgetTab.className = "item-control-tab";
+     widgetTab.type = "button";
+     widgetTab.textContent = "Widget";
+     widgetTab.dataset.itemControlTab = "widget";
+     widgetTab.setAttribute("role", "tab");
+     actionsPanel.className = "item-control-panel";
+     actionsPanel.dataset.itemControlPanel = "actions";
+     actionsPanel.setAttribute("role", "tabpanel");
+     stylePanel.className = "item-control-panel";
+     stylePanel.dataset.itemControlPanel = "style";
+     stylePanel.setAttribute("role", "tabpanel");
+     widgetPanel.className = "item-control-panel item-widget-panel";
+     widgetPanel.dataset.itemControlPanel = "widget";
+     widgetPanel.setAttribute("role", "tabpanel");
      duplicateButton.className = "item-control";
      duplicateButton.type = "button";
      duplicateButton.textContent = "Duplicate";
@@ -1274,7 +1616,7 @@ function makePlannerItem() {
      fillLabel.className = "item-control-row";
      fillLabel.textContent = "Fill";
      fillInput.type = "color";
-     fillInput.value = "#f9e2af";
+     fillInput.value = type === "mini-cal" ? "#ffffff" : "#f9e2af";
      fillInput.dataset.styleControl = "fill";
      fillInput.setAttribute("aria-label", "Sticky note fill color");
      borderColorLabel.className = "item-control-row";
@@ -1297,18 +1639,72 @@ function makePlannerItem() {
      deleteButton.className = "item-control";
      deleteButton.type = "button";
      deleteButton.textContent = "Delete";
-     deleteButton.setAttribute("aria-label", "Delete sticky note");
+     deleteButton.setAttribute("aria-label", "Delete planner item");
+     weekNumberLabel.className = "item-control-row item-widget-control";
+     weekNumberLabel.textContent = "Week #";
+     weekNumberInput.type = "checkbox";
+     weekNumberInput.checked = true;
+     weekNumberInput.dataset.widgetControl = "week-numbers";
+     weekNumberInput.setAttribute("aria-label", "Show week numbers");
+     weekStartLabel.className = "item-control-row item-widget-control";
+     weekStartLabel.textContent = "Week start";
+     weekStartSelect.dataset.widgetControl = "week-start";
+     weekStartSelect.setAttribute("aria-label", "Calendar week start");
+     ["sunday", "monday"].forEach((value) => {
+          const option = document.createElement("option");
+
+          option.value = value;
+          option.textContent = value[0].toUpperCase() + value.slice(1);
+          weekStartSelect.append(option);
+     });
+     monthLabel.className = "item-control-row item-widget-control";
+     monthLabel.textContent = "Month";
+     monthSelect.dataset.widgetControl = "month";
+     monthSelect.setAttribute("aria-label", "Calendar month");
+     calendarMonthNames.forEach((monthName, index) => {
+          const option = document.createElement("option");
+
+          option.value = String(index);
+          option.textContent = monthName;
+          monthSelect.append(option);
+     });
+     yearLabel.className = "item-control-row item-widget-control";
+     yearLabel.textContent = "Year";
+     yearSelect.dataset.widgetControl = "year";
+     yearSelect.setAttribute("aria-label", "Calendar year");
+     for (let year = calendarYearRange.start; year <= calendarYearRange.end; year += 1) {
+          const option = document.createElement("option");
+
+          option.value = String(year);
+          option.textContent = String(year);
+          yearSelect.append(option);
+     }
 
      fillLabel.append(fillInput);
      borderColorLabel.append(borderColorInput);
      borderWidthLabel.append(borderWidthSelect);
-     controls.append(duplicateButton, groupButton, fillLabel, borderColorLabel, borderWidthLabel, deleteButton);
+     weekNumberLabel.append(weekNumberInput);
+     weekStartLabel.append(weekStartSelect);
+     monthLabel.append(monthSelect);
+     yearLabel.append(yearSelect);
+     controlTabs.append(actionsTab, styleTab);
+     actionsPanel.append(duplicateButton, groupButton, deleteButton);
+     stylePanel.append(fillLabel, borderColorLabel, borderWidthLabel);
+     widgetPanel.append(monthLabel, yearLabel, weekNumberLabel, weekStartLabel);
+     if (type === "mini-cal") {
+          controlTabs.append(widgetTab);
+     }
+     controls.append(controlTabs, actionsPanel, stylePanel, widgetPanel);
+     setItemControlsTab(controls, "actions");
      item.append(sizeLabel, controls);
      setItemStyle(item, {
-          fillColor: fillInput.value,
+          fillColor: type === "mini-cal" ? "transparent" : fillInput.value,
           borderColor: borderColorInput.value,
           borderWidth: borderWidthSelect.value
      });
+     if (type === "mini-cal") {
+          setMiniCalSettings(item);
+     }
 
      item.addEventListener("pointerdown", (event) => {
           if (event.target.closest(".item-controls")) {
@@ -1363,6 +1759,9 @@ function makePlannerItem() {
      });
      controls.addEventListener("pointerdown", (event) => event.stopPropagation());
      controls.addEventListener("click", (event) => event.stopPropagation());
+     controls.querySelectorAll("[data-item-control-tab]").forEach((tab) => {
+          tab.addEventListener("click", () => setItemControlsTab(controls, tab.dataset.itemControlTab));
+     });
      duplicateButton.addEventListener("click", (event) => {
           event.stopPropagation();
           duplicateItem(item);
@@ -1377,20 +1776,41 @@ function makePlannerItem() {
           updateGroupButton(groupButton);
      });
      fillInput.addEventListener("input", () => {
-          setItemStyle(item, {
+          applyStyleToActionItems(item, {
                fillColor: fillInput.value
           });
-          notifyTemplateChanged();
      });
      borderColorInput.addEventListener("input", () => {
-          setItemStyle(item, {
+          applyStyleToActionItems(item, {
                borderColor: borderColorInput.value
+          });
+     });
+     borderWidthSelect.addEventListener("change", () => {
+          applyStyleToActionItems(item, {
+               borderWidth: borderWidthSelect.value
+          });
+     });
+     weekNumberInput.addEventListener("change", () => {
+          setMiniCalSettings(item, {
+               weekNumbers: weekNumberInput.checked ? "true" : "false"
           });
           notifyTemplateChanged();
      });
-     borderWidthSelect.addEventListener("change", () => {
-          setItemStyle(item, {
-               borderWidth: borderWidthSelect.value
+     weekStartSelect.addEventListener("change", () => {
+          setMiniCalSettings(item, {
+               weekStart: weekStartSelect.value
+          });
+          notifyTemplateChanged();
+     });
+     monthSelect.addEventListener("change", () => {
+          setMiniCalSettings(item, {
+               month: monthSelect.value
+          });
+          notifyTemplateChanged();
+     });
+     yearSelect.addEventListener("change", () => {
+          setMiniCalSettings(item, {
+               year: yearSelect.value
           });
           notifyTemplateChanged();
      });
@@ -1420,15 +1840,34 @@ function addItemToPage(page, x = 4, y = 4) {
      return item;
 }
 
+function copyItemConfiguration(source, target) {
+     setItemStyle(target, {
+          fillColor: source.dataset.fillColor,
+          borderColor: source.dataset.borderColor,
+          borderWidth: source.dataset.borderWidth
+     });
+     if (source.dataset.itemType === "mini-cal") {
+          setMiniCalSettings(target, {
+               weekNumbers: source.dataset.weekNumbers,
+               weekStart: source.dataset.weekStart,
+               month: source.dataset.month,
+               year: source.dataset.year
+          });
+     }
+}
+
 function duplicateItem(item) {
-     if (selectedItems.size > 1 && selectedItems.has(item)) {
+     const actionItems = getActionItems(item);
+
+     if (actionItems.length > 1) {
+          selectItems(actionItems);
           duplicateSelectedItems();
           return;
      }
 
      const page = getItemPage(item);
      const box = getItemBox(item);
-     const duplicate = makePlannerItem();
+     const duplicate = makePlannerItem(item.dataset.itemType || "sticky");
      const parent = plannerDesk;
      const nextBox = page
           ? {
@@ -1443,11 +1882,7 @@ function duplicateItem(item) {
           };
 
      parent.append(duplicate);
-     setItemStyle(duplicate, {
-          fillColor: item.dataset.fillColor,
-          borderColor: item.dataset.borderColor,
-          borderWidth: item.dataset.borderWidth
-     });
+     copyItemConfiguration(item, duplicate);
      markGridState(duplicate, Boolean(page), page);
      setItemBox(duplicate, nextBox);
      selectItem(duplicate);
@@ -1461,7 +1896,7 @@ function duplicateSelectedItems() {
      selectedItems.forEach((item) => {
           const page = getItemPage(item);
           const box = getItemBox(item);
-          const duplicate = makePlannerItem();
+          const duplicate = makePlannerItem(item.dataset.itemType || "sticky");
           const parent = plannerDesk;
           const offset = page ? getGridSize(page).x : 16;
           const nextBox = page
@@ -1477,11 +1912,7 @@ function duplicateSelectedItems() {
                };
 
           parent.append(duplicate);
-          setItemStyle(duplicate, {
-               fillColor: item.dataset.fillColor,
-               borderColor: item.dataset.borderColor,
-               borderWidth: item.dataset.borderWidth
-          });
+          copyItemConfiguration(item, duplicate);
           markGridState(duplicate, Boolean(page), page);
           setItemBox(duplicate, nextBox);
 
@@ -1502,9 +1933,13 @@ function duplicateSelectedItems() {
 }
 
 function deleteItem(item) {
-     selectedItems.delete(item);
-     closeItemMenu(item);
-     item.remove();
+     const actionItems = getActionItems(item);
+
+     actionItems.forEach((targetItem) => {
+          selectedItems.delete(targetItem);
+          closeItemMenu(targetItem);
+          targetItem.remove();
+     });
      selectedItem = selectedItems.size ? Array.from(selectedItems).at(-1) : null;
      notifyTemplateChanged();
 }
@@ -1555,6 +1990,7 @@ function moveGroupItemsToDestination(destinationPage, activeStart, activeFinalRe
      const deltaLeft = activeFinalRect.left - activeStart.rect.left;
      const deltaTop = activeFinalRect.top - activeStart.rect.top;
      const destinationRect = destinationPage ? destinationPage.getBoundingClientRect() : plannerDesk.getBoundingClientRect();
+     const viewZoom = destinationPage ? getViewZoom() : 1;
 
      activeAction.items.forEach(({ item, rect }) => {
           if (item === activeAction.item) {
@@ -1566,8 +2002,8 @@ function moveGroupItemsToDestination(destinationPage, activeStart, activeFinalRe
           const current = getItemBox(item);
           const nextBox = {
                ...current,
-               x: nextLeft - destinationRect.left,
-               y: nextTop - destinationRect.top
+               x: (nextLeft - destinationRect.left) / viewZoom,
+               y: (nextTop - destinationRect.top) / viewZoom
           };
 
           if (destinationPage) {
@@ -1624,7 +2060,7 @@ function updateMarqueeSelection(selectionBox) {
 }
 
 function startMarquee(event) {
-     if (event.button !== 0 || event.target.closest(".planner-item, .sticky-note, .planner-settings")) {
+     if (event.button !== 0 || event.target.closest(".planner-item, .sticky-note, .planner-settings, .navPad")) {
           return;
      }
 
@@ -1686,8 +2122,9 @@ function startMove(item, event) {
 }
 
 function startSourceMove(event) {
-     const item = makePlannerItem();
-     const sourceRect = sourceSticky.getBoundingClientRect();
+     const source = event.currentTarget;
+     const item = makePlannerItem(source.dataset.createType || "sticky");
+     const sourceRect = source.getBoundingClientRect();
      const offsetX = event.clientX - sourceRect.left;
      const offsetY = event.clientY - sourceRect.top;
 
@@ -1901,6 +2338,7 @@ window.perfectPlanner = {
 
 initializeCustomSelects();
 applyPlannerConfig();
+applyViewControls();
 paperSelect.addEventListener("change", changePlannerSetting);
 gridSelect.addEventListener("change", changePlannerSetting);
 paperColorSelect.addEventListener("change", changePlannerSetting);
@@ -1917,6 +2355,15 @@ if (guideToggle) {
 if (guideSummary) {
      guideSummary.addEventListener("click", removeGuideFromSummary);
 }
+if (viewZoomButton) {
+     viewZoomButton.addEventListener("click", cycleViewZoom);
+}
+viewPanButtons.forEach((button) => {
+     button.addEventListener("click", () => moveViewFocus(button.dataset.viewPan));
+});
+viewTiltButtons.forEach((button) => {
+     button.addEventListener("click", () => moveViewVerticalFocus(button.dataset.viewTilt));
+});
 settingsTabs.forEach((tab) => {
      tab.addEventListener("pointerdown", startSidebarMove);
      tab.addEventListener("click", () => {
@@ -1951,7 +2398,9 @@ plannerSettings.addEventListener("pointerleave", () => {
           plannerSettings.classList.remove("is-resize-ns");
      }
 });
-sourceSticky.addEventListener("pointerdown", startSourceMove);
+sourceItems.forEach((sourceItem) => {
+     sourceItem.addEventListener("pointerdown", startSourceMove);
+});
 plannerDesk.addEventListener("pointerdown", startMarquee);
 document.addEventListener("click", (event) => {
      if (shouldSkipNextClear) {
@@ -1969,7 +2418,7 @@ document.addEventListener("click", (event) => {
           }
      });
 
-     if (!event.target.closest(".planner-item") && !event.target.closest(".planner-settings")) {
+     if (!event.target.closest(".planner-item") && !event.target.closest(".planner-settings") && !event.target.closest(".navPad")) {
           clearSelection();
      }
 });

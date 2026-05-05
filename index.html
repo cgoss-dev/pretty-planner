@@ -18,7 +18,7 @@
                <div class="settings-tabs" role="tablist" aria-label="Planner setting tabs">
                     <button class="settings-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="paper-picker-panel" data-settings-tab="paper-picker" data-tab-color="--mocha-11">Paper</button>
                     <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="stickers-panel" data-settings-tab="stickers" data-tab-color="--mocha-05">Stickers</button>
-                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="templates-panel" data-settings-tab="templates" data-tab-color="--mocha-07">Templates</button>
+                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="widgets-panel" data-settings-tab="widgets" data-tab-color="--mocha-07">Widgets</button>
                </div>
 
                <div class="settings-panel" id="paper-picker-panel" role="tabpanel" data-settings-panel="paper-picker">
@@ -86,18 +86,32 @@
                </div>
 
                <div class="settings-panel stickers-panel" id="stickers-panel" role="tabpanel" data-settings-panel="stickers" hidden>
-                    <button class="sticky-note" type="button" data-create-item aria-label="Add sticky note"></button>
+                    <button class="sticky-note" type="button" data-create-item data-create-type="sticky" aria-label="Add sticky note"></button>
                </div>
 
-               <div class="settings-panel" id="templates-panel" role="tabpanel" data-settings-panel="templates" hidden></div>
+               <div class="settings-panel widgets-panel" id="widgets-panel" role="tabpanel" data-settings-panel="widgets" hidden>
+                    <button class="mini-cal-source" type="button" data-create-item data-create-type="mini-cal" aria-label="Add mini calendar widget">
+                         <span>miniCal</span>
+                    </button>
+               </div>
           </form>
 
-          <section class="notebook" aria-label="Open Perfect Planner notebook">
-               <span class="notebook-spine-edge notebook-spine-edge-top" aria-hidden="true"></span>
-               <span class="notebook-spine-edge notebook-spine-edge-bottom" aria-hidden="true"></span>
-               <div class="page page-left" data-page></div>
-               <div class="page page-right" data-page></div>
-          </section>
+          <div class="notebook-stage">
+               <section class="notebook" aria-label="Open Perfect Planner notebook">
+                    <span class="notebook-spine-edge notebook-spine-edge-top" aria-hidden="true"></span>
+                    <span class="notebook-spine-edge notebook-spine-edge-bottom" aria-hidden="true"></span>
+                    <div class="page page-left" data-page></div>
+                    <div class="page page-right" data-page></div>
+               </section>
+
+               <div class="navPad" aria-label="Planner navigation pad">
+                    <button class="navPad-button navPad-button-up" type="button" data-view-tilt="previous" aria-label="Move view up">⌃</button>
+                    <button class="navPad-button navPad-button-left" type="button" data-view-pan="previous" aria-label="Move view left">‹</button>
+                    <button class="navPad-zoom" type="button" data-view-zoom aria-label="Change zoom">100%</button>
+                    <button class="navPad-button navPad-button-right" type="button" data-view-pan="next" aria-label="Move view right">›</button>
+                    <button class="navPad-button navPad-button-down" type="button" data-view-tilt="next" aria-label="Move view down">⌄</button>
+               </div>
+          </div>
      </main>
 
      <script src="script.js"></script>
