@@ -15,9 +15,8 @@ const guideToggle = document.querySelector("[data-guide-toggle]");
 const settingsTabs = Array.from(document.querySelectorAll("[data-settings-tab]"));
 const settingsPanels = Array.from(document.querySelectorAll("[data-settings-panel]"));
 const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]"));
-const sidebarSnapControls = document.querySelector(".sidebar-snap-controls");
-const sidebarSnapButtons = Array.from(document.querySelectorAll("[data-sidebar-snap]"));
 const sidebarCollapseButton = document.querySelector("[data-sidebar-collapse]");
+const zoomToast = document.querySelector("[data-zoom-toast]");
 let customSelectDetails = [];
 const singlePageViewportQuery = window.matchMedia("(max-width: 880px)");
 
@@ -66,9 +65,16 @@ const viewZoomLevels = [
      {
           label: "150%",
           value: 1.5
+     },
+     {
+          label: "175%",
+          value: 1.75
+     },
+     {
+          label: "200%",
+          value: 2
      }
 ];
-const sidebarSnapPositions = ["left", "center", "right"];
 const viewFocusPoints = ["left", "center", "right"];
 const viewVerticalFocusPoints = ["top", "center", "bottom"];
 let viewZoomIndex = 0;
@@ -76,6 +82,10 @@ let viewFocusIndex = 1;
 let viewVerticalFocusIndex = 1;
 let isSinglePageViewport = singlePageViewportQuery.matches;
 let responsiveViewFrame = 0;
+let wheelZoomDelta = 0;
+let zoomToastTimer = 0;
+let viewPanOffsetX = 0;
+let viewPanOffsetY = 0;
 const paperSizes = {
      "letter": {
           label: "ANSI A Letter",
@@ -294,58 +304,60 @@ function setRootLength(name, value) {
      document.documentElement.style.setProperty(name, `${value}%`);
 }
 
-function applyViewControls() {
+function applyViewControls(zoomAnchor = null) {
      const zoom = viewZoomLevels[viewZoomIndex];
-     const focus = viewFocusPoints[viewFocusIndex];
-     const verticalFocus = viewVerticalFocusPoints[viewVerticalFocusIndex];
-     const panFactor = 0.25 * zoom.value;
-     const pan = {
-          left: `calc(var(--notebook-width) * ${panFactor})`,
-          center: "0px",
-          right: `calc(var(--notebook-width) * -${panFactor})`
-     };
-     const tilt = {
-          top: `calc(var(--notebook-height) * ${panFactor})`,
-          center: "0px",
-          bottom: `calc(var(--notebook-height) * -${panFactor})`
-     };
 
      setRootNumber("--view-zoom", zoom.value);
-     setRootNumber("--view-pan-x", isSinglePageViewport ? "0px" : pan[focus]);
-     setRootNumber("--view-pan-y", tilt[verticalFocus]);
+     setRootNumber("--view-pan-x", "0px");
+     setRootNumber("--view-pan-y", "0px");
 
-     syncResponsivePageCenter();
+     syncViewTargetCenter(zoomAnchor);
      updatePageSnapButtons();
      requestAnimationFrame(refreshPageItemViews);
 }
 
-function syncResponsivePageCenter() {
+function syncViewTargetCenter(zoomAnchor = null) {
      window.cancelAnimationFrame(responsiveViewFrame);
 
-     if (!isSinglePageViewport) {
-          return;
-     }
-
      responsiveViewFrame = window.requestAnimationFrame(() => {
-          const page = viewFocusPoints[viewFocusIndex] === "left" ? pages[0] : pages[1];
+          const notebookRect = notebook.getBoundingClientRect();
+          const leftPageRect = pages[0] ? pages[0].getBoundingClientRect() : null;
+          const rightPageRect = pages[1] ? pages[1].getBoundingClientRect() : null;
+          const deskRect = plannerDesk.getBoundingClientRect();
+          const horizontalTargets = {
+               left: leftPageRect ? leftPageRect.left + leftPageRect.width / 2 : notebookRect.left + notebookRect.width / 4,
+               center: notebookRect.left + notebookRect.width / 2,
+               right: rightPageRect ? rightPageRect.left + rightPageRect.width / 2 : notebookRect.left + (notebookRect.width * 0.75)
+          };
+          const verticalTargets = {
+               top: notebookRect.top + notebookRect.height / 4,
+               center: notebookRect.top + notebookRect.height / 2,
+               bottom: notebookRect.top + (notebookRect.height * 0.75)
+          };
+          const targetX = horizontalTargets[viewFocusPoints[viewFocusIndex]];
+          const targetY = verticalTargets[viewVerticalFocusPoints[viewVerticalFocusIndex]];
 
-          if (!page) {
+          if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) {
                return;
           }
 
-          const pageRect = page.getBoundingClientRect();
-          const deskRect = plannerDesk.getBoundingClientRect();
-          const pageCenter = pageRect.left + pageRect.width / 2;
-          const pageMiddle = pageRect.top + pageRect.height / 2;
           const deskCenter = deskRect.left + deskRect.width / 2;
           const deskMiddle = deskRect.top + deskRect.height / 2;
+          const basePanX = deskCenter - targetX;
+          const basePanY = deskMiddle - targetY;
 
-          if (viewFocusIndex !== 1) {
-               setRootNumber("--view-pan-x", `${deskCenter - pageCenter}px`);
-          }
+          setRootNumber("--view-pan-x", `${basePanX + viewPanOffsetX}px`);
+          setRootNumber("--view-pan-y", `${basePanY + viewPanOffsetY}px`);
 
-          if (viewVerticalFocusIndex === 1) {
-               setRootNumber("--view-pan-y", `${deskMiddle - pageMiddle}px`);
+          if (zoomAnchor) {
+               const zoomedRect = notebook.getBoundingClientRect();
+               const zoomedAnchorX = zoomedRect.left + (zoomedRect.width * zoomAnchor.ratioX);
+               const zoomedAnchorY = zoomedRect.top + (zoomedRect.height * zoomAnchor.ratioY);
+
+               viewPanOffsetX += zoomAnchor.clientX - zoomedAnchorX;
+               viewPanOffsetY += zoomAnchor.clientY - zoomedAnchorY;
+               setRootNumber("--view-pan-x", `${basePanX + viewPanOffsetX}px`);
+               setRootNumber("--view-pan-y", `${basePanY + viewPanOffsetY}px`);
           }
 
           requestAnimationFrame(refreshPageItemViews);
@@ -370,6 +382,7 @@ function applyResponsiveViewMode() {
      }
 
      isSinglePageViewport = nextIsSinglePageViewport;
+     resetViewPanOffset();
      if (isSinglePageViewport && viewFocusIndex === 1) {
           viewFocusIndex = 0;
      } else if (!isSinglePageViewport) {
@@ -389,11 +402,76 @@ function handleWindowResize() {
 function cycleViewZoom() {
      viewZoomIndex = (viewZoomIndex + 1) % viewZoomLevels.length;
      applyViewControls();
+     showZoomToast();
+}
+
+function getZoomAnchor(clientX, clientY) {
+     const rect = notebook.getBoundingClientRect();
+
+     if (!rect.width || !rect.height) {
+          return null;
+     }
+
+     return {
+          clientX,
+          clientY,
+          ratioX: (clientX - rect.left) / rect.width,
+          ratioY: (clientY - rect.top) / rect.height
+     };
+}
+
+function changeViewZoom(direction, zoomAnchor = null) {
+     const step = direction === "in" ? 1 : -1;
+     const nextZoomIndex = clamp(viewZoomIndex + step, 0, viewZoomLevels.length - 1);
+
+     if (nextZoomIndex === viewZoomIndex) {
+          return;
+     }
+
+     viewZoomIndex = nextZoomIndex;
+     applyViewControls(zoomAnchor);
+     showZoomToast();
+}
+
+function showZoomToast() {
+     if (!zoomToast) {
+          return;
+     }
+
+     zoomToast.textContent = viewZoomLevels[viewZoomIndex].label;
+     zoomToast.classList.add("is-visible");
+     window.clearTimeout(zoomToastTimer);
+     zoomToastTimer = window.setTimeout(() => {
+          zoomToast.classList.remove("is-visible");
+     }, 760);
+}
+
+function zoomViewFromWheel(event) {
+     if (event.target.closest(".planner-settings, .item-controls")) {
+          return;
+     }
+
+     event.preventDefault();
+     wheelZoomDelta += event.deltaY;
+
+     const threshold = event.ctrlKey ? 24 : 80;
+     if (Math.abs(wheelZoomDelta) < threshold) {
+          return;
+     }
+
+     changeViewZoom(wheelZoomDelta < 0 ? "in" : "out", getZoomAnchor(event.clientX, event.clientY));
+     wheelZoomDelta = 0;
+}
+
+function resetViewPanOffset() {
+     viewPanOffsetX = 0;
+     viewPanOffsetY = 0;
 }
 
 function moveViewFocus(direction) {
      const step = direction === "next" ? 1 : -1;
 
+     resetViewPanOffset();
      viewFocusIndex = clamp(viewFocusIndex + step, 0, viewFocusPoints.length - 1);
      applyViewControls();
 }
@@ -405,6 +483,7 @@ function snapViewToPage(pageSide) {
           return;
      }
 
+     resetViewPanOffset();
      viewFocusIndex = nextFocusIndex;
      applyViewControls();
 }
@@ -413,21 +492,31 @@ function updatePageSnapButtons() {
      pageSnapButtons.forEach((button) => {
           const direction = button.dataset.pageSnap;
 
-          button.disabled = direction === "previous" ? viewFocusIndex <= 0 : viewFocusIndex >= viewFocusPoints.length - 1;
+          if (direction === "previous") {
+               button.hidden = viewFocusIndex <= 0;
+          } else if (direction === "next") {
+               button.hidden = viewFocusIndex >= viewFocusPoints.length - 1;
+          } else if (direction === "up") {
+               button.hidden = viewVerticalFocusIndex <= 0;
+          } else {
+               button.hidden = viewVerticalFocusIndex >= viewVerticalFocusPoints.length - 1;
+          }
      });
 }
 
 function movePageSnap(direction) {
-     if (direction === "previous") {
-          snapViewToPage("left");
-     } else {
-          snapViewToPage("right");
+     if (direction === "previous" || direction === "next") {
+          moveViewFocus(direction);
+          return;
      }
+
+     moveViewVerticalFocus(direction === "up" ? "previous" : "next");
 }
 
 function moveViewVerticalFocus(direction) {
      const step = direction === "next" ? 1 : -1;
 
+     resetViewPanOffset();
      viewVerticalFocusIndex = clamp(viewVerticalFocusIndex + step, 0, viewVerticalFocusPoints.length - 1);
      applyViewControls();
 }
@@ -660,89 +749,22 @@ function closeSidebar() {
 function syncSidebarSnap() {
      const box = getSidebarBox();
      const bounds = getSidebarHeightBounds();
-     const snapPosition = plannerSettings.dataset.snapPosition || "center";
      const nextHeight = clamp(box.height, bounds.min, bounds.max);
 
      setSidebarBox({
           ...box,
           y: plannerDesk.getBoundingClientRect().height - nextHeight,
-          centerX: getSidebarSnapCenter(box.width, snapPosition),
+          centerX: getSidebarCenter(box.width),
           height: nextHeight
      });
-     updateSidebarSnapButtons();
 }
 
-function setSidebarSnapControlsBox(box) {
-     if (!sidebarSnapControls) {
-          return;
-     }
-
-     sidebarSnapControls.style.left = `${box.centerX}px`;
-     sidebarSnapControls.style.width = `${box.width}px`;
-}
-
-function updateSidebarSnapButtons() {
-     const snapPosition = plannerSettings.dataset.snapPosition || "center";
-     const snapIndex = sidebarSnapPositions.indexOf(snapPosition);
-
-     sidebarSnapButtons.forEach((button) => {
-          const direction = button.dataset.sidebarSnap;
-          const isDisabled = direction === "previous" ? snapIndex <= 0 : snapIndex >= sidebarSnapPositions.length - 1;
-
-          button.disabled = isDisabled;
-     });
-}
-
-function moveSidebarSnap(direction) {
-     const currentPosition = plannerSettings.dataset.snapPosition || "center";
-     const currentIndex = Math.max(sidebarSnapPositions.indexOf(currentPosition), 0);
-     const delta = direction === "previous" ? -1 : 1;
-     const nextIndex = clamp(currentIndex + delta, 0, sidebarSnapPositions.length - 1);
-     const snapPosition = sidebarSnapPositions[nextIndex];
-     const box = getSidebarBox();
-
-     plannerSettings.dataset.snapPosition = snapPosition;
-     setSidebarBox({
-          ...box,
-          centerX: getSidebarSnapCenter(box.width, snapPosition)
-     });
-     updateSidebarSnapButtons();
-}
-
-function getSidebarSnapCenter(width, snapPosition = plannerSettings.dataset.snapPosition || "center") {
+function getSidebarCenter(width) {
      const deskRect = plannerDesk.getBoundingClientRect();
-     const snapRatios = {
-          left: 0.1,
-          center: 0.5,
-          right: 0.9
-     };
-     const ratio = snapRatios[snapPosition] || snapRatios.center;
      const minCenter = width / 2 + 12;
      const maxCenter = deskRect.width - width / 2 - 12;
 
-     return clamp(deskRect.width * ratio, minCenter, maxCenter);
-}
-
-function getNearestSidebarSnapPosition(centerX) {
-     const deskRect = plannerDesk.getBoundingClientRect();
-     const positions = [
-          {
-               name: "left",
-               center: deskRect.width * 0.1
-          },
-          {
-               name: "center",
-               center: deskRect.width * 0.5
-          },
-          {
-               name: "right",
-               center: deskRect.width * 0.9
-          }
-     ];
-
-     return positions.reduce((nearest, position) => {
-          return Math.abs(position.center - centerX) < Math.abs(nearest.center - centerX) ? position : nearest;
-     }, positions[1]).name;
+     return clamp(deskRect.width * 0.5, minCenter, maxCenter);
 }
 
 function getPageId(page) {
@@ -814,7 +836,8 @@ function serializePlannerItem(item) {
           style: {
                fillColor: item.dataset.fillColor,
                borderColor: item.dataset.borderColor,
-               borderWidth: Number(item.dataset.borderWidth)
+               borderWidth: Number(item.dataset.borderWidth),
+               dotGrid: item.dataset.dotGrid === "true"
           },
           widget: item.dataset.itemType === "mini-cal"
                ? {
@@ -1014,6 +1037,7 @@ function setItemStyle(item, style) {
      item.dataset.fillColor = style.fillColor || item.dataset.fillColor || "#f9e2af";
      item.dataset.borderColor = style.borderColor || item.dataset.borderColor || "rgba(17, 17, 17, 0.18)";
      item.dataset.borderWidth = style.borderWidth || item.dataset.borderWidth || "1";
+     item.dataset.dotGrid = style.dotGrid || item.dataset.dotGrid || "false";
      item.style.setProperty("--sticky-fill", item.dataset.fillColor);
      item.style.setProperty("--sticky-border-color", item.dataset.borderColor);
      item.style.setProperty("--sticky-border-size", `${item.dataset.borderWidth}px`);
@@ -1022,6 +1046,7 @@ function setItemStyle(item, style) {
      const fillInput = controls.querySelector("[data-style-control='fill']");
      const borderColorInput = controls.querySelector("[data-style-control='border-color']");
      const borderWidthSelect = controls.querySelector("[data-style-control='border-width']");
+     const dotGridInput = controls.querySelector("[data-style-control='dot-grid']");
 
      if (fillInput && item.dataset.fillColor.startsWith("#")) {
           fillInput.value = item.dataset.fillColor;
@@ -1033,6 +1058,10 @@ function setItemStyle(item, style) {
 
      if (borderWidthSelect) {
           borderWidthSelect.value = item.dataset.borderWidth;
+     }
+
+     if (dotGridInput) {
+          dotGridInput.checked = item.dataset.dotGrid === "true";
      }
 }
 
@@ -1444,7 +1473,7 @@ function getSidebarBox() {
      const rect = plannerSettings.getBoundingClientRect();
      const width = Number(plannerSettings.dataset.width) || rect.width;
      const height = Number(plannerSettings.dataset.height) || rect.height;
-     const centerX = Number(plannerSettings.dataset.centerX) || getSidebarSnapCenter(width);
+     const centerX = Number(plannerSettings.dataset.centerX) || getSidebarCenter(width);
 
      return {
           x: centerX - width / 2,
@@ -1462,7 +1491,6 @@ function setSidebarBox(box) {
      plannerSettings.style.left = `${box.centerX}px`;
      plannerSettings.style.width = `${box.width}px`;
      plannerSettings.style.height = `${box.height}px`;
-     setSidebarSnapControlsBox(box);
 }
 
 function getMovedSidebarBox(clientX, clientY) {
@@ -1741,6 +1769,8 @@ function makePlannerItem(type = "sticky") {
      const borderColorInput = document.createElement("input");
      const borderWidthLabel = document.createElement("label");
      const borderWidthSelect = document.createElement("select");
+     const dotGridLabel = document.createElement("label");
+     const dotGridInput = document.createElement("input");
      const weekNumberLabel = document.createElement("label");
      const weekNumberInput = document.createElement("input");
      const weekStartLabel = document.createElement("label");
@@ -1821,6 +1851,11 @@ function makePlannerItem(type = "sticky") {
           option.textContent = `${value}px`;
           borderWidthSelect.append(option);
      });
+     dotGridLabel.className = "item-control-row";
+     dotGridLabel.textContent = "Dot grid";
+     dotGridInput.type = "checkbox";
+     dotGridInput.dataset.styleControl = "dot-grid";
+     dotGridInput.setAttribute("aria-label", "Show sticky note dot grid");
      deleteButton.className = "item-control";
      deleteButton.type = "button";
      deleteButton.textContent = "Delete";
@@ -1868,6 +1903,7 @@ function makePlannerItem(type = "sticky") {
      fillLabel.append(fillInput);
      borderColorLabel.append(borderColorInput);
      borderWidthLabel.append(borderWidthSelect);
+     dotGridLabel.append(dotGridInput);
      weekNumberLabel.append(weekNumberInput);
      weekStartLabel.append(weekStartSelect);
      monthLabel.append(monthSelect);
@@ -1875,6 +1911,9 @@ function makePlannerItem(type = "sticky") {
      controlTabs.append(actionsTab, styleTab);
      actionsPanel.append(duplicateButton, groupButton, deleteButton);
      stylePanel.append(fillLabel, borderColorLabel, borderWidthLabel);
+     if (type === "sticky") {
+          stylePanel.append(dotGridLabel);
+     }
      widgetPanel.append(monthLabel, yearLabel, weekNumberLabel, weekStartLabel);
      if (type === "mini-cal") {
           controlTabs.append(widgetTab);
@@ -1885,7 +1924,8 @@ function makePlannerItem(type = "sticky") {
      setItemStyle(item, {
           fillColor: type === "mini-cal" ? "transparent" : fillInput.value,
           borderColor: borderColorInput.value,
-          borderWidth: borderWidthSelect.value
+          borderWidth: borderWidthSelect.value,
+          dotGrid: "false"
      });
      if (type === "mini-cal") {
           setMiniCalSettings(item);
@@ -1975,6 +2015,11 @@ function makePlannerItem(type = "sticky") {
                borderWidth: borderWidthSelect.value
           });
      });
+     dotGridInput.addEventListener("change", () => {
+          applyStyleToActionItems(item, {
+               dotGrid: dotGridInput.checked ? "true" : "false"
+          });
+     });
      weekNumberInput.addEventListener("change", () => {
           setMiniCalSettings(item, {
                weekNumbers: weekNumberInput.checked ? "true" : "false"
@@ -2029,7 +2074,8 @@ function copyItemConfiguration(source, target) {
      setItemStyle(target, {
           fillColor: source.dataset.fillColor,
           borderColor: source.dataset.borderColor,
-          borderWidth: source.dataset.borderWidth
+          borderWidth: source.dataset.borderWidth,
+          dotGrid: source.dataset.dotGrid
      });
      if (source.dataset.itemType === "mini-cal") {
           setMiniCalSettings(target, {
@@ -2315,6 +2361,7 @@ function startSourceMove(event) {
 
      event.preventDefault();
      closeItemMenus();
+     closeSidebar();
      document.body.append(item);
      item.classList.add("is-floating-source", "is-dragging");
      item.style.width = `${sourceRect.width}px`;
@@ -2449,14 +2496,6 @@ function endActiveItem(event) {
           }
 
           if (activeAction.type === "sidebar-move" && activeAction.hasMoved) {
-               const snapPosition = getNearestSidebarSnapPosition(getSidebarBox().centerX);
-               const box = {
-                    ...getSidebarBox(),
-                    centerX: getSidebarSnapCenter(getSidebarBox().width, snapPosition)
-               };
-
-               plannerSettings.dataset.snapPosition = snapPosition;
-               setSidebarBox(box);
                shouldSkipNextTabClick = true;
           }
 
@@ -2574,14 +2613,11 @@ settingsTabs.forEach((tab) => {
           openSidebar();
      });
 });
-sidebarSnapButtons.forEach((button) => {
-     button.addEventListener("click", () => moveSidebarSnap(button.dataset.sidebarSnap));
-});
 if (sidebarCollapseButton) {
      sidebarCollapseButton.addEventListener("click", closeSidebar);
 }
 plannerSettings.addEventListener("pointerdown", (event) => {
-     if (event.target.closest("[data-settings-tab], [data-sidebar-snap], [data-sidebar-collapse]")) {
+     if (event.target.closest("[data-settings-tab], [data-sidebar-collapse]")) {
           return;
      }
 
@@ -2607,6 +2643,9 @@ sourceItems.forEach((sourceItem) => {
      sourceItem.addEventListener("pointerdown", startSourceMove);
 });
 plannerDesk.addEventListener("pointerdown", startMarquee);
+plannerDesk.addEventListener("wheel", zoomViewFromWheel, {
+     passive: false
+});
 document.addEventListener("click", (event) => {
      if (shouldSkipNextClear) {
           shouldSkipNextClear = false;

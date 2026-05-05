@@ -14,15 +14,14 @@
 </head>
 <body>
      <main class="planner-desk">
-          <div class="sidebar-snap-controls" aria-label="Settings menu position controls">
-               <button class="sidebar-snap-button sidebar-snap-button-left" type="button" data-sidebar-snap="previous" aria-label="Snap settings menu left">‹</button>
-               <button class="sidebar-snap-button sidebar-snap-button-right" type="button" data-sidebar-snap="next" aria-label="Snap settings menu right">›</button>
+          <div class="page-snap-controls" aria-label="Planner page navigation">
+               <button class="page-snap-button page-snap-button-prev" type="button" data-page-snap="previous" aria-label="Previous page">&#8679;</button>
+               <button class="page-snap-button page-snap-button-next" type="button" data-page-snap="next" aria-label="Next page">&#8679;</button>
+               <button class="page-snap-button page-snap-button-up" type="button" data-page-snap="up" aria-label="Page up">&#8679;</button>
+               <button class="page-snap-button page-snap-button-down" type="button" data-page-snap="down" aria-label="Page down">&#8679;</button>
           </div>
 
-          <div class="page-snap-controls" aria-label="Planner page navigation">
-               <button class="page-snap-button page-snap-button-prev" type="button" data-page-snap="previous">Prev Page</button>
-               <button class="page-snap-button page-snap-button-next" type="button" data-page-snap="next">Next Page</button>
-          </div>
+          <div class="zoom-toast" data-zoom-toast aria-live="polite" aria-atomic="true">100%</div>
 
           <form class="planner-settings" aria-label="Planner page settings">
                <button class="sidebar-collapse-button" type="button" data-sidebar-collapse aria-label="Minimize settings menu">⌄</button>
@@ -30,7 +29,7 @@
                <div class="settings-tabs" role="tablist" aria-label="Planner setting tabs">
                     <button class="settings-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="paper-picker-panel" data-settings-tab="paper-picker" data-tab-color="--mocha-11">Paper</button>
                     <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="stickers-panel" data-settings-tab="stickers" data-tab-color="--mocha-05">Stickers</button>
-                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="widgets-panel" data-settings-tab="widgets" data-tab-color="--mocha-07">Widgets</button>
+                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="widgets-panel" data-settings-tab="widgets" data-tab-color="--mocha-07">Functions</button>
                </div>
 
                <div class="settings-panel" id="paper-picker-panel" role="tabpanel" data-settings-panel="paper-picker">
@@ -39,8 +38,8 @@
                          <select data-setting="paper">
                               <option value="letter">Letter (8.5 x 11 in)</option>
                               <option value="half-letter">Half Letter (5.5 x 8.5 in)</option>
-                              <option value="a4">ISO A4 (21 x 29.7 cm)</option>
-                              <option value="a5">ISO A5 (14.8 x 21 cm)</option>
+                              <option value="a4">A4 (21 x 29.7 cm)</option>
+                              <option value="a5">A5 (14.8 x 21 cm)</option>
                          </select>
                     </label>
 
@@ -119,6 +118,6 @@
           </div>
      </main>
 
-     <script src="script.js?v=page-snap-buttons"></script>
+     <script src="script.js?v=mouse-zoom"></script>
 </body>
 </html>
