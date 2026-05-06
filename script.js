@@ -7,6 +7,8 @@ const paperSelect = document.querySelector("[data-setting='paper']");
 const gridSelect = document.querySelector("[data-setting='grid']");
 const paperColorSelect = document.querySelector("[data-setting='paper-color']");
 const deskColorSelect = document.querySelector("[data-setting='desk-color']");
+const palettePreviewSelect = document.querySelector("[data-palette-preview]");
+const palettePreviewSwatches = document.querySelector("[data-palette-preview-swatches]");
 const settingSelects = Array.from(document.querySelectorAll("[data-setting]"));
 const guideInputs = Array.from(document.querySelectorAll("[data-guide]"));
 const guideDetails = document.querySelector(".guide-settings");
@@ -134,6 +136,55 @@ const gridSizes = {
           size: 0.25
      }
 };
+const colorPalettes = {
+     "gray": {
+          label: "Gray",
+          colors: [
+               { label: "111", value: "var(--color-black)", ink: "var(--color-white)" },
+               { label: "333", value: "var(--color-gray1)", ink: "var(--color-white)" },
+               { label: "555", value: "var(--color-gray2)", ink: "var(--color-white)" },
+               { label: "777", value: "var(--color-gray3)", ink: "var(--color-white)" },
+               { label: "999", value: "var(--color-gray4)" },
+               { label: "BBB", value: "var(--color-gray5)" },
+               { label: "FFF", value: "var(--color-white)" }
+          ]
+     },
+     "12bit-v": {
+          label: "12bit V",
+          colors: [
+               { label: "F00", value: "var(--12bit-v01)" },
+               { label: "F80", value: "var(--12bit-v02)" },
+               { label: "FF0", value: "var(--12bit-v03)" },
+               { label: "BF0", value: "var(--12bit-v04)" },
+               { label: "0F0", value: "var(--12bit-v05)" },
+               { label: "0FB", value: "var(--12bit-v06)" },
+               { label: "0FF", value: "var(--12bit-v07)" },
+               { label: "0BF", value: "var(--12bit-v08)" },
+               { label: "00F", value: "var(--12bit-v09)", ink: "var(--color-white)" },
+               { label: "80F", value: "var(--12bit-v10)", ink: "var(--color-white)" },
+               { label: "F0F", value: "var(--12bit-v11)" },
+               { label: "F08", value: "var(--12bit-v12)" }
+          ]
+     },
+     "12bit-p": {
+          label: "12bit P",
+          colors: [
+               { label: "F99", value: "var(--12bit-p01)" },
+               { label: "FC9", value: "var(--12bit-p02)" },
+               { label: "FF9", value: "var(--12bit-p03)" },
+               { label: "DF9", value: "var(--12bit-p04)" },
+               { label: "9F9", value: "var(--12bit-p05)" },
+               { label: "9FD", value: "var(--12bit-p06)" },
+               { label: "9FF", value: "var(--12bit-p07)" },
+               { label: "9DF", value: "var(--12bit-p08)" },
+               { label: "99F", value: "var(--12bit-p09)" },
+               { label: "C9F", value: "var(--12bit-p10)" },
+               { label: "F9F", value: "var(--12bit-p11)" },
+               { label: "F9C", value: "var(--12bit-p12)" }
+          ]
+     }
+};
+const colorPaletteOrder = ["gray", "12bit-v", "12bit-p"];
 const paperColors = {
      "White": {
           label: "White",
@@ -141,7 +192,7 @@ const paperColors = {
      },
      "Beige": {
           label: "Beige",
-          color: "var(--mocha-04)"
+          color: "var(--12bit-p03)"
      },
      "Black": {
           label: "Black",
@@ -151,8 +202,8 @@ const paperColors = {
 const deskColors = {
      "pink": {
           label: "Pink",
-          color: "var(--mocha-02)",
-          accent: "var(--mocha-12)"
+          color: "var(--12bit-p02)",
+          accent: "var(--12bit-p12)"
      },
      "gray": {
           label: "Gray",
@@ -633,6 +684,132 @@ function updateGuideSummary() {
      }
 }
 
+function getPalette(paletteKey) {
+     return colorPalettes[paletteKey] || colorPalettes["12bit-p"];
+}
+
+function getPaletteKeyForColor(colorValue) {
+     return colorPaletteOrder.find((paletteKey) => getPalette(paletteKey).colors.some((color) => color.value === colorValue)) || "12bit-p";
+}
+
+function populatePaletteSelect(select, selectedPalette = "12bit-p") {
+     if (!select) {
+          return;
+     }
+
+     select.replaceChildren();
+     colorPaletteOrder.forEach((paletteKey) => {
+          const option = document.createElement("option");
+
+          option.value = paletteKey;
+          option.textContent = getPalette(paletteKey).label;
+          select.append(option);
+     });
+     select.value = selectedPalette;
+}
+
+function renderPaletteSwatches(swatches, paletteKey, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
+     const palette = getPalette(paletteKey);
+
+     if (!swatches) {
+          return;
+     }
+
+     swatches.replaceChildren();
+     palette.colors.forEach((color) => {
+          const swatch = document.createElement(onSelect ? "button" : "span");
+
+          swatch.className = swatchClass;
+          swatch.style.setProperty("--swatch", color.value);
+          if (color.ink) {
+               swatch.style.setProperty("--swatch-ink", color.ink);
+          }
+          swatch.textContent = color.label;
+          swatch.dataset.colorValue = color.value;
+          swatch.classList.toggle("is-selected", color.value === selectedColor);
+
+          if (onSelect) {
+               swatch.type = "button";
+               swatch.setAttribute("aria-label", `${color.label} color`);
+               swatch.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onSelect(color.value);
+               });
+          }
+
+          swatches.append(swatch);
+     });
+}
+
+function updatePalettePreview() {
+     if (!palettePreviewSelect || !palettePreviewSwatches) {
+          return;
+     }
+
+     renderPaletteSwatches(palettePreviewSwatches, palettePreviewSelect.value);
+}
+
+function initializePalettePreview() {
+     if (!palettePreviewSelect) {
+          return;
+     }
+
+     populatePaletteSelect(palettePreviewSelect, palettePreviewSelect.value || "12bit-p");
+     makeCustomSelect(palettePreviewSelect);
+     palettePreviewSelect.addEventListener("change", () => {
+          updateCustomSelectDisplay(palettePreviewSelect);
+          updatePalettePreview();
+     });
+     updatePalettePreview();
+}
+
+function setPaletteControlValue(select, swatches, colorValue) {
+     if (!select) {
+          return;
+     }
+
+     select.dataset.currentColor = colorValue;
+     select.value = getPaletteKeyForColor(colorValue);
+     updateCustomSelectDisplay(select);
+     renderPaletteSwatches(
+          swatches,
+          select.value,
+          colorValue,
+          (nextColor) => {
+               if (typeof select.onPaletteColorSelect === "function") {
+                    select.onPaletteColorSelect(nextColor);
+               }
+          },
+          "item-color-swatch"
+     );
+}
+
+function initializePaletteColorControl(select, swatches, defaultColor, onSelect) {
+     if (!select || !swatches) {
+          return;
+     }
+
+     populatePaletteSelect(select, getPaletteKeyForColor(defaultColor));
+     select.dataset.currentColor = defaultColor;
+     select.onPaletteColorSelect = (nextColor) => {
+          select.dataset.currentColor = nextColor;
+          onSelect(nextColor);
+          setPaletteControlValue(select, swatches, nextColor);
+     };
+     select.addEventListener("change", () => {
+          updateCustomSelectDisplay(select);
+          renderPaletteSwatches(
+               swatches,
+               select.value,
+               select.dataset.currentColor,
+               select.onPaletteColorSelect,
+               "item-color-swatch"
+          );
+     });
+     renderPaletteSwatches(swatches, select.value, defaultColor, select.onPaletteColorSelect, "item-color-swatch");
+}
+
 function updateCustomSelectDisplay(select) {
      const dropdown = select.nextElementSibling;
 
@@ -1039,7 +1216,7 @@ function serializePlannerItem(item) {
                          ? {
                               size: Number(item.dataset.dayTextSize) || 10,
                               font: item.dataset.dayTextFont || "noto",
-                              color: item.dataset.dayTextColor || "#333333",
+                              color: item.dataset.dayTextColor || "var(--color-gray1)",
                               bold: item.dataset.dayTextBold === "true",
                               italic: item.dataset.dayTextItalic === "true",
                               underline: item.dataset.dayTextUnderline === "true",
@@ -1055,7 +1232,7 @@ function serializePlannerItem(item) {
                     content: textElement ? textElement.textContent : "",
                     size: Number(item.dataset.textSize) || 10,
                     font: item.dataset.textFont || "noto",
-                    color: item.dataset.textColor || "#333333",
+                    color: item.dataset.textColor || "var(--color-gray1)",
                     bold: item.dataset.textBold === "true",
                     italic: item.dataset.textItalic === "true",
                     underline: item.dataset.textUnderline === "true",
@@ -1302,8 +1479,8 @@ function updateCalendarGridMetrics(item, page, box) {
 }
 
 function setItemStyle(item, style) {
-     item.dataset.fillColor = style.fillColor || item.dataset.fillColor || "var(--mocha-04)";
-     item.dataset.borderColor = style.borderColor || item.dataset.borderColor || "rgba(17, 17, 17, 0.18)";
+     item.dataset.fillColor = style.fillColor || item.dataset.fillColor || "var(--12bit-p03)";
+     item.dataset.borderColor = style.borderColor || item.dataset.borderColor || "var(--color-gray5)";
      item.dataset.borderWidth = style.borderWidth || item.dataset.borderWidth || "1";
      item.dataset.dotGrid = style.dotGrid || item.dataset.dotGrid || "false";
      item.style.setProperty("--sticky-fill", item.dataset.fillColor);
@@ -1312,16 +1489,18 @@ function setItemStyle(item, style) {
 
      const controls = getItemControls(item) || item;
      const fillInput = controls.querySelector("[data-style-control='fill']");
+     const fillSwatches = controls.querySelector("[data-style-swatches='fill']");
      const borderColorInput = controls.querySelector("[data-style-control='border-color']");
+     const borderColorSwatches = controls.querySelector("[data-style-swatches='border-color']");
      const borderWidthSelect = controls.querySelector("[data-style-control='border-width']");
      const dotGridInput = controls.querySelector("[data-style-control='dot-grid']");
 
-     if (fillInput && item.dataset.fillColor.startsWith("#")) {
-          fillInput.value = item.dataset.fillColor;
+     if (fillInput) {
+          setPaletteControlValue(fillInput, fillSwatches, item.dataset.fillColor);
      }
 
-     if (borderColorInput && item.dataset.borderColor.startsWith("#")) {
-          borderColorInput.value = item.dataset.borderColor;
+     if (borderColorInput) {
+          setPaletteControlValue(borderColorInput, borderColorSwatches, item.dataset.borderColor);
      }
 
      if (borderWidthSelect) {
@@ -1351,7 +1530,7 @@ function setStickyTextSettings(item, settings = {}) {
      item.dataset.textEnabled = String(isEnabled);
      item.dataset.textSize = settings.size || item.dataset.textSize || "10";
      item.dataset.textFont = settings.font || item.dataset.textFont || "noto";
-     item.dataset.textColor = settings.color || item.dataset.textColor || "#333333";
+     item.dataset.textColor = settings.color || item.dataset.textColor || "var(--color-gray1)";
      item.dataset.textBold = settings.bold ?? item.dataset.textBold ?? "false";
      item.dataset.textItalic = settings.italic ?? item.dataset.textItalic ?? "false";
      item.dataset.textUnderline = settings.underline ?? item.dataset.textUnderline ?? "false";
@@ -1378,6 +1557,7 @@ function setStickyTextSettings(item, settings = {}) {
      const sizeInput = controls.querySelector("[data-text-control='size']");
      const fontSelect = controls.querySelector("[data-text-control='font']");
      const colorInput = controls.querySelector("[data-text-control='color']");
+     const colorSwatches = controls.querySelector("[data-text-swatches='color']");
      const boldInput = controls.querySelector("[data-text-control='bold']");
      const italicInput = controls.querySelector("[data-text-control='italic']");
      const underlineInput = controls.querySelector("[data-text-control='underline']");
@@ -1397,7 +1577,7 @@ function setStickyTextSettings(item, settings = {}) {
      }
 
      if (colorInput) {
-          colorInput.value = item.dataset.textColor;
+          setPaletteControlValue(colorInput, colorSwatches, item.dataset.textColor);
      }
 
      if (boldInput) {
@@ -2202,7 +2382,7 @@ function setCalendarDayTextSettings(item, settings = {}) {
 
      item.dataset.dayTextSize = settings.size || item.dataset.dayTextSize || "10";
      item.dataset.dayTextFont = settings.font || item.dataset.dayTextFont || "noto";
-     item.dataset.dayTextColor = settings.color || item.dataset.dayTextColor || "#333333";
+     item.dataset.dayTextColor = settings.color || item.dataset.dayTextColor || "var(--color-gray1)";
      item.dataset.dayTextBold = settings.bold ?? item.dataset.dayTextBold ?? "false";
      item.dataset.dayTextItalic = settings.italic ?? item.dataset.dayTextItalic ?? "false";
      item.dataset.dayTextUnderline = settings.underline ?? item.dataset.dayTextUnderline ?? "false";
@@ -2232,7 +2412,7 @@ function setCalendarDayTextSettings(item, settings = {}) {
      }
 
      if (colorInput) {
-          colorInput.value = item.dataset.dayTextColor;
+          setPaletteControlValue(colorInput, colorSwatches, item.dataset.dayTextColor);
      }
 
      if (boldInput) {
@@ -2260,7 +2440,7 @@ function setCalendarDayTextSettings(item, settings = {}) {
 
 function applyCalendarDayTextStyle(item, textElement) {
      textElement.style.fontSize = `${item.dataset.dayTextSize || "10"}px`;
-     textElement.style.color = item.dataset.dayTextColor || "#333333";
+     textElement.style.color = item.dataset.dayTextColor || "var(--color-gray1)";
      textElement.style.fontFamily = getStickyTextFont(item.dataset.dayTextFont || "noto");
      textElement.style.fontWeight = item.dataset.dayTextBold === "true" ? "700" : "400";
      textElement.style.fontStyle = item.dataset.dayTextItalic === "true" ? "italic" : "normal";
@@ -2882,9 +3062,11 @@ function makePlannerItem(type = "sticky") {
      const bringForwardButton = document.createElement("button");
      const sendBackwardButton = document.createElement("button");
      const fillLabel = document.createElement("label");
-     const fillInput = document.createElement("input");
+     const fillInput = document.createElement("select");
+     const fillSwatches = document.createElement("div");
      const borderColorLabel = document.createElement("label");
-     const borderColorInput = document.createElement("input");
+     const borderColorInput = document.createElement("select");
+     const borderColorSwatches = document.createElement("div");
      const borderWidthLabel = document.createElement("label");
      const borderWidthSelect = document.createElement("select");
      const dotGridLabel = document.createElement("label");
@@ -2897,7 +3079,8 @@ function makePlannerItem(type = "sticky") {
      const textFontLabel = document.createElement("label");
      const textFontSelect = document.createElement("select");
      const textColorLabel = document.createElement("label");
-     const textColorInput = document.createElement("input");
+     const textColorInput = document.createElement("select");
+     const textColorSwatches = document.createElement("div");
      const textFormatGroup = document.createElement("div");
      const textBoldLabel = document.createElement("label");
      const textBoldInput = document.createElement("input");
@@ -2995,18 +3178,18 @@ function makePlannerItem(type = "sticky") {
      sendBackwardButton.type = "button";
      sendBackwardButton.textContent = "Send Bwd";
      sendBackwardButton.setAttribute("aria-label", "Send selected item backward");
-     fillLabel.className = "item-control-row";
+     fillLabel.className = "item-control-row item-color-control";
      fillLabel.textContent = "Fill";
-     fillInput.type = "color";
-     fillInput.value = "#f9e2af";
      fillInput.dataset.styleControl = "fill";
-     fillInput.setAttribute("aria-label", "Sticky note fill color");
-     borderColorLabel.className = "item-control-row";
+     fillInput.setAttribute("aria-label", "Sticky note fill palette");
+     fillSwatches.className = "item-color-swatches";
+     fillSwatches.dataset.styleSwatches = "fill";
+     borderColorLabel.className = "item-control-row item-color-control";
      borderColorLabel.textContent = "Border";
-     borderColorInput.type = "color";
-     borderColorInput.value = "#d4ccd0";
      borderColorInput.dataset.styleControl = "border-color";
-     borderColorInput.setAttribute("aria-label", "Sticky note border color");
+     borderColorInput.setAttribute("aria-label", "Sticky note border palette");
+     borderColorSwatches.className = "item-color-swatches";
+     borderColorSwatches.dataset.styleSwatches = "border-color";
      borderWidthLabel.className = "item-control-row";
      borderWidthLabel.textContent = "Border size";
      borderWidthSelect.setAttribute("aria-label", "Sticky note border thickness");
@@ -3058,12 +3241,12 @@ function makePlannerItem(type = "sticky") {
           option.textContent = label;
           textFontSelect.append(option);
      });
-     textColorLabel.className = "item-control-row item-text-control";
+     textColorLabel.className = "item-control-row item-text-control item-color-control";
      textColorLabel.textContent = "Color";
-     textColorInput.type = "color";
-     textColorInput.value = "#333333";
      textColorInput.dataset.textControl = "color";
-     textColorInput.setAttribute("aria-label", "Sticky note text color");
+     textColorInput.setAttribute("aria-label", "Sticky note text palette");
+     textColorSwatches.className = "item-color-swatches";
+     textColorSwatches.dataset.textSwatches = "color";
      textFormatGroup.className = "item-text-format item-text-control";
      textBoldLabel.className = "item-text-toggle";
      textBoldLabel.textContent = "B";
@@ -3218,14 +3401,14 @@ function makePlannerItem(type = "sticky") {
           startTimeSelect.append(option);
      }
 
-     fillLabel.append(fillInput);
-     borderColorLabel.append(borderColorInput);
+     fillLabel.append(fillInput, fillSwatches);
+     borderColorLabel.append(borderColorInput, borderColorSwatches);
      borderWidthLabel.append(borderWidthSelect);
      dotGridLabel.append(dotGridInput);
      textToggleLabel.append(textToggleInput);
      textSizeLabel.append(textSizeInput);
      textFontLabel.append(textFontSelect);
-     textColorLabel.append(textColorInput);
+     textColorLabel.append(textColorInput, textColorSwatches);
      textBoldLabel.append(textBoldInput);
      textItalicLabel.append(textItalicInput);
      textUnderlineLabel.append(textUnderlineInput);
@@ -3278,6 +3461,28 @@ function makePlannerItem(type = "sticky") {
      }
      controlTabs.append(widgetTab);
      controls.append(controlTabs, actionsPanel, stylePanel, widgetPanel);
+     initializePaletteColorControl(fillInput, fillSwatches, "var(--12bit-p03)", (nextColor) => {
+          applyStyleToActionItems(item, {
+               fillColor: nextColor
+          });
+     });
+     initializePaletteColorControl(borderColorInput, borderColorSwatches, "var(--color-gray5)", (nextColor) => {
+          applyStyleToActionItems(item, {
+               borderColor: nextColor
+          });
+     });
+     initializePaletteColorControl(textColorInput, textColorSwatches, "var(--color-gray1)", (nextColor) => {
+          if (isCalendarTextItem(item)) {
+               setCalendarDayTextSettings(item, {
+                    color: nextColor
+               });
+          } else {
+               setStickyTextSettings(item, {
+                    color: nextColor
+               });
+          }
+          notifyTemplateChanged();
+     });
      controls.querySelectorAll("select").forEach((select) => {
           makeCustomSelect(select);
           select.addEventListener("change", () => updateCustomSelectDisplay(select));
@@ -3289,8 +3494,8 @@ function makePlannerItem(type = "sticky") {
      }
      item.append(controls);
      setItemStyle(item, {
-          fillColor: "var(--mocha-04)",
-          borderColor: borderColorInput.value,
+          fillColor: "var(--12bit-p03)",
+          borderColor: "var(--color-gray5)",
           borderWidth: borderWidthSelect.value,
           dotGrid: "false"
      });
@@ -3400,16 +3605,6 @@ function makePlannerItem(type = "sticky") {
           event.stopPropagation();
           moveActionItemsLayer(item, "backward");
      });
-     fillInput.addEventListener("input", () => {
-          applyStyleToActionItems(item, {
-               fillColor: fillInput.value
-          });
-     });
-     borderColorInput.addEventListener("input", () => {
-          applyStyleToActionItems(item, {
-               borderColor: borderColorInput.value
-          });
-     });
      borderWidthSelect.addEventListener("change", () => {
           applyStyleToActionItems(item, {
                borderWidth: borderWidthSelect.value
@@ -3446,18 +3641,6 @@ function makePlannerItem(type = "sticky") {
           } else {
                setStickyTextSettings(item, {
                     font: textFontSelect.value
-               });
-          }
-          notifyTemplateChanged();
-     });
-     textColorInput.addEventListener("input", () => {
-          if (isCalendarTextItem(item)) {
-               setCalendarDayTextSettings(item, {
-                    color: textColorInput.value
-               });
-          } else {
-               setStickyTextSettings(item, {
-                    color: textColorInput.value
                });
           }
           notifyTemplateChanged();
@@ -4219,6 +4402,7 @@ window.perfectPlanner = {
 };
 
 initializeCustomSelects();
+initializePalettePreview();
 applyPlannerConfig();
 if (isSinglePageViewport) {
      viewFocusIndex = 0;

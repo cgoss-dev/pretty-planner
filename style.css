@@ -19,33 +19,33 @@
      --white-50: rgba(255, 255, 255, 0.5);
      --white-75: rgba(255, 255, 255, 0.75);
 
-     /* KATE MORLEY 12-BIT PALETTE */
-     --12bit-01: #f00;
-     --12bit-02: #f80;
-     --12bit-03: #ff0;
-     --12bit-04: #bf0;
-     --12bit-05: #0f0;
-     --12bit-06: #0fb;
-     --12bit-07: #0ff;
-     --12bit-08: #0bf;
-     --12bit-09: #00f;
-     --12bit-10: #80f;
-     --12bit-11: #f0f;
-     --12bit-12: #f08;
+     /* VIBRANT 12-BIT PALETTE */
+     --12bit-v01: #f00;
+     --12bit-v02: #f80;
+     --12bit-v03: #ff0;
+     --12bit-v04: #bf0;
+     --12bit-v05: #0f0;
+     --12bit-v06: #0fb;
+     --12bit-v07: #0ff;
+     --12bit-v08: #0bf;
+     --12bit-v09: #00f;
+     --12bit-v10: #80f;
+     --12bit-v11: #f0f;
+     --12bit-v12: #f08;
 
-     /* CATPPUCCIN MOCHA PALETTE */
-     --mocha-01: #f38ba8;
-     --mocha-02: #eba0ac;
-     --mocha-03: #fab387;
-     --mocha-04: #f9e2af;
-     --mocha-05: #a6e3a1;
-     --mocha-06: #94e2d5;
-     --mocha-07: #89dceb;
-     --mocha-08: #74c7ec;
-     --mocha-09: #89b4fa;
-     --mocha-10: #b4befe;
-     --mocha-11: #cba6f7;
-     --mocha-12: #f5c2e7;
+     /* PASTEL 12-BIT PALETTE */
+     --12bit-p01: #f99;
+     --12bit-p02: #fc9;
+     --12bit-p03: #ff9;
+     --12bit-p04: #df9;
+     --12bit-p05: #9f9;
+     --12bit-p06: #9fd;
+     --12bit-p07: #9ff;
+     --12bit-p08: #9df;
+     --12bit-p09: #99f;
+     --12bit-p10: #c9f;
+     --12bit-p11: #f9f;
+     --12bit-p12: #f9c;
 
      /* COMPONENTS */
      --border-lg: 3px;
@@ -60,8 +60,8 @@
      --font-size-md: clamp(1.5rem, 1.5rem, 1.5rem);
      --font-size-sm: clamp(1rem, 1rem, 1rem);
 
-     --desk: var(--mocha-02);
-     --desk-accent: var(--mocha-12);
+     --desk: var(--12bit-p02);
+     --desk-accent: var(--12bit-p12);
      --desk-image: none;
      --desk-size: auto;
      --paper: #fff8fb;
@@ -459,6 +459,58 @@ body {
      border-radius: 0 0 6px 6px;
 }
 
+.palette-preview {
+     display: grid;
+     gap: 7px;
+     padding: 7px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-radius: 6px;
+     background: rgba(255, 255, 255, 0.28);
+}
+
+.palette-preview-title {
+     color: var(--color-gray1);
+     font: 700 0.82rem var(--font-noto);
+     line-height: 1.1;
+}
+
+.palette-preview-row {
+     display: grid;
+     grid-template-columns: 54px minmax(0, 1fr);
+     align-items: center;
+     gap: 6px;
+}
+
+.palette-preview-label {
+     color: var(--color-gray2);
+     font: 700 0.68rem var(--font-noto);
+     line-height: 1;
+}
+
+.palette-swatches {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(24px, 1fr));
+     gap: 3px;
+     min-width: 0;
+}
+
+.palette-preview .custom-select {
+     width: 100%;
+}
+
+.palette-swatch {
+     display: grid;
+     place-items: center;
+     min-width: 0;
+     aspect-ratio: 1;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
+     border-radius: 4px;
+     background: var(--swatch);
+     color: var(--swatch-ink, var(--color-gray1));
+     font: 700 0.54rem var(--font-noto);
+     line-height: 1;
+}
+
 .custom-select-option.is-selected {
      background: rgba(255, 255, 255, 0.66);
 }
@@ -577,15 +629,15 @@ body {
 }
 
 [data-guide-option="halves"] input {
-     accent-color: var(--mocha-12);
+     accent-color: var(--12bit-p12);
 }
 
 [data-guide-option="thirds"] input {
-     accent-color: var(--mocha-05);
+     accent-color: var(--12bit-p05);
 }
 
 [data-guide-option="fourths"] input {
-     accent-color: var(--mocha-08);
+     accent-color: var(--12bit-p08);
 }
 
 .guide-settings:not([open]) label,
@@ -849,7 +901,7 @@ body {
      width: var(--source-sticky-size);
      aspect-ratio: 1;
      border-radius: 5px;
-     background: linear-gradient(135deg, var(--mocha-04), #fff3c4);
+     background: linear-gradient(135deg, var(--12bit-p03), #fff3c4);
      filter: drop-shadow(0 14px 12px rgba(17, 17, 17, 0.18));
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      cursor: grab;
@@ -884,7 +936,7 @@ body {
 .planner-item {
      border: var(--sticky-border-size, var(--border-sm)) solid var(--sticky-border-color, rgba(17, 17, 17, 0.18));
      border-radius: 5px;
-     background: var(--sticky-fill, var(--mocha-04));
+     background: var(--sticky-fill, var(--12bit-p03));
      color: var(--color-gray1);
      font: 700 0.78rem var(--font-noto);
      cursor: grab;
@@ -906,7 +958,7 @@ body {
 .planner-item-sticky[data-dot-grid="true"] {
      background:
           radial-gradient(circle at var(--sticky-dot-grid-size-x, calc(100% / var(--sticky-grid-units))) var(--sticky-dot-grid-size-y, calc(100% / var(--sticky-grid-units))), rgba(17, 17, 17, 0.24) 0 1px, transparent 1.35px),
-          var(--sticky-fill, var(--mocha-04));
+          var(--sticky-fill, var(--12bit-p03));
      background-position: var(--sticky-dot-grid-offset-x, 0) var(--sticky-dot-grid-offset-y, 0), 0 0;
      background-size: var(--sticky-dot-grid-size-x, calc(100% / var(--sticky-grid-units))) var(--sticky-dot-grid-size-y, calc(100% / var(--sticky-grid-units))), auto;
 }
@@ -1432,6 +1484,43 @@ body {
      font-size: 0.72rem;
 }
 
+.item-color-control {
+     grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.item-color-control .custom-select {
+     grid-column: 2;
+     width: 96px;
+}
+
+.item-color-swatches {
+     grid-column: 1 / -1;
+     display: grid;
+     grid-template-columns: repeat(6, minmax(0, 1fr));
+     gap: 4px;
+     min-width: 0;
+}
+
+.item-color-swatch {
+     display: grid;
+     place-items: center;
+     min-width: 0;
+     aspect-ratio: 1;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-radius: 4px;
+     background: var(--swatch);
+     color: var(--swatch-ink, var(--color-gray1));
+     cursor: pointer;
+     font: 700 0.54rem var(--font-noto);
+     line-height: 1;
+}
+
+.item-color-swatch.is-selected {
+     box-shadow:
+          0 0 0 1px var(--color-white),
+          0 0 0 3px var(--color-gray1);
+}
+
 .item-widget-control {
      display: none;
 }
@@ -1519,8 +1608,8 @@ body {
 }
 
 .item-control:last-child {
-     border-color: rgba(243, 139, 168, 0.58);
-     color: var(--mocha-01);
+     border-color: rgba(255, 153, 153, 0.58);
+     color: var(--12bit-p01);
 }
 
 .planner-item.is-resize-ew {

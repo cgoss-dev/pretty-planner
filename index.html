@@ -60,6 +60,19 @@
                          </select>
                     </label>
 
+                    <div class="palette-preview" aria-label="Color palette preview">
+                         <span class="palette-preview-title">Palettes</span>
+                         <div class="palette-preview-row">
+                              <span class="palette-preview-label">Color</span>
+                              <select data-palette-preview>
+                                   <option value="12bit-p" selected>12bit P</option>
+                                   <option value="12bit-v">12bit V</option>
+                                   <option value="gray">Gray</option>
+                              </select>
+                         </div>
+                         <div class="palette-swatches" data-palette-preview-swatches></div>
+                    </div>
+
                     <div class="setting-field">
                          <span>Guides</span>
                          <details class="guide-settings">
@@ -120,6 +133,6 @@
           </div>
      </main>
 
-     <script src="script.js?v=resize-band-16-outline-3"></script>
+     <script src="script.js?v=palette-select-1"></script>
 </body>
 </html>
