@@ -9,15 +9,15 @@
      --color-white: #fff;
      --color-rainbow: #ea76cb;
 
-     /* TRANSLUCENCE */
-     --translu-max: rgba(0, 0, 0, 0.25);
-     --translu-med: rgba(0, 0, 0, 0.5);
-     --translu-min: rgba(0, 0, 0, 0.75);
+     /* BLACK ALPHA */
+     --black-25: rgba(0, 0, 0, 0.25);
+     --black-50: rgba(0, 0, 0, 0.5);
+     --black-75: rgba(0, 0, 0, 0.75);
 
-     /* OPACITY */
-     --opacity-min: rgba(255, 255, 255, 0.25);
-     --opacity-med: rgba(255, 255, 255, 0.5);
-     --opacity-max: rgba(255, 255, 255, 0.75);
+     /* WHITE ALPHA */
+     --white-25: rgba(255, 255, 255, 0.25);
+     --white-50: rgba(255, 255, 255, 0.5);
+     --white-75: rgba(255, 255, 255, 0.75);
 
      /* KATE MORLEY 12-BIT PALETTE */
      --12bit-01: #f00;
@@ -961,7 +961,7 @@ body {
      background:
           repeating-linear-gradient(90deg, transparent 0 calc(12.5% - 1px), rgba(17, 17, 17, 0.14) calc(12.5% - 1px) 12.5%),
           repeating-linear-gradient(180deg, transparent 0 calc(12.5% - 1px), rgba(17, 17, 17, 0.14) calc(12.5% - 1px) 12.5%),
-          var(--opacity-med);
+          var(--white-50);
      color: var(--color-gray1);
      cursor: grab;
      font: 700 var(--font-size-sm) var(--font-noto);
