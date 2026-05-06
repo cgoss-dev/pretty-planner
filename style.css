@@ -1,23 +1,23 @@
 :root {
      /* NOTE: THEME */
-     --color-black: #111;
-     --color-gray1: #333;
-     --color-gray2: #555;
-     --color-gray3: #777;
-     --color-gray4: #999;
-     --color-gray5: #bbb;
+     --color-black: #000;
+     --color-gray1: #111;
+     --color-gray2: #333;
+     --color-gray3: #555;
+     --color-gray4: #777;
+     --color-gray5: #999;
      --color-white: #fff;
      --color-rainbow: #ea76cb;
 
-     /* BLACK ALPHA */
-     --black-25: rgba(0, 0, 0, 0.25);
-     --black-50: rgba(0, 0, 0, 0.5);
-     --black-75: rgba(0, 0, 0, 0.75);
+     /* BLACK/SHADE ALPHA */
+     --shade-25: rgba(0, 0, 0, 0.25);
+     --shade-50: rgba(0, 0, 0, 0.5);
+     --shade-75: rgba(0, 0, 0, 0.75);
 
-     /* WHITE ALPHA */
-     --white-25: rgba(255, 255, 255, 0.25);
-     --white-50: rgba(255, 255, 255, 0.5);
-     --white-75: rgba(255, 255, 255, 0.75);
+     /* WHITE/TINT ALPHA */
+     --tint-25: rgba(255, 255, 255, 0.25);
+     --tint-50: rgba(255, 255, 255, 0.5);
+     --tint-75: rgba(255, 255, 255, 0.75);
 
      /* VIBRANT 12-BIT PALETTE */
      --12bit-v01: #f00;
@@ -521,6 +521,7 @@ body {
 }
 
 .settings-panel > label,
+.settings-panel > .palette-preview,
 .settings-panel > .setting-field,
 .settings-panel > .guide-settings,
 .item-control-panel > .item-control,
@@ -1013,7 +1014,7 @@ body {
      background:
           repeating-linear-gradient(90deg, transparent 0 calc(12.5% - 1px), rgba(17, 17, 17, 0.14) calc(12.5% - 1px) 12.5%),
           repeating-linear-gradient(180deg, transparent 0 calc(12.5% - 1px), rgba(17, 17, 17, 0.14) calc(12.5% - 1px) 12.5%),
-          var(--white-50);
+          var(--tint-50);
      color: var(--color-gray1);
      cursor: grab;
      font: 700 var(--font-size-sm) var(--font-noto);
@@ -1441,7 +1442,7 @@ body {
 
 .item-control-row {
      display: grid;
-     grid-template-columns: minmax(0, 1fr) auto auto;
+     grid-template-columns: minmax(0, 1fr) minmax(0, 132px);
      align-items: center;
      gap: 8px;
      padding: 4px 6px;
@@ -1449,7 +1450,7 @@ body {
 
 .item-control-row input,
 .item-control-row select {
-     width: 42px;
+     width: 100%;
      min-width: 0;
      min-height: 28px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
@@ -1460,7 +1461,6 @@ body {
 }
 
 .item-control-row select {
-     width: 86px;
      padding: 0 28px 0 8px;
      appearance: none;
      background:
@@ -1470,8 +1470,9 @@ body {
 }
 
 .item-control-row .custom-select {
-     grid-column: 3;
-     width: 86px;
+     grid-column: 2;
+     justify-self: end;
+     width: 100%;
 }
 
 .item-control-row .custom-select summary {
@@ -1485,12 +1486,33 @@ body {
 }
 
 .item-color-control {
-     grid-template-columns: minmax(0, 1fr) auto;
+     grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 120px));
 }
 
 .item-color-control .custom-select {
-     grid-column: 2;
-     width: 96px;
+     grid-column: auto;
+     width: 100%;
+}
+
+.item-text-settings-control {
+     grid-template-columns: minmax(0, 1fr) 32px 56px minmax(0, 132px);
+}
+
+.item-text-settings-control .custom-select {
+     grid-column: 4;
+}
+
+.item-text-settings-control input[type="checkbox"] {
+     width: auto;
+     justify-self: center;
+}
+
+.item-text-settings-control-no-toggle {
+     grid-template-columns: minmax(0, 1fr) 56px minmax(0, 132px);
+}
+
+.item-text-settings-control-no-toggle .custom-select {
+     grid-column: 3;
 }
 
 .item-color-swatches {
@@ -1550,12 +1572,16 @@ body {
 
 .item-widget-control select {
      grid-column: 3;
-     width: 96px;
+     width: 132px;
 }
 
-.item-widget-control .custom-select,
+.item-widget-control .custom-select {
+     grid-column: 3;
+     width: 132px;
+}
+
 .item-text-control .custom-select {
-     width: 96px;
+     width: 100%;
 }
 
 .item-widget-control input[type="checkbox"] {
