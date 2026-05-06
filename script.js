@@ -166,6 +166,23 @@ const colorPalettes = {
                { label: "F08", value: "var(--12bit-v12)" }
           ]
      },
+     "jewel": {
+          label: "Jewel",
+          colors: [
+               { label: "900", value: "var(--12bit-j01)", ink: "var(--color-white)" },
+               { label: "940", value: "var(--12bit-j02)", ink: "var(--color-white)" },
+               { label: "990", value: "var(--12bit-j03)", ink: "var(--color-white)" },
+               { label: "690", value: "var(--12bit-j04)", ink: "var(--color-white)" },
+               { label: "090", value: "var(--12bit-j05)", ink: "var(--color-white)" },
+               { label: "096", value: "var(--12bit-j06)", ink: "var(--color-white)" },
+               { label: "099", value: "var(--12bit-j07)", ink: "var(--color-white)" },
+               { label: "069", value: "var(--12bit-j08)", ink: "var(--color-white)" },
+               { label: "009", value: "var(--12bit-j09)", ink: "var(--color-white)" },
+               { label: "409", value: "var(--12bit-j10)", ink: "var(--color-white)" },
+               { label: "909", value: "var(--12bit-j11)", ink: "var(--color-white)" },
+               { label: "904", value: "var(--12bit-j12)", ink: "var(--color-white)" }
+          ]
+     },
      "12bit-p": {
           label: "12bit P",
           colors: [
@@ -184,7 +201,7 @@ const colorPalettes = {
           ]
      }
 };
-const colorPaletteOrder = ["gray", "12bit-v", "12bit-p"];
+const colorPaletteOrder = ["gray", "12bit-v", "jewel", "12bit-p"];
 const paperColors = {
      "White": {
           label: "White",
