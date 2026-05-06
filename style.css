@@ -897,7 +897,8 @@ body {
 /* NOTE: miniCal */
 
 .mini-cal-source,
-.full-cal-source {
+.full-cal-source,
+.weekly-vertical-source {
      display: grid;
      place-items: center;
      width: min(calc(var(--source-sticky-size) * 0.95), 100%);
@@ -918,8 +919,13 @@ body {
      aspect-ratio: 1.4;
 }
 
+.weekly-vertical-source {
+     aspect-ratio: 0.72;
+}
+
 .planner-item-mini-cal,
-.planner-item-full-cal {
+.planner-item-full-cal,
+.planner-item-weekly-vertical {
      padding: 0;
      overflow: visible;
      background: var(--sticky-fill, transparent);
@@ -1015,7 +1021,8 @@ body {
      display: none;
 }
 
-.planner-item-full-cal .dayCell[data-text-overflow="true"]::after {
+.planner-item-full-cal .dayCell[data-text-overflow="true"]::after,
+.planner-item-weekly-vertical .dayCell[data-text-overflow="true"]::after {
      content: "⇧";
      position: absolute;
      right: 3px;
@@ -1060,7 +1067,107 @@ body {
 .mini-cal-month,
 .mini-cal-week,
 .mini-cal-day-name {
+     background: rgba(17, 17, 17, 0.04);
      color: var(--color-gray1);
+}
+
+/* NOTE: weeklyVertical */
+
+.weekly-vertical {
+     display: grid;
+     width: 100%;
+     height: 100%;
+     overflow: hidden;
+     grid-template-columns: calc(var(--weekly-column-cell-width, 12px) * 2) repeat(var(--weekly-day-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 2), 1fr));
+     grid-template-rows: repeat(var(--weekly-row-count, 50), var(--weekly-row-cell-height, 12px));
+}
+
+.weekly-vertical:not(.has-time-column) {
+     grid-template-columns: repeat(var(--weekly-day-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 2), 1fr));
+}
+
+.weekly-vertical-cell {
+     display: grid;
+     min-width: 0;
+     min-height: 0;
+     align-items: center;
+     justify-items: center;
+     border-right: var(--border-sm) solid rgba(17, 17, 17, 0.16);
+     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.16);
+     color: var(--color-gray2);
+     font: 700 0.62rem var(--font-noto);
+     line-height: 1;
+     overflow: hidden;
+}
+
+.weekly-vertical-title,
+.weekly-vertical-time-heading {
+     background: rgba(17, 17, 17, 0.04);
+     color: var(--color-gray1);
+}
+
+.weekly-vertical-date {
+     grid-template-columns: auto auto;
+     align-items: center;
+     justify-content: center;
+     gap: 0.35em;
+     background: rgba(17, 17, 17, 0.04);
+     padding: 3px;
+}
+
+.weekly-vertical-day-name,
+.weekly-vertical-date .dayNumber {
+     min-width: 0;
+}
+
+.weekly-vertical-date-label {
+     display: grid;
+     grid-template-columns: auto auto;
+     align-items: center;
+     justify-content: center;
+     gap: 0.35em;
+     min-width: 0;
+}
+
+.weekly-vertical-sunday-mid-marker {
+     width: 100%;
+     height: 100%;
+     color: var(--color-gray1);
+     line-height: 1;
+     pointer-events: none;
+}
+
+.weekly-vertical-time {
+     justify-items: end;
+     background: rgba(17, 17, 17, 0.04);
+     padding-right: 3px;
+     color: var(--color-gray1);
+     font-weight: 600;
+}
+
+.weekly-vertical-slot {
+     position: relative;
+     place-items: stretch;
+     background: rgba(255, 255, 255, 0.12);
+}
+
+.weekly-vertical-slot-text {
+     width: 100%;
+     height: 100%;
+     min-height: 0;
+     padding: 2px 3px;
+}
+
+.weekly-vertical-weekend {
+     background: rgba(17, 17, 17, 0.04);
+}
+
+.weekly-vertical-edge-right {
+     border-right: 0;
+}
+
+.weekly-vertical-edge-bottom {
+     border-bottom: 0;
 }
 
 .planner-item.is-dragging {
@@ -1077,13 +1184,13 @@ body {
 
 .planner-item.is-snap-ready {
      outline: var(--border-lg) solid rgba(234, 118, 203, 0.68);
-     outline-offset: 2px;
+     outline-offset: 3px;
 }
 
 .planner-item.is-selected {
      z-index: 25;
      outline: var(--border-md) solid rgba(234, 118, 203, 0.72);
-     outline-offset: 2px;
+     outline-offset: 3px;
 }
 
 .planner-item.is-menu-open {
@@ -1096,7 +1203,7 @@ body {
 
 .planner-item.is-selected:focus {
      outline: var(--border-md) solid rgba(234, 118, 203, 0.72);
-     outline-offset: 2px;
+     outline-offset: 3px;
 }
 
 .item-size-label {
@@ -1218,7 +1325,7 @@ body {
 
 .item-control-row {
      display: grid;
-     grid-template-columns: 1fr auto;
+     grid-template-columns: minmax(0, 1fr) auto auto;
      align-items: center;
      gap: 8px;
      padding: 4px 6px;
@@ -1228,15 +1335,22 @@ body {
 .item-control-row select {
      width: 42px;
      min-width: 0;
-     border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-     border-radius: 4px;
-     background: var(--color-white);
+     min-height: 28px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-radius: 6px;
+     background: rgba(255, 255, 255, 0.48);
      color: var(--color-gray1);
      font: 700 0.72rem var(--font-noto);
 }
 
 .item-control-row select {
-     width: 54px;
+     width: 86px;
+     padding: 0 28px 0 8px;
+     appearance: none;
+     background:
+          linear-gradient(45deg, transparent 50%, var(--color-gray2) 50%) calc(100% - 14px) 50% / 5px 5px no-repeat,
+          linear-gradient(135deg, var(--color-gray2) 50%, transparent 50%) calc(100% - 9px) 50% / 5px 5px no-repeat,
+          rgba(255, 255, 255, 0.48);
 }
 
 .item-widget-control {
@@ -1244,15 +1358,40 @@ body {
 }
 
 .item-widget-control {
-     grid-template-columns: 1fr auto auto;
+     grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.item-widget-group {
+     display: grid;
+     gap: 6px;
+     padding: 6px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-radius: 6px;
+     background: rgba(255, 255, 255, 0.3);
+}
+
+.item-widget-group .item-widget-control {
+     border-color: rgba(17, 17, 17, 0.16);
+}
+
+.item-widget-group-title {
+     color: var(--color-gray1);
+     font: 700 0.78rem var(--font-noto);
+     line-height: 1.1;
 }
 
 .item-widget-control select {
-     width: 86px;
+     grid-column: 3;
+     width: 96px;
 }
 
 .item-widget-control input[type="checkbox"] {
+     grid-column: 2;
      width: auto;
+}
+
+.item-widget-control input[type="checkbox"]:last-child {
+     grid-column: 3;
 }
 
 .item-text-format {
@@ -1283,13 +1422,15 @@ body {
 }
 
 .item-text-control select {
-     width: 86px;
+     width: 96px;
 }
 
 .planner-item-mini-cal.is-menu-open .item-widget-control,
 .planner-item-full-cal.is-menu-open .item-widget-control,
+.planner-item-weekly-vertical.is-menu-open .item-widget-control,
 .item-controls-mini-cal.is-floating .item-widget-control,
-.item-controls-full-cal.is-floating .item-widget-control {
+.item-controls-full-cal.is-floating .item-widget-control,
+.item-controls-weekly-vertical.is-floating .item-widget-control {
      display: grid;
 }
 
