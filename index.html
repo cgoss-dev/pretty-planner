@@ -24,12 +24,10 @@
           <div class="zoom-toast" data-zoom-toast aria-live="polite" aria-atomic="true">100%</div>
 
           <form class="planner-settings" aria-label="Planner page settings">
-               <button class="sidebar-collapse-button" type="button" data-sidebar-collapse aria-label="Minimize settings menu">⌄</button>
-
                <div class="settings-tabs" role="tablist" aria-label="Planner setting tabs">
                     <button class="settings-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="paper-picker-panel" data-settings-tab="paper-picker" data-tab-color="--mocha-11">Paper</button>
-                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="stickers-panel" data-settings-tab="stickers" data-tab-color="--mocha-05">Stickers</button>
-                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="widgets-panel" data-settings-tab="widgets" data-tab-color="--mocha-07">Functions</button>
+                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="stickers-panel" data-settings-tab="stickers" data-tab-color="--mocha-05">Objects</button>
+                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="widgets-panel" data-settings-tab="widgets" data-tab-color="--mocha-07">Presets</button>
                </div>
 
                <div class="settings-panel" id="paper-picker-panel" role="tabpanel" data-settings-panel="paper-picker">
@@ -69,15 +67,15 @@
                               <summary>Select</summary>
                               <button class="guide-toggle" type="button" data-guide-toggle>None</button>
                               <label data-guide-option="halves">
-                                   <input type="checkbox" data-guide="halves" checked>
+                                   <input type="checkbox" data-guide="halves">
                                    <span>1/2</span>
                               </label>
                               <label data-guide-option="thirds">
-                                   <input type="checkbox" data-guide="thirds" checked>
+                                   <input type="checkbox" data-guide="thirds">
                                    <span>1/3</span>
                               </label>
                               <label data-guide-option="fourths">
-                                   <input type="checkbox" data-guide="fourths" checked>
+                                   <input type="checkbox" data-guide="fourths">
                                    <span>1/4</span>
                               </label>
                          </details>
@@ -99,13 +97,15 @@
 
                <div class="settings-panel stickers-panel" id="stickers-panel" role="tabpanel" data-settings-panel="stickers" hidden>
                     <button class="sticky-note" type="button" data-create-item data-create-type="sticky" aria-label="Add sticky note"></button>
-               </div>
-
-               <div class="settings-panel widgets-panel" id="widgets-panel" role="tabpanel" data-settings-panel="widgets" hidden>
                     <button class="mini-cal-source" type="button" data-create-item data-create-type="mini-cal" aria-label="Add mini calendar widget">
                          <span>miniCal</span>
                     </button>
+                    <button class="full-cal-source" type="button" data-create-item data-create-type="full-cal" aria-label="Add full calendar widget">
+                         <span>fullCal</span>
+                    </button>
                </div>
+
+               <div class="settings-panel widgets-panel" id="widgets-panel" role="tabpanel" data-settings-panel="widgets" hidden></div>
           </form>
 
           <div class="notebook-stage">
@@ -118,6 +118,6 @@
           </div>
      </main>
 
-     <script src="script.js?v=mouse-zoom"></script>
+     <script src="script.js?v=default-text-size-10"></script>
 </body>
 </html>

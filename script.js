@@ -15,12 +15,12 @@ const guideToggle = document.querySelector("[data-guide-toggle]");
 const settingsTabs = Array.from(document.querySelectorAll("[data-settings-tab]"));
 const settingsPanels = Array.from(document.querySelectorAll("[data-settings-panel]"));
 const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]"));
-const sidebarCollapseButton = document.querySelector("[data-sidebar-collapse]");
 const zoomToast = document.querySelector("[data-zoom-toast]");
 let customSelectDetails = [];
 const singlePageViewportQuery = window.matchMedia("(max-width: 880px)");
 
 const resizeEdgeSize = 12;
+const moveStartThreshold = 5;
 const pageStickDepth = 2;
 const stickyGridUnits = 12;
 const itemGridUnits = {
@@ -31,6 +31,10 @@ const itemGridUnits = {
      "mini-cal": {
           width: 8,
           height: 8
+     },
+     "full-cal": {
+          width: 14,
+          height: 10
      }
 };
 const templateSchemaVersion = 1;
@@ -50,7 +54,7 @@ const calendarMonthNames = [
      "December"
 ];
 const calendarYearRange = {
-     start: 2024,
+     start: 2025,
      end: 2035
 };
 const viewZoomLevels = [
@@ -59,16 +63,8 @@ const viewZoomLevels = [
           value: 1
      },
      {
-          label: "125%",
-          value: 1.25
-     },
-     {
           label: "150%",
           value: 1.5
-     },
-     {
-          label: "175%",
-          value: 1.75
      },
      {
           label: "200%",
@@ -88,7 +84,7 @@ let viewPanOffsetX = 0;
 let viewPanOffsetY = 0;
 const paperSizes = {
      "letter": {
-          label: "ANSI A Letter",
+          label: "Letter",
           unit: "in",
           width: 8.5,
           height: 11
@@ -100,13 +96,13 @@ const paperSizes = {
           height: 8.5
      },
      "a4": {
-          label: "ISO A4",
+          label: "A4",
           unit: "cm",
           width: 21,
           height: 29.7
      },
      "a5": {
-          label: "ISO A5",
+          label: "A5",
           unit: "cm",
           width: 14.8,
           height: 21
@@ -219,9 +215,9 @@ function buildPlannerConfig() {
      const paperColorKey = paperColorSelect ? paperColorSelect.value : "white";
      const deskColorKey = deskColorSelect ? deskColorSelect.value : "pink";
      const guides = {
-          halves: true,
-          thirds: true,
-          fourths: true
+          halves: false,
+          thirds: false,
+          fourths: false
      };
      const paper = paperSizes[paperKey];
      const grid = gridSizes[gridKey];
@@ -447,6 +443,10 @@ function showZoomToast() {
 }
 
 function zoomViewFromWheel(event) {
+     if (event.target.closest(".sticky-text[contenteditable='true'], .calendar-day-text[contenteditable='true']")) {
+          return;
+     }
+
      if (event.target.closest(".planner-settings, .item-controls")) {
           return;
      }
@@ -454,13 +454,14 @@ function zoomViewFromWheel(event) {
      event.preventDefault();
      wheelZoomDelta += event.deltaY;
 
-     const threshold = event.ctrlKey ? 24 : 80;
+     const isWheelNotch = event.deltaMode !== 0 || Math.abs(event.deltaY) >= 32;
+     const threshold = event.ctrlKey ? 8 : 32;
      if (Math.abs(wheelZoomDelta) < threshold) {
           return;
      }
 
      changeViewZoom(wheelZoomDelta < 0 ? "in" : "out", getZoomAnchor(event.clientX, event.clientY));
-     wheelZoomDelta = 0;
+     wheelZoomDelta = isWheelNotch ? 0 : wheelZoomDelta % threshold;
 }
 
 function resetViewPanOffset() {
@@ -740,10 +741,12 @@ function selectSettingsTab(tabName) {
 
 function openSidebar() {
      plannerSettings.classList.add("is-open");
+     plannerDesk.classList.add("has-open-main-menu");
 }
 
 function closeSidebar() {
      plannerSettings.classList.remove("is-open");
+     plannerDesk.classList.remove("has-open-main-menu");
 }
 
 function syncSidebarSnap() {
@@ -829,6 +832,7 @@ function resizePageTemplateItems(items) {
 
 function serializePlannerItem(item) {
      const page = getItemPage(item);
+     const textElement = getStickyTextElement(item);
      const baseItem = {
           id: item.dataset.templateId,
           type: item.dataset.itemType || "sticky",
@@ -839,13 +843,42 @@ function serializePlannerItem(item) {
                borderWidth: Number(item.dataset.borderWidth),
                dotGrid: item.dataset.dotGrid === "true"
           },
-          widget: item.dataset.itemType === "mini-cal"
+          widget: isCalendarItem(item)
                ? {
                     weekNumbers: item.dataset.weekNumbers !== "false",
-                    weekStart: item.dataset.weekStart || "sunday",
+                    weekStart: item.dataset.weekStart || "monday",
+                    monthVisible: item.dataset.monthVisible !== "false",
                     month: Number(item.dataset.month) || 0,
                     monthLabel: calendarMonthNames[Number(item.dataset.month) || 0],
-                    year: Number(item.dataset.year) || new Date().getFullYear()
+                    yearVisible: item.dataset.yearVisible !== "false",
+                    year: Number(item.dataset.year) || new Date().getFullYear(),
+                    dayNotes: isCalendarItem(item) ? getCalendarDayNotes(item) : null,
+                    dayText: isCalendarItem(item)
+                         ? {
+                              size: Number(item.dataset.dayTextSize) || 10,
+                              font: item.dataset.dayTextFont || "noto",
+                              color: item.dataset.dayTextColor || "#333333",
+                              bold: item.dataset.dayTextBold === "true",
+                              italic: item.dataset.dayTextItalic === "true",
+                              underline: item.dataset.dayTextUnderline === "true",
+                              align: item.dataset.dayTextAlign || "left",
+                              lineHeight: Number(item.dataset.dayTextLineHeight) || 1.15
+                         }
+                         : null
+               }
+               : null,
+          text: item.dataset.itemType === "sticky"
+               ? {
+                    enabled: item.dataset.textEnabled === "true",
+                    content: textElement ? textElement.textContent : "",
+                    size: Number(item.dataset.textSize) || 10,
+                    font: item.dataset.textFont || "noto",
+                    color: item.dataset.textColor || "#333333",
+                    bold: item.dataset.textBold === "true",
+                    italic: item.dataset.textItalic === "true",
+                    underline: item.dataset.textUnderline === "true",
+                    align: item.dataset.textAlign || "left",
+                    lineHeight: Number(item.dataset.textLineHeight) || 1.25
                }
                : null
      };
@@ -1030,7 +1063,33 @@ function setItemBox(item, box) {
      }
      item.style.width = `${box.width}px`;
      item.style.height = `${box.height}px`;
+     updateStickyDotGrid(item, page, box);
      updateItemSizeLabel(item);
+     updateStickyTextOverflow(item);
+     updateCalendarTextOverflow(item);
+}
+
+function updateStickyDotGrid(item, page, box) {
+     if (item.dataset.itemType !== "sticky") {
+          return;
+     }
+
+     if (!page) {
+          item.style.setProperty("--sticky-dot-grid-size-x", `${box.width / stickyGridUnits}px`);
+          item.style.setProperty("--sticky-dot-grid-size-y", `${box.height / stickyGridUnits}px`);
+          item.style.setProperty("--sticky-dot-grid-offset-x", "0px");
+          item.style.setProperty("--sticky-dot-grid-offset-y", "0px");
+          return;
+     }
+
+     const grid = getGridSize(page);
+     const offsetX = ((box.x % grid.x) + grid.x) % grid.x;
+     const offsetY = ((box.y % grid.y) + grid.y) % grid.y;
+
+     item.style.setProperty("--sticky-dot-grid-size-x", `${grid.x}px`);
+     item.style.setProperty("--sticky-dot-grid-size-y", `${grid.y}px`);
+     item.style.setProperty("--sticky-dot-grid-offset-x", `${-offsetX}px`);
+     item.style.setProperty("--sticky-dot-grid-offset-y", `${-offsetY}px`);
 }
 
 function setItemStyle(item, style) {
@@ -1063,6 +1122,175 @@ function setItemStyle(item, style) {
      if (dotGridInput) {
           dotGridInput.checked = item.dataset.dotGrid === "true";
      }
+}
+
+function getStickyTextElement(item) {
+     return item.querySelector(".sticky-text");
+}
+
+function setStickyTextSettings(item, settings = {}) {
+     if (item.dataset.itemType !== "sticky") {
+          return;
+     }
+
+     const textElement = getStickyTextElement(item);
+     const controls = getItemControls(item) || item;
+     const isEnabled = settings.enabled ?? item.dataset.textEnabled ?? "false";
+
+     item.dataset.textEnabled = String(isEnabled);
+     item.dataset.textSize = settings.size || item.dataset.textSize || "10";
+     item.dataset.textFont = settings.font || item.dataset.textFont || "noto";
+     item.dataset.textColor = settings.color || item.dataset.textColor || "#333333";
+     item.dataset.textBold = settings.bold ?? item.dataset.textBold ?? "false";
+     item.dataset.textItalic = settings.italic ?? item.dataset.textItalic ?? "false";
+     item.dataset.textUnderline = settings.underline ?? item.dataset.textUnderline ?? "false";
+     item.dataset.textAlign = settings.align || item.dataset.textAlign || "left";
+     item.dataset.textLineHeight = settings.lineHeight || item.dataset.textLineHeight || "1.25";
+
+     if (textElement) {
+          if (settings.content !== undefined) {
+               textElement.textContent = settings.content;
+          }
+
+          textElement.hidden = item.dataset.textEnabled !== "true";
+          textElement.style.fontSize = `${item.dataset.textSize}px`;
+          textElement.style.color = item.dataset.textColor;
+          textElement.style.fontFamily = getStickyTextFont(item.dataset.textFont);
+          textElement.style.fontWeight = item.dataset.textBold === "true" ? "700" : "400";
+          textElement.style.fontStyle = item.dataset.textItalic === "true" ? "italic" : "normal";
+          textElement.style.textDecoration = item.dataset.textUnderline === "true" ? "underline" : "none";
+          textElement.style.textAlign = item.dataset.textAlign;
+          textElement.style.lineHeight = item.dataset.textLineHeight;
+     }
+
+     const enabledInput = controls.querySelector("[data-text-control='enabled']");
+     const sizeInput = controls.querySelector("[data-text-control='size']");
+     const fontSelect = controls.querySelector("[data-text-control='font']");
+     const colorInput = controls.querySelector("[data-text-control='color']");
+     const boldInput = controls.querySelector("[data-text-control='bold']");
+     const italicInput = controls.querySelector("[data-text-control='italic']");
+     const underlineInput = controls.querySelector("[data-text-control='underline']");
+     const alignSelect = controls.querySelector("[data-text-control='align']");
+     const lineHeightInput = controls.querySelector("[data-text-control='line-height']");
+
+     if (enabledInput) {
+          enabledInput.checked = item.dataset.textEnabled === "true";
+     }
+
+     if (sizeInput) {
+          sizeInput.value = item.dataset.textSize;
+     }
+
+     if (fontSelect) {
+          fontSelect.value = item.dataset.textFont;
+     }
+
+     if (colorInput) {
+          colorInput.value = item.dataset.textColor;
+     }
+
+     if (boldInput) {
+          boldInput.checked = item.dataset.textBold === "true";
+     }
+
+     if (italicInput) {
+          italicInput.checked = item.dataset.textItalic === "true";
+     }
+
+     if (underlineInput) {
+          underlineInput.checked = item.dataset.textUnderline === "true";
+     }
+
+     if (alignSelect) {
+          alignSelect.value = item.dataset.textAlign;
+     }
+
+     if (lineHeightInput) {
+          lineHeightInput.value = item.dataset.textLineHeight;
+     }
+
+     updateStickyTextOverflow(item);
+}
+
+function getStickyTextFont(fontKey) {
+     const fonts = {
+          noto: "var(--font-noto)",
+          dancing: "var(--font-dancing)",
+          sans: "Arial, Verdana, sans-serif",
+          serif: "Georgia, serif"
+     };
+
+     return fonts[fontKey] || fonts.noto;
+}
+
+function updateStickyTextOverflow(item) {
+     if (!item || item.dataset.itemType !== "sticky") {
+          return;
+     }
+
+     const textElement = getStickyTextElement(item);
+
+     if (!textElement || item.dataset.textEnabled !== "true") {
+          item.dataset.textOverflow = "false";
+          return;
+     }
+
+     requestAnimationFrame(() => {
+          item.dataset.textOverflow = String(textElement.scrollHeight > textElement.clientHeight + 1);
+     });
+}
+
+function updateTextEditingState() {
+     plannerDesk.classList.toggle("is-editing-text", Boolean(document.querySelector(".planner-item.is-editing-text, .planner-item.is-editing-day-text")));
+}
+
+function stopStickyTextEditing(item) {
+     const textElement = getStickyTextElement(item);
+
+     if (!textElement) {
+          return;
+     }
+
+     textElement.setAttribute("contenteditable", "false");
+     item.classList.remove("is-editing-text");
+     updateTextEditingState();
+     updateStickyTextOverflow(item);
+     notifyTemplateChanged();
+}
+
+function startStickyTextEditing(item) {
+     if (item.dataset.itemType !== "sticky") {
+          return;
+     }
+
+     const textElement = getStickyTextElement(item);
+
+     if (!textElement) {
+          return;
+     }
+
+     if (item.dataset.textEnabled !== "true") {
+          setStickyTextSettings(item, {
+               enabled: "true"
+          });
+     }
+
+     item.classList.add("is-editing-text");
+     textElement.hidden = false;
+     textElement.setAttribute("contenteditable", "true");
+     updateTextEditingState();
+
+     requestAnimationFrame(() => {
+          textElement.focus();
+
+          const selection = window.getSelection();
+          const range = document.createRange();
+
+          range.selectNodeContents(textElement);
+          range.collapse(false);
+          selection.removeAllRanges();
+          selection.addRange(range);
+     });
 }
 
 function getDeskBox(item, clientX, clientY, offsetX, offsetY) {
@@ -1119,6 +1347,13 @@ function getGridSnappedSize(item, page) {
 }
 
 function getItemGridUnits(item) {
+     if (item.dataset.itemType === "full-cal") {
+          return {
+               width: plannerConfig.gridColumns,
+               height: plannerConfig.gridRows
+          };
+     }
+
      return itemGridUnits[item.dataset.itemType] || itemGridUnits.sticky;
 }
 
@@ -1128,6 +1363,14 @@ function clearDragOver() {
 
 function getItemControls(item) {
      return document.querySelector(`.item-controls[data-owner-id="${item.dataset.templateId}"]`);
+}
+
+function isCalendarItemType(type) {
+     return type === "mini-cal" || type === "full-cal";
+}
+
+function isCalendarItem(item) {
+     return isCalendarItemType(item.dataset.itemType);
 }
 
 function positionItemControls(item) {
@@ -1418,8 +1661,10 @@ function getResizedBox(item, page, clientX, clientY, mode) {
      const pageRect = page.getBoundingClientRect();
      const viewZoom = getViewZoom();
      const grid = getGridSize(page);
-     const minWidth = grid.x * 2;
-     const minHeight = grid.y * 2;
+     const minGridWidth = item.dataset.itemType === "full-cal" ? 16 : 2;
+     const minGridHeight = item.dataset.itemType === "full-cal" ? 14 : 2;
+     const minWidth = grid.x * minGridWidth;
+     const minHeight = grid.y * minGridHeight;
      const right = current.x + current.width;
      const bottom = current.y + current.height;
      const pointerX = snap((clientX - pageRect.left) / viewZoom, grid.x);
@@ -1638,10 +1883,168 @@ function getCalendarWeekNumber(date, weekStart) {
      return Math.floor((weekStartDate - yearStart) / 604800000) + 1;
 }
 
+function getCalendarDayNotes(item) {
+     try {
+          return JSON.parse(item.dataset.dayNotes || "{}");
+     } catch {
+          return {};
+     }
+}
+
+function setCalendarDayNote(item, dayKey, value) {
+     const notes = getCalendarDayNotes(item);
+     const nextValue = value.trim();
+
+     if (nextValue) {
+          notes[dayKey] = nextValue;
+     } else {
+          delete notes[dayKey];
+     }
+
+     item.dataset.dayNotes = JSON.stringify(notes);
+}
+
+function setCalendarDayTextSettings(item, settings = {}) {
+     if (!isCalendarItem(item)) {
+          return;
+     }
+
+     const controls = getItemControls(item) || item;
+
+     item.dataset.dayTextSize = settings.size || item.dataset.dayTextSize || "10";
+     item.dataset.dayTextFont = settings.font || item.dataset.dayTextFont || "noto";
+     item.dataset.dayTextColor = settings.color || item.dataset.dayTextColor || "#333333";
+     item.dataset.dayTextBold = settings.bold ?? item.dataset.dayTextBold ?? "false";
+     item.dataset.dayTextItalic = settings.italic ?? item.dataset.dayTextItalic ?? "false";
+     item.dataset.dayTextUnderline = settings.underline ?? item.dataset.dayTextUnderline ?? "false";
+     item.dataset.dayTextAlign = settings.align || item.dataset.dayTextAlign || "left";
+     item.dataset.dayTextLineHeight = settings.lineHeight || item.dataset.dayTextLineHeight || "1.15";
+
+     item.querySelectorAll(".calendar-day-text").forEach((textElement) => {
+          applyCalendarDayTextStyle(item, textElement);
+          updateCalendarDayTextOverflow(textElement);
+     });
+
+     const sizeInput = controls.querySelector("[data-text-control='size']");
+     const fontSelect = controls.querySelector("[data-text-control='font']");
+     const colorInput = controls.querySelector("[data-text-control='color']");
+     const boldInput = controls.querySelector("[data-text-control='bold']");
+     const italicInput = controls.querySelector("[data-text-control='italic']");
+     const underlineInput = controls.querySelector("[data-text-control='underline']");
+     const alignSelect = controls.querySelector("[data-text-control='align']");
+     const lineHeightInput = controls.querySelector("[data-text-control='line-height']");
+
+     if (sizeInput) {
+          sizeInput.value = item.dataset.dayTextSize;
+     }
+
+     if (fontSelect) {
+          fontSelect.value = item.dataset.dayTextFont;
+     }
+
+     if (colorInput) {
+          colorInput.value = item.dataset.dayTextColor;
+     }
+
+     if (boldInput) {
+          boldInput.checked = item.dataset.dayTextBold === "true";
+     }
+
+     if (italicInput) {
+          italicInput.checked = item.dataset.dayTextItalic === "true";
+     }
+
+     if (underlineInput) {
+          underlineInput.checked = item.dataset.dayTextUnderline === "true";
+     }
+
+     if (alignSelect) {
+          alignSelect.value = item.dataset.dayTextAlign;
+     }
+
+     if (lineHeightInput) {
+          lineHeightInput.value = item.dataset.dayTextLineHeight;
+     }
+}
+
+function applyCalendarDayTextStyle(item, textElement) {
+     textElement.style.fontSize = `${item.dataset.dayTextSize || "10"}px`;
+     textElement.style.color = item.dataset.dayTextColor || "#333333";
+     textElement.style.fontFamily = getStickyTextFont(item.dataset.dayTextFont || "noto");
+     textElement.style.fontWeight = item.dataset.dayTextBold === "true" ? "700" : "400";
+     textElement.style.fontStyle = item.dataset.dayTextItalic === "true" ? "italic" : "normal";
+     textElement.style.textDecoration = item.dataset.dayTextUnderline === "true" ? "underline" : "none";
+     textElement.style.textAlign = item.dataset.dayTextAlign || "left";
+     textElement.style.lineHeight = item.dataset.dayTextLineHeight || "1.15";
+}
+
+function updateCalendarDayTextOverflow(textElement) {
+     const cell = textElement.closest(".dayCell");
+     const item = textElement.closest(".planner-item-full-cal");
+
+     if (!cell || !item) {
+          return;
+     }
+
+     requestAnimationFrame(() => {
+          cell.dataset.textOverflow = String(textElement.scrollHeight > textElement.clientHeight + 1);
+     });
+}
+
+function updateCalendarTextOverflow(item) {
+     if (!item || item.dataset.itemType !== "full-cal") {
+          return;
+     }
+
+     item.querySelectorAll(".calendar-day-text").forEach((textElement) => updateCalendarDayTextOverflow(textElement));
+}
+
+function getCalendarDayKey(year, month, dayNumber) {
+     return `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
+}
+
+function getCalendarWeekName(weekIndex, month, year) {
+     const ordinals = ["First", "Second", "Third", "Fourth", "Fifth", "Last"];
+     const weekLabel = ordinals[Math.min(weekIndex - 1, ordinals.length - 1)];
+
+     return `${weekLabel} week of ${calendarMonthNames[month]} ${year}`;
+}
+
+function startCalendarDayTextEditing(textElement, item) {
+     textElement.setAttribute("contenteditable", "true");
+     item.classList.add("is-editing-day-text");
+     updateTextEditingState();
+
+     requestAnimationFrame(() => {
+          textElement.focus();
+
+          const selection = window.getSelection();
+          const range = document.createRange();
+
+          range.selectNodeContents(textElement);
+          range.collapse(false);
+          selection.removeAllRanges();
+          selection.addRange(range);
+     });
+
+     textElement.addEventListener("blur", () => {
+          textElement.setAttribute("contenteditable", "false");
+          item.classList.remove("is-editing-day-text");
+          updateTextEditingState();
+          setCalendarDayNote(item, textElement.dataset.dayKey, textElement.textContent || "");
+          updateCalendarDayTextOverflow(textElement);
+          notifyTemplateChanged();
+     }, {
+          once: true
+     });
+}
+
 function renderMiniCal(item) {
      let calendar = item.querySelector(".mini-cal");
      const weekNumbersEnabled = item.dataset.weekNumbers !== "false";
-     const weekStart = item.dataset.weekStart || "sunday";
+     const weekStart = item.dataset.weekStart || "monday";
+     const monthVisible = item.dataset.monthVisible !== "false";
+     const yearVisible = item.dataset.yearVisible !== "false";
      const month = Number(item.dataset.month) || 0;
      const year = Number(item.dataset.year) || new Date().getFullYear();
      const firstDay = new Date(year, month, 1);
@@ -1653,6 +2056,7 @@ function renderMiniCal(item) {
           ? ["M", "T", "W", "T", "F", "S", "S"]
           : ["S", "M", "T", "W", "T", "F", "S"];
      const weekendIndexes = weekStart === "monday" ? [5, 6] : [0, 6];
+     const dayNotes = getCalendarDayNotes(item);
 
      if (!calendar) {
           calendar = document.createElement("div");
@@ -1677,8 +2081,16 @@ function renderMiniCal(item) {
 
                if (row === 0) {
                     if ((weekNumbersEnabled && column === 0) || (!weekNumbersEnabled && column === 1)) {
-                         cell.classList.add("mini-cal-month");
-                         cell.textContent = `${calendarMonthNames[month]} ${year}`;
+                         const titleYear = document.createElement("span");
+                         const titleMonth = document.createElement("span");
+
+                         cell.classList.add("mini-cal-month", (month + 1) % 2 === 1 ? "monthOdd" : "monthEven");
+                         titleYear.textContent = String(year);
+                         titleMonth.textContent = calendarMonthNames[month];
+                         titleYear.hidden = !yearVisible;
+                         titleMonth.hidden = !monthVisible;
+                         cell.classList.toggle("has-title-pair", monthVisible && yearVisible);
+                         cell.append(titleMonth, titleYear);
                     } else {
                          cell.classList.add("mini-cal-hidden");
                          cell.setAttribute("aria-hidden", "true");
@@ -1686,14 +2098,21 @@ function renderMiniCal(item) {
                } else if (column === 0) {
                     cell.classList.add("mini-cal-week");
                     if (row === 1) {
+                         cell.classList.add("weekName");
                          cell.textContent = "#";
                     } else {
                          const weekDate = new Date(year, month, 1 - firstDayOffset + ((row - 2) * 7));
+                         const weekNumberLabel = document.createElement("span");
 
-                         cell.textContent = String(getCalendarWeekNumber(weekDate, weekStart));
+                         cell.classList.add("weekName", "weekNumberCell");
+                         cell.dataset.weekName = getCalendarWeekName(row - 1, month, year);
+                         cell.title = cell.dataset.weekName;
+                         weekNumberLabel.className = "weekNumber";
+                         weekNumberLabel.textContent = String(getCalendarWeekNumber(weekDate, weekStart));
+                         cell.append(weekNumberLabel);
                     }
                } else if (row === 1) {
-                    cell.classList.add("mini-cal-day-name");
+                    cell.classList.add("mini-cal-day-name", "dayName");
                     cell.textContent = dayLabels[dayIndex];
                     if (weekendIndexes.includes(dayIndex)) {
                          cell.classList.add("mini-cal-weekend");
@@ -1704,7 +2123,52 @@ function renderMiniCal(item) {
                     if (weekendIndexes.includes(dayIndex)) {
                          cell.classList.add("mini-cal-weekend");
                     }
-                    cell.textContent = dayNumber >= 1 && dayNumber <= daysInMonth ? String(dayNumber) : "";
+                    if (dayNumber >= 1 && dayNumber <= daysInMonth) {
+                         const dayNumberLabel = document.createElement("span");
+                         const dayText = document.createElement("div");
+                         const dayKey = getCalendarDayKey(year, month, dayNumber);
+
+                         cell.classList.add("dayCell");
+                         cell.dataset.dayKey = dayKey;
+                         dayNumberLabel.className = "mini-cal-day-number dayNumber";
+                         dayNumberLabel.textContent = String(dayNumber);
+                         dayText.className = "calendar-day-text";
+                         dayText.dataset.dayKey = dayKey;
+                         dayText.setAttribute("contenteditable", "false");
+                         dayText.textContent = dayNotes[dayKey] || "";
+                         applyCalendarDayTextStyle(item, dayText);
+                         dayText.addEventListener("input", () => updateCalendarDayTextOverflow(dayText));
+                         dayText.addEventListener("dblclick", (event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              startCalendarDayTextEditing(dayText, item);
+                         });
+                         dayText.addEventListener("pointerdown", (event) => {
+                              if (dayText.isContentEditable) {
+                                   event.stopPropagation();
+                              }
+                         });
+                         dayText.addEventListener("wheel", (event) => {
+                              if (dayText.isContentEditable) {
+                                   event.stopPropagation();
+                              }
+                         });
+                         cell.addEventListener("pointerdown", (event) => {
+                              if (getResizeMode(item, event)) {
+                                   return;
+                              }
+
+                              event.stopPropagation();
+                              selectItem(item);
+                         });
+                         cell.addEventListener("dblclick", (event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              startCalendarDayTextEditing(dayText, item);
+                         });
+                         cell.append(dayNumberLabel, dayText);
+                         updateCalendarDayTextOverflow(dayText);
+                    }
                }
                if (column === 7) {
                     cell.classList.add("mini-cal-edge-right");
@@ -1722,15 +2186,19 @@ function setMiniCalSettings(item, settings = {}) {
      const today = new Date();
 
      item.dataset.weekNumbers = settings.weekNumbers || item.dataset.weekNumbers || "true";
-     item.dataset.weekStart = settings.weekStart || item.dataset.weekStart || "sunday";
+     item.dataset.weekStart = settings.weekStart || item.dataset.weekStart || "monday";
+     item.dataset.monthVisible = settings.monthVisible || item.dataset.monthVisible || "true";
      item.dataset.month = settings.month || item.dataset.month || String(today.getMonth());
+     item.dataset.yearVisible = settings.yearVisible || item.dataset.yearVisible || "true";
      item.dataset.year = settings.year || item.dataset.year || String(today.getFullYear());
      renderMiniCal(item);
 
      const controls = getItemControls(item) || item;
      const weekNumberInput = controls.querySelector("[data-widget-control='week-numbers']");
      const weekStartSelect = controls.querySelector("[data-widget-control='week-start']");
+     const monthVisibleInput = controls.querySelector("[data-widget-control='month-visible']");
      const monthSelect = controls.querySelector("[data-widget-control='month']");
+     const yearVisibleInput = controls.querySelector("[data-widget-control='year-visible']");
      const yearSelect = controls.querySelector("[data-widget-control='year']");
 
      if (weekNumberInput) {
@@ -1741,8 +2209,16 @@ function setMiniCalSettings(item, settings = {}) {
           weekStartSelect.value = item.dataset.weekStart;
      }
 
+     if (monthVisibleInput) {
+          monthVisibleInput.checked = item.dataset.monthVisible !== "false";
+     }
+
      if (monthSelect) {
           monthSelect.value = item.dataset.month;
+     }
+
+     if (yearVisibleInput) {
+          yearVisibleInput.checked = item.dataset.yearVisible !== "false";
      }
 
      if (yearSelect) {
@@ -1771,13 +2247,35 @@ function makePlannerItem(type = "sticky") {
      const borderWidthSelect = document.createElement("select");
      const dotGridLabel = document.createElement("label");
      const dotGridInput = document.createElement("input");
+     const textElement = document.createElement("div");
+     const textToggleLabel = document.createElement("label");
+     const textToggleInput = document.createElement("input");
+     const textSizeLabel = document.createElement("label");
+     const textSizeInput = document.createElement("input");
+     const textFontLabel = document.createElement("label");
+     const textFontSelect = document.createElement("select");
+     const textColorLabel = document.createElement("label");
+     const textColorInput = document.createElement("input");
+     const textFormatGroup = document.createElement("div");
+     const textBoldLabel = document.createElement("label");
+     const textBoldInput = document.createElement("input");
+     const textItalicLabel = document.createElement("label");
+     const textItalicInput = document.createElement("input");
+     const textUnderlineLabel = document.createElement("label");
+     const textUnderlineInput = document.createElement("input");
+     const textAlignLabel = document.createElement("label");
+     const textAlignSelect = document.createElement("select");
+     const textLineHeightLabel = document.createElement("label");
+     const textLineHeightInput = document.createElement("input");
      const weekNumberLabel = document.createElement("label");
      const weekNumberInput = document.createElement("input");
      const weekStartLabel = document.createElement("label");
      const weekStartSelect = document.createElement("select");
      const monthLabel = document.createElement("label");
+     const monthVisibleInput = document.createElement("input");
      const monthSelect = document.createElement("select");
      const yearLabel = document.createElement("label");
+     const yearVisibleInput = document.createElement("input");
      const yearSelect = document.createElement("select");
      const deleteButton = document.createElement("button");
 
@@ -1787,7 +2285,7 @@ function makePlannerItem(type = "sticky") {
      nextTemplateItemId += 1;
      item.tabIndex = 0;
      item.setAttribute("role", "button");
-     item.setAttribute("aria-label", type === "mini-cal" ? "Mini calendar widget" : "Sticky note");
+     item.setAttribute("aria-label", isCalendarItemType(type) ? "Calendar widget" : "Sticky note");
 
      sizeLabel.className = "item-size-label";
      sizeLabel.setAttribute("aria-hidden", "true");
@@ -1803,12 +2301,12 @@ function makePlannerItem(type = "sticky") {
      actionsTab.setAttribute("role", "tab");
      styleTab.className = "item-control-tab";
      styleTab.type = "button";
-     styleTab.textContent = "Style";
+     styleTab.textContent = "Appearance";
      styleTab.dataset.itemControlTab = "style";
      styleTab.setAttribute("role", "tab");
      widgetTab.className = "item-control-tab";
      widgetTab.type = "button";
-     widgetTab.textContent = "Widget";
+     widgetTab.textContent = "Attributes";
      widgetTab.dataset.itemControlTab = "widget";
      widgetTab.setAttribute("role", "tab");
      actionsPanel.className = "item-control-panel";
@@ -1831,7 +2329,7 @@ function makePlannerItem(type = "sticky") {
      fillLabel.className = "item-control-row";
      fillLabel.textContent = "Fill";
      fillInput.type = "color";
-     fillInput.value = type === "mini-cal" ? "#ffffff" : "#f9e2af";
+     fillInput.value = isCalendarItemType(type) ? "#ffffff" : "#f9e2af";
      fillInput.dataset.styleControl = "fill";
      fillInput.setAttribute("aria-label", "Sticky note fill color");
      borderColorLabel.className = "item-control-row";
@@ -1856,6 +2354,83 @@ function makePlannerItem(type = "sticky") {
      dotGridInput.type = "checkbox";
      dotGridInput.dataset.styleControl = "dot-grid";
      dotGridInput.setAttribute("aria-label", "Show sticky note dot grid");
+     textElement.className = "sticky-text";
+     textElement.hidden = true;
+     textElement.spellcheck = true;
+     textElement.setAttribute("contenteditable", "false");
+     textElement.setAttribute("aria-label", "Sticky note text");
+     textToggleLabel.className = "item-control-row item-text-control";
+     textToggleLabel.textContent = "Text";
+     textToggleInput.type = "checkbox";
+     textToggleInput.dataset.textControl = "enabled";
+     textToggleInput.setAttribute("aria-label", "Show sticky note text");
+     textSizeLabel.className = "item-control-row item-text-control";
+     textSizeLabel.textContent = "Size";
+     textSizeInput.type = "number";
+     textSizeInput.min = "8";
+     textSizeInput.max = "48";
+     textSizeInput.step = "1";
+     textSizeInput.value = "10";
+     textSizeInput.dataset.textControl = "size";
+     textSizeInput.setAttribute("aria-label", "Sticky note text size");
+     textFontLabel.className = "item-control-row item-text-control";
+     textFontLabel.textContent = "Font";
+     textFontSelect.dataset.textControl = "font";
+     textFontSelect.setAttribute("aria-label", "Sticky note text font");
+     [
+          ["noto", "Noto"],
+          ["dancing", "Script"],
+          ["sans", "Sans"],
+          ["serif", "Serif"]
+     ].forEach(([value, label]) => {
+          const option = document.createElement("option");
+
+          option.value = value;
+          option.textContent = label;
+          textFontSelect.append(option);
+     });
+     textColorLabel.className = "item-control-row item-text-control";
+     textColorLabel.textContent = "Color";
+     textColorInput.type = "color";
+     textColorInput.value = "#333333";
+     textColorInput.dataset.textControl = "color";
+     textColorInput.setAttribute("aria-label", "Sticky note text color");
+     textFormatGroup.className = "item-text-format item-text-control";
+     textBoldLabel.className = "item-text-toggle";
+     textBoldLabel.textContent = "B";
+     textBoldInput.type = "checkbox";
+     textBoldInput.dataset.textControl = "bold";
+     textBoldInput.setAttribute("aria-label", "Bold sticky note text");
+     textItalicLabel.className = "item-text-toggle";
+     textItalicLabel.textContent = "I";
+     textItalicInput.type = "checkbox";
+     textItalicInput.dataset.textControl = "italic";
+     textItalicInput.setAttribute("aria-label", "Italic sticky note text");
+     textUnderlineLabel.className = "item-text-toggle";
+     textUnderlineLabel.textContent = "U";
+     textUnderlineInput.type = "checkbox";
+     textUnderlineInput.dataset.textControl = "underline";
+     textUnderlineInput.setAttribute("aria-label", "Underline sticky note text");
+     textAlignLabel.className = "item-control-row item-text-control";
+     textAlignLabel.textContent = "Align";
+     textAlignSelect.dataset.textControl = "align";
+     textAlignSelect.setAttribute("aria-label", "Sticky note text alignment");
+     ["left", "center", "right"].forEach((value) => {
+          const option = document.createElement("option");
+
+          option.value = value;
+          option.textContent = value[0].toUpperCase() + value.slice(1);
+          textAlignSelect.append(option);
+     });
+     textLineHeightLabel.className = "item-control-row item-text-control";
+     textLineHeightLabel.textContent = "Line";
+     textLineHeightInput.type = "number";
+     textLineHeightInput.min = "1";
+     textLineHeightInput.max = "2";
+     textLineHeightInput.step = "0.05";
+     textLineHeightInput.value = "1.25";
+     textLineHeightInput.dataset.textControl = "line-height";
+     textLineHeightInput.setAttribute("aria-label", "Sticky note text line height");
      deleteButton.className = "item-control";
      deleteButton.type = "button";
      deleteButton.textContent = "Delete";
@@ -1867,10 +2442,10 @@ function makePlannerItem(type = "sticky") {
      weekNumberInput.dataset.widgetControl = "week-numbers";
      weekNumberInput.setAttribute("aria-label", "Show week numbers");
      weekStartLabel.className = "item-control-row item-widget-control";
-     weekStartLabel.textContent = "Week start";
+     weekStartLabel.textContent = "Week Start";
      weekStartSelect.dataset.widgetControl = "week-start";
      weekStartSelect.setAttribute("aria-label", "Calendar week start");
-     ["sunday", "monday"].forEach((value) => {
+     ["monday", "sunday"].forEach((value) => {
           const option = document.createElement("option");
 
           option.value = value;
@@ -1879,6 +2454,10 @@ function makePlannerItem(type = "sticky") {
      });
      monthLabel.className = "item-control-row item-widget-control";
      monthLabel.textContent = "Month";
+     monthVisibleInput.type = "checkbox";
+     monthVisibleInput.checked = true;
+     monthVisibleInput.dataset.widgetControl = "month-visible";
+     monthVisibleInput.setAttribute("aria-label", "Show calendar month label");
      monthSelect.dataset.widgetControl = "month";
      monthSelect.setAttribute("aria-label", "Calendar month");
      calendarMonthNames.forEach((monthName, index) => {
@@ -1890,6 +2469,10 @@ function makePlannerItem(type = "sticky") {
      });
      yearLabel.className = "item-control-row item-widget-control";
      yearLabel.textContent = "Year";
+     yearVisibleInput.type = "checkbox";
+     yearVisibleInput.checked = true;
+     yearVisibleInput.dataset.widgetControl = "year-visible";
+     yearVisibleInput.setAttribute("aria-label", "Show calendar year label");
      yearSelect.dataset.widgetControl = "year";
      yearSelect.setAttribute("aria-label", "Calendar year");
      for (let year = calendarYearRange.start; year <= calendarYearRange.end; year += 1) {
@@ -1904,35 +2487,77 @@ function makePlannerItem(type = "sticky") {
      borderColorLabel.append(borderColorInput);
      borderWidthLabel.append(borderWidthSelect);
      dotGridLabel.append(dotGridInput);
-     weekNumberLabel.append(weekNumberInput);
-     weekStartLabel.append(weekStartSelect);
-     monthLabel.append(monthSelect);
-     yearLabel.append(yearSelect);
+     textToggleLabel.append(textToggleInput);
+     textSizeLabel.append(textSizeInput);
+     textFontLabel.append(textFontSelect);
+     textColorLabel.append(textColorInput);
+     textBoldLabel.append(textBoldInput);
+     textItalicLabel.append(textItalicInput);
+     textUnderlineLabel.append(textUnderlineInput);
+     textFormatGroup.append(textBoldLabel, textItalicLabel, textUnderlineLabel);
+     textAlignLabel.append(textAlignSelect);
+     textLineHeightLabel.append(textLineHeightInput);
+     monthLabel.append(monthSelect, monthVisibleInput);
+     yearLabel.append(yearSelect, yearVisibleInput);
+     weekStartLabel.append(weekStartSelect, weekNumberInput);
      controlTabs.append(actionsTab, styleTab);
      actionsPanel.append(duplicateButton, groupButton, deleteButton);
      stylePanel.append(fillLabel, borderColorLabel, borderWidthLabel);
      if (type === "sticky") {
-          stylePanel.append(dotGridLabel);
+          stylePanel.append(
+               textToggleLabel,
+               textSizeLabel,
+               textFontLabel,
+               textColorLabel,
+               textFormatGroup,
+               textAlignLabel,
+               textLineHeightLabel
+          );
      }
-     widgetPanel.append(monthLabel, yearLabel, weekNumberLabel, weekStartLabel);
-     if (type === "mini-cal") {
-          controlTabs.append(widgetTab);
+     if (isCalendarItemType(type)) {
+          stylePanel.append(
+               textSizeLabel,
+               textFontLabel,
+               textColorLabel,
+               textFormatGroup,
+               textAlignLabel,
+               textLineHeightLabel
+          );
      }
+     if (type === "sticky") {
+          widgetPanel.append(dotGridLabel);
+     }
+     if (isCalendarItemType(type)) {
+          widgetPanel.append(yearLabel, monthLabel, weekStartLabel);
+     }
+     controlTabs.append(widgetTab);
      controls.append(controlTabs, actionsPanel, stylePanel, widgetPanel);
      setItemControlsTab(controls, "actions");
-     item.append(sizeLabel, controls);
+     item.append(sizeLabel);
+     if (type === "sticky") {
+          item.append(textElement);
+     }
+     item.append(controls);
      setItemStyle(item, {
-          fillColor: type === "mini-cal" ? "transparent" : fillInput.value,
+          fillColor: isCalendarItemType(type) ? "transparent" : fillInput.value,
           borderColor: borderColorInput.value,
           borderWidth: borderWidthSelect.value,
           dotGrid: "false"
      });
-     if (type === "mini-cal") {
+     setStickyTextSettings(item);
+     setCalendarDayTextSettings(item);
+     if (isCalendarItemType(type)) {
           setMiniCalSettings(item);
      }
 
      item.addEventListener("pointerdown", (event) => {
           if (event.target.closest(".item-controls")) {
+               return;
+          }
+
+          if (item.dataset.itemType === "sticky" && event.detail > 1) {
+               event.preventDefault();
+               selectItem(item);
                return;
           }
 
@@ -1971,6 +2596,14 @@ function makePlannerItem(type = "sticky") {
           } else if (!activeAction) {
                selectItem(item);
           }
+     });
+     item.addEventListener("dblclick", (event) => {
+          if (event.target.closest(".item-controls")) {
+               return;
+          }
+
+          event.preventDefault();
+          startStickyTextEditing(item);
      });
      item.addEventListener("focus", () => selectItem(item));
      item.addEventListener("contextmenu", (event) => {
@@ -2020,6 +2653,120 @@ function makePlannerItem(type = "sticky") {
                dotGrid: dotGridInput.checked ? "true" : "false"
           });
      });
+     textToggleInput.addEventListener("change", () => {
+          setStickyTextSettings(item, {
+               enabled: textToggleInput.checked ? "true" : "false"
+          });
+          notifyTemplateChanged();
+     });
+     textSizeInput.addEventListener("input", () => {
+          if (isCalendarItem(item)) {
+               setCalendarDayTextSettings(item, {
+                    size: textSizeInput.value
+               });
+          } else {
+               setStickyTextSettings(item, {
+                    size: textSizeInput.value
+               });
+          }
+          notifyTemplateChanged();
+     });
+     textFontSelect.addEventListener("change", () => {
+          if (isCalendarItem(item)) {
+               setCalendarDayTextSettings(item, {
+                    font: textFontSelect.value
+               });
+          } else {
+               setStickyTextSettings(item, {
+                    font: textFontSelect.value
+               });
+          }
+          notifyTemplateChanged();
+     });
+     textColorInput.addEventListener("input", () => {
+          if (isCalendarItem(item)) {
+               setCalendarDayTextSettings(item, {
+                    color: textColorInput.value
+               });
+          } else {
+               setStickyTextSettings(item, {
+                    color: textColorInput.value
+               });
+          }
+          notifyTemplateChanged();
+     });
+     textBoldInput.addEventListener("change", () => {
+          if (isCalendarItem(item)) {
+               setCalendarDayTextSettings(item, {
+                    bold: textBoldInput.checked ? "true" : "false"
+               });
+          } else {
+               setStickyTextSettings(item, {
+                    bold: textBoldInput.checked ? "true" : "false"
+               });
+          }
+          notifyTemplateChanged();
+     });
+     textItalicInput.addEventListener("change", () => {
+          if (isCalendarItem(item)) {
+               setCalendarDayTextSettings(item, {
+                    italic: textItalicInput.checked ? "true" : "false"
+               });
+          } else {
+               setStickyTextSettings(item, {
+                    italic: textItalicInput.checked ? "true" : "false"
+               });
+          }
+          notifyTemplateChanged();
+     });
+     textUnderlineInput.addEventListener("change", () => {
+          if (isCalendarItem(item)) {
+               setCalendarDayTextSettings(item, {
+                    underline: textUnderlineInput.checked ? "true" : "false"
+               });
+          } else {
+               setStickyTextSettings(item, {
+                    underline: textUnderlineInput.checked ? "true" : "false"
+               });
+          }
+          notifyTemplateChanged();
+     });
+     textAlignSelect.addEventListener("change", () => {
+          if (isCalendarItem(item)) {
+               setCalendarDayTextSettings(item, {
+                    align: textAlignSelect.value
+               });
+          } else {
+               setStickyTextSettings(item, {
+                    align: textAlignSelect.value
+               });
+          }
+          notifyTemplateChanged();
+     });
+     textLineHeightInput.addEventListener("input", () => {
+          if (isCalendarItem(item)) {
+               setCalendarDayTextSettings(item, {
+                    lineHeight: textLineHeightInput.value
+               });
+          } else {
+               setStickyTextSettings(item, {
+                    lineHeight: textLineHeightInput.value
+               });
+          }
+          notifyTemplateChanged();
+     });
+     textElement.addEventListener("input", () => updateStickyTextOverflow(item));
+     textElement.addEventListener("blur", () => stopStickyTextEditing(item));
+     textElement.addEventListener("pointerdown", (event) => {
+          if (textElement.isContentEditable) {
+               event.stopPropagation();
+          }
+     });
+     textElement.addEventListener("wheel", (event) => {
+          if (textElement.isContentEditable) {
+               event.stopPropagation();
+          }
+     });
      weekNumberInput.addEventListener("change", () => {
           setMiniCalSettings(item, {
                weekNumbers: weekNumberInput.checked ? "true" : "false"
@@ -2032,9 +2779,21 @@ function makePlannerItem(type = "sticky") {
           });
           notifyTemplateChanged();
      });
+     monthVisibleInput.addEventListener("change", () => {
+          setMiniCalSettings(item, {
+               monthVisible: monthVisibleInput.checked ? "true" : "false"
+          });
+          notifyTemplateChanged();
+     });
      monthSelect.addEventListener("change", () => {
           setMiniCalSettings(item, {
                month: monthSelect.value
+          });
+          notifyTemplateChanged();
+     });
+     yearVisibleInput.addEventListener("change", () => {
+          setMiniCalSettings(item, {
+               yearVisible: yearVisibleInput.checked ? "true" : "false"
           });
           notifyTemplateChanged();
      });
@@ -2077,13 +2836,39 @@ function copyItemConfiguration(source, target) {
           borderWidth: source.dataset.borderWidth,
           dotGrid: source.dataset.dotGrid
      });
-     if (source.dataset.itemType === "mini-cal") {
+     setStickyTextSettings(target, {
+          enabled: source.dataset.textEnabled,
+          content: getStickyTextElement(source) ? getStickyTextElement(source).textContent : "",
+          size: source.dataset.textSize,
+          font: source.dataset.textFont,
+          color: source.dataset.textColor,
+          bold: source.dataset.textBold,
+          italic: source.dataset.textItalic,
+          underline: source.dataset.textUnderline,
+          align: source.dataset.textAlign,
+          lineHeight: source.dataset.textLineHeight
+     });
+     if (isCalendarItem(source)) {
           setMiniCalSettings(target, {
                weekNumbers: source.dataset.weekNumbers,
                weekStart: source.dataset.weekStart,
+               monthVisible: source.dataset.monthVisible,
                month: source.dataset.month,
+               yearVisible: source.dataset.yearVisible,
                year: source.dataset.year
           });
+          target.dataset.dayNotes = source.dataset.dayNotes || "{}";
+          setCalendarDayTextSettings(target, {
+               size: source.dataset.dayTextSize,
+               font: source.dataset.dayTextFont,
+               color: source.dataset.dayTextColor,
+               bold: source.dataset.dayTextBold,
+               italic: source.dataset.dayTextItalic,
+               underline: source.dataset.dayTextUnderline,
+               align: source.dataset.dayTextAlign,
+               lineHeight: source.dataset.dayTextLineHeight
+          });
+          renderMiniCal(target);
      }
 }
 
@@ -2195,6 +2980,7 @@ function placeItemOnDesk(item, event) {
 
 function snapItemToPage(item, page, event) {
      const snappedSize = getGridSnappedSize(item, page);
+     const isNewFullCal = activeAction.type === "source" && item.dataset.itemType === "full-cal";
 
      plannerDesk.append(item);
      item.classList.remove("is-floating-source");
@@ -2204,6 +2990,20 @@ function snapItemToPage(item, page, event) {
           width: snappedSize.width,
           height: snappedSize.height
      });
+
+     if (isNewFullCal) {
+          const grid = getGridSize(page);
+
+          setItemBox(item, {
+               ...getItemBox(item),
+               x: grid.x,
+               y: grid.y,
+               width: Math.max(grid.x, snappedSize.width - (grid.x * 2)),
+               height: Math.max(grid.y, snappedSize.height - (grid.y * 2))
+          });
+          return;
+     }
+
      setItemBox(
           item,
           getMovedBox(
@@ -2320,7 +3120,6 @@ function startMove(item, event) {
      const page = getItemPage(item);
      const itemRect = item.getBoundingClientRect();
 
-     event.preventDefault();
      closeItemMenus();
      if (!selectedItems.has(item)) {
           selectItem(item);
@@ -2328,7 +3127,7 @@ function startMove(item, event) {
 
      const movingItems = Array.from(selectedItems);
      activeAction = {
-          type: "move",
+          type: "pending-move",
           item,
           items: movingItems.map((movingItem) => {
                return {
@@ -2344,7 +3143,6 @@ function startMove(item, event) {
           offsetX: event.clientX - itemRect.left,
           offsetY: event.clientY - itemRect.top
      };
-     movingItems.forEach((movingItem) => movingItem.classList.add("is-dragging"));
 
      try {
           item.setPointerCapture(event.pointerId);
@@ -2420,6 +3218,19 @@ function moveActiveItem(event) {
      if (activeAction.type === "select") {
           updateMarqueeSelection(setMarqueeBox(activeAction.marquee, activeAction.startX, activeAction.startY, event.clientX, event.clientY));
           return;
+     }
+
+     if (activeAction.type === "pending-move") {
+          const deltaX = event.clientX - activeAction.startX;
+          const deltaY = event.clientY - activeAction.startY;
+
+          if (Math.hypot(deltaX, deltaY) < moveStartThreshold) {
+               return;
+          }
+
+          event.preventDefault();
+          activeAction.type = "move";
+          activeAction.items.forEach(({ item }) => item.classList.add("is-dragging"));
      }
 
      const pointerPage = getPageFromPoint(event.clientX, event.clientY);
@@ -2514,6 +3325,13 @@ function endActiveItem(event) {
      try {
           activeAction.item.releasePointerCapture(event.pointerId);
      } catch {
+     }
+
+     if (activeAction.type === "pending-move") {
+          selectItem(activeAction.item);
+          activeAction = null;
+          clearDragOver();
+          return;
      }
 
      if (activeAction.type === "source" || activeAction.type === "move") {
@@ -2613,11 +3431,8 @@ settingsTabs.forEach((tab) => {
           openSidebar();
      });
 });
-if (sidebarCollapseButton) {
-     sidebarCollapseButton.addEventListener("click", closeSidebar);
-}
 plannerSettings.addEventListener("pointerdown", (event) => {
-     if (event.target.closest("[data-settings-tab], [data-sidebar-collapse]")) {
+     if (event.target.closest("[data-settings-tab]")) {
           return;
      }
 
