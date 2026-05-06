@@ -135,21 +135,17 @@ const gridSizes = {
      }
 };
 const paperColors = {
-     "white": {
+     "White": {
           label: "White",
-          color: "#fff8fb"
+          color: "var(--color-gray3)"
      },
-     "vanilla": {
-          label: "Vanilla",
-          color: "#f4ecde"
-     },
-     "beige": {
+     "Beige": {
           label: "Beige",
-          color: "#ead9bd"
+          color: "var(--mocha-04)"
      },
-     "black": {
+     "Black": {
           label: "Black",
-          color: "#333"
+          color: "var(--color-gray1)"
      }
 };
 const deskColors = {
@@ -216,7 +212,7 @@ function convertLength(value, fromUnit, toUnit) {
 function buildPlannerConfig() {
      const paperKey = paperSelect ? paperSelect.value : "letter";
      const gridKey = gridSelect ? gridSelect.value : "quarter-inch";
-     const paperColorKey = paperColorSelect ? paperColorSelect.value : "white";
+     const paperColorKey = paperColorSelect ? paperColorSelect.value : "White";
      const deskColorKey = deskColorSelect ? deskColorSelect.value : "pink";
      const guides = {
           halves: false,
@@ -252,7 +248,7 @@ function buildPlannerConfig() {
           deskColorKey,
           guides,
           paper,
-          paperColor: paperColors[paperColorKey],
+          paperColor: paperColors[paperColorKey] || paperColors.White,
           deskColor: deskColors[deskColorKey],
           grid,
           pageWidth,
@@ -397,6 +393,7 @@ function applyResponsiveViewMode() {
 function handleWindowResize() {
      applyResponsiveViewMode();
      syncSidebarSnap();
+     customSelectDetails.forEach((dropdown) => updateSelectFocusSpace(dropdown));
 }
 
 function cycleViewZoom() {
@@ -581,10 +578,11 @@ function applyPlannerConfig() {
      setRootNumber("--third-guide-opacity", plannerConfig.guides.thirds ? "0.25" : "0");
      setRootNumber("--fourth-guide-opacity", plannerConfig.guides.fourths ? "0.25" : "0");
 
+     delete plannerSettings.dataset.width;
+     plannerSettings.style.width = "";
+
      if (!plannerSettings.dataset.x && !plannerSettings.dataset.y) {
-          delete plannerSettings.dataset.width;
           delete plannerSettings.dataset.height;
-          plannerSettings.style.width = "";
           plannerSettings.style.height = "";
      }
 
@@ -654,17 +652,14 @@ function updateCustomSelectDisplay(select) {
      });
 }
 
-function makeCustomSelect(select) {
-     const dropdown = document.createElement("details");
-     const summary = document.createElement("summary");
-     const optionsBox = document.createElement("div");
+function buildCustomSelectOptions(select, dropdown) {
+     const optionsBox = dropdown.querySelector(".custom-select-options");
 
-     select.classList.add("native-select");
-     dropdown.className = "custom-select";
-     dropdown.dataset.customSelect = select.dataset.setting;
-     summary.setAttribute("role", "button");
-     optionsBox.className = "custom-select-options";
+     if (!optionsBox) {
+          return;
+     }
 
+     optionsBox.replaceChildren();
      Array.from(select.options).forEach((selectOption) => {
           const option = document.createElement("button");
 
@@ -683,16 +678,168 @@ function makeCustomSelect(select) {
           });
           optionsBox.append(option);
      });
+}
+
+function syncCustomSelect(select) {
+     const dropdown = select.nextElementSibling;
+
+     if (!dropdown || !dropdown.classList.contains("custom-select")) {
+          return;
+     }
+
+     buildCustomSelectOptions(select, dropdown);
+     updateCustomSelectDisplay(select);
+}
+
+function getSelectFocusMenu(dropdown) {
+     return dropdown.closest(".planner-settings, .item-controls");
+}
+
+function getSelectFocusPanel(dropdown) {
+     return dropdown.closest(".settings-panel, .item-control-panel");
+}
+
+function getSelectFocusRow(dropdown) {
+     return dropdown.closest("label, .setting-field, .item-control-row");
+}
+
+function animateSelectFocusRow(row, fromRect) {
+     if (!row || !fromRect || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          return;
+     }
+
+     const toRect = row.getBoundingClientRect();
+     const deltaX = fromRect.left - toRect.left;
+     const deltaY = fromRect.top - toRect.top;
+
+     if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) {
+          return;
+     }
+
+     row.animate(
+          [
+               {
+                    opacity: 0.86,
+                    transform: `translate(${deltaX}px, ${deltaY}px)`
+               },
+               {
+                    opacity: 1,
+                    transform: "translate(0, 0)"
+               }
+          ],
+          {
+               duration: 200,
+               easing: "cubic-bezier(0.2, 0.85, 0.25, 1)"
+          }
+     );
+}
+
+function clearSelectFocus(scope = document, shouldAnimate = true) {
+     const focusRows = shouldAnimate
+          ? Array.from(scope.querySelectorAll(".is-select-focus")).map((row) => ({
+               row,
+               rect: row.getBoundingClientRect()
+          }))
+          : [];
+
+     scope.querySelectorAll(".is-select-focused").forEach((element) => element.classList.remove("is-select-focused"));
+     scope.querySelectorAll(".is-select-focus").forEach((element) => element.classList.remove("is-select-focus"));
+     scope.querySelectorAll(".is-select-focus-group").forEach((element) => element.classList.remove("is-select-focus-group"));
+     scope.querySelectorAll(".custom-select").forEach((dropdown) => dropdown.style.removeProperty("--select-focus-options-height"));
+     focusRows.forEach(({ row, rect }) => animateSelectFocusRow(row, rect));
+}
+
+function closeCustomSelects(scope = document) {
+     scope.querySelectorAll(".custom-select[open]").forEach((dropdown) => dropdown.removeAttribute("open"));
+}
+
+function updateSelectFocusSpace(dropdown) {
+     const menu = getSelectFocusMenu(dropdown);
+     const summary = dropdown.querySelector("summary");
+
+     if (!menu || !summary || !dropdown.open) {
+          return;
+     }
+
+     const menuRect = menu.getBoundingClientRect();
+     const summaryRect = summary.getBoundingClientRect();
+     const availableHeight = Math.max(92, Math.floor(menuRect.bottom - summaryRect.bottom - 12));
+
+     dropdown.style.setProperty("--select-focus-options-height", `${availableHeight}px`);
+}
+
+function setSelectFocus(dropdown) {
+     const menu = getSelectFocusMenu(dropdown);
+     const panel = getSelectFocusPanel(dropdown);
+     const row = getSelectFocusRow(dropdown);
+     const group = row ? row.closest(".item-widget-group") : null;
+
+     if (!menu || !panel || !row) {
+          return;
+     }
+
+     const startRect = row.getBoundingClientRect();
+
+     clearSelectFocus(menu, false);
+     menu.classList.add("is-select-focused");
+     panel.classList.add("is-select-focused");
+     row.classList.add("is-select-focus");
+
+     if (group) {
+          group.classList.add("is-select-focus-group");
+     }
+
+     requestAnimationFrame(() => {
+          updateSelectFocusSpace(dropdown);
+          animateSelectFocusRow(row, startRect);
+     });
+}
+
+function makeCustomSelect(select) {
+     const dropdown = document.createElement("details");
+     const summary = document.createElement("summary");
+     const optionsBox = document.createElement("div");
+
+     if (select.nextElementSibling && select.nextElementSibling.classList.contains("custom-select")) {
+          return select.nextElementSibling;
+     }
+
+     select.classList.add("native-select");
+     dropdown.className = "custom-select";
+     dropdown.dataset.customSelect = select.dataset.setting || select.dataset.styleControl || select.dataset.textControl || select.dataset.widgetControl || "";
+     summary.setAttribute("role", "button");
+     optionsBox.className = "custom-select-options";
 
      dropdown.append(summary, optionsBox);
      select.after(dropdown);
+     buildCustomSelectOptions(select, dropdown);
      updateCustomSelectDisplay(select);
+     dropdown.addEventListener("toggle", () => {
+          if (dropdown.open) {
+               customSelectDetails.forEach((details) => {
+                    if (details !== dropdown) {
+                         details.removeAttribute("open");
+                    }
+               });
+               setSelectFocus(dropdown);
+          } else {
+               const menu = getSelectFocusMenu(dropdown);
+
+               if (!menu || !menu.querySelector(".custom-select[open]")) {
+                    clearSelectFocus(menu || document);
+               }
+          }
+     });
+
+     if (!customSelectDetails.includes(dropdown)) {
+          customSelectDetails.push(dropdown);
+     }
 
      return dropdown;
 }
 
 function initializeCustomSelects() {
-     customSelectDetails = settingSelects.map(makeCustomSelect);
+     settingSelects.forEach(makeCustomSelect);
 }
 
 function toggleAllGuides() {
@@ -739,7 +886,7 @@ function selectSettingsTab(tabName) {
      const activeTab = settingsTabs.find((tab) => tab.dataset.settingsTab === tabName);
 
      if (activeTab) {
-          plannerSettings.style.setProperty("--active-settings-color", `var(${activeTab.dataset.tabColor})`);
+          plannerSettings.style.setProperty("--active-settings-color", "var(--menu-fill)");
      }
 }
 
@@ -749,11 +896,35 @@ function openSidebar() {
 }
 
 function closeSidebar() {
+     closeCustomSelects(plannerSettings);
+     clearSelectFocus(plannerSettings);
      plannerSettings.classList.remove("is-open");
      plannerDesk.classList.remove("has-open-main-menu");
 }
 
+function isPointerInsideElementBox(event, element) {
+     const rect = element.getBoundingClientRect();
+
+     return event.clientX >= rect.left
+          && event.clientX <= rect.right
+          && event.clientY >= rect.top
+          && event.clientY <= rect.bottom;
+}
+
+function collapseMenusFromOutsidePointer(event) {
+     if (plannerSettings.classList.contains("is-open") && !isPointerInsideElementBox(event, plannerSettings)) {
+          closeSidebar();
+     }
+
+     if (!event.target.closest(".item-controls")) {
+          closeItemMenus();
+     }
+}
+
 function syncSidebarSnap() {
+     delete plannerSettings.dataset.width;
+     plannerSettings.style.width = "";
+
      const box = getSidebarBox();
      const bounds = getSidebarHeightBounds();
      const nextHeight = clamp(box.height, bounds.min, bounds.max);
@@ -1077,8 +1248,10 @@ function setItemBox(item, box) {
      updateStickyDotGrid(item, page, box);
      updateItemSizeLabel(item);
      updateStickyTextOverflow(item);
+     if (item.dataset.itemType === "full-cal" || item.dataset.itemType === "weekly-vertical") {
+          updateCalendarGridMetrics(item, page, box);
+     }
      if (item.dataset.itemType === "weekly-vertical") {
-          updateWeeklyVerticalGridMetrics(item, page, box);
           renderWeeklyVertical(item);
      }
      updateCalendarTextOverflow(item);
@@ -1107,14 +1280,19 @@ function updateStickyDotGrid(item, page, box) {
      item.style.setProperty("--sticky-dot-grid-offset-y", `${-offsetY}px`);
 }
 
-function updateWeeklyVerticalGridMetrics(item, page, box) {
-     if (item.dataset.itemType !== "weekly-vertical") {
+function updateCalendarGridMetrics(item, page, box) {
+     if (item.dataset.itemType !== "full-cal" && item.dataset.itemType !== "weekly-vertical") {
           return;
      }
 
      const visibleDays = clamp(Number(item.dataset.visibleDays) || 7, 1, 7);
-     const fallbackCellWidth = box.width / (visibleDays + 1) / 2;
-     const fallbackCellHeight = box.height / Math.max(1, Number(item.style.getPropertyValue("--weekly-row-count")) || 14);
+     const timeColumnUnits = item.dataset.itemType === "weekly-vertical" && item.dataset.timeVisible === "false" ? 0 : 2;
+     const columnUnits = item.dataset.itemType === "full-cal" ? 16 : (visibleDays * 2) + timeColumnUnits;
+     const rowUnits = item.dataset.itemType === "full-cal"
+          ? 14
+          : Math.max(1, Number(item.style.getPropertyValue("--weekly-row-count")) || 14);
+     const fallbackCellWidth = box.width / columnUnits;
+     const fallbackCellHeight = box.height / rowUnits;
      const grid = page ? getGridSize(page) : null;
      const cellWidth = grid ? grid.x : fallbackCellWidth;
      const cellHeight = grid ? grid.y : fallbackCellHeight;
@@ -1124,7 +1302,7 @@ function updateWeeklyVerticalGridMetrics(item, page, box) {
 }
 
 function setItemStyle(item, style) {
-     item.dataset.fillColor = style.fillColor || item.dataset.fillColor || "#f9e2af";
+     item.dataset.fillColor = style.fillColor || item.dataset.fillColor || "var(--mocha-04)";
      item.dataset.borderColor = style.borderColor || item.dataset.borderColor || "rgba(17, 17, 17, 0.18)";
      item.dataset.borderWidth = style.borderWidth || item.dataset.borderWidth || "1";
      item.dataset.dotGrid = style.dotGrid || item.dataset.dotGrid || "false";
@@ -1153,6 +1331,8 @@ function setItemStyle(item, style) {
      if (dotGridInput) {
           dotGridInput.checked = item.dataset.dotGrid === "true";
      }
+
+     controls.querySelectorAll("select").forEach(updateCustomSelectDisplay);
 }
 
 function getStickyTextElement(item) {
@@ -1240,6 +1420,7 @@ function setStickyTextSettings(item, settings = {}) {
           lineHeightInput.value = item.dataset.textLineHeight;
      }
 
+     controls.querySelectorAll("select").forEach(updateCustomSelectDisplay);
      updateStickyTextOverflow(item);
 }
 
@@ -1456,6 +1637,8 @@ function closeItemMenu(item) {
           return;
      }
 
+     closeCustomSelects(controls);
+     clearSelectFocus(controls);
      controls.classList.remove("is-floating");
      controls.removeAttribute("style");
      item.append(controls);
@@ -1570,6 +1753,40 @@ function getActionItems(item) {
      }
 
      return [item];
+}
+
+function moveActionItemsLayer(item, direction) {
+     const actionItems = getActionItems(item);
+     const actionSet = new Set(actionItems);
+     const plannerItems = getPlannerItems();
+     const orderedActionItems = plannerItems.filter((plannerItem) => actionSet.has(plannerItem));
+
+     if (!orderedActionItems.length) {
+          return;
+     }
+
+     const firstIndex = plannerItems.indexOf(orderedActionItems[0]);
+     const lastIndex = plannerItems.indexOf(orderedActionItems.at(-1));
+
+     if (direction === "forward") {
+          const nextItem = plannerItems.slice(lastIndex + 1).find((plannerItem) => !actionSet.has(plannerItem));
+
+          if (!nextItem) {
+               return;
+          }
+
+          nextItem.after(...orderedActionItems);
+     } else {
+          const previousItem = plannerItems.slice(0, firstIndex).reverse().find((plannerItem) => !actionSet.has(plannerItem));
+
+          if (!previousItem) {
+               return;
+          }
+
+          previousItem.before(...orderedActionItems);
+     }
+
+     notifyTemplateChanged();
 }
 
 function applyStyleToActionItems(item, style) {
@@ -1790,7 +2007,7 @@ function updateDeskResizeCursor(event) {
 function getSidebarBox() {
      const deskRect = plannerDesk.getBoundingClientRect();
      const rect = plannerSettings.getBoundingClientRect();
-     const width = Number(plannerSettings.dataset.width) || rect.width;
+     const width = rect.width;
      const height = Number(plannerSettings.dataset.height) || rect.height;
      const centerX = Number(plannerSettings.dataset.centerX) || getSidebarCenter(width);
 
@@ -1804,11 +2021,9 @@ function getSidebarBox() {
 }
 
 function setSidebarBox(box) {
-     plannerSettings.dataset.width = String(box.width);
      plannerSettings.dataset.height = String(box.height);
      plannerSettings.dataset.centerX = String(box.centerX);
      plannerSettings.style.left = `${box.centerX}px`;
-     plannerSettings.style.width = `${box.width}px`;
      plannerSettings.style.height = `${box.height}px`;
 }
 
@@ -2039,6 +2254,8 @@ function setCalendarDayTextSettings(item, settings = {}) {
      if (lineHeightInput) {
           lineHeightInput.value = item.dataset.dayTextLineHeight;
      }
+
+     controls.querySelectorAll("select").forEach(updateCustomSelectDisplay);
 }
 
 function applyCalendarDayTextStyle(item, textElement) {
@@ -2485,14 +2702,6 @@ function renderWeeklyVertical(item) {
                     }
                     cell.classList.add("dayCell");
                     cell.dataset.dayKey = slotKey;
-                    cell.addEventListener("pointerdown", (event) => {
-                         if (getResizeMode(item, event)) {
-                              return;
-                         }
-
-                         event.stopPropagation();
-                         selectItem(item);
-                    });
                     if (isSharedWeekendLabelRow) {
                          const sundayDate = displayColumn.dates[1];
                          const sundayMarker = document.createElement("span");
@@ -2649,6 +2858,8 @@ function setMiniCalSettings(item, settings = {}) {
      if (shareWeekendsInput) {
           shareWeekendsInput.checked = item.dataset.shareWeekends === "true";
      }
+
+     controls.querySelectorAll("select").forEach(syncCustomSelect);
 }
 
 function makePlannerItem(type = "sticky") {
@@ -2668,6 +2879,8 @@ function makePlannerItem(type = "sticky") {
      const timeWidgetTitle = document.createElement("div");
      const duplicateButton = document.createElement("button");
      const groupButton = document.createElement("button");
+     const bringForwardButton = document.createElement("button");
+     const sendBackwardButton = document.createElement("button");
      const fillLabel = document.createElement("label");
      const fillInput = document.createElement("input");
      const borderColorLabel = document.createElement("label");
@@ -2774,10 +2987,18 @@ function makePlannerItem(type = "sticky") {
      groupButton.type = "button";
      groupButton.textContent = "Group";
      groupButton.setAttribute("aria-label", "Group selected sticky notes");
+     bringForwardButton.className = "item-control";
+     bringForwardButton.type = "button";
+     bringForwardButton.textContent = "Bring Fwd";
+     bringForwardButton.setAttribute("aria-label", "Bring selected item forward");
+     sendBackwardButton.className = "item-control";
+     sendBackwardButton.type = "button";
+     sendBackwardButton.textContent = "Send Bwd";
+     sendBackwardButton.setAttribute("aria-label", "Send selected item backward");
      fillLabel.className = "item-control-row";
      fillLabel.textContent = "Fill";
      fillInput.type = "color";
-     fillInput.value = isCalendarItemType(type) ? "#ffffff" : "#f9e2af";
+     fillInput.value = "#f9e2af";
      fillInput.dataset.styleControl = "fill";
      fillInput.setAttribute("aria-label", "Sticky note fill color");
      borderColorLabel.className = "item-control-row";
@@ -3021,7 +3242,7 @@ function makePlannerItem(type = "sticky") {
      timeFormatLabel.append(timeFormatSelect);
      shareWeekendsLabel.append(shareWeekendsInput);
      controlTabs.append(actionsTab, styleTab);
-     actionsPanel.append(duplicateButton, groupButton, deleteButton);
+     actionsPanel.append(duplicateButton, groupButton, bringForwardButton, sendBackwardButton, deleteButton);
      stylePanel.append(fillLabel, borderColorLabel, borderWidthLabel);
      if (type === "sticky") {
           stylePanel.append(
@@ -3057,6 +3278,10 @@ function makePlannerItem(type = "sticky") {
      }
      controlTabs.append(widgetTab);
      controls.append(controlTabs, actionsPanel, stylePanel, widgetPanel);
+     controls.querySelectorAll("select").forEach((select) => {
+          makeCustomSelect(select);
+          select.addEventListener("change", () => updateCustomSelectDisplay(select));
+     });
      setItemControlsTab(controls, "actions");
      item.append(sizeLabel);
      if (type === "sticky") {
@@ -3064,7 +3289,7 @@ function makePlannerItem(type = "sticky") {
      }
      item.append(controls);
      setItemStyle(item, {
-          fillColor: isCalendarItemType(type) ? "transparent" : fillInput.value,
+          fillColor: "var(--mocha-04)",
           borderColor: borderColorInput.value,
           borderWidth: borderWidthSelect.value,
           dotGrid: "false"
@@ -3166,6 +3391,14 @@ function makePlannerItem(type = "sticky") {
                groupSelectedItems();
           }
           updateGroupButton(groupButton);
+     });
+     bringForwardButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          moveActionItemsLayer(item, "forward");
+     });
+     sendBackwardButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          moveActionItemsLayer(item, "backward");
      });
      fillInput.addEventListener("input", () => {
           applyStyleToActionItems(item, {
@@ -4066,6 +4299,7 @@ plannerDesk.addEventListener("pointerleave", () => {
 plannerDesk.addEventListener("wheel", zoomViewFromWheel, {
      passive: false
 });
+document.addEventListener("pointerdown", collapseMenusFromOutsidePointer, true);
 document.addEventListener("click", (event) => {
      if (shouldSkipNextClear) {
           shouldSkipNextClear = false;
@@ -4084,6 +4318,12 @@ document.addEventListener("click", (event) => {
 
      if (!event.target.closest(".planner-item") && !event.target.closest(".planner-settings") && !event.target.closest(".page-snap-controls")) {
           clearSelection();
+     }
+});
+document.addEventListener("keydown", (event) => {
+     if (event.key === "Escape") {
+          closeCustomSelects();
+          clearSelectFocus();
      }
 });
 window.addEventListener("pointermove", moveActiveItem);
