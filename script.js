@@ -7,9 +7,12 @@ const paperSelect = document.querySelector("[data-setting='paper']");
 const gridSelect = document.querySelector("[data-setting='grid']");
 const paperColorSelect = document.querySelector("[data-setting='paper-color']");
 const deskColorSelect = document.querySelector("[data-setting='desk-color']");
-const palettePreviewSelect = document.querySelector("[data-palette-preview]");
+const paperColorSwatches = document.querySelector("[data-paper-color-swatches]");
 const palettePreviewSwatches = document.querySelector("[data-palette-preview-swatches]");
-const settingSelects = Array.from(document.querySelectorAll("[data-setting]"));
+const tertiaryMatrixToggle = document.querySelector("[data-tertiary-matrix-toggle]");
+const tertiaryMatrixPopover = document.querySelector("[data-tertiary-matrix]");
+const tertiaryMatrixGrid = document.querySelector("[data-tertiary-matrix-grid]");
+const settingSelects = Array.from(document.querySelectorAll("[data-setting]")).filter((select) => select.dataset.setting !== "paper-color");
 const guideInputs = Array.from(document.querySelectorAll("[data-guide]"));
 const guideDetails = document.querySelector(".guide-settings");
 const guideSummary = document.querySelector(".guide-settings summary");
@@ -140,87 +143,80 @@ const colorPalettes = {
      "gray": {
           label: "Gray",
           colors: [
-               { label: "000", value: "var(--color-black)", ink: "var(--color-white)" },
-               { label: "111", value: "var(--color-gray1)", ink: "var(--color-white)" },
-               { label: "333", value: "var(--color-gray2)", ink: "var(--color-white)" },
-               { label: "555", value: "var(--color-gray3)", ink: "var(--color-white)" },
-               { label: "777", value: "var(--color-gray4)", ink: "var(--color-white)" },
-               { label: "999", value: "var(--color-gray5)" },
-               { label: "FFF", value: "var(--color-white)" }
+               { label: "FFF", value: "var(--color-white)" },
+               { label: "CCC", value: "var(--color-gray4)" },
+               { label: "999", value: "var(--color-gray3)" },
+               { label: "666", value: "var(--color-gray2)", ink: "var(--color-white)" },
+               { label: "333", value: "var(--color-gray1)", ink: "var(--color-white)" },
+               { label: "000", value: "var(--color-black)", ink: "var(--color-white)" }
           ]
      },
-     "12bit-v": {
-          label: "12bit V",
+     "tertiary": {
+          label: "Tertiary",
           colors: [
-               { label: "F00", value: "var(--12bit-v01)" },
-               { label: "F80", value: "var(--12bit-v02)" },
-               { label: "FF0", value: "var(--12bit-v03)" },
-               { label: "BF0", value: "var(--12bit-v04)" },
-               { label: "0F0", value: "var(--12bit-v05)" },
-               { label: "0FB", value: "var(--12bit-v06)" },
-               { label: "0FF", value: "var(--12bit-v07)" },
-               { label: "0BF", value: "var(--12bit-v08)" },
-               { label: "00F", value: "var(--12bit-v09)", ink: "var(--color-white)" },
-               { label: "80F", value: "var(--12bit-v10)", ink: "var(--color-white)" },
-               { label: "F0F", value: "var(--12bit-v11)" },
-               { label: "F08", value: "var(--12bit-v12)" }
-          ]
-     },
-     "jewel": {
-          label: "Jewel",
-          colors: [
-               { label: "900", value: "var(--12bit-j01)", ink: "var(--color-white)" },
-               { label: "940", value: "var(--12bit-j02)", ink: "var(--color-white)" },
-               { label: "990", value: "var(--12bit-j03)", ink: "var(--color-white)" },
-               { label: "690", value: "var(--12bit-j04)", ink: "var(--color-white)" },
-               { label: "090", value: "var(--12bit-j05)", ink: "var(--color-white)" },
-               { label: "096", value: "var(--12bit-j06)", ink: "var(--color-white)" },
-               { label: "099", value: "var(--12bit-j07)", ink: "var(--color-white)" },
-               { label: "069", value: "var(--12bit-j08)", ink: "var(--color-white)" },
-               { label: "009", value: "var(--12bit-j09)", ink: "var(--color-white)" },
-               { label: "409", value: "var(--12bit-j10)", ink: "var(--color-white)" },
-               { label: "909", value: "var(--12bit-j11)", ink: "var(--color-white)" },
-               { label: "904", value: "var(--12bit-j12)", ink: "var(--color-white)" }
-          ]
-     },
-     "12bit-p": {
-          label: "12bit P",
-          colors: [
-               { label: "F99", value: "var(--12bit-p01)" },
-               { label: "FC9", value: "var(--12bit-p02)" },
-               { label: "FF9", value: "var(--12bit-p03)" },
-               { label: "DF9", value: "var(--12bit-p04)" },
-               { label: "9F9", value: "var(--12bit-p05)" },
-               { label: "9FD", value: "var(--12bit-p06)" },
-               { label: "9FF", value: "var(--12bit-p07)" },
-               { label: "9DF", value: "var(--12bit-p08)" },
-               { label: "99F", value: "var(--12bit-p09)" },
-               { label: "C9F", value: "var(--12bit-p10)" },
-               { label: "F9F", value: "var(--12bit-p11)" },
-               { label: "F9C", value: "var(--12bit-p12)" }
+               { label: "F00", value: "var(--tertiary-01)", ink: "var(--color-white)" },
+               { label: "F40", value: "var(--tertiary-02)", ink: "var(--color-white)" },
+               { label: "F80", value: "var(--tertiary-03)" },
+               { label: "FC0", value: "var(--tertiary-04)" },
+               { label: "FF0", value: "var(--tertiary-05)" },
+               { label: "8F0", value: "var(--tertiary-06)" },
+               { label: "0F0", value: "var(--tertiary-07)" },
+               { label: "08F", value: "var(--tertiary-08)", ink: "var(--color-white)" },
+               { label: "00F", value: "var(--tertiary-09)", ink: "var(--color-white)" },
+               { label: "40F", value: "var(--tertiary-10)", ink: "var(--color-white)" },
+               { label: "80F", value: "var(--tertiary-11)", ink: "var(--color-white)" },
+               { label: "F0F", value: "var(--tertiary-12)" }
           ]
      }
 };
-const colorPaletteOrder = ["gray", "12bit-v", "jewel", "12bit-p"];
-const paperColors = {
-     "White": {
+const colorPaletteOrder = ["gray", "tertiary"];
+const tertiaryMatrixSteps = [90, 70, 50, 30, 10];
+const paperColorPalette = [
+     {
+          key: "White",
           label: "White",
-          color: "var(--color-gray3)"
+          display: "FFF",
+          color: "var(--paper-white)"
      },
-     "Beige": {
-          label: "Beige",
-          color: "var(--12bit-p03)"
+     {
+          key: "Offwhite",
+          label: "Offwhite",
+          display: "Ofw",
+          color: "var(--paper-offwhite)"
      },
-     "Black": {
+     {
+          key: "Cream",
+          label: "Cream",
+          display: "Crm",
+          color: "var(--paper-cream)"
+     },
+     {
+          key: "Linen",
+          label: "Linen",
+          display: "Lin",
+          color: "var(--paper-linen)"
+     },
+     {
+          key: "Charcoal",
+          label: "Charcoal",
+          display: "Chr",
+          color: "var(--paper-charcoal)",
+          ink: "var(--color-white)"
+     },
+     {
+          key: "Black",
           label: "Black",
-          color: "var(--color-gray1)"
+          display: "000",
+          color: "var(--paper-black)",
+          ink: "var(--color-white)"
      }
-};
+];
+const paperColors = Object.fromEntries(paperColorPalette.map((color) => [color.key, color]));
 const deskColors = {
      "pink": {
           label: "Pink",
-          color: "var(--12bit-p02)",
-          accent: "var(--12bit-p12)"
+          color: "var(--tertiary-03)",
+          accent: "var(--tertiary-12)"
      },
      "gray": {
           label: "Gray",
@@ -259,7 +255,19 @@ const guideLabels = {
 };
 const guideOrder = ["halves", "thirds", "fourths"];
 const textLineHeightCellOptions = ["1", "2", "3", "4"];
-const colorAlphaOptions = ["0", "25", "50", "75"];
+const colorAlphaOptions = [
+     { label: "Clear", value: "clear" },
+     { label: "Black/Shade 10", value: "shade-10" },
+     { label: "Black/Shade 30", value: "shade-30" },
+     { label: "Black/Shade 50", value: "shade-50" },
+     { label: "Black/Shade 70", value: "shade-70" },
+     { label: "Black/Shade 90", value: "shade-90" },
+     { label: "White/Tint 10", value: "tint-10" },
+     { label: "White/Tint 30", value: "tint-30" },
+     { label: "White/Tint 50", value: "tint-50" },
+     { label: "White/Tint 70", value: "tint-70" },
+     { label: "White/Tint 90", value: "tint-90" }
+];
 
 let activeAction = null;
 let selectedItem = null;
@@ -403,14 +411,65 @@ function getTextLineHeightPixels(item, cellCount) {
      return cellSize > 0 ? `${cellSize * count}px` : String(count);
 }
 
-function getAlphaColor(colorValue, alphaValue) {
-     const alpha = Number(alphaValue) || 0;
+function normalizeAlphaValue(alphaValue) {
+     if (!alphaValue || alphaValue === "0") {
+          return "clear";
+     }
 
-     if (!alpha) {
+     const legacyAlphaValues = {
+          "25": "30",
+          "75": "70",
+          "shade-25": "shade-30",
+          "shade-75": "shade-70",
+          "tint-25": "tint-30",
+          "tint-75": "tint-70"
+     };
+     const normalizedValue = legacyAlphaValues[alphaValue] || alphaValue;
+
+     if (["10", "30", "50", "70", "90"].includes(normalizedValue)) {
+          return `shade-${normalizedValue}`;
+     }
+
+     if (/^(shade|tint)-(10|30|50|70|90)$/.test(normalizedValue)) {
+          return normalizedValue;
+     }
+
+     if (/^(shade|tint)-\d+$/.test(normalizedValue)) {
+          const [mode, amountValue] = normalizedValue.split("-");
+          const amount = Number(amountValue);
+          const closestAmount = [10, 30, 50, 70, 90].reduce((closest, next) => (
+               Math.abs(next - amount) < Math.abs(closest - amount) ? next : closest
+          ), 10);
+
+          return `${mode}-${closestAmount}`;
+     }
+
+     return "clear";
+}
+
+function getAlphaColor(colorValue, alphaValue) {
+     const normalizedAlpha = normalizeAlphaValue(alphaValue);
+
+     if (normalizedAlpha === "clear") {
           return colorValue;
      }
 
-     return `color-mix(in srgb, ${colorValue} ${100 - alpha}%, transparent)`;
+     const [mode, amountValue] = normalizedAlpha.split("-");
+     const amount = Number(amountValue) || 0;
+
+     if (!amount) {
+          return colorValue;
+     }
+
+     if (mode === "shade") {
+          return `color-mix(in srgb, ${colorValue} ${100 - amount}%, var(--color-black))`;
+     }
+
+     if (mode === "tint") {
+          return `color-mix(in srgb, ${colorValue} ${100 - amount}%, var(--color-white))`;
+     }
+
+     return colorValue;
 }
 
 function applyViewControls(zoomAnchor = null) {
@@ -507,6 +566,7 @@ function handleWindowResize() {
      applyResponsiveViewMode();
      syncSidebarSnap();
      customSelectDetails.forEach((dropdown) => updateSelectFocusSpace(dropdown));
+     positionTertiaryMatrix();
 }
 
 function cycleViewZoom() {
@@ -747,14 +807,18 @@ function updateGuideSummary() {
 }
 
 function getPalette(paletteKey) {
-     return colorPalettes[paletteKey] || colorPalettes["12bit-p"];
+     return colorPalettes[paletteKey] || colorPalettes.tertiary;
 }
 
 function getPaletteKeyForColor(colorValue) {
-     return colorPaletteOrder.find((paletteKey) => getPalette(paletteKey).colors.some((color) => color.value === colorValue)) || "12bit-p";
+     return colorPaletteOrder.find((paletteKey) => getPalette(paletteKey).colors.some((color) => color.value === colorValue)) || "tertiary";
 }
 
-function populatePaletteSelect(select, selectedPalette = "12bit-p") {
+function getAllPaletteColors() {
+     return colorPaletteOrder.flatMap((paletteKey) => getPalette(paletteKey).colors);
+}
+
+function populatePaletteSelect(select, selectedPalette = "tertiary") {
      if (!select) {
           return;
      }
@@ -776,14 +840,14 @@ function populateAlphaSelect(select, selectedAlpha = "0") {
      }
 
      select.replaceChildren();
-     colorAlphaOptions.forEach((alphaValue) => {
+     colorAlphaOptions.forEach((alpha) => {
           const option = document.createElement("option");
 
-          option.value = alphaValue;
-          option.textContent = alphaValue === "0" ? "Clear" : `${alphaValue}%`;
+          option.value = alpha.value;
+          option.textContent = alpha.label;
           select.append(option);
      });
-     select.value = selectedAlpha;
+     select.value = normalizeAlphaValue(selectedAlpha);
 }
 
 function renderPaletteSwatches(swatches, paletteKey, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
@@ -820,26 +884,183 @@ function renderPaletteSwatches(swatches, paletteKey, selectedColor = "", onSelec
      });
 }
 
-function updatePalettePreview() {
-     if (!palettePreviewSelect || !palettePreviewSwatches) {
+function renderColorSwatches(swatches, colors, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
+     if (!swatches) {
           return;
      }
 
-     renderPaletteSwatches(palettePreviewSwatches, palettePreviewSelect.value);
+     swatches.replaceChildren();
+     colors.forEach((color) => {
+          const swatch = document.createElement(onSelect ? "button" : "span");
+
+          swatch.className = swatchClass;
+          swatch.style.setProperty("--swatch", color.value);
+          if (color.ink) {
+               swatch.style.setProperty("--swatch-ink", color.ink);
+          }
+          swatch.textContent = color.label;
+          swatch.dataset.colorValue = color.value;
+          swatch.classList.toggle("is-selected", color.value === selectedColor);
+
+          if (onSelect) {
+               swatch.type = "button";
+               swatch.setAttribute("aria-label", `${color.label} color`);
+               swatch.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onSelect(color.value);
+               });
+          }
+
+          swatches.append(swatch);
+     });
+}
+
+function getTertiaryMatrixRows() {
+     return [
+          ...tertiaryMatrixSteps.map((step) => ({
+               label: `Tint${step}`,
+               mode: "tint",
+               step
+          })),
+          {
+               label: "Base",
+               mode: "base",
+               step: 0
+          },
+          ...tertiaryMatrixSteps.slice().reverse().map((step) => ({
+               label: `Shade${step}`,
+               mode: "shade",
+               step
+          }))
+     ];
+}
+
+function getMatrixSwatchValue(colorValue, mode, step) {
+     if (mode === "tint") {
+          return `color-mix(in srgb, ${colorValue} ${100 - step}%, var(--color-white))`;
+     }
+
+     if (mode === "shade") {
+          return `color-mix(in srgb, ${colorValue} ${100 - step}%, var(--color-black))`;
+     }
+
+     return colorValue;
+}
+
+function renderTertiaryMatrix() {
+     if (!tertiaryMatrixGrid) {
+          return;
+     }
+
+     const colors = getPalette("tertiary").colors;
+
+     tertiaryMatrixGrid.replaceChildren();
+     getTertiaryMatrixRows().forEach((row) => {
+          const label = document.createElement("div");
+
+          label.className = "tertiary-matrix-label";
+          label.textContent = row.label;
+          tertiaryMatrixGrid.append(label);
+
+          colors.forEach((color) => {
+               const swatch = document.createElement("span");
+
+               swatch.className = `tertiary-matrix-swatch${row.mode === "base" ? " is-base" : ""}`;
+               swatch.style.setProperty("--swatch", getMatrixSwatchValue(color.value, row.mode, row.step));
+               if (color.ink && row.mode !== "tint") {
+                    swatch.style.setProperty("--swatch-ink", color.ink);
+               }
+               swatch.textContent = row.mode === "base" ? color.label : "";
+               tertiaryMatrixGrid.append(swatch);
+          });
+     });
+}
+
+function positionTertiaryMatrix() {
+     if (!tertiaryMatrixPopover || !tertiaryMatrixToggle || tertiaryMatrixPopover.hidden) {
+          return;
+     }
+
+     const toggleRect = tertiaryMatrixToggle.getBoundingClientRect();
+     const popoverRect = tertiaryMatrixPopover.getBoundingClientRect();
+     const gap = 8;
+     const fitsRight = toggleRect.right + gap + popoverRect.width <= window.innerWidth - 8;
+     const left = fitsRight
+          ? toggleRect.right + gap
+          : Math.max(8, toggleRect.left - gap - popoverRect.width);
+     const top = Math.min(
+          Math.max(8, toggleRect.top - 8),
+          Math.max(8, window.innerHeight - popoverRect.height - 8)
+     );
+
+     tertiaryMatrixPopover.style.left = `${left}px`;
+     tertiaryMatrixPopover.style.top = `${top}px`;
+}
+
+function setTertiaryMatrixOpen(isOpen) {
+     if (!tertiaryMatrixPopover || !tertiaryMatrixToggle) {
+          return;
+     }
+
+     tertiaryMatrixPopover.hidden = !isOpen;
+     tertiaryMatrixToggle.setAttribute("aria-expanded", String(isOpen));
+     tertiaryMatrixToggle.textContent = isOpen ? "<" : ">";
+
+     if (isOpen) {
+          renderTertiaryMatrix();
+          positionTertiaryMatrix();
+     }
+}
+
+function updatePalettePreview() {
+     if (!palettePreviewSwatches) {
+          return;
+     }
+
+     renderColorSwatches(palettePreviewSwatches, getAllPaletteColors());
 }
 
 function initializePalettePreview() {
-     if (!palettePreviewSelect) {
+     if (!palettePreviewSwatches) {
           return;
      }
 
-     populatePaletteSelect(palettePreviewSelect, palettePreviewSelect.value || "12bit-p");
-     makeCustomSelect(palettePreviewSelect);
-     palettePreviewSelect.addEventListener("change", () => {
-          updateCustomSelectDisplay(palettePreviewSelect);
-          updatePalettePreview();
-     });
      updatePalettePreview();
+}
+
+function updatePaperColorSwatches() {
+     if (!paperColorSwatches || !paperColorSelect) {
+          return;
+     }
+
+     const colors = paperColorPalette.map((paperColor) => ({
+          key: paperColor.key,
+          label: paperColor.label,
+          display: paperColor.display || paperColor.label,
+          value: paperColor.color,
+          ink: paperColor.ink || "var(--color-gray1)"
+     }));
+
+     paperColorSwatches.replaceChildren();
+     colors.forEach((color) => {
+          const swatch = document.createElement("button");
+
+          swatch.className = "paper-color-swatch";
+          swatch.type = "button";
+          swatch.style.setProperty("--swatch", color.value);
+          swatch.style.setProperty("--swatch-ink", color.ink);
+          swatch.textContent = color.display;
+          swatch.classList.toggle("is-selected", paperColorSelect.value === color.key);
+          swatch.setAttribute("aria-label", `${color.label} paper color`);
+          swatch.addEventListener("click", (event) => {
+               event.preventDefault();
+               paperColorSelect.value = color.key;
+               paperColorSelect.dispatchEvent(new Event("change", { bubbles: true }));
+               updatePaperColorSwatches();
+          });
+          paperColorSwatches.append(swatch);
+     });
 }
 
 function setPaletteControlValue(select, swatches, colorValue) {
@@ -849,10 +1070,9 @@ function setPaletteControlValue(select, swatches, colorValue) {
 
      select.dataset.currentColor = colorValue;
      select.value = getPaletteKeyForColor(colorValue);
-     updateCustomSelectDisplay(select);
-     renderPaletteSwatches(
+     renderColorSwatches(
           swatches,
-          select.value,
+          getAllPaletteColors(),
           colorValue,
           (nextColor) => {
                if (typeof select.onPaletteColorSelect === "function") {
@@ -876,16 +1096,15 @@ function initializePaletteColorControl(select, swatches, defaultColor, onSelect)
           setPaletteControlValue(select, swatches, nextColor);
      };
      select.addEventListener("change", () => {
-          updateCustomSelectDisplay(select);
-          renderPaletteSwatches(
+          renderColorSwatches(
                swatches,
-               select.value,
+               getAllPaletteColors(),
                select.dataset.currentColor,
                select.onPaletteColorSelect,
                "item-color-swatch"
           );
      });
-     renderPaletteSwatches(swatches, select.value, defaultColor, select.onPaletteColorSelect, "item-color-swatch");
+     renderColorSwatches(swatches, getAllPaletteColors(), defaultColor, select.onPaletteColorSelect, "item-color-swatch");
 }
 
 function updateCustomSelectDisplay(select) {
@@ -1153,6 +1372,7 @@ function openSidebar() {
 function closeSidebar() {
      closeCustomSelects(plannerSettings);
      clearSelectFocus(plannerSettings);
+     setTertiaryMatrixOpen(false);
      plannerSettings.classList.remove("is-open");
      plannerDesk.classList.remove("has-open-main-menu");
 }
@@ -1269,9 +1489,9 @@ function serializePlannerItem(item) {
           groupId: item.dataset.groupId || null,
           style: {
                fillColor: item.dataset.fillColor,
-               fillAlpha: Number(item.dataset.fillAlpha) || 0,
+               fillAlpha: normalizeAlphaValue(item.dataset.fillAlpha),
                borderColor: item.dataset.borderColor,
-               borderAlpha: Number(item.dataset.borderAlpha) || 0,
+               borderAlpha: normalizeAlphaValue(item.dataset.borderAlpha),
                borderWidth: Number(item.dataset.borderWidth),
                dotGrid: item.dataset.dotGrid === "true"
           },
@@ -1297,7 +1517,7 @@ function serializePlannerItem(item) {
                               size: Number(item.dataset.dayTextSize) || 10,
                               font: item.dataset.dayTextFont || "noto",
                               color: item.dataset.dayTextColor || "var(--color-gray1)",
-                              alpha: Number(item.dataset.dayTextAlpha) || 0,
+                              alpha: normalizeAlphaValue(item.dataset.dayTextAlpha),
                               bold: item.dataset.dayTextBold === "true",
                               italic: item.dataset.dayTextItalic === "true",
                               underline: item.dataset.dayTextUnderline === "true",
@@ -1314,7 +1534,7 @@ function serializePlannerItem(item) {
                     size: Number(item.dataset.textSize) || 10,
                     font: item.dataset.textFont || "noto",
                     color: item.dataset.textColor || "var(--color-gray1)",
-                    alpha: Number(item.dataset.textAlpha) || 0,
+                    alpha: normalizeAlphaValue(item.dataset.textAlpha),
                     bold: item.dataset.textBold === "true",
                     italic: item.dataset.textItalic === "true",
                     underline: item.dataset.textUnderline === "true",
@@ -1562,10 +1782,10 @@ function updateCalendarGridMetrics(item, page, box) {
 }
 
 function setItemStyle(item, style) {
-     item.dataset.fillColor = style.fillColor || item.dataset.fillColor || "var(--12bit-p03)";
-     item.dataset.fillAlpha = style.fillAlpha || item.dataset.fillAlpha || "0";
-     item.dataset.borderColor = style.borderColor || item.dataset.borderColor || "var(--color-gray5)";
-     item.dataset.borderAlpha = style.borderAlpha || item.dataset.borderAlpha || "0";
+     item.dataset.fillColor = style.fillColor || item.dataset.fillColor || "var(--tertiary-05)";
+     item.dataset.fillAlpha = normalizeAlphaValue(style.fillAlpha || item.dataset.fillAlpha || "clear");
+     item.dataset.borderColor = style.borderColor || item.dataset.borderColor || "var(--color-gray4)";
+     item.dataset.borderAlpha = normalizeAlphaValue(style.borderAlpha || item.dataset.borderAlpha || "clear");
      item.dataset.borderWidth = style.borderWidth || item.dataset.borderWidth || "1";
      item.dataset.dotGrid = style.dotGrid || item.dataset.dotGrid || "false";
      item.style.setProperty("--sticky-fill", getAlphaColor(item.dataset.fillColor, item.dataset.fillAlpha));
@@ -1646,7 +1866,7 @@ function setStickyTextSettings(item, settings = {}) {
      item.dataset.textSize = settings.size || item.dataset.textSize || "10";
      item.dataset.textFont = settings.font || item.dataset.textFont || "noto";
      item.dataset.textColor = settings.color || item.dataset.textColor || "var(--color-gray1)";
-     item.dataset.textAlpha = settings.alpha || item.dataset.textAlpha || "0";
+     item.dataset.textAlpha = normalizeAlphaValue(settings.alpha || item.dataset.textAlpha || "clear");
      item.dataset.textBold = settings.bold ?? item.dataset.textBold ?? "false";
      item.dataset.textItalic = settings.italic ?? item.dataset.textItalic ?? "false";
      item.dataset.textUnderline = settings.underline ?? item.dataset.textUnderline ?? "false";
@@ -2504,7 +2724,7 @@ function setCalendarDayTextSettings(item, settings = {}) {
      item.dataset.dayTextSize = settings.size || item.dataset.dayTextSize || "10";
      item.dataset.dayTextFont = settings.font || item.dataset.dayTextFont || "noto";
      item.dataset.dayTextColor = settings.color || item.dataset.dayTextColor || "var(--color-gray1)";
-     item.dataset.dayTextAlpha = settings.alpha || item.dataset.dayTextAlpha || "0";
+     item.dataset.dayTextAlpha = normalizeAlphaValue(settings.alpha || item.dataset.dayTextAlpha || "clear");
      item.dataset.dayTextBold = settings.bold ?? item.dataset.dayTextBold ?? "false";
      item.dataset.dayTextItalic = settings.italic ?? item.dataset.dayTextItalic ?? "false";
      item.dataset.dayTextUnderline = settings.underline ?? item.dataset.dayTextUnderline ?? "false";
@@ -3190,10 +3410,15 @@ function makePlannerItem(type = "sticky") {
      const bringForwardButton = document.createElement("button");
      const sendBackwardButton = document.createElement("button");
      const fillLabel = document.createElement("label");
+     const fillTitle = document.createElement("span");
+     const fillAlphaField = document.createElement("span");
      const fillInput = document.createElement("select");
      const fillAlphaSelect = document.createElement("select");
      const fillSwatches = document.createElement("div");
      const borderColorLabel = document.createElement("label");
+     const borderTitle = document.createElement("span");
+     const borderAlphaField = document.createElement("span");
+     const borderSizeField = document.createElement("span");
      const borderColorInput = document.createElement("select");
      const borderAlphaSelect = document.createElement("select");
      const borderColorSwatches = document.createElement("div");
@@ -3202,10 +3427,13 @@ function makePlannerItem(type = "sticky") {
      const dotGridInput = document.createElement("input");
      const textElement = document.createElement("div");
      const textToggleLabel = document.createElement("label");
+     const textTitle = document.createElement("span");
      const textToggleInput = document.createElement("input");
      const textSizeInput = document.createElement("input");
      const textFontSelect = document.createElement("select");
      const textColorLabel = document.createElement("label");
+     const textColorTitle = document.createElement("span");
+     const textColorAlphaField = document.createElement("span");
      const textColorInput = document.createElement("select");
      const textColorAlphaSelect = document.createElement("select");
      const textColorSwatches = document.createElement("div");
@@ -3306,8 +3534,11 @@ function makePlannerItem(type = "sticky") {
      sendBackwardButton.type = "button";
      sendBackwardButton.textContent = "Send Bwd";
      sendBackwardButton.setAttribute("aria-label", "Send selected item backward");
-     fillLabel.className = "item-control-row item-color-control";
-     fillLabel.textContent = "Fill";
+     fillLabel.className = "item-control-row item-color-control item-color-control-two";
+     fillTitle.className = "item-control-title";
+     fillTitle.textContent = "Fill";
+     fillAlphaField.className = "item-control-field";
+     fillAlphaField.dataset.fieldLabel = "Overlay";
      fillInput.dataset.styleControl = "fill";
      fillInput.setAttribute("aria-label", "Sticky note fill palette");
      fillAlphaSelect.dataset.styleControl = "fill-alpha";
@@ -3315,8 +3546,13 @@ function makePlannerItem(type = "sticky") {
      populateAlphaSelect(fillAlphaSelect);
      fillSwatches.className = "item-color-swatches";
      fillSwatches.dataset.styleSwatches = "fill";
-     borderColorLabel.className = "item-control-row item-color-control";
-     borderColorLabel.textContent = "Border";
+     borderColorLabel.className = "item-control-row item-color-control item-border-control";
+     borderTitle.className = "item-control-title";
+     borderTitle.textContent = "Border";
+     borderAlphaField.className = "item-control-field";
+     borderAlphaField.dataset.fieldLabel = "Overlay";
+     borderSizeField.className = "item-control-field";
+     borderSizeField.dataset.fieldLabel = "Size";
      borderColorInput.dataset.styleControl = "border-color";
      borderColorInput.setAttribute("aria-label", "Sticky note border palette");
      borderAlphaSelect.dataset.styleControl = "border-alpha";
@@ -3344,7 +3580,8 @@ function makePlannerItem(type = "sticky") {
      textElement.setAttribute("contenteditable", "false");
      textElement.setAttribute("aria-label", "Sticky note text");
      textToggleLabel.className = "item-control-row item-text-control item-text-settings-control";
-     textToggleLabel.textContent = "Text";
+     textTitle.className = "item-control-title";
+     textTitle.textContent = "Text";
      textToggleInput.type = "checkbox";
      textToggleInput.dataset.textControl = "enabled";
      textToggleInput.setAttribute("aria-label", "Show sticky note text");
@@ -3370,7 +3607,10 @@ function makePlannerItem(type = "sticky") {
           textFontSelect.append(option);
      });
      textColorLabel.className = "item-control-row item-text-control item-color-control";
-     textColorLabel.textContent = "Font Color";
+     textColorTitle.className = "item-control-title";
+     textColorTitle.textContent = "Font Palette";
+     textColorAlphaField.className = "item-control-field";
+     textColorAlphaField.dataset.fieldLabel = "Overlay";
      textColorInput.dataset.textControl = "color";
      textColorInput.setAttribute("aria-label", "Sticky note text palette");
      textColorAlphaSelect.dataset.textControl = "color-alpha";
@@ -3534,16 +3774,20 @@ function makePlannerItem(type = "sticky") {
           startTimeSelect.append(option);
      }
 
-     fillLabel.append(fillInput, fillAlphaSelect, fillSwatches);
-     borderColorLabel.append(borderColorInput, borderAlphaSelect, borderWidthSelect, borderColorSwatches);
+     fillAlphaField.append(fillAlphaSelect);
+     borderAlphaField.append(borderAlphaSelect);
+     borderSizeField.append(borderWidthSelect);
+     textColorAlphaField.append(textColorAlphaSelect);
+     fillLabel.append(fillTitle, fillAlphaField, fillSwatches);
+     borderColorLabel.append(borderTitle, borderAlphaField, borderSizeField, borderColorSwatches);
      dotGridLabel.append(dotGridInput);
      if (type === "sticky") {
-          textToggleLabel.append(textToggleInput, textSizeInput, textFontSelect);
+          textToggleLabel.append(textTitle, textToggleInput, textSizeInput, textFontSelect);
      } else {
           textToggleLabel.classList.add("item-text-settings-control-no-toggle");
-          textToggleLabel.append(textSizeInput, textFontSelect);
+          textToggleLabel.append(textTitle, textSizeInput, textFontSelect);
      }
-     textColorLabel.append(textColorInput, textColorAlphaSelect, textColorSwatches);
+     textColorLabel.append(textColorTitle, textColorAlphaField, textColorSwatches);
      textBoldLabel.append(textBoldInput);
      textItalicLabel.append(textItalicInput);
      textUnderlineLabel.append(textUnderlineInput);
@@ -3593,12 +3837,12 @@ function makePlannerItem(type = "sticky") {
      }
      controlTabs.append(widgetTab);
      controls.append(controlTabs, actionsPanel, stylePanel, widgetPanel);
-     initializePaletteColorControl(fillInput, fillSwatches, "var(--12bit-p03)", (nextColor) => {
+     initializePaletteColorControl(fillInput, fillSwatches, "var(--tertiary-05)", (nextColor) => {
           applyStyleToActionItems(item, {
                fillColor: nextColor
           });
      });
-     initializePaletteColorControl(borderColorInput, borderColorSwatches, "var(--color-gray5)", (nextColor) => {
+     initializePaletteColorControl(borderColorInput, borderColorSwatches, "var(--color-gray4)", (nextColor) => {
           applyStyleToActionItems(item, {
                borderColor: nextColor
           });
@@ -3626,10 +3870,10 @@ function makePlannerItem(type = "sticky") {
      }
      item.append(controls);
      setItemStyle(item, {
-          fillColor: "var(--12bit-p03)",
-          fillAlpha: "0",
-          borderColor: "var(--color-gray5)",
-          borderAlpha: "0",
+          fillColor: "var(--tertiary-05)",
+          fillAlpha: "clear",
+          borderColor: "var(--color-gray4)",
+          borderAlpha: "clear",
           borderWidth: borderWidthSelect.value,
           dotGrid: "false"
      });
@@ -4563,6 +4807,7 @@ window.perfectPlanner = {
 };
 
 initializeCustomSelects();
+updatePaperColorSwatches();
 initializePalettePreview();
 applyPlannerConfig();
 if (isSinglePageViewport) {
@@ -4572,7 +4817,10 @@ applyViewControls();
 syncSidebarSnap();
 paperSelect.addEventListener("change", changePlannerSetting);
 gridSelect.addEventListener("change", changePlannerSetting);
-paperColorSelect.addEventListener("change", changePlannerSetting);
+paperColorSelect.addEventListener("change", () => {
+     changePlannerSetting();
+     updatePaperColorSwatches();
+});
 deskColorSelect.addEventListener("change", changePlannerSetting);
 settingSelects.forEach((select) => {
      select.addEventListener("change", () => updateCustomSelectDisplay(select));
@@ -4585,6 +4833,13 @@ if (guideToggle) {
 }
 if (guideSummary) {
      guideSummary.addEventListener("click", removeGuideFromSummary);
+}
+if (tertiaryMatrixToggle) {
+     tertiaryMatrixToggle.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          setTertiaryMatrixOpen(tertiaryMatrixToggle.getAttribute("aria-expanded") !== "true");
+     });
 }
 pageSnapButtons.forEach((button) => {
      button.addEventListener("click", () => movePageSnap(button.dataset.pageSnap));
@@ -4661,6 +4916,15 @@ document.addEventListener("click", (event) => {
           }
      });
 
+     if (
+          tertiaryMatrixPopover &&
+          !tertiaryMatrixPopover.hidden &&
+          !event.target.closest("[data-tertiary-matrix]") &&
+          !event.target.closest("[data-tertiary-matrix-toggle]")
+     ) {
+          setTertiaryMatrixOpen(false);
+     }
+
      if (!event.target.closest(".planner-item") && !event.target.closest(".planner-settings") && !event.target.closest(".page-snap-controls")) {
           clearSelection();
      }
@@ -4669,10 +4933,12 @@ document.addEventListener("keydown", (event) => {
      if (event.key === "Escape") {
           closeCustomSelects();
           clearSelectFocus();
+          setTertiaryMatrixOpen(false);
      }
 });
 window.addEventListener("pointermove", moveActiveItem);
 window.addEventListener("pointerup", endActiveItem);
 window.addEventListener("pointercancel", endActiveItem);
 window.addEventListener("resize", handleWindowResize);
+window.addEventListener("scroll", positionTertiaryMatrix, true);
 singlePageViewportQuery.addEventListener("change", applyResponsiveViewMode);

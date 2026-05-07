@@ -51,25 +51,23 @@
                          </select>
                     </label>
 
-                    <label>
+                    <label class="paper-color-field">
                          <span>Paper Color</span>
-                         <select data-setting="paper-color">
+                         <select data-setting="paper-color" aria-label="Paper color">
                               <option value="White">White</option>
-                              <option value="Beige" selected>Beige</option>
+                              <option value="Offwhite" selected>Offwhite</option>
+                              <option value="Cream">Cream</option>
+                              <option value="Linen">Linen</option>
+                              <option value="Charcoal">Charcoal</option>
                               <option value="Black">Black</option>
                          </select>
+                         <div class="paper-color-swatches" data-paper-color-swatches></div>
                     </label>
 
-                    <div class="palette-preview" aria-label="Color palette preview">
-                         <span class="palette-preview-title">Palettes</span>
-                         <div class="palette-preview-row">
-                              <span class="palette-preview-label">Color</span>
-                              <select data-palette-preview>
-                                   <option value="12bit-p" selected>12bit P</option>
-                                   <option value="12bit-v">12bit V</option>
-                                   <option value="jewel">Jewel</option>
-                                   <option value="gray">Gray</option>
-                              </select>
+                    <div class="palette-preview" aria-label="Palette preview">
+                         <div class="palette-preview-heading">
+                              <span class="palette-preview-label">Palette</span>
+                              <button class="palette-matrix-toggle" type="button" data-tertiary-matrix-toggle aria-label="Show Tertiary matrix" aria-expanded="false">></button>
                          </div>
                          <div class="palette-swatches" data-palette-preview-swatches></div>
                     </div>
@@ -123,6 +121,11 @@
 
                <div class="settings-panel widgets-panel" id="widgets-panel" role="tabpanel" data-settings-panel="widgets" hidden></div>
           </form>
+
+          <div class="tertiary-matrix-popover" data-tertiary-matrix hidden>
+               <div class="tertiary-matrix-title">Tertiary</div>
+               <div class="tertiary-matrix" data-tertiary-matrix-grid></div>
+          </div>
 
           <div class="notebook-stage">
                <section class="notebook" aria-label="Open Perfect Planner notebook">
