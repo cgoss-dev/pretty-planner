@@ -25,12 +25,24 @@
 
           <form class="planner-settings" aria-label="Planner page settings">
                <div class="settings-tabs" role="tablist" aria-label="Planner setting tabs">
-                    <button class="settings-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="paper-picker-panel" data-settings-tab="paper-picker">Paper</button>
-                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="stickers-panel" data-settings-tab="stickers">Objects</button>
-                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-controls="widgets-panel" data-settings-tab="widgets">Presets</button>
+                    <button class="settings-tab is-active" type="button" role="tab" aria-selected="true" aria-label="Page" aria-controls="page-panel" data-settings-tab="page">
+                         <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
+                         <span class="settings-tab-label">Page</span>
+                         <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
+                    </button>
+                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-label="Widgets" aria-controls="add-panel" data-settings-tab="add">
+                         <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
+                         <span class="settings-tab-label">Widgets</span>
+                         <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
+                    </button>
+                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-label="Style" aria-controls="style-panel" data-settings-tab="style">
+                         <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
+                         <span class="settings-tab-label">Style</span>
+                         <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
+                    </button>
                </div>
 
-               <div class="settings-panel" id="paper-picker-panel" role="tabpanel" data-settings-panel="paper-picker">
+               <div class="settings-panel" id="page-panel" role="tabpanel" data-settings-panel="page">
                     <label>
                          <span>Paper</span>
                          <select data-setting="paper">
@@ -59,10 +71,6 @@
                               <option value="Linen">Linen</option>
                               <option value="Custom">Custom</option>
                          </select>
-                         <div class="paper-palette-row">
-                              <span class="paper-palette-spacer paper-palette-spacer-wide" aria-hidden="true"></span>
-                              <div class="paper-color-swatches" data-paper-color-swatches></div>
-                         </div>
                          <div class="palette-swatches" data-palette-preview-swatches></div>
                     </div>
 
@@ -100,20 +108,24 @@
 
                </div>
 
-               <div class="settings-panel stickers-panel" id="stickers-panel" role="tabpanel" data-settings-panel="stickers" hidden>
-                    <button class="sticky-note" type="button" data-create-item data-create-type="sticky" aria-label="Add sticky note"></button>
-                    <button class="mini-cal-source" type="button" data-create-item data-create-type="mini-cal" aria-label="Add mini calendar widget">
-                         <span>miniCal</span>
+               <div class="settings-panel add-panel" id="add-panel" role="tabpanel" data-settings-panel="add" hidden>
+                    <button class="sticky-note" type="button" data-create-item data-create-type="sticky" data-widget-label="Sticky Note" aria-label="Add sticky note"></button>
+                    <button class="mini-cal-source" type="button" data-create-item data-create-type="mini-cal" data-widget-label="Mini Cal" aria-label="Add mini calendar widget">
+                         <span>Mini Cal</span>
                     </button>
-                    <button class="full-cal-source" type="button" data-create-item data-create-type="full-cal" aria-label="Add full calendar widget">
-                         <span>fullCal</span>
+                    <button class="full-cal-source" type="button" data-create-item data-create-type="full-cal" data-widget-label="Full Cal" aria-label="Add full calendar widget">
+                         <span>Full Cal</span>
                     </button>
-                    <button class="weekly-vertical-source" type="button" data-create-item data-create-type="weekly-vertical" aria-label="Add weekly vertical calendar widget">
-                         <span>weeklyVertical</span>
+                    <button class="weekly-vertical-source" type="button" data-create-item data-create-type="weekly-vertical" data-widget-label="Vertical Week" aria-label="Add weekly vertical calendar widget">
+                         <span>Vertical Week</span>
                     </button>
                </div>
 
-               <div class="settings-panel widgets-panel" id="widgets-panel" role="tabpanel" data-settings-panel="widgets" hidden></div>
+               <div class="settings-panel style-panel" id="style-panel" role="tabpanel" data-settings-panel="style" hidden>
+                    <div class="settings-object-shell is-inactive" data-object-controls-shell>
+                         <div class="settings-object-empty" data-object-controls-empty>Select an object</div>
+                    </div>
+               </div>
           </form>
 
           <div class="tertiary-matrix-popover" data-tertiary-matrix hidden>

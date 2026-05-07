@@ -54,20 +54,23 @@
      --font-size-lg: clamp(2rem, 2rem, 2rem);
      --font-size-md: clamp(1.5rem, 1.5rem, 1.5rem);
      --font-size-sm: clamp(1rem, 1rem, 1rem);
-     --color-swatch-size: 25px;
+     --color-swatch-size: 36px;
+     --palette-swatch-gap: 3px;
+     --palette-swatch-radius: 4px;
+     --palette-swatch-border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
      --arrow-button-size: 42px;
      --arrow-font: var(--font-symbol);
      --arrow-font-size: var(--font-size-lg);
-     --arrow-font-weight: 400;
+     --arrow-font-weight: 800;
      --arrow-color: var(--color-gray1);
      --arrow-active-color: var(--color-white);
      --arrow-button-fill: var(--tint-70);
      --arrow-control-fill: var(--tint-50);
-     --arrow-active-fill: var(--color-gray1);
+     --arrow-active-fill: var(--color-gray3);
      --arrow-border: var(--border-sm) solid rgba(17, 17, 17, 0.25);
+     --calendar-tint: rgba(17, 17, 17, 0.04);
 
      --desk: var(--paper-linen);
-     --desk-accent: #f0f;
      --desk-image: none;
      --desk-size: auto;
      --paper: var(--paper-cream);
@@ -159,7 +162,7 @@ body {
      padding: clamp(18px, 4vw, 56px);
      background:
           var(--desk-image),
-          linear-gradient(135deg, var(--desk), var(--desk-accent));
+          var(--desk);
      background-size:
           var(--desk-size),
           auto;
@@ -180,13 +183,14 @@ body {
 .planner-settings {
      position: absolute;
      z-index: 200;
-     left: calc(((100vw - var(--notebook-width)) / 2) + (var(--menu-width-safe) / 2));
+     left: 50%;
      bottom: 0;
-     width: var(--menu-width-safe) !important;
-     inline-size: var(--menu-width-safe) !important;
-     height: min(max(68vh, 500px), var(--notebook-height));
-     min-height: min(500px, var(--notebook-height));
-     min-width: min(300px, calc(100vw - 32px)) !important;
+     width: fit-content !important;
+     inline-size: fit-content !important;
+     max-width: calc(100vw - 32px) !important;
+     max-height: min(68vh, var(--notebook-height));
+     min-height: min(300px, var(--notebook-height));
+     min-width: min(500px, calc(100vw - 32px)) !important;
      display: grid;
      grid-template-columns: 1fr;
      grid-template-rows: auto minmax(0, 1fr);
@@ -307,19 +311,27 @@ body {
 }
 
 .settings-tabs {
-     display: grid;
-     grid-template-columns: repeat(3, minmax(0, 1fr));
+     display: flex;
      align-items: end;
      gap: 0;
-     width: 100%;
+     width: fit-content;
+     min-width: min(500px, calc(100vw - 32px));
+     justify-content: center;
+     margin-bottom: -1px;
      overflow: visible;
 }
 
 .settings-tab {
      position: relative;
-     min-width: 0;
+     width: 100px;
+     min-width: 100px;
      min-height: 34px;
      padding: 4px 5px 5px;
+     display: grid;
+     grid-template-columns: 0 minmax(0, 1fr) 0;
+     align-items: center;
+     justify-items: center;
+     gap: 0;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      border-radius: 7px 7px 0 0;
      border-bottom-color: rgba(17, 17, 17, 0.22);
@@ -328,11 +340,66 @@ body {
      cursor: pointer;
      font: 400 var(--font-size-sm) var(--font-noto);
      line-height: 1.1;
+     overflow: hidden;
      text-align: center;
 }
 
 .settings-tab[aria-selected="true"] {
+     width: 200px;
+     min-width: 200px;
+     grid-template-columns: var(--color-swatch-size) minmax(0, 1fr) var(--color-swatch-size);
      cursor: pointer;
+}
+
+.planner-settings:not(.is-open) .settings-tab[aria-selected="true"] {
+     width: 100px;
+     min-width: 100px;
+     grid-template-columns: 0 minmax(0, 1fr) 0;
+}
+
+.settings-tab-label {
+     min-width: 0;
+}
+
+.settings-tab-step {
+     display: grid;
+     place-items: center;
+     width: 0;
+     height: 100%;
+     color: var(--arrow-color);
+     cursor: pointer;
+     font: var(--arrow-font-weight) var(--arrow-font-size) var(--arrow-font);
+     line-height: 1;
+     overflow: hidden;
+     opacity: 0;
+     pointer-events: none;
+}
+
+.settings-tab[aria-selected="true"] .settings-tab-step {
+     width: var(--color-swatch-size);
+     opacity: 1;
+     pointer-events: auto;
+}
+
+.planner-settings:not(.is-open) .settings-tab-step {
+     width: 0;
+     opacity: 0;
+     pointer-events: none;
+}
+
+.settings-tab-step[aria-disabled="true"] {
+     color: var(--color-gray3);
+     cursor: default;
+     opacity: 0.35;
+     pointer-events: none;
+}
+
+.settings-tab-step-prev {
+     transform: rotate(-90deg);
+}
+
+.settings-tab-step-next {
+     transform: rotate(90deg);
 }
 
 .planner-settings.is-resize-ns,
@@ -357,15 +424,39 @@ body {
      align-content: start;
      gap: 8px;
      width: 100%;
+     min-width: min(500px, calc(100vw - 32px));
+     max-width: calc(100vw - 32px);
      height: 100%;
      min-height: 0;
      overflow: auto;
      padding: 8px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-     border-top: 0;
-     border-radius: 0 0 8px 8px;
+     border-radius: 7px 7px 8px 8px;
      background: var(--active-settings-color);
      backdrop-filter: blur(8px);
+}
+
+.settings-object-shell {
+     grid-column: 1 / -1;
+}
+
+.settings-object-shell {
+     display: grid;
+     gap: 8px;
+     min-height: 210px;
+}
+
+.settings-object-shell.is-inactive {
+     place-items: center;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.12);
+     border-radius: 6px;
+     color: var(--color-gray3);
+}
+
+.settings-object-empty {
+     color: var(--color-gray3);
+     font: 400 var(--font-size-sm) var(--font-noto);
+     line-height: 1.1;
 }
 
 .settings-panel[hidden] {
@@ -466,10 +557,23 @@ body {
      border-radius: 0 0 6px 6px;
 }
 
-.palette-preview,
 .item-color-control {
      display: grid;
      gap: 7px;
+     padding: 7px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-radius: 6px;
+     background: rgba(255, 255, 255, 0.28);
+}
+
+.palette-preview {
+     display: grid;
+     gap: 4px;
+     color: var(--color-gray1);
+     font: 400 var(--font-size-sm) var(--font-noto);
+}
+
+.palette-preview .palette-swatches {
      padding: 7px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      border-radius: 6px;
@@ -496,23 +600,6 @@ body {
      line-height: 1;
 }
 
-.paper-palette-row {
-     display: grid;
-     grid-template-columns: repeat(9, var(--color-swatch-size));
-     gap: 3px;
-     justify-content: center;
-     min-width: 0;
-}
-
-.paper-palette-spacer {
-     width: var(--color-swatch-size);
-     height: var(--color-swatch-size);
-}
-
-.paper-palette-spacer-wide {
-     grid-column: span 6;
-}
-
 .palette-matrix-toggle {
      position: relative;
      display: block;
@@ -520,7 +607,7 @@ body {
      height: var(--color-swatch-size);
      padding: 0;
      border: var(--arrow-border);
-     border-radius: 4px;
+     border-radius: var(--palette-swatch-radius);
      background: var(--arrow-control-fill);
      color: var(--arrow-color);
      cursor: pointer;
@@ -553,17 +640,10 @@ body {
 .palette-swatches,
 .item-color-swatches {
      display: grid;
-     gap: 3px;
+     grid-template-columns: repeat(6, var(--color-swatch-size));
+     gap: var(--palette-swatch-gap);
      justify-content: center;
      min-width: 0;
-}
-
-.palette-swatches {
-     grid-template-columns: repeat(9, var(--color-swatch-size));
-}
-
-.item-color-swatches {
-     grid-template-columns: repeat(9, var(--color-swatch-size));
 }
 
 .palette-preview .custom-select {
@@ -574,10 +654,6 @@ body {
      display: none;
 }
 
-.paper-color-swatches {
-     display: contents;
-}
-
 .palette-hex-button {
      position: relative;
      display: grid;
@@ -585,8 +661,8 @@ body {
      width: var(--color-swatch-size);
      height: var(--color-swatch-size);
      padding: 0;
-     border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
-     border-radius: 4px;
+     border: var(--palette-swatch-border);
+     border-radius: var(--palette-swatch-radius);
      background: rgba(255, 255, 255, 0.56);
      color: var(--color-gray1);
      cursor: pointer;
@@ -635,15 +711,14 @@ body {
 }
 
 .palette-swatch,
-.paper-color-swatch,
 .item-color-swatch {
      display: grid;
      place-items: center;
      min-width: 0;
      width: var(--color-swatch-size);
      height: var(--color-swatch-size);
-     border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
-     border-radius: 4px;
+     border: var(--palette-swatch-border);
+     border-radius: var(--palette-swatch-radius);
      background: var(--swatch);
      color: var(--swatch-ink, var(--color-gray1));
      font: 400 var(--font-size-sm) var(--font-noto);
@@ -658,16 +733,6 @@ body {
      background:
           linear-gradient(135deg, transparent calc(50% - 1px), rgba(17, 17, 17, 0.22) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
           var(--color-white);
-}
-
-.paper-color-swatch {
-     cursor: pointer;
-}
-
-.paper-color-swatch.is-selected {
-     box-shadow:
-          0 0 0 1px var(--color-white),
-          0 0 0 3px var(--color-gray1);
 }
 
 .custom-select-option.is-selected {
@@ -1142,29 +1207,50 @@ body {
      touch-action: none;
 }
 
-.stickers-panel {
-     grid-template-columns: repeat(2, minmax(0, 1fr));
+.add-panel {
+     grid-template-columns: repeat(auto-fit, 100px);
      align-items: start;
-     justify-items: start;
-     gap: 12px;
+     justify-items: center;
+     justify-content: center;
+     gap: 22px 12px;
 }
 
-.stickers-panel .sticky-note,
-.stickers-panel .mini-cal-source,
-.stickers-panel .full-cal-source {
+.add-panel .sticky-note,
+.add-panel .mini-cal-source,
+.add-panel .full-cal-source,
+.add-panel .weekly-vertical-source {
      position: relative;
      top: auto;
      left: auto;
+     margin-top: calc(var(--font-size-sm) + 8px);
+     filter: drop-shadow(0 14px 12px rgba(17, 17, 17, 0.18));
 }
 
-.stickers-panel .sticky-note,
-.stickers-panel .mini-cal-source,
-.stickers-panel .full-cal-source {
-     width: min(var(--source-sticky-size), 100%);
+.add-panel .sticky-note,
+.add-panel .mini-cal-source,
+.add-panel .full-cal-source,
+.add-panel .weekly-vertical-source {
+     width: 100px;
 }
 
-.widgets-panel {
-     justify-items: start;
+.add-panel [data-widget-label]::before {
+     content: attr(data-widget-label);
+     position: absolute;
+     left: 50%;
+     bottom: calc(100% + 5px);
+     width: max-content;
+     max-width: 120px;
+     color: var(--color-gray1);
+     font: 400 var(--font-size-sm) var(--font-noto);
+     line-height: 1;
+     text-align: center;
+     transform: translateX(-50%);
+}
+
+.add-panel .mini-cal-source > span,
+.add-panel .full-cal-source > span,
+.add-panel .weekly-vertical-source > span {
+     opacity: 0;
 }
 
 .planner-item {
@@ -1424,8 +1510,13 @@ body {
 .mini-cal-month,
 .mini-cal-week,
 .mini-cal-day-name {
-     background: rgba(17, 17, 17, 0.04);
+     background: var(--calendar-tint);
      color: var(--color-gray1);
+}
+
+.planner-item-mini-cal .mini-cal-weekend,
+.planner-item-full-cal .mini-cal-weekend {
+     background: var(--calendar-tint);
 }
 
 /* NOTE: weeklyVertical */
@@ -1459,7 +1550,7 @@ body {
 
 .weekly-vertical-title,
 .weekly-vertical-time-heading {
-     background: rgba(17, 17, 17, 0.04);
+     background: var(--calendar-tint);
      color: var(--color-gray1);
 }
 
@@ -1468,7 +1559,7 @@ body {
      align-items: center;
      justify-content: center;
      gap: 0.35em;
-     background: rgba(17, 17, 17, 0.04);
+     background: var(--calendar-tint);
      padding: 3px;
 }
 
@@ -1496,7 +1587,7 @@ body {
 
 .weekly-vertical-time {
      justify-items: end;
-     background: rgba(17, 17, 17, 0.04);
+     background: var(--calendar-tint);
      padding-right: 3px;
      color: var(--color-gray1);
      font-weight: 400;
@@ -1515,8 +1606,9 @@ body {
      padding: 2px 3px;
 }
 
-.weekly-vertical-weekend {
-     background: rgba(17, 17, 17, 0.04);
+.weekly-vertical-weekend,
+.weekly-vertical-shared-weekend {
+     background: var(--calendar-tint);
 }
 
 .weekly-vertical-edge-right {
@@ -1601,6 +1693,21 @@ body {
      gap: 0;
 }
 
+.settings-object-shell .item-controls,
+.item-controls.is-docked {
+     position: static;
+     z-index: auto;
+     right: auto;
+     top: auto;
+     display: grid;
+     width: 100% !important;
+     inline-size: 100% !important;
+     min-width: 0 !important;
+     transform: none;
+     border-radius: 0;
+     box-shadow: none;
+}
+
 .item-controls.is-floating {
      z-index: 45;
      right: auto;
@@ -1616,16 +1723,17 @@ body {
 }
 
 .item-control-tabs {
-     display: grid;
-     grid-template-columns: repeat(3, minmax(0, 1fr));
+     display: flex;
      align-items: end;
-     width: 100%;
+     width: fit-content;
+     margin-bottom: -1px;
      overflow: visible;
 }
 
 .item-control-tab {
      position: relative;
-     min-width: 0;
+     width: 100px;
+     min-width: 100px;
      min-height: 34px;
      padding: 4px 5px 5px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
@@ -1656,8 +1764,7 @@ body {
      width: 100%;
      padding: 8px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-     border-top: 0;
-     border-radius: 0 0 8px 8px;
+     border-radius: 7px 7px 8px 8px;
      background: var(--menu-fill);
 }
 
@@ -1877,7 +1984,10 @@ body {
 .planner-item-weekly-vertical.is-menu-open .item-widget-control,
 .item-controls-mini-cal.is-floating .item-widget-control,
 .item-controls-full-cal.is-floating .item-widget-control,
-.item-controls-weekly-vertical.is-floating .item-widget-control {
+.item-controls-weekly-vertical.is-floating .item-widget-control,
+.item-controls-mini-cal.is-docked .item-widget-control,
+.item-controls-full-cal.is-docked .item-widget-control,
+.item-controls-weekly-vertical.is-docked .item-widget-control {
      display: grid;
 }
 
@@ -1921,10 +2031,12 @@ body {
      }
 
      .planner-settings {
-          width: var(--menu-width-safe) !important;
-          inline-size: var(--menu-width-safe) !important;
-          height: min(max(68vh, 500px), var(--notebook-height));
-          min-height: min(500px, var(--notebook-height));
+          width: fit-content !important;
+          inline-size: fit-content !important;
+          max-width: calc(100vw - 32px) !important;
+          max-height: min(68vh, var(--notebook-height));
+          min-height: min(300px, var(--notebook-height));
+          min-width: min(500px, calc(100vw - 32px)) !important;
           grid-template-columns: 1fr;
      }
 

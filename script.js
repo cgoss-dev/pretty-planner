@@ -7,7 +7,6 @@ const paperSelect = document.querySelector("[data-setting='paper']");
 const gridSelect = document.querySelector("[data-setting='grid']");
 const paperColorSelect = document.querySelector("[data-setting='paper-color']");
 const deskColorSelect = document.querySelector("[data-setting='desk-color']");
-const paperColorSwatches = document.querySelector("[data-paper-color-swatches]");
 const palettePreviewSwatches = document.querySelector("[data-palette-preview-swatches]");
 const tertiaryMatrixPopover = document.querySelector("[data-tertiary-matrix]");
 const tertiaryMatrixGrid = document.querySelector("[data-tertiary-matrix-grid]");
@@ -18,6 +17,9 @@ const guideSummary = document.querySelector(".guide-settings summary");
 const guideToggle = document.querySelector("[data-guide-toggle]");
 const settingsTabs = Array.from(document.querySelectorAll("[data-settings-tab]"));
 const settingsPanels = Array.from(document.querySelectorAll("[data-settings-panel]"));
+const settingsStepButtons = Array.from(document.querySelectorAll("[data-settings-step]"));
+const objectControlsShell = document.querySelector("[data-object-controls-shell]");
+const objectControlsEmpty = document.querySelector("[data-object-controls-empty]");
 const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]"));
 const zoomToast = document.querySelector("[data-zoom-toast]");
 let customSelectDetails = [];
@@ -202,35 +204,29 @@ const paperColors = {
 const deskColors = {
      "pink": {
           label: "Pink",
-          color: "var(--tertiary-03)",
-          accent: "var(--tertiary-12)"
+          color: "var(--tertiary-03)"
      },
      "gray": {
           label: "Gray",
-          color: "var(--color-gray3)",
-          accent: "var(--color-gray3)"
+          color: "var(--color-gray3)"
      },
      "black": {
           label: "Black",
-          color: "var(--color-black)",
-          accent: "var(--color-black)"
+          color: "var(--color-black)"
      },
      "white": {
           label: "White",
-          color: "#f1ebef",
-          accent: "#f1ebef"
+          color: "#f1ebef"
      },
      "wood-white": {
           label: "White Wood",
           color: "#edece8",
-          accent: "#edece8",
           image: "url('images/desk/desk-wood-white.png')",
           size: "cover"
      },
      "wood-brown": {
           label: "Brown Wood",
           color: "#8d6243",
-          accent: "#8d6243",
           image: "url('images/desk/desk-wood-brown.png')",
           size: "cover"
      }
@@ -241,7 +237,7 @@ const guideLabels = {
      fourths: "1/4"
 };
 const guideOrder = ["halves", "thirds", "fourths"];
-const textLineHeightCellOptions = ["1", "2", "3", "4"];
+const textLineHeightCellOptions = ["1", "1.5", "2", "2.5", "3"];
 
 let activeAction = null;
 let selectedItem = null;
@@ -635,7 +631,6 @@ function applyPlannerConfig() {
      setRootNumber("--print-spread-width", `${pageWidthInches * 2}in`);
      setRootNumber("--paper", plannerConfig.paperColor.color);
      setRootNumber("--desk", plannerConfig.deskColor.color);
-     setRootNumber("--desk-accent", plannerConfig.deskColor.accent || plannerConfig.deskColor.color);
      setRootNumber("--desk-image", plannerConfig.deskColor.image || "none");
      setRootNumber("--desk-size", plannerConfig.deskColor.size || "auto");
      setRootLength("--half-x", plannerConfig.halfColumn / plannerConfig.gridColumns * 100);
@@ -671,6 +666,9 @@ function applyPlannerConfig() {
 
      delete plannerSettings.dataset.height;
      plannerSettings.style.height = "";
+
+     delete plannerSettings.dataset.centerX;
+     plannerSettings.style.left = "";
 
      document.documentElement.dataset.paper = plannerConfig.paperKey;
      document.documentElement.dataset.paperColor = plannerConfig.paperColorKey;
@@ -747,15 +745,25 @@ function getSwatchInk(color, allowWhite = true) {
      return allowWhite && color.ink === "var(--color-white)" ? "var(--color-white)" : "var(--color-gray1)";
 }
 
-function getBasePaletteColors() {
-     return [
-          {
-               label: "CLR",
-               value: "transparent",
-               isClear: true
-          },
-          ...getPalette("gray").colors
-     ];
+function getPaperPaletteColors() {
+     return paperColorPalette.map((paperColor) => ({
+          key: paperColor.key,
+          label: paperColor.display || paperColor.label,
+          value: paperColor.color,
+          ink: paperColor.ink || "var(--color-gray1)"
+     }));
+}
+
+function getClearPaletteColor() {
+     return {
+          label: "CLR",
+          value: "transparent",
+          isClear: true
+     };
+}
+
+function getGrayPaletteColors() {
+     return getPalette("gray").colors;
 }
 
 function hexToAlphaColor(hexValue, alphaValue) {
@@ -807,12 +815,11 @@ function renderPaletteSwatches(swatches, paletteKey, selectedColor = "", onSelec
      });
 }
 
-function renderColorSwatches(swatches, colors, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
+function appendColorSwatches(swatches, colors, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
      if (!swatches) {
           return;
      }
 
-     swatches.replaceChildren();
      colors.forEach((color) => {
           const swatch = document.createElement(onSelect ? "button" : "span");
 
@@ -836,6 +843,15 @@ function renderColorSwatches(swatches, colors, selectedColor = "", onSelect = nu
 
           swatches.append(swatch);
      });
+}
+
+function renderColorSwatches(swatches, colors, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
+     if (!swatches) {
+          return;
+     }
+
+     swatches.replaceChildren();
+     appendColorSwatches(swatches, colors, selectedColor, onSelect, swatchClass);
 }
 
 function createTertiaryMatrixToggle() {
@@ -887,6 +903,24 @@ function appendPaletteUtilityControls(swatches, onSelect = null, swatchClass = "
      swatches.append(createHexButton(onSelect, swatchClass));
      appendTertiaryMatrixToggle(swatches, onSelect);
 }
+
+function renderPaletteControl(swatches, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
+     if (!swatches) {
+          return;
+     }
+
+     swatches.replaceChildren();
+     appendColorSwatches(
+          swatches,
+          [...getPaperPaletteColors(), getClearPaletteColor()],
+          selectedColor,
+          onSelect,
+          swatchClass
+     );
+     appendPaletteUtilityControls(swatches, onSelect, swatchClass);
+     appendColorSwatches(swatches, getGrayPaletteColors(), selectedColor, onSelect, swatchClass);
+}
+
 
 function getHexPopover() {
      let popover = document.querySelector("[data-hex-popover]");
@@ -1030,7 +1064,9 @@ function syncTertiaryMatrixSwatchSize() {
           return 0;
      }
 
-     const swatch = palettePreviewSwatches?.querySelector(".palette-swatch") || paperColorSwatches?.querySelector(".paper-color-swatch");
+     const activeSwatches = activeTertiaryMatrixToggle?.closest(".palette-swatches, .item-color-swatches");
+     const swatch = activeSwatches?.querySelector(".palette-swatch, .item-color-swatch")
+          || palettePreviewSwatches?.querySelector(".palette-swatch");
      const swatchSize = swatch?.getBoundingClientRect().width;
 
      if (swatchSize) {
@@ -1101,13 +1137,11 @@ function updatePalettePreview() {
           return;
      }
 
-     renderColorSwatches(
+     renderPaletteControl(
           palettePreviewSwatches,
-          getBasePaletteColors(),
           plannerConfig.paperColor.color,
-          updateCustomPaperColor
+          selectPaperPaletteColor
      );
-     appendPaletteUtilityControls(palettePreviewSwatches, updateCustomPaperColor);
 }
 
 function initializePalettePreview() {
@@ -1118,38 +1152,16 @@ function initializePalettePreview() {
      updatePalettePreview();
 }
 
-function updatePaperColorSwatches() {
-     if (!paperColorSwatches || !paperColorSelect) {
+function selectPaperPaletteColor(nextColor) {
+     const paperColor = paperColorPalette.find((color) => color.color === nextColor);
+
+     if (paperColor && paperColorSelect) {
+          paperColorSelect.value = paperColor.key;
+          paperColorSelect.dispatchEvent(new Event("change", { bubbles: true }));
           return;
      }
 
-     const colors = paperColorPalette.map((paperColor) => ({
-          key: paperColor.key,
-          label: paperColor.label,
-          display: paperColor.display || paperColor.label,
-          value: paperColor.color,
-          ink: paperColor.ink || "var(--color-gray1)"
-     }));
-
-     paperColorSwatches.replaceChildren();
-     colors.forEach((color) => {
-          const swatch = document.createElement("button");
-
-          swatch.className = "paper-color-swatch";
-          swatch.type = "button";
-          swatch.style.setProperty("--swatch", color.value);
-          swatch.style.setProperty("--swatch-ink", color.ink);
-          swatch.textContent = color.display;
-          swatch.classList.toggle("is-selected", paperColorSelect.value === color.key);
-          swatch.setAttribute("aria-label", `${color.label} paper color`);
-          swatch.addEventListener("click", (event) => {
-               event.preventDefault();
-               paperColorSelect.value = color.key;
-               paperColorSelect.dispatchEvent(new Event("change", { bubbles: true }));
-               updatePaperColorSwatches();
-          });
-          paperColorSwatches.append(swatch);
-     });
+     updateCustomPaperColor(nextColor);
 }
 
 function updateCustomPaperColor(nextColor) {
@@ -1164,7 +1176,7 @@ function updateCustomPaperColor(nextColor) {
           paperColorSelect.dispatchEvent(new Event("change", { bubbles: true }));
      }
 
-     updatePaperColorSwatches();
+     updatePalettePreview();
 }
 
 function setPaletteControlValue(select, swatches, colorValue) {
@@ -1174,9 +1186,8 @@ function setPaletteControlValue(select, swatches, colorValue) {
 
      select.dataset.currentColor = colorValue;
      select.value = getPaletteKeyForColor(colorValue);
-     renderColorSwatches(
+     renderPaletteControl(
           swatches,
-          getBasePaletteColors(),
           colorValue,
           (nextColor) => {
                if (typeof select.onPaletteColorSelect === "function") {
@@ -1185,7 +1196,6 @@ function setPaletteControlValue(select, swatches, colorValue) {
           },
           "item-color-swatch"
      );
-     appendPaletteUtilityControls(swatches, select.onPaletteColorSelect, "item-color-swatch");
 }
 
 function initializePaletteColorControl(select, swatches, defaultColor, onSelect) {
@@ -1201,17 +1211,14 @@ function initializePaletteColorControl(select, swatches, defaultColor, onSelect)
           setPaletteControlValue(select, swatches, nextColor);
      };
      select.addEventListener("change", () => {
-          renderColorSwatches(
+          renderPaletteControl(
                swatches,
-               getBasePaletteColors(),
                select.dataset.currentColor,
                select.onPaletteColorSelect,
                "item-color-swatch"
           );
-          appendPaletteUtilityControls(swatches, select.onPaletteColorSelect, "item-color-swatch");
      });
-     renderColorSwatches(swatches, getBasePaletteColors(), defaultColor, select.onPaletteColorSelect, "item-color-swatch");
-     appendPaletteUtilityControls(swatches, select.onPaletteColorSelect, "item-color-swatch");
+     renderPaletteControl(swatches, defaultColor, select.onPaletteColorSelect, "item-color-swatch");
 }
 
 function updateCustomSelectDisplay(select) {
@@ -1469,6 +1476,50 @@ function selectSettingsTab(tabName) {
      if (activeTab) {
           plannerSettings.style.setProperty("--active-settings-color", "var(--menu-fill)");
      }
+
+     updateSettingsPanelSteps(tabName);
+     updateObjectControlsState();
+}
+
+function getActiveSettingsTabName() {
+     return settingsTabs.find((tab) => tab.getAttribute("aria-selected") === "true")?.dataset.settingsTab || settingsTabs[0]?.dataset.settingsTab || "";
+}
+
+function updateSettingsPanelSteps(tabName = getActiveSettingsTabName()) {
+     const activeIndex = settingsTabs.findIndex((tab) => tab.dataset.settingsTab === tabName);
+
+     settingsStepButtons.forEach((button) => {
+          const step = Number(button.dataset.settingsStep) || 0;
+          const isDisabled = activeIndex + step < 0 || activeIndex + step >= settingsTabs.length;
+
+          if ("disabled" in button) {
+               button.disabled = isDisabled;
+          }
+          button.setAttribute("aria-disabled", String(isDisabled));
+     });
+}
+
+function stepSettingsTab(step) {
+     const activeIndex = settingsTabs.findIndex((tab) => tab.getAttribute("aria-selected") === "true");
+     const nextTab = settingsTabs[clamp(activeIndex + step, 0, settingsTabs.length - 1)];
+
+     if (!nextTab) {
+          return;
+     }
+
+     selectSettingsTab(nextTab.dataset.settingsTab);
+     openSidebar();
+}
+
+function updateObjectControlsState() {
+     if (!objectControlsShell || !objectControlsEmpty) {
+          return;
+     }
+
+     const hasControls = Boolean(objectControlsShell.querySelector(".item-controls"));
+
+     objectControlsShell.classList.toggle("is-inactive", !hasControls);
+     objectControlsEmpty.hidden = hasControls;
 }
 
 function openSidebar() {
@@ -1497,10 +1548,6 @@ function collapseMenusFromOutsidePointer(event) {
      if (plannerSettings.classList.contains("is-open") && !isPointerInsideElementBox(event, plannerSettings)) {
           closeSidebar();
      }
-
-     if (!event.target.closest(".item-controls")) {
-          closeItemMenus();
-     }
 }
 
 function syncSidebarSnap() {
@@ -1521,10 +1568,9 @@ function syncSidebarSnap() {
 
 function getSidebarCenter(width) {
      const deskRect = plannerDesk.getBoundingClientRect();
-     const notebookRect = notebook.getBoundingClientRect();
      const minCenter = width / 2 + 12;
      const maxCenter = deskRect.width - width / 2 - 12;
-     const preferredCenter = (notebookRect.left - deskRect.left) + (width / 2);
+     const preferredCenter = deskRect.width / 2;
 
      return clamp(preferredCenter, minCenter, maxCenter);
 }
@@ -2229,15 +2275,17 @@ function positionItemControls(item) {
 function openItemMenu(item) {
      const controls = getItemControls(item);
 
-     if (!controls) {
+     if (!controls || !objectControlsShell) {
           return;
      }
 
      closeItemMenus(item);
-     plannerDesk.append(controls);
-     controls.classList.add("is-floating");
+     objectControlsShell.append(controls);
+     controls.classList.add("is-docked");
      item.classList.add("is-menu-open");
-     positionItemControls(item);
+     updateObjectControlsState();
+     selectSettingsTab("style");
+     openSidebar();
 }
 
 function closeItemMenu(item) {
@@ -2250,9 +2298,10 @@ function closeItemMenu(item) {
 
      closeCustomSelects(controls);
      clearSelectFocus(controls);
-     controls.classList.remove("is-floating");
+     controls.classList.remove("is-floating", "is-docked");
      controls.removeAttribute("style");
      item.append(controls);
+     updateObjectControlsState();
 }
 
 function getPlannerItems() {
@@ -2671,10 +2720,10 @@ function getSidebarHeightBounds() {
      const measuredHeight = Math.max(pageRect.height, notebookRect.height);
      const fullHeight = measuredHeight > 220 ? measuredHeight : deskRect.height * 0.68;
      const gridRowHeight = Math.max(fullHeight / plannerConfig.gridRows, 8);
-     const maxHeight = Math.max(500, Math.min(fullHeight, deskRect.height * 0.78));
+     const maxHeight = Math.max(300, Math.min(fullHeight, deskRect.height * 0.78));
 
      return {
-          min: Math.min(500, maxHeight),
+          min: Math.min(300, maxHeight),
           max: maxHeight,
           grid: gridRowHeight
      };
@@ -3492,9 +3541,11 @@ function makePlannerItem(type = "sticky") {
      const controlTabs = document.createElement("div");
      const actionsTab = document.createElement("button");
      const styleTab = document.createElement("button");
+     const textTab = document.createElement("button");
      const widgetTab = document.createElement("button");
      const actionsPanel = document.createElement("div");
      const stylePanel = document.createElement("div");
+     const textPanel = document.createElement("div");
      const widgetPanel = document.createElement("div");
      const dateWidgetGroup = document.createElement("div");
      const dateWidgetTitle = document.createElement("div");
@@ -3587,6 +3638,11 @@ function makePlannerItem(type = "sticky") {
      styleTab.textContent = "Appearance";
      styleTab.dataset.itemControlTab = "style";
      styleTab.setAttribute("role", "tab");
+     textTab.className = "item-control-tab";
+     textTab.type = "button";
+     textTab.textContent = "Text";
+     textTab.dataset.itemControlTab = "text";
+     textTab.setAttribute("role", "tab");
      widgetTab.className = "item-control-tab";
      widgetTab.type = "button";
      widgetTab.textContent = "Attributes";
@@ -3598,6 +3654,9 @@ function makePlannerItem(type = "sticky") {
      stylePanel.className = "item-control-panel";
      stylePanel.dataset.itemControlPanel = "style";
      stylePanel.setAttribute("role", "tabpanel");
+     textPanel.className = "item-control-panel";
+     textPanel.dataset.itemControlPanel = "text";
+     textPanel.setAttribute("role", "tabpanel");
      widgetPanel.className = "item-control-panel item-widget-panel";
      widgetPanel.dataset.itemControlPanel = "widget";
      widgetPanel.setAttribute("role", "tabpanel");
@@ -3712,7 +3771,7 @@ function makePlannerItem(type = "sticky") {
      textUnderlineInput.dataset.textControl = "underline";
      textUnderlineInput.setAttribute("aria-label", "Underline sticky note text");
      textAlignLabel.className = "item-control-row item-text-control";
-     textAlignLabel.textContent = "Align";
+     textAlignLabel.textContent = "Alignment";
      textAlignSelect.dataset.textControl = "align";
      textAlignSelect.setAttribute("aria-label", "Sticky note text alignment");
      ["left", "center", "right"].forEach((value) => {
@@ -3723,14 +3782,14 @@ function makePlannerItem(type = "sticky") {
           textAlignSelect.append(option);
      });
      textLineHeightLabel.className = "item-control-row item-text-control";
-     textLineHeightLabel.textContent = "Line";
+     textLineHeightLabel.textContent = "Line Height";
      textLineHeightSelect.dataset.textControl = "line-height";
      textLineHeightSelect.setAttribute("aria-label", "Text line height in grid cells");
      textLineHeightCellOptions.forEach((value) => {
           const option = document.createElement("option");
 
           option.value = value;
-          option.textContent = `${value} ${value === "1" ? "cell" : "cells"}`;
+          option.textContent = value;
           textLineHeightSelect.append(option);
      });
      deleteButton.className = "item-control";
@@ -3881,7 +3940,7 @@ function makePlannerItem(type = "sticky") {
      actionsPanel.append(duplicateButton, groupButton, bringForwardButton, sendBackwardButton, deleteButton);
      stylePanel.append(fillLabel, borderColorLabel, borderSizeField);
      if (type === "sticky") {
-          stylePanel.append(
+          textPanel.append(
                textToggleLabel,
                textColorLabel,
                textFormatGroup,
@@ -3890,13 +3949,16 @@ function makePlannerItem(type = "sticky") {
           );
      }
      if (isCalendarTextItemType(type)) {
-          stylePanel.append(
+          textPanel.append(
                textToggleLabel,
                textColorLabel,
                textFormatGroup,
                textAlignLabel,
                textLineHeightLabel
           );
+     }
+     if (type === "sticky" || isCalendarTextItemType(type)) {
+          controlTabs.append(textTab);
      }
      if (type === "sticky") {
           widgetPanel.append(dotGridLabel);
@@ -3910,7 +3972,11 @@ function makePlannerItem(type = "sticky") {
           widgetPanel.append(dateWidgetGroup, timeWidgetGroup);
      }
      controlTabs.append(widgetTab);
-     controls.append(controlTabs, actionsPanel, stylePanel, widgetPanel);
+     controls.append(controlTabs, actionsPanel, stylePanel);
+     if (type === "sticky" || isCalendarTextItemType(type)) {
+          controls.append(textPanel);
+     }
+     controls.append(widgetPanel);
      initializePaletteColorControl(fillInput, fillSwatches, "var(--paper-offwhite)", (nextColor) => {
           applyStyleToActionItems(item, {
                fillColor: nextColor
@@ -4004,6 +4070,7 @@ function makePlannerItem(type = "sticky") {
                selectItem(item, true);
           } else if (!activeAction) {
                selectItem(item);
+               openItemMenu(item);
           }
      });
      item.addEventListener("dblclick", (event) => {
@@ -4853,8 +4920,9 @@ window.perfectPlanner = {
 };
 
 initializeCustomSelects();
-updatePaperColorSwatches();
 initializePalettePreview();
+updateSettingsPanelSteps();
+updateObjectControlsState();
 applyPlannerConfig();
 if (isSinglePageViewport) {
      viewFocusIndex = 0;
@@ -4865,7 +4933,6 @@ paperSelect.addEventListener("change", changePlannerSetting);
 gridSelect.addEventListener("change", changePlannerSetting);
 paperColorSelect.addEventListener("change", () => {
      changePlannerSetting();
-     updatePaperColorSwatches();
      updatePalettePreview();
 });
 deskColorSelect.addEventListener("change", changePlannerSetting);
@@ -4914,6 +4981,16 @@ settingsTabs.forEach((tab) => {
 
           selectSettingsTab(tab.dataset.settingsTab);
           openSidebar();
+     });
+});
+settingsStepButtons.forEach((button) => {
+     button.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          if (button.getAttribute("aria-disabled") === "true") {
+               return;
+          }
+          stepSettingsTab(Number(button.dataset.settingsStep) || 0);
      });
 });
 plannerSettings.addEventListener("pointerdown", (event) => {
