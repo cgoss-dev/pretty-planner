@@ -8,6 +8,7 @@ const gridSelect = document.querySelector("[data-setting='grid']");
 const paperColorSelect = document.querySelector("[data-setting='paper-color']");
 const deskColorSelect = document.querySelector("[data-setting='desk-color']");
 const paperColorSwatches = document.querySelector("[data-paper-color-swatches]");
+const paperHexPicker = document.querySelector("[data-paper-hex-picker]");
 const palettePreviewSwatches = document.querySelector("[data-palette-preview-swatches]");
 const tertiaryMatrixToggle = document.querySelector("[data-tertiary-matrix-toggle]");
 const tertiaryMatrixPopover = document.querySelector("[data-tertiary-matrix]");
@@ -173,45 +174,33 @@ const colorPaletteOrder = ["gray", "tertiary"];
 const tertiaryMatrixSteps = [90, 70, 50, 30, 10];
 const paperColorPalette = [
      {
-          key: "White",
-          label: "White",
-          display: "FFF",
-          color: "var(--paper-white)"
-     },
-     {
           key: "Offwhite",
           label: "Offwhite",
-          display: "Ofw",
+          display: "FFE",
           color: "var(--paper-offwhite)"
      },
      {
           key: "Cream",
           label: "Cream",
-          display: "Crm",
+          display: "EDB",
           color: "var(--paper-cream)"
      },
      {
           key: "Linen",
           label: "Linen",
-          display: "Lin",
+          display: "DCA",
           color: "var(--paper-linen)"
-     },
-     {
-          key: "Charcoal",
-          label: "Charcoal",
-          display: "Chr",
-          color: "var(--paper-charcoal)",
-          ink: "var(--color-white)"
-     },
-     {
-          key: "Black",
-          label: "Black",
-          display: "000",
-          color: "var(--paper-black)",
-          ink: "var(--color-white)"
      }
 ];
-const paperColors = Object.fromEntries(paperColorPalette.map((color) => [color.key, color]));
+const paperColors = {
+     ...Object.fromEntries(paperColorPalette.map((color) => [color.key, color])),
+     Custom: {
+          key: "Custom",
+          label: "Custom",
+          display: "Hex",
+          color: paperHexPicker ? paperHexPicker.value : "#ffffee"
+     }
+};
 const deskColors = {
      "pink": {
           label: "Pink",
@@ -255,19 +244,6 @@ const guideLabels = {
 };
 const guideOrder = ["halves", "thirds", "fourths"];
 const textLineHeightCellOptions = ["1", "2", "3", "4"];
-const colorAlphaOptions = [
-     { label: "Clear", value: "clear" },
-     { label: "Black/Shade 10", value: "shade-10" },
-     { label: "Black/Shade 30", value: "shade-30" },
-     { label: "Black/Shade 50", value: "shade-50" },
-     { label: "Black/Shade 70", value: "shade-70" },
-     { label: "Black/Shade 90", value: "shade-90" },
-     { label: "White/Tint 10", value: "tint-10" },
-     { label: "White/Tint 30", value: "tint-30" },
-     { label: "White/Tint 50", value: "tint-50" },
-     { label: "White/Tint 70", value: "tint-70" },
-     { label: "White/Tint 90", value: "tint-90" }
-];
 
 let activeAction = null;
 let selectedItem = null;
@@ -290,7 +266,7 @@ function convertLength(value, fromUnit, toUnit) {
 function buildPlannerConfig() {
      const paperKey = paperSelect ? paperSelect.value : "letter";
      const gridKey = gridSelect ? gridSelect.value : "quarter-inch";
-     const paperColorKey = paperColorSelect ? paperColorSelect.value : "White";
+     const paperColorKey = paperColorSelect ? paperColorSelect.value : "Offwhite";
      const deskColorKey = deskColorSelect ? deskColorSelect.value : "pink";
      const guides = {
           halves: false,
@@ -326,7 +302,7 @@ function buildPlannerConfig() {
           deskColorKey,
           guides,
           paper,
-          paperColor: paperColors[paperColorKey] || paperColors.White,
+          paperColor: paperColors[paperColorKey] || paperColors.Offwhite,
           deskColor: deskColors[deskColorKey],
           grid,
           pageWidth,
@@ -409,67 +385,6 @@ function getTextLineHeightPixels(item, cellCount) {
      const cellSize = getTextLineHeightCellSize(item);
 
      return cellSize > 0 ? `${cellSize * count}px` : String(count);
-}
-
-function normalizeAlphaValue(alphaValue) {
-     if (!alphaValue || alphaValue === "0") {
-          return "clear";
-     }
-
-     const legacyAlphaValues = {
-          "25": "30",
-          "75": "70",
-          "shade-25": "shade-30",
-          "shade-75": "shade-70",
-          "tint-25": "tint-30",
-          "tint-75": "tint-70"
-     };
-     const normalizedValue = legacyAlphaValues[alphaValue] || alphaValue;
-
-     if (["10", "30", "50", "70", "90"].includes(normalizedValue)) {
-          return `shade-${normalizedValue}`;
-     }
-
-     if (/^(shade|tint)-(10|30|50|70|90)$/.test(normalizedValue)) {
-          return normalizedValue;
-     }
-
-     if (/^(shade|tint)-\d+$/.test(normalizedValue)) {
-          const [mode, amountValue] = normalizedValue.split("-");
-          const amount = Number(amountValue);
-          const closestAmount = [10, 30, 50, 70, 90].reduce((closest, next) => (
-               Math.abs(next - amount) < Math.abs(closest - amount) ? next : closest
-          ), 10);
-
-          return `${mode}-${closestAmount}`;
-     }
-
-     return "clear";
-}
-
-function getAlphaColor(colorValue, alphaValue) {
-     const normalizedAlpha = normalizeAlphaValue(alphaValue);
-
-     if (normalizedAlpha === "clear") {
-          return colorValue;
-     }
-
-     const [mode, amountValue] = normalizedAlpha.split("-");
-     const amount = Number(amountValue) || 0;
-
-     if (!amount) {
-          return colorValue;
-     }
-
-     if (mode === "shade") {
-          return `color-mix(in srgb, ${colorValue} ${100 - amount}%, var(--color-black))`;
-     }
-
-     if (mode === "tint") {
-          return `color-mix(in srgb, ${colorValue} ${100 - amount}%, var(--color-white))`;
-     }
-
-     return colorValue;
 }
 
 function applyViewControls(zoomAnchor = null) {
@@ -566,6 +481,7 @@ function handleWindowResize() {
      applyResponsiveViewMode();
      syncSidebarSnap();
      customSelectDetails.forEach((dropdown) => updateSelectFocusSpace(dropdown));
+     syncPlannerSettingsMatrixHeight();
      positionTertiaryMatrix();
 }
 
@@ -814,10 +730,6 @@ function getPaletteKeyForColor(colorValue) {
      return colorPaletteOrder.find((paletteKey) => getPalette(paletteKey).colors.some((color) => color.value === colorValue)) || "tertiary";
 }
 
-function getAllPaletteColors() {
-     return colorPaletteOrder.flatMap((paletteKey) => getPalette(paletteKey).colors);
-}
-
 function populatePaletteSelect(select, selectedPalette = "tertiary") {
      if (!select) {
           return;
@@ -834,20 +746,8 @@ function populatePaletteSelect(select, selectedPalette = "tertiary") {
      select.value = selectedPalette;
 }
 
-function populateAlphaSelect(select, selectedAlpha = "0") {
-     if (!select) {
-          return;
-     }
-
-     select.replaceChildren();
-     colorAlphaOptions.forEach((alpha) => {
-          const option = document.createElement("option");
-
-          option.value = alpha.value;
-          option.textContent = alpha.label;
-          select.append(option);
-     });
-     select.value = normalizeAlphaValue(selectedAlpha);
+function getSwatchInk(color, allowWhite = true) {
+     return allowWhite && color.ink === "var(--color-white)" ? "var(--color-white)" : "var(--color-gray1)";
 }
 
 function renderPaletteSwatches(swatches, paletteKey, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
@@ -863,9 +763,7 @@ function renderPaletteSwatches(swatches, paletteKey, selectedColor = "", onSelec
 
           swatch.className = swatchClass;
           swatch.style.setProperty("--swatch", color.value);
-          if (color.ink) {
-               swatch.style.setProperty("--swatch-ink", color.ink);
-          }
+          swatch.style.setProperty("--swatch-ink", getSwatchInk(color));
           swatch.textContent = color.label;
           swatch.dataset.colorValue = color.value;
           swatch.classList.toggle("is-selected", color.value === selectedColor);
@@ -895,9 +793,7 @@ function renderColorSwatches(swatches, colors, selectedColor = "", onSelect = nu
 
           swatch.className = swatchClass;
           swatch.style.setProperty("--swatch", color.value);
-          if (color.ink) {
-               swatch.style.setProperty("--swatch-ink", color.ink);
-          }
+          swatch.style.setProperty("--swatch-ink", getSwatchInk(color));
           swatch.textContent = color.label;
           swatch.dataset.colorValue = color.value;
           swatch.classList.toggle("is-selected", color.value === selectedColor);
@@ -968,13 +864,58 @@ function renderTertiaryMatrix() {
 
                swatch.className = `tertiary-matrix-swatch${row.mode === "base" ? " is-base" : ""}`;
                swatch.style.setProperty("--swatch", getMatrixSwatchValue(color.value, row.mode, row.step));
-               if (color.ink && row.mode !== "tint") {
-                    swatch.style.setProperty("--swatch-ink", color.ink);
-               }
+               swatch.style.setProperty("--swatch-ink", getSwatchInk(color, row.mode !== "tint"));
                swatch.textContent = row.mode === "base" ? color.label : "";
                tertiaryMatrixGrid.append(swatch);
           });
      });
+}
+
+function syncTertiaryMatrixSwatchSize() {
+     if (!tertiaryMatrixPopover) {
+          return 0;
+     }
+
+     const swatch = palettePreviewSwatches?.querySelector(".palette-swatch") || paperColorSwatches?.querySelector(".paper-color-swatch");
+     const swatchSize = swatch?.getBoundingClientRect().width;
+
+     if (swatchSize) {
+          const roundedSwatchSize = Math.round(swatchSize);
+
+          tertiaryMatrixPopover.style.setProperty("--matrix-swatch-size", `${roundedSwatchSize}px`);
+          return roundedSwatchSize;
+     }
+
+     return 0;
+}
+
+function syncPlannerSettingsMatrixHeight() {
+     if (!plannerSettings) {
+          return;
+     }
+
+     const swatchSize = syncTertiaryMatrixSwatchSize();
+
+     if (!swatchSize) {
+          return;
+     }
+
+     const measuredMatrixHeight = tertiaryMatrixPopover && !tertiaryMatrixPopover.hidden
+          ? tertiaryMatrixPopover.getBoundingClientRect().height
+          : 0;
+     const rowCount = getTertiaryMatrixRows().length;
+     const gapTotal = Math.max(0, rowCount - 1) * 3;
+     const title = tertiaryMatrixPopover?.querySelector(".tertiary-matrix-title");
+     const titleHeight = title?.getBoundingClientRect().height || 10;
+     const popoverPadding = 16;
+     const titleGap = 6;
+     const matrixHeight = measuredMatrixHeight || popoverPadding + titleHeight + titleGap + (rowCount * swatchSize) + gapTotal;
+     const cappedHeight = Math.min(matrixHeight, window.innerHeight);
+     const roundedHeight = Math.round(cappedHeight);
+
+     plannerSettings.dataset.height = String(roundedHeight);
+     plannerSettings.style.height = `${roundedHeight}px`;
+     plannerSettings.style.setProperty("--settings-pop-height", `${roundedHeight}px`);
 }
 
 function positionTertiaryMatrix() {
@@ -982,20 +923,24 @@ function positionTertiaryMatrix() {
           return;
      }
 
-     const toggleRect = tertiaryMatrixToggle.getBoundingClientRect();
+     syncPlannerSettingsMatrixHeight();
+
+     const settingsRect = plannerSettings?.getBoundingClientRect();
      const popoverRect = tertiaryMatrixPopover.getBoundingClientRect();
-     const gap = 8;
-     const fitsRight = toggleRect.right + gap + popoverRect.width <= window.innerWidth - 8;
-     const left = fitsRight
-          ? toggleRect.right + gap
-          : Math.max(8, toggleRect.left - gap - popoverRect.width);
+     const anchorRight = settingsRect?.right || tertiaryMatrixToggle.getBoundingClientRect().right;
+     if (settingsRect) {
+          tertiaryMatrixPopover.style.setProperty("--matrix-slide-distance", `${Math.round(settingsRect.width)}px`);
+     }
+     const left = anchorRight;
+     const availableWidth = Math.max(180, window.innerWidth - left - 8);
      const top = Math.min(
-          Math.max(8, toggleRect.top - 8),
-          Math.max(8, window.innerHeight - popoverRect.height - 8)
+          Math.max(0, settingsRect?.top || tertiaryMatrixToggle.getBoundingClientRect().top),
+          Math.max(0, window.innerHeight - popoverRect.height)
      );
 
      tertiaryMatrixPopover.style.left = `${left}px`;
      tertiaryMatrixPopover.style.top = `${top}px`;
+     tertiaryMatrixPopover.style.maxWidth = `${Math.round(availableWidth)}px`;
 }
 
 function setTertiaryMatrixOpen(isOpen) {
@@ -1003,13 +948,21 @@ function setTertiaryMatrixOpen(isOpen) {
           return;
      }
 
-     tertiaryMatrixPopover.hidden = !isOpen;
      tertiaryMatrixToggle.setAttribute("aria-expanded", String(isOpen));
-     tertiaryMatrixToggle.textContent = isOpen ? "<" : ">";
+     tertiaryMatrixToggle.textContent = "⇧";
 
      if (isOpen) {
+          tertiaryMatrixPopover.hidden = false;
           renderTertiaryMatrix();
           positionTertiaryMatrix();
+          requestAnimationFrame(() => tertiaryMatrixPopover.classList.add("is-open"));
+     } else {
+          tertiaryMatrixPopover.classList.remove("is-open");
+          window.setTimeout(() => {
+               if (tertiaryMatrixToggle.getAttribute("aria-expanded") !== "true") {
+                    tertiaryMatrixPopover.hidden = true;
+               }
+          }, 150);
      }
 }
 
@@ -1018,7 +971,8 @@ function updatePalettePreview() {
           return;
      }
 
-     renderColorSwatches(palettePreviewSwatches, getAllPaletteColors());
+     renderColorSwatches(palettePreviewSwatches, getPalette("gray").colors);
+     syncPlannerSettingsMatrixHeight();
 }
 
 function initializePalettePreview() {
@@ -1063,6 +1017,21 @@ function updatePaperColorSwatches() {
      });
 }
 
+function updateCustomPaperColor(nextColor) {
+     if (!nextColor || !paperColors.Custom) {
+          return;
+     }
+
+     paperColors.Custom.color = nextColor;
+
+     if (paperColorSelect) {
+          paperColorSelect.value = "Custom";
+          paperColorSelect.dispatchEvent(new Event("change", { bubbles: true }));
+     }
+
+     updatePaperColorSwatches();
+}
+
 function setPaletteControlValue(select, swatches, colorValue) {
      if (!select) {
           return;
@@ -1072,7 +1041,7 @@ function setPaletteControlValue(select, swatches, colorValue) {
      select.value = getPaletteKeyForColor(colorValue);
      renderColorSwatches(
           swatches,
-          getAllPaletteColors(),
+          getPalette("gray").colors,
           colorValue,
           (nextColor) => {
                if (typeof select.onPaletteColorSelect === "function") {
@@ -1098,13 +1067,13 @@ function initializePaletteColorControl(select, swatches, defaultColor, onSelect)
      select.addEventListener("change", () => {
           renderColorSwatches(
                swatches,
-               getAllPaletteColors(),
+               getPalette("gray").colors,
                select.dataset.currentColor,
                select.onPaletteColorSelect,
                "item-color-swatch"
           );
      });
-     renderColorSwatches(swatches, getAllPaletteColors(), defaultColor, select.onPaletteColorSelect, "item-color-swatch");
+     renderColorSwatches(swatches, getPalette("gray").colors, defaultColor, select.onPaletteColorSelect, "item-color-swatch");
 }
 
 function updateCustomSelectDisplay(select) {
@@ -1365,6 +1334,7 @@ function selectSettingsTab(tabName) {
 }
 
 function openSidebar() {
+     syncPlannerSettingsMatrixHeight();
      plannerSettings.classList.add("is-open");
      plannerDesk.classList.add("has-open-main-menu");
 }
@@ -1414,10 +1384,12 @@ function syncSidebarSnap() {
 
 function getSidebarCenter(width) {
      const deskRect = plannerDesk.getBoundingClientRect();
+     const notebookRect = notebook.getBoundingClientRect();
      const minCenter = width / 2 + 12;
      const maxCenter = deskRect.width - width / 2 - 12;
+     const preferredCenter = (notebookRect.left - deskRect.left) + (width / 2);
 
-     return clamp(deskRect.width * 0.5, minCenter, maxCenter);
+     return clamp(preferredCenter, minCenter, maxCenter);
 }
 
 function getPageId(page) {
@@ -1489,9 +1461,7 @@ function serializePlannerItem(item) {
           groupId: item.dataset.groupId || null,
           style: {
                fillColor: item.dataset.fillColor,
-               fillAlpha: normalizeAlphaValue(item.dataset.fillAlpha),
                borderColor: item.dataset.borderColor,
-               borderAlpha: normalizeAlphaValue(item.dataset.borderAlpha),
                borderWidth: Number(item.dataset.borderWidth),
                dotGrid: item.dataset.dotGrid === "true"
           },
@@ -1517,7 +1487,6 @@ function serializePlannerItem(item) {
                               size: Number(item.dataset.dayTextSize) || 10,
                               font: item.dataset.dayTextFont || "noto",
                               color: item.dataset.dayTextColor || "var(--color-gray1)",
-                              alpha: normalizeAlphaValue(item.dataset.dayTextAlpha),
                               bold: item.dataset.dayTextBold === "true",
                               italic: item.dataset.dayTextItalic === "true",
                               underline: item.dataset.dayTextUnderline === "true",
@@ -1531,11 +1500,10 @@ function serializePlannerItem(item) {
                ? {
                     enabled: item.dataset.textEnabled === "true",
                     content: textElement ? textElement.textContent : "",
-                    size: Number(item.dataset.textSize) || 10,
-                    font: item.dataset.textFont || "noto",
-                    color: item.dataset.textColor || "var(--color-gray1)",
-                    alpha: normalizeAlphaValue(item.dataset.textAlpha),
-                    bold: item.dataset.textBold === "true",
+                   size: Number(item.dataset.textSize) || 10,
+                   font: item.dataset.textFont || "noto",
+                   color: item.dataset.textColor || "var(--color-gray1)",
+                   bold: item.dataset.textBold === "true",
                     italic: item.dataset.textItalic === "true",
                     underline: item.dataset.textUnderline === "true",
                     align: item.dataset.textAlign || "left",
@@ -1782,22 +1750,20 @@ function updateCalendarGridMetrics(item, page, box) {
 }
 
 function setItemStyle(item, style) {
-     item.dataset.fillColor = style.fillColor || item.dataset.fillColor || "var(--tertiary-05)";
-     item.dataset.fillAlpha = normalizeAlphaValue(style.fillAlpha || item.dataset.fillAlpha || "clear");
+     item.dataset.fillColor = style.fillColor || item.dataset.fillColor || "var(--paper-offwhite)";
      item.dataset.borderColor = style.borderColor || item.dataset.borderColor || "var(--color-gray4)";
-     item.dataset.borderAlpha = normalizeAlphaValue(style.borderAlpha || item.dataset.borderAlpha || "clear");
      item.dataset.borderWidth = style.borderWidth || item.dataset.borderWidth || "1";
      item.dataset.dotGrid = style.dotGrid || item.dataset.dotGrid || "false";
-     item.style.setProperty("--sticky-fill", getAlphaColor(item.dataset.fillColor, item.dataset.fillAlpha));
-     item.style.setProperty("--sticky-border-color", getAlphaColor(item.dataset.borderColor, item.dataset.borderAlpha));
+     delete item.dataset.fillAlpha;
+     delete item.dataset.borderAlpha;
+     item.style.setProperty("--sticky-fill", item.dataset.fillColor);
+     item.style.setProperty("--sticky-border-color", item.dataset.borderColor);
      item.style.setProperty("--sticky-border-size", `${item.dataset.borderWidth}px`);
 
      const controls = getItemControls(item) || item;
      const fillInput = controls.querySelector("[data-style-control='fill']");
-     const fillAlphaSelect = controls.querySelector("[data-style-control='fill-alpha']");
      const fillSwatches = controls.querySelector("[data-style-swatches='fill']");
      const borderColorInput = controls.querySelector("[data-style-control='border-color']");
-     const borderAlphaSelect = controls.querySelector("[data-style-control='border-alpha']");
      const borderColorSwatches = controls.querySelector("[data-style-swatches='border-color']");
      const borderWidthSelect = controls.querySelector("[data-style-control='border-width']");
      const dotGridInput = controls.querySelector("[data-style-control='dot-grid']");
@@ -1806,16 +1772,8 @@ function setItemStyle(item, style) {
           setPaletteControlValue(fillInput, fillSwatches, item.dataset.fillColor);
      }
 
-     if (fillAlphaSelect) {
-          fillAlphaSelect.value = item.dataset.fillAlpha;
-     }
-
      if (borderColorInput) {
           setPaletteControlValue(borderColorInput, borderColorSwatches, item.dataset.borderColor);
-     }
-
-     if (borderAlphaSelect) {
-          borderAlphaSelect.value = item.dataset.borderAlpha;
      }
 
      if (borderWidthSelect) {
@@ -1866,7 +1824,7 @@ function setStickyTextSettings(item, settings = {}) {
      item.dataset.textSize = settings.size || item.dataset.textSize || "10";
      item.dataset.textFont = settings.font || item.dataset.textFont || "noto";
      item.dataset.textColor = settings.color || item.dataset.textColor || "var(--color-gray1)";
-     item.dataset.textAlpha = normalizeAlphaValue(settings.alpha || item.dataset.textAlpha || "clear");
+     delete item.dataset.textAlpha;
      item.dataset.textBold = settings.bold ?? item.dataset.textBold ?? "false";
      item.dataset.textItalic = settings.italic ?? item.dataset.textItalic ?? "false";
      item.dataset.textUnderline = settings.underline ?? item.dataset.textUnderline ?? "false";
@@ -1880,7 +1838,7 @@ function setStickyTextSettings(item, settings = {}) {
 
           textElement.hidden = item.dataset.textEnabled !== "true";
           textElement.style.fontSize = `${item.dataset.textSize}px`;
-          textElement.style.color = getAlphaColor(item.dataset.textColor, item.dataset.textAlpha);
+          textElement.style.color = item.dataset.textColor;
           textElement.style.fontFamily = getStickyTextFont(item.dataset.textFont);
           textElement.style.fontWeight = item.dataset.textBold === "true" ? "700" : "400";
           textElement.style.fontStyle = item.dataset.textItalic === "true" ? "italic" : "normal";
@@ -1893,7 +1851,6 @@ function setStickyTextSettings(item, settings = {}) {
      const sizeInput = controls.querySelector("[data-text-control='size']");
      const fontSelect = controls.querySelector("[data-text-control='font']");
      const colorInput = controls.querySelector("[data-text-control='color']");
-     const colorAlphaSelect = controls.querySelector("[data-text-control='color-alpha']");
      const colorSwatches = controls.querySelector("[data-text-swatches='color']");
      const boldInput = controls.querySelector("[data-text-control='bold']");
      const italicInput = controls.querySelector("[data-text-control='italic']");
@@ -1915,10 +1872,6 @@ function setStickyTextSettings(item, settings = {}) {
 
      if (colorInput) {
           setPaletteControlValue(colorInput, colorSwatches, item.dataset.textColor);
-     }
-
-     if (colorAlphaSelect) {
-          colorAlphaSelect.value = item.dataset.textAlpha;
      }
 
      if (boldInput) {
@@ -2724,7 +2677,7 @@ function setCalendarDayTextSettings(item, settings = {}) {
      item.dataset.dayTextSize = settings.size || item.dataset.dayTextSize || "10";
      item.dataset.dayTextFont = settings.font || item.dataset.dayTextFont || "noto";
      item.dataset.dayTextColor = settings.color || item.dataset.dayTextColor || "var(--color-gray1)";
-     item.dataset.dayTextAlpha = normalizeAlphaValue(settings.alpha || item.dataset.dayTextAlpha || "clear");
+     delete item.dataset.dayTextAlpha;
      item.dataset.dayTextBold = settings.bold ?? item.dataset.dayTextBold ?? "false";
      item.dataset.dayTextItalic = settings.italic ?? item.dataset.dayTextItalic ?? "false";
      item.dataset.dayTextUnderline = settings.underline ?? item.dataset.dayTextUnderline ?? "false";
@@ -2739,7 +2692,6 @@ function setCalendarDayTextSettings(item, settings = {}) {
      const sizeInput = controls.querySelector("[data-text-control='size']");
      const fontSelect = controls.querySelector("[data-text-control='font']");
      const colorInput = controls.querySelector("[data-text-control='color']");
-     const colorAlphaSelect = controls.querySelector("[data-text-control='color-alpha']");
      const colorSwatches = controls.querySelector("[data-text-swatches='color']");
      const boldInput = controls.querySelector("[data-text-control='bold']");
      const italicInput = controls.querySelector("[data-text-control='italic']");
@@ -2757,10 +2709,6 @@ function setCalendarDayTextSettings(item, settings = {}) {
 
      if (colorInput) {
           setPaletteControlValue(colorInput, colorSwatches, item.dataset.dayTextColor);
-     }
-
-     if (colorAlphaSelect) {
-          colorAlphaSelect.value = item.dataset.dayTextAlpha;
      }
 
      if (boldInput) {
@@ -2788,7 +2736,7 @@ function setCalendarDayTextSettings(item, settings = {}) {
 
 function applyCalendarDayTextStyle(item, textElement) {
      textElement.style.fontSize = `${item.dataset.dayTextSize || "10"}px`;
-     textElement.style.color = getAlphaColor(item.dataset.dayTextColor || "var(--color-gray1)", item.dataset.dayTextAlpha);
+     textElement.style.color = item.dataset.dayTextColor || "var(--color-gray1)";
      textElement.style.fontFamily = getStickyTextFont(item.dataset.dayTextFont || "noto");
      textElement.style.fontWeight = item.dataset.dayTextBold === "true" ? "700" : "400";
      textElement.style.fontStyle = item.dataset.dayTextItalic === "true" ? "italic" : "normal";
@@ -3411,16 +3359,12 @@ function makePlannerItem(type = "sticky") {
      const sendBackwardButton = document.createElement("button");
      const fillLabel = document.createElement("label");
      const fillTitle = document.createElement("span");
-     const fillAlphaField = document.createElement("span");
      const fillInput = document.createElement("select");
-     const fillAlphaSelect = document.createElement("select");
      const fillSwatches = document.createElement("div");
      const borderColorLabel = document.createElement("label");
      const borderTitle = document.createElement("span");
-     const borderAlphaField = document.createElement("span");
      const borderSizeField = document.createElement("span");
      const borderColorInput = document.createElement("select");
-     const borderAlphaSelect = document.createElement("select");
      const borderColorSwatches = document.createElement("div");
      const borderWidthSelect = document.createElement("select");
      const dotGridLabel = document.createElement("label");
@@ -3433,9 +3377,7 @@ function makePlannerItem(type = "sticky") {
      const textFontSelect = document.createElement("select");
      const textColorLabel = document.createElement("label");
      const textColorTitle = document.createElement("span");
-     const textColorAlphaField = document.createElement("span");
      const textColorInput = document.createElement("select");
-     const textColorAlphaSelect = document.createElement("select");
      const textColorSwatches = document.createElement("div");
      const textFormatGroup = document.createElement("div");
      const textBoldLabel = document.createElement("label");
@@ -3534,30 +3476,20 @@ function makePlannerItem(type = "sticky") {
      sendBackwardButton.type = "button";
      sendBackwardButton.textContent = "Send Bwd";
      sendBackwardButton.setAttribute("aria-label", "Send selected item backward");
-     fillLabel.className = "item-control-row item-color-control item-color-control-two";
+     fillLabel.className = "item-control-row item-color-control";
      fillTitle.className = "item-control-title";
      fillTitle.textContent = "Fill";
-     fillAlphaField.className = "item-control-field";
-     fillAlphaField.dataset.fieldLabel = "Overlay";
      fillInput.dataset.styleControl = "fill";
      fillInput.setAttribute("aria-label", "Sticky note fill palette");
-     fillAlphaSelect.dataset.styleControl = "fill-alpha";
-     fillAlphaSelect.setAttribute("aria-label", "Sticky note fill alpha");
-     populateAlphaSelect(fillAlphaSelect);
      fillSwatches.className = "item-color-swatches";
      fillSwatches.dataset.styleSwatches = "fill";
-     borderColorLabel.className = "item-control-row item-color-control item-border-control";
+     borderColorLabel.className = "item-control-row item-color-control";
      borderTitle.className = "item-control-title";
      borderTitle.textContent = "Border";
-     borderAlphaField.className = "item-control-field";
-     borderAlphaField.dataset.fieldLabel = "Overlay";
-     borderSizeField.className = "item-control-field";
-     borderSizeField.dataset.fieldLabel = "Size";
+     borderSizeField.className = "item-control-row";
+     borderSizeField.textContent = "Size";
      borderColorInput.dataset.styleControl = "border-color";
      borderColorInput.setAttribute("aria-label", "Sticky note border palette");
-     borderAlphaSelect.dataset.styleControl = "border-alpha";
-     borderAlphaSelect.setAttribute("aria-label", "Sticky note border alpha");
-     populateAlphaSelect(borderAlphaSelect);
      borderColorSwatches.className = "item-color-swatches";
      borderColorSwatches.dataset.styleSwatches = "border-color";
      borderWidthSelect.setAttribute("aria-label", "Sticky note border thickness");
@@ -3609,13 +3541,8 @@ function makePlannerItem(type = "sticky") {
      textColorLabel.className = "item-control-row item-text-control item-color-control";
      textColorTitle.className = "item-control-title";
      textColorTitle.textContent = "Font Palette";
-     textColorAlphaField.className = "item-control-field";
-     textColorAlphaField.dataset.fieldLabel = "Overlay";
      textColorInput.dataset.textControl = "color";
      textColorInput.setAttribute("aria-label", "Sticky note text palette");
-     textColorAlphaSelect.dataset.textControl = "color-alpha";
-     textColorAlphaSelect.setAttribute("aria-label", "Sticky note text color alpha");
-     populateAlphaSelect(textColorAlphaSelect);
      textColorSwatches.className = "item-color-swatches";
      textColorSwatches.dataset.textSwatches = "color";
      textFormatGroup.className = "item-text-format item-text-control";
@@ -3774,12 +3701,9 @@ function makePlannerItem(type = "sticky") {
           startTimeSelect.append(option);
      }
 
-     fillAlphaField.append(fillAlphaSelect);
-     borderAlphaField.append(borderAlphaSelect);
      borderSizeField.append(borderWidthSelect);
-     textColorAlphaField.append(textColorAlphaSelect);
-     fillLabel.append(fillTitle, fillAlphaField, fillSwatches);
-     borderColorLabel.append(borderTitle, borderAlphaField, borderSizeField, borderColorSwatches);
+     fillLabel.append(fillTitle, fillSwatches);
+     borderColorLabel.append(borderTitle, borderColorSwatches);
      dotGridLabel.append(dotGridInput);
      if (type === "sticky") {
           textToggleLabel.append(textTitle, textToggleInput, textSizeInput, textFontSelect);
@@ -3787,7 +3711,7 @@ function makePlannerItem(type = "sticky") {
           textToggleLabel.classList.add("item-text-settings-control-no-toggle");
           textToggleLabel.append(textTitle, textSizeInput, textFontSelect);
      }
-     textColorLabel.append(textColorTitle, textColorAlphaField, textColorSwatches);
+     textColorLabel.append(textColorTitle, textColorSwatches);
      textBoldLabel.append(textBoldInput);
      textItalicLabel.append(textItalicInput);
      textUnderlineLabel.append(textUnderlineInput);
@@ -3805,7 +3729,7 @@ function makePlannerItem(type = "sticky") {
      shareWeekendsLabel.append(shareWeekendsInput);
      controlTabs.append(actionsTab, styleTab);
      actionsPanel.append(duplicateButton, groupButton, bringForwardButton, sendBackwardButton, deleteButton);
-     stylePanel.append(fillLabel, borderColorLabel);
+     stylePanel.append(fillLabel, borderColorLabel, borderSizeField);
      if (type === "sticky") {
           stylePanel.append(
                textToggleLabel,
@@ -3837,7 +3761,7 @@ function makePlannerItem(type = "sticky") {
      }
      controlTabs.append(widgetTab);
      controls.append(controlTabs, actionsPanel, stylePanel, widgetPanel);
-     initializePaletteColorControl(fillInput, fillSwatches, "var(--tertiary-05)", (nextColor) => {
+     initializePaletteColorControl(fillInput, fillSwatches, "var(--paper-offwhite)", (nextColor) => {
           applyStyleToActionItems(item, {
                fillColor: nextColor
           });
@@ -3870,10 +3794,8 @@ function makePlannerItem(type = "sticky") {
      }
      item.append(controls);
      setItemStyle(item, {
-          fillColor: "var(--tertiary-05)",
-          fillAlpha: "clear",
+          fillColor: "var(--paper-offwhite)",
           borderColor: "var(--color-gray4)",
-          borderAlpha: "clear",
           borderWidth: borderWidthSelect.value,
           dotGrid: "false"
      });
@@ -3983,16 +3905,6 @@ function makePlannerItem(type = "sticky") {
           event.stopPropagation();
           moveActionItemsLayer(item, "backward");
      });
-     fillAlphaSelect.addEventListener("change", () => {
-          applyStyleToActionItems(item, {
-               fillAlpha: fillAlphaSelect.value
-          });
-     });
-     borderAlphaSelect.addEventListener("change", () => {
-          applyStyleToActionItems(item, {
-               borderAlpha: borderAlphaSelect.value
-          });
-     });
      borderWidthSelect.addEventListener("change", () => {
           applyStyleToActionItems(item, {
                borderWidth: borderWidthSelect.value
@@ -4029,18 +3941,6 @@ function makePlannerItem(type = "sticky") {
           } else {
                setStickyTextSettings(item, {
                     font: textFontSelect.value
-               });
-          }
-          notifyTemplateChanged();
-     });
-     textColorAlphaSelect.addEventListener("change", () => {
-          if (isCalendarTextItem(item)) {
-               setCalendarDayTextSettings(item, {
-                    alpha: textColorAlphaSelect.value
-               });
-          } else {
-               setStickyTextSettings(item, {
-                    alpha: textColorAlphaSelect.value
                });
           }
           notifyTemplateChanged();
@@ -4225,9 +4125,7 @@ function addItemToPage(page, x = 4, y = 4) {
 function copyItemConfiguration(source, target) {
      setItemStyle(target, {
           fillColor: source.dataset.fillColor,
-          fillAlpha: source.dataset.fillAlpha,
           borderColor: source.dataset.borderColor,
-          borderAlpha: source.dataset.borderAlpha,
           borderWidth: source.dataset.borderWidth,
           dotGrid: source.dataset.dotGrid
      });
@@ -4237,7 +4135,6 @@ function copyItemConfiguration(source, target) {
           size: source.dataset.textSize,
           font: source.dataset.textFont,
           color: source.dataset.textColor,
-          alpha: source.dataset.textAlpha,
           bold: source.dataset.textBold,
           italic: source.dataset.textItalic,
           underline: source.dataset.textUnderline,
@@ -4266,7 +4163,6 @@ function copyItemConfiguration(source, target) {
                     size: source.dataset.dayTextSize,
                     font: source.dataset.dayTextFont,
                     color: source.dataset.dayTextColor,
-                    alpha: source.dataset.dayTextAlpha,
                     bold: source.dataset.dayTextBold,
                     italic: source.dataset.dayTextItalic,
                     underline: source.dataset.dayTextUnderline,
@@ -4821,6 +4717,10 @@ paperColorSelect.addEventListener("change", () => {
      changePlannerSetting();
      updatePaperColorSwatches();
 });
+if (paperHexPicker) {
+     paperHexPicker.addEventListener("input", () => updateCustomPaperColor(paperHexPicker.value));
+     paperHexPicker.addEventListener("change", () => updateCustomPaperColor(paperHexPicker.value));
+}
 deskColorSelect.addEventListener("change", changePlannerSetting);
 settingSelects.forEach((select) => {
      select.addEventListener("change", () => updateCustomSelectDisplay(select));

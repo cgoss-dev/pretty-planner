@@ -51,23 +51,22 @@
                          </select>
                     </label>
 
-                    <label class="paper-color-field">
-                         <span>Paper Color</span>
-                         <select data-setting="paper-color" aria-label="Paper color">
-                              <option value="White">White</option>
+                    <div class="palette-preview" aria-label="Palette preview">
+                         <span class="palette-preview-label">Palette</span>
+                         <select class="paper-color-select" data-setting="paper-color" aria-label="Paper color">
                               <option value="Offwhite" selected>Offwhite</option>
                               <option value="Cream">Cream</option>
                               <option value="Linen">Linen</option>
-                              <option value="Charcoal">Charcoal</option>
-                              <option value="Black">Black</option>
+                              <option value="Custom">Custom</option>
                          </select>
-                         <div class="paper-color-swatches" data-paper-color-swatches></div>
-                    </label>
-
-                    <div class="palette-preview" aria-label="Palette preview">
-                         <div class="palette-preview-heading">
-                              <span class="palette-preview-label">Palette</span>
-                              <button class="palette-matrix-toggle" type="button" data-tertiary-matrix-toggle aria-label="Show Tertiary matrix" aria-expanded="false">></button>
+                         <div class="paper-palette-row">
+                              <div class="paper-color-swatches" data-paper-color-swatches></div>
+                              <span class="paper-palette-spacer" aria-hidden="true"></span>
+                              <label class="paper-hex-picker">
+                                   <span>HEX</span>
+                                   <input class="paper-hex-input" type="color" value="#ffffee" data-paper-hex-picker aria-label="Pick custom paper color">
+                              </label>
+                              <button class="palette-matrix-toggle" type="button" data-tertiary-matrix-toggle aria-label="Show Tertiary matrix" aria-expanded="false">&#8679;</button>
                          </div>
                          <div class="palette-swatches" data-palette-preview-swatches></div>
                     </div>
