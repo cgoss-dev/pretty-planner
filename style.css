@@ -184,7 +184,8 @@ body {
      bottom: 0;
      width: var(--menu-width-safe) !important;
      inline-size: var(--menu-width-safe) !important;
-     height: var(--settings-pop-height, min(68vh, var(--notebook-height)));
+     height: min(max(68vh, 500px), var(--notebook-height));
+     min-height: min(500px, var(--notebook-height));
      min-width: min(300px, calc(100vw - 32px)) !important;
      display: grid;
      grid-template-columns: 1fr;
@@ -513,24 +514,40 @@ body {
 }
 
 .palette-matrix-toggle {
-     display: grid;
-     place-items: center;
+     position: relative;
+     display: block;
      width: var(--color-swatch-size);
      height: var(--color-swatch-size);
+     padding: 0;
      border: var(--arrow-border);
      border-radius: 4px;
      background: var(--arrow-control-fill);
      color: var(--arrow-color);
      cursor: pointer;
+     font-size: 0;
+     line-height: 0;
+}
+
+.palette-matrix-toggle::before {
+     content: "⇧";
+     position: absolute;
+     left: 50%;
+     top: 50%;
+     display: block;
+     color: currentColor;
      font: var(--arrow-font-weight) var(--arrow-font-size) var(--arrow-font);
      line-height: 1;
-     transform: rotate(90deg);
+     transform: translate(-50%, -50%) rotate(90deg);
+     transform-origin: center;
+}
+
+.palette-matrix-toggle[aria-expanded="true"]::before {
+     transform: translate(-50%, -50%) rotate(-90deg);
 }
 
 .palette-matrix-toggle[aria-expanded="true"] {
      background: var(--arrow-active-fill);
      color: var(--arrow-active-color);
-     transform: rotate(-90deg);
 }
 
 .palette-swatches,
@@ -630,7 +647,10 @@ body {
      background: var(--swatch);
      color: var(--swatch-ink, var(--color-gray1));
      font: 400 var(--font-size-sm) var(--font-noto);
-     line-height: 1;
+     line-height: var(--color-swatch-size);
+     text-align: center;
+     padding: 0;
+     overflow: hidden;
 }
 
 .palette-swatch.is-clear,
@@ -714,21 +734,18 @@ body {
 }
 
 .tertiary-matrix-swatch {
+     appearance: none;
      display: grid;
      place-items: center;
      width: var(--matrix-swatch-size);
      height: var(--matrix-swatch-size);
+     padding: 0;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      background: var(--swatch);
      color: var(--swatch-ink, var(--color-gray1));
+     cursor: pointer;
      font: 400 var(--font-size-sm) var(--font-noto);
      line-height: 1;
-}
-
-.tertiary-matrix-swatch.is-base {
-     box-shadow:
-          0 0 0 1px var(--menu-fill),
-          0 0 0 3px var(--color-gray1);
 }
 
 .planner-settings.is-select-focused .settings-panel,
@@ -1262,6 +1279,10 @@ body {
      grid-template-rows: repeat(8, 1fr);
 }
 
+.mini-cal.no-title-row {
+     grid-template-rows: repeat(7, 1fr);
+}
+
 .mini-cal:not(.has-week-numbers) {
      grid-template-columns: repeat(7, 1fr);
 }
@@ -1270,6 +1291,12 @@ body {
      grid-template-columns: calc(var(--weekly-column-cell-width, 12px) * 2) repeat(7, minmax(calc(var(--weekly-column-cell-width, 12px) * 2), 1fr));
      grid-template-rows:
           var(--weekly-row-cell-height, 12px)
+          var(--weekly-row-cell-height, 12px)
+          repeat(6, minmax(calc(var(--weekly-row-cell-height, 12px) * 2), 1fr));
+}
+
+.planner-item-full-cal .mini-cal.no-title-row {
+     grid-template-rows:
           var(--weekly-row-cell-height, 12px)
           repeat(6, minmax(calc(var(--weekly-row-cell-height, 12px) * 2), 1fr));
 }
@@ -1896,7 +1923,8 @@ body {
      .planner-settings {
           width: var(--menu-width-safe) !important;
           inline-size: var(--menu-width-safe) !important;
-          height: var(--settings-pop-height, min(68vh, var(--notebook-height)));
+          height: min(max(68vh, 500px), var(--notebook-height));
+          min-height: min(500px, var(--notebook-height));
           grid-template-columns: 1fr;
      }
 

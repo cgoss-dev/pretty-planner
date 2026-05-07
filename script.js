@@ -481,7 +481,6 @@ function handleWindowResize() {
      applyResponsiveViewMode();
      syncSidebarSnap();
      customSelectDetails.forEach((dropdown) => updateSelectFocusSpace(dropdown));
-     syncPlannerSettingsMatrixHeight();
      positionTertiaryMatrix();
 }
 
@@ -670,10 +669,8 @@ function applyPlannerConfig() {
      delete plannerSettings.dataset.width;
      plannerSettings.style.width = "";
 
-     if (!plannerSettings.dataset.x && !plannerSettings.dataset.y) {
-          delete plannerSettings.dataset.height;
-          plannerSettings.style.height = "";
-     }
+     delete plannerSettings.dataset.height;
+     plannerSettings.style.height = "";
 
      document.documentElement.dataset.paper = plannerConfig.paperKey;
      document.documentElement.dataset.paperColor = plannerConfig.paperColorKey;
@@ -870,13 +867,14 @@ function createHexButton(onSelect, swatchClass = "palette-swatch") {
      return button;
 }
 
-function appendTertiaryMatrixToggle(swatches) {
+function appendTertiaryMatrixToggle(swatches, onSelect = null) {
      if (!swatches) {
           return;
      }
 
      const button = createTertiaryMatrixToggle();
 
+     button.onPaletteColorSelect = onSelect;
      swatches.append(button);
 }
 
@@ -885,8 +883,9 @@ function appendPaletteUtilityControls(swatches, onSelect = null, swatchClass = "
           return;
      }
 
+     swatches.onPaletteColorSelect = onSelect;
      swatches.append(createHexButton(onSelect, swatchClass));
-     appendTertiaryMatrixToggle(swatches);
+     appendTertiaryMatrixToggle(swatches, onSelect);
 }
 
 function getHexPopover() {
@@ -989,6 +988,8 @@ function renderTertiaryMatrix() {
      }
 
      const colors = getPalette("tertiary").colors;
+     const activeSwatches = activeTertiaryMatrixToggle?.closest(".palette-swatches, .item-color-swatches");
+     const onSelect = activeTertiaryMatrixToggle?.onPaletteColorSelect || activeSwatches?.onPaletteColorSelect;
 
      tertiaryMatrixGrid.replaceChildren();
      getTertiaryMatrixRows().forEach((row) => {
@@ -999,12 +1000,26 @@ function renderTertiaryMatrix() {
           tertiaryMatrixGrid.append(label);
 
           colors.forEach((color) => {
-               const swatch = document.createElement("span");
+               const swatch = document.createElement(typeof onSelect === "function" ? "button" : "span");
+               const swatchValue = getMatrixSwatchValue(color.value, row.mode, row.step);
 
                swatch.className = `tertiary-matrix-swatch${row.mode === "base" ? " is-base" : ""}`;
-               swatch.style.setProperty("--swatch", getMatrixSwatchValue(color.value, row.mode, row.step));
+               swatch.style.setProperty("--swatch", swatchValue);
                swatch.style.setProperty("--swatch-ink", getSwatchInk(color, row.mode !== "tint"));
                swatch.textContent = row.mode === "base" ? color.label : "";
+               swatch.dataset.colorValue = swatchValue;
+
+               if (typeof onSelect === "function") {
+                    swatch.type = "button";
+                    swatch.setAttribute("aria-label", `${row.label} ${color.label} color`);
+                    swatch.addEventListener("click", (event) => {
+                         event.preventDefault();
+                         event.stopPropagation();
+                         onSelect(swatchValue);
+                         setTertiaryMatrixOpen(false);
+                    });
+               }
+
                tertiaryMatrixGrid.append(swatch);
           });
      });
@@ -1028,41 +1043,12 @@ function syncTertiaryMatrixSwatchSize() {
      return 0;
 }
 
-function syncPlannerSettingsMatrixHeight() {
-     if (!plannerSettings) {
-          return;
-     }
-
-     const swatchSize = syncTertiaryMatrixSwatchSize();
-
-     if (!swatchSize) {
-          return;
-     }
-
-     const measuredMatrixHeight = tertiaryMatrixPopover && !tertiaryMatrixPopover.hidden
-          ? tertiaryMatrixPopover.getBoundingClientRect().height
-          : 0;
-     const rowCount = getTertiaryMatrixRows().length;
-     const gapTotal = Math.max(0, rowCount - 1) * 3;
-     const title = tertiaryMatrixPopover?.querySelector(".tertiary-matrix-title");
-     const titleHeight = title?.getBoundingClientRect().height || 10;
-     const popoverPadding = 16;
-     const titleGap = 6;
-     const matrixHeight = measuredMatrixHeight || popoverPadding + titleHeight + titleGap + (rowCount * swatchSize) + gapTotal;
-     const cappedHeight = Math.min(matrixHeight, window.innerHeight);
-     const roundedHeight = Math.round(cappedHeight);
-
-     plannerSettings.dataset.height = String(roundedHeight);
-     plannerSettings.style.height = `${roundedHeight}px`;
-     plannerSettings.style.setProperty("--settings-pop-height", `${roundedHeight}px`);
-}
-
 function positionTertiaryMatrix() {
      if (!tertiaryMatrixPopover || !activeTertiaryMatrixToggle || tertiaryMatrixPopover.hidden) {
           return;
      }
 
-     syncPlannerSettingsMatrixHeight();
+     syncTertiaryMatrixSwatchSize();
 
      const settingsRect = plannerSettings?.getBoundingClientRect();
      const popoverRect = tertiaryMatrixPopover.getBoundingClientRect();
@@ -1115,9 +1101,13 @@ function updatePalettePreview() {
           return;
      }
 
-     renderColorSwatches(palettePreviewSwatches, getBasePaletteColors());
+     renderColorSwatches(
+          palettePreviewSwatches,
+          getBasePaletteColors(),
+          plannerConfig.paperColor.color,
+          updateCustomPaperColor
+     );
      appendPaletteUtilityControls(palettePreviewSwatches, updateCustomPaperColor);
-     syncPlannerSettingsMatrixHeight();
 }
 
 function initializePalettePreview() {
@@ -1482,7 +1472,6 @@ function selectSettingsTab(tabName) {
 }
 
 function openSidebar() {
-     syncPlannerSettingsMatrixHeight();
      plannerSettings.classList.add("is-open");
      plannerDesk.classList.add("has-open-main-menu");
 }
@@ -2682,10 +2671,10 @@ function getSidebarHeightBounds() {
      const measuredHeight = Math.max(pageRect.height, notebookRect.height);
      const fullHeight = measuredHeight > 220 ? measuredHeight : deskRect.height * 0.68;
      const gridRowHeight = Math.max(fullHeight / plannerConfig.gridRows, 8);
-     const maxHeight = Math.min(fullHeight, deskRect.height * 0.78);
+     const maxHeight = Math.max(500, Math.min(fullHeight, deskRect.height * 0.78));
 
      return {
-          min: Math.min(Math.max(fullHeight / 2, 220), maxHeight),
+          min: Math.min(500, maxHeight),
           max: maxHeight,
           grid: gridRowHeight
      };
@@ -3078,6 +3067,7 @@ function renderMiniCal(item) {
      const weekStart = item.dataset.weekStart || "monday";
      const monthVisible = item.dataset.monthVisible !== "false";
      const yearVisible = item.dataset.yearVisible !== "false";
+     const titleVisible = monthVisible || yearVisible;
      const month = Number(item.dataset.month) || 0;
      const year = Number(item.dataset.year) || new Date().getFullYear();
      const firstDay = new Date(year, month, 1);
@@ -3100,7 +3090,11 @@ function renderMiniCal(item) {
 
      calendar.replaceChildren();
      calendar.classList.toggle("has-week-numbers", weekNumbersEnabled);
-     for (let row = 0; row < 8; row += 1) {
+     calendar.classList.toggle("has-title-row", titleVisible);
+     calendar.classList.toggle("no-title-row", !titleVisible);
+     for (let row = 0; row < (titleVisible ? 8 : 7); row += 1) {
+          const calendarRow = titleVisible ? row : row + 1;
+
           for (let column = 0; column < 8; column += 1) {
                const cell = document.createElement("span");
                const dayIndex = column - 1;
@@ -3113,7 +3107,7 @@ function renderMiniCal(item) {
                     continue;
                }
 
-               if (row === 0) {
+               if (calendarRow === 0) {
                     if ((weekNumbersEnabled && column === 0) || (!weekNumbersEnabled && column === 1)) {
                          const titleYear = document.createElement("span");
                          const titleMonth = document.createElement("span");
@@ -3131,28 +3125,28 @@ function renderMiniCal(item) {
                     }
                } else if (column === 0) {
                     cell.classList.add("mini-cal-week");
-                    if (row === 1) {
+                    if (calendarRow === 1) {
                          cell.classList.add("weekName");
                          cell.textContent = "#";
                     } else {
-                         const weekDate = new Date(year, month, 1 - firstDayOffset + ((row - 2) * 7));
+                         const weekDate = new Date(year, month, 1 - firstDayOffset + ((calendarRow - 2) * 7));
                          const weekNumberLabel = document.createElement("span");
 
                          cell.classList.add("weekName", "weekNumberCell");
-                         cell.dataset.weekName = getCalendarWeekName(row - 1, month, year);
+                         cell.dataset.weekName = getCalendarWeekName(calendarRow - 1, month, year);
                          cell.title = cell.dataset.weekName;
                          weekNumberLabel.className = "weekNumber";
                          weekNumberLabel.textContent = String(getCalendarWeekNumber(weekDate, weekStart));
                          cell.append(weekNumberLabel);
                     }
-               } else if (row === 1) {
+               } else if (calendarRow === 1) {
                     cell.classList.add("mini-cal-day-name", "dayName");
                     cell.textContent = dayLabels[dayIndex];
                     if (weekendIndexes.includes(dayIndex)) {
                          cell.classList.add("mini-cal-weekend");
                     }
                } else {
-                    const dayNumber = ((row - 2) * 7) + column - firstDayOffset;
+                    const dayNumber = ((calendarRow - 2) * 7) + column - firstDayOffset;
 
                     if (weekendIndexes.includes(dayIndex)) {
                          cell.classList.add("mini-cal-weekend");
@@ -3211,7 +3205,7 @@ function renderMiniCal(item) {
                if (column === 7) {
                     cell.classList.add("mini-cal-edge-right");
                }
-               if (row === 7) {
+               if (calendarRow === 7) {
                     cell.classList.add("mini-cal-edge-bottom");
                }
 
@@ -3241,6 +3235,7 @@ function renderWeeklyVertical(item) {
      const displayColumns = getWeeklyDisplayColumns(weekStartDate, visibleDays, shareWeekends);
      const dayColumnStart = timeVisible ? 1 : 0;
      const columnCount = displayColumns.length + dayColumnStart;
+     const titleVisible = monthVisible || yearVisible;
 
      if (!calendar) {
           calendar = document.createElement("div");
@@ -3250,9 +3245,11 @@ function renderWeeklyVertical(item) {
 
      calendar.replaceChildren();
      calendar.style.setProperty("--weekly-slot-count", String(slotCount));
-     calendar.style.setProperty("--weekly-row-count", String(slotCount + 2));
+     calendar.style.setProperty("--weekly-row-count", String(slotCount + (titleVisible ? 2 : 1)));
      calendar.style.setProperty("--weekly-day-count", String(displayColumns.length));
      calendar.classList.toggle("has-time-column", timeVisible);
+     calendar.classList.toggle("has-title-row", titleVisible);
+     calendar.classList.toggle("no-title-row", !titleVisible);
 
      if (monthVisible) {
           titleParts.push(calendarMonthNames[month]);
@@ -3262,23 +3259,25 @@ function renderWeeklyVertical(item) {
           titleParts.push(String(year));
      }
 
-     for (let row = 0; row < slotCount + 2; row += 1) {
+     for (let row = 0; row < slotCount + (titleVisible ? 2 : 1); row += 1) {
+          const calendarRow = titleVisible ? row : row + 1;
+
           for (let column = 0; column < columnCount; column += 1) {
                const cell = document.createElement("span");
                const dayIndex = column - dayColumnStart;
 
                cell.className = "weekly-vertical-cell";
 
-               if (row === 0 && column === 0) {
+               if (calendarRow === 0 && column === 0) {
                     cell.classList.add("weekly-vertical-title", (month + 1) % 2 === 1 ? "monthOdd" : "monthEven");
                     cell.style.gridColumn = `span ${columnCount}`;
                     cell.textContent = titleParts.join(" ");
-               } else if (row === 0) {
+               } else if (calendarRow === 0) {
                     continue;
-               } else if (row === 1 && timeVisible && column === 0) {
+               } else if (calendarRow === 1 && timeVisible && column === 0) {
                     cell.classList.add("weekly-vertical-time-heading");
                     cell.textContent = "Time";
-               } else if (row === 1) {
+               } else if (calendarRow === 1) {
                     const displayColumn = displayColumns[dayIndex];
 
                     cell.classList.add("weekly-vertical-date", "dayCell", "dayName");
@@ -3303,19 +3302,19 @@ function renderWeeklyVertical(item) {
                          cell.append(dateLabel);
                     });
                } else if (timeVisible && column === 0) {
-                    const timeMinutes = startMinutes + ((row - 2) * timeIncrement);
+                    const timeMinutes = startMinutes + ((calendarRow - 2) * timeIncrement);
 
                     cell.classList.add("weekly-vertical-time");
                     cell.textContent = shouldShowWeeklyTimeLabel(timeMinutes, timeIncrement) ? formatWeeklyTimeLabel(timeMinutes, timeFormat) : "";
                } else {
                     const displayColumn = displayColumns[dayIndex];
-                    const slotMinutes = startMinutes + ((row - 2) * timeIncrement);
+                    const slotMinutes = startMinutes + ((calendarRow - 2) * timeIncrement);
                     const primaryDate = displayColumn.dates[0];
                     const slotKey = displayColumn.type === "shared-weekend"
                          ? `${displayColumn.dates.map((date) => getCalendarDayKey(date.getFullYear(), date.getMonth(), date.getDate())).join("+")}T${formatMinutesAsTime(slotMinutes)}`
                          : getWeeklySlotKey(primaryDate, slotMinutes);
                     const slotText = document.createElement("div");
-                    const isSharedWeekendLabelRow = displayColumn.type === "shared-weekend" && row === 2 + Math.floor(slotCount / 2);
+                    const isSharedWeekendLabelRow = displayColumn.type === "shared-weekend" && calendarRow === 2 + Math.floor(slotCount / 2);
 
                     cell.classList.add("weekly-vertical-slot");
                     if (displayColumn.type === "shared-weekend") {
@@ -3366,10 +3365,10 @@ function renderWeeklyVertical(item) {
                     }
                }
 
-               if (column === columnCount - 1 || (row === 0 && column === dayColumnStart)) {
+               if (column === columnCount - 1 || (calendarRow === 0 && column === dayColumnStart)) {
                     cell.classList.add("weekly-vertical-edge-right");
                }
-               if (row === slotCount + 1) {
+               if (calendarRow === slotCount + 1) {
                     cell.classList.add("weekly-vertical-edge-bottom");
                }
 
@@ -3627,6 +3626,7 @@ function makePlannerItem(type = "sticky") {
      fillLabel.className = "item-control-row item-color-control";
      fillTitle.className = "item-control-title";
      fillTitle.textContent = "Fill";
+     fillInput.className = "native-select";
      fillInput.dataset.styleControl = "fill";
      fillInput.setAttribute("aria-label", "Sticky note fill palette");
      fillSwatches.className = "item-color-swatches";
@@ -3636,6 +3636,7 @@ function makePlannerItem(type = "sticky") {
      borderTitle.textContent = "Border";
      borderSizeField.className = "item-control-row";
      borderSizeField.textContent = "Size";
+     borderColorInput.className = "native-select";
      borderColorInput.dataset.styleControl = "border-color";
      borderColorInput.setAttribute("aria-label", "Sticky note border palette");
      borderColorSwatches.className = "item-color-swatches";
@@ -3689,6 +3690,7 @@ function makePlannerItem(type = "sticky") {
      textColorLabel.className = "item-control-row item-text-control item-color-control";
      textColorTitle.className = "item-control-title";
      textColorTitle.textContent = "Font Palette";
+     textColorInput.className = "native-select";
      textColorInput.dataset.textControl = "color";
      textColorInput.setAttribute("aria-label", "Sticky note text palette");
      textColorSwatches.className = "item-color-swatches";
@@ -3850,8 +3852,8 @@ function makePlannerItem(type = "sticky") {
      }
 
      borderSizeField.append(borderWidthSelect);
-     fillLabel.append(fillTitle, fillSwatches);
-     borderColorLabel.append(borderTitle, borderColorSwatches);
+     fillLabel.append(fillTitle, fillInput, fillSwatches);
+     borderColorLabel.append(borderTitle, borderColorInput, borderColorSwatches);
      dotGridLabel.append(dotGridInput);
      if (type === "sticky") {
           textToggleLabel.append(textTitle, textToggleInput, textSizeInput, textFontSelect);
@@ -3859,7 +3861,7 @@ function makePlannerItem(type = "sticky") {
           textToggleLabel.classList.add("item-text-settings-control-no-toggle");
           textToggleLabel.append(textTitle, textSizeInput, textFontSelect);
      }
-     textColorLabel.append(textColorTitle, textColorSwatches);
+     textColorLabel.append(textColorTitle, textColorInput, textColorSwatches);
      textBoldLabel.append(textBoldInput);
      textItalicLabel.append(textItalicInput);
      textUnderlineLabel.append(textUnderlineInput);
@@ -3931,7 +3933,7 @@ function makePlannerItem(type = "sticky") {
           }
           notifyTemplateChanged();
      });
-     controls.querySelectorAll("select").forEach((select) => {
+     controls.querySelectorAll("select:not([data-style-control='fill']):not([data-style-control='border-color']):not([data-text-control='color'])").forEach((select) => {
           makeCustomSelect(select);
           select.addEventListener("change", () => updateCustomSelectDisplay(select));
      });
@@ -4864,6 +4866,7 @@ gridSelect.addEventListener("change", changePlannerSetting);
 paperColorSelect.addEventListener("change", () => {
      changePlannerSetting();
      updatePaperColorSwatches();
+     updatePalettePreview();
 });
 deskColorSelect.addEventListener("change", changePlannerSetting);
 settingSelects.forEach((select) => {
