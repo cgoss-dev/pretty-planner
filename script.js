@@ -8,9 +8,7 @@ const gridSelect = document.querySelector("[data-setting='grid']");
 const paperColorSelect = document.querySelector("[data-setting='paper-color']");
 const deskColorSelect = document.querySelector("[data-setting='desk-color']");
 const paperColorSwatches = document.querySelector("[data-paper-color-swatches]");
-const paperHexPicker = document.querySelector("[data-paper-hex-picker]");
 const palettePreviewSwatches = document.querySelector("[data-palette-preview-swatches]");
-const tertiaryMatrixToggle = document.querySelector("[data-tertiary-matrix-toggle]");
 const tertiaryMatrixPopover = document.querySelector("[data-tertiary-matrix]");
 const tertiaryMatrixGrid = document.querySelector("[data-tertiary-matrix-grid]");
 const settingSelects = Array.from(document.querySelectorAll("[data-setting]")).filter((select) => select.dataset.setting !== "paper-color");
@@ -198,7 +196,7 @@ const paperColors = {
           key: "Custom",
           label: "Custom",
           display: "Hex",
-          color: paperHexPicker ? paperHexPicker.value : "#ffffee"
+          color: "#ffffee"
      }
 };
 const deskColors = {
@@ -254,6 +252,8 @@ let shouldSkipNextClear = false;
 let shouldSkipNextItemClick = false;
 let shouldSkipNextTabClick = false;
 let plannerConfig = buildPlannerConfig();
+let activeTertiaryMatrixToggle = document.querySelector("[data-tertiary-matrix-toggle]");
+let activeHexTarget = null;
 
 function convertLength(value, fromUnit, toUnit) {
      if (fromUnit === toUnit) {
@@ -750,6 +750,33 @@ function getSwatchInk(color, allowWhite = true) {
      return allowWhite && color.ink === "var(--color-white)" ? "var(--color-white)" : "var(--color-gray1)";
 }
 
+function getBasePaletteColors() {
+     return [
+          {
+               label: "CLR",
+               value: "transparent",
+               isClear: true
+          },
+          ...getPalette("gray").colors
+     ];
+}
+
+function hexToAlphaColor(hexValue, alphaValue) {
+     const alpha = Math.max(0, Math.min(100, Number(alphaValue) || 0));
+
+     if (alpha === 0) {
+          return "transparent";
+     }
+
+     if (alpha >= 100) {
+          return hexValue;
+     }
+
+     const alphaHex = Math.round(alpha / 100 * 255).toString(16).padStart(2, "0");
+
+     return `${hexValue}${alphaHex}`;
+}
+
 function renderPaletteSwatches(swatches, paletteKey, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
      const palette = getPalette(paletteKey);
 
@@ -766,6 +793,7 @@ function renderPaletteSwatches(swatches, paletteKey, selectedColor = "", onSelec
           swatch.style.setProperty("--swatch-ink", getSwatchInk(color));
           swatch.textContent = color.label;
           swatch.dataset.colorValue = color.value;
+          swatch.classList.toggle("is-clear", Boolean(color.isClear));
           swatch.classList.toggle("is-selected", color.value === selectedColor);
 
           if (onSelect) {
@@ -796,6 +824,7 @@ function renderColorSwatches(swatches, colors, selectedColor = "", onSelect = nu
           swatch.style.setProperty("--swatch-ink", getSwatchInk(color));
           swatch.textContent = color.label;
           swatch.dataset.colorValue = color.value;
+          swatch.classList.toggle("is-clear", Boolean(color.isClear));
           swatch.classList.toggle("is-selected", color.value === selectedColor);
 
           if (onSelect) {
@@ -810,6 +839,116 @@ function renderColorSwatches(swatches, colors, selectedColor = "", onSelect = nu
 
           swatches.append(swatch);
      });
+}
+
+function createTertiaryMatrixToggle() {
+     const button = document.createElement("button");
+
+     button.className = "palette-matrix-toggle";
+     button.type = "button";
+     button.dataset.tertiaryMatrixToggle = "";
+     button.setAttribute("aria-label", "Show Tertiary matrix");
+     button.setAttribute("aria-expanded", "false");
+     button.textContent = "⇧";
+
+     return button;
+}
+
+function createHexButton(onSelect, swatchClass = "palette-swatch") {
+     const button = document.createElement("button");
+
+     button.className = `palette-hex-button ${swatchClass}`;
+     button.type = "button";
+     button.textContent = "HEX";
+     button.setAttribute("aria-label", "Pick custom hex color");
+     button.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          openHexPopover(button, onSelect);
+     });
+
+     return button;
+}
+
+function appendTertiaryMatrixToggle(swatches) {
+     if (!swatches) {
+          return;
+     }
+
+     const button = createTertiaryMatrixToggle();
+
+     swatches.append(button);
+}
+
+function appendPaletteUtilityControls(swatches, onSelect = null, swatchClass = "palette-swatch") {
+     if (!swatches) {
+          return;
+     }
+
+     swatches.append(createHexButton(onSelect, swatchClass));
+     appendTertiaryMatrixToggle(swatches);
+}
+
+function getHexPopover() {
+     let popover = document.querySelector("[data-hex-popover]");
+
+     if (popover) {
+          return popover;
+     }
+
+     popover = document.createElement("div");
+     popover.className = "hex-popover";
+     popover.dataset.hexPopover = "";
+     popover.hidden = true;
+     popover.innerHTML = `
+          <label>
+               <span>HEX</span>
+               <input type="color" value="#ffffee" data-hex-popover-color>
+          </label>
+          <label>
+               <span>Alpha</span>
+               <select data-hex-popover-alpha>
+                    <option value="100" selected>100</option>
+                    <option value="75">75</option>
+                    <option value="50">50</option>
+                    <option value="25">25</option>
+                    <option value="0">0</option>
+               </select>
+          </label>
+     `;
+     document.body.append(popover);
+
+     const colorInput = popover.querySelector("[data-hex-popover-color]");
+     const alphaSelect = popover.querySelector("[data-hex-popover-alpha]");
+     const applyHex = () => {
+          if (typeof activeHexTarget === "function") {
+               activeHexTarget(hexToAlphaColor(colorInput.value, alphaSelect.value));
+          }
+     };
+
+     colorInput.addEventListener("input", applyHex);
+     colorInput.addEventListener("change", applyHex);
+     alphaSelect.addEventListener("change", applyHex);
+
+     return popover;
+}
+
+function openHexPopover(button, onSelect) {
+     const popover = getHexPopover();
+     const rect = button.getBoundingClientRect();
+
+     activeHexTarget = onSelect;
+     popover.hidden = false;
+     popover.style.left = `${Math.min(rect.left, window.innerWidth - popover.offsetWidth - 8)}px`;
+     popover.style.top = `${Math.min(rect.bottom + 3, window.innerHeight - popover.offsetHeight - 8)}px`;
+}
+
+function closeHexPopover() {
+     const popover = document.querySelector("[data-hex-popover]");
+
+     if (popover) {
+          popover.hidden = true;
+     }
 }
 
 function getTertiaryMatrixRows() {
@@ -919,7 +1058,7 @@ function syncPlannerSettingsMatrixHeight() {
 }
 
 function positionTertiaryMatrix() {
-     if (!tertiaryMatrixPopover || !tertiaryMatrixToggle || tertiaryMatrixPopover.hidden) {
+     if (!tertiaryMatrixPopover || !activeTertiaryMatrixToggle || tertiaryMatrixPopover.hidden) {
           return;
      }
 
@@ -927,14 +1066,17 @@ function positionTertiaryMatrix() {
 
      const settingsRect = plannerSettings?.getBoundingClientRect();
      const popoverRect = tertiaryMatrixPopover.getBoundingClientRect();
-     const anchorRight = settingsRect?.right || tertiaryMatrixToggle.getBoundingClientRect().right;
-     if (settingsRect) {
-          tertiaryMatrixPopover.style.setProperty("--matrix-slide-distance", `${Math.round(settingsRect.width)}px`);
+     const toggleRect = activeTertiaryMatrixToggle.getBoundingClientRect();
+     const controlsRect = activeTertiaryMatrixToggle.closest(".item-controls")?.getBoundingClientRect();
+     const anchorRect = controlsRect || settingsRect;
+     const anchorRight = anchorRect?.right || toggleRect.right;
+     if (anchorRect) {
+          tertiaryMatrixPopover.style.setProperty("--matrix-slide-distance", `${Math.round(anchorRect.width)}px`);
      }
      const left = anchorRight;
      const availableWidth = Math.max(180, window.innerWidth - left - 8);
      const top = Math.min(
-          Math.max(0, settingsRect?.top || tertiaryMatrixToggle.getBoundingClientRect().top),
+          Math.max(0, anchorRect?.top || toggleRect.top),
           Math.max(0, window.innerHeight - popoverRect.height)
      );
 
@@ -944,12 +1086,14 @@ function positionTertiaryMatrix() {
 }
 
 function setTertiaryMatrixOpen(isOpen) {
-     if (!tertiaryMatrixPopover || !tertiaryMatrixToggle) {
+     if (!tertiaryMatrixPopover || !activeTertiaryMatrixToggle) {
           return;
      }
 
-     tertiaryMatrixToggle.setAttribute("aria-expanded", String(isOpen));
-     tertiaryMatrixToggle.textContent = "⇧";
+     document.querySelectorAll("[data-tertiary-matrix-toggle]").forEach((toggle) => {
+          toggle.setAttribute("aria-expanded", String(isOpen && toggle === activeTertiaryMatrixToggle));
+          toggle.textContent = "⇧";
+     });
 
      if (isOpen) {
           tertiaryMatrixPopover.hidden = false;
@@ -959,7 +1103,7 @@ function setTertiaryMatrixOpen(isOpen) {
      } else {
           tertiaryMatrixPopover.classList.remove("is-open");
           window.setTimeout(() => {
-               if (tertiaryMatrixToggle.getAttribute("aria-expanded") !== "true") {
+               if (!activeTertiaryMatrixToggle || activeTertiaryMatrixToggle.getAttribute("aria-expanded") !== "true") {
                     tertiaryMatrixPopover.hidden = true;
                }
           }, 150);
@@ -971,7 +1115,8 @@ function updatePalettePreview() {
           return;
      }
 
-     renderColorSwatches(palettePreviewSwatches, getPalette("gray").colors);
+     renderColorSwatches(palettePreviewSwatches, getBasePaletteColors());
+     appendPaletteUtilityControls(palettePreviewSwatches, updateCustomPaperColor);
      syncPlannerSettingsMatrixHeight();
 }
 
@@ -1041,7 +1186,7 @@ function setPaletteControlValue(select, swatches, colorValue) {
      select.value = getPaletteKeyForColor(colorValue);
      renderColorSwatches(
           swatches,
-          getPalette("gray").colors,
+          getBasePaletteColors(),
           colorValue,
           (nextColor) => {
                if (typeof select.onPaletteColorSelect === "function") {
@@ -1050,6 +1195,7 @@ function setPaletteControlValue(select, swatches, colorValue) {
           },
           "item-color-swatch"
      );
+     appendPaletteUtilityControls(swatches, select.onPaletteColorSelect, "item-color-swatch");
 }
 
 function initializePaletteColorControl(select, swatches, defaultColor, onSelect) {
@@ -1067,13 +1213,15 @@ function initializePaletteColorControl(select, swatches, defaultColor, onSelect)
      select.addEventListener("change", () => {
           renderColorSwatches(
                swatches,
-               getPalette("gray").colors,
+               getBasePaletteColors(),
                select.dataset.currentColor,
                select.onPaletteColorSelect,
                "item-color-swatch"
           );
+          appendPaletteUtilityControls(swatches, select.onPaletteColorSelect, "item-color-swatch");
      });
-     renderColorSwatches(swatches, getPalette("gray").colors, defaultColor, select.onPaletteColorSelect, "item-color-swatch");
+     renderColorSwatches(swatches, getBasePaletteColors(), defaultColor, select.onPaletteColorSelect, "item-color-swatch");
+     appendPaletteUtilityControls(swatches, select.onPaletteColorSelect, "item-color-swatch");
 }
 
 function updateCustomSelectDisplay(select) {
@@ -4717,10 +4865,6 @@ paperColorSelect.addEventListener("change", () => {
      changePlannerSetting();
      updatePaperColorSwatches();
 });
-if (paperHexPicker) {
-     paperHexPicker.addEventListener("input", () => updateCustomPaperColor(paperHexPicker.value));
-     paperHexPicker.addEventListener("change", () => updateCustomPaperColor(paperHexPicker.value));
-}
 deskColorSelect.addEventListener("change", changePlannerSetting);
 settingSelects.forEach((select) => {
      select.addEventListener("change", () => updateCustomSelectDisplay(select));
@@ -4734,13 +4878,20 @@ if (guideToggle) {
 if (guideSummary) {
      guideSummary.addEventListener("click", removeGuideFromSummary);
 }
-if (tertiaryMatrixToggle) {
-     tertiaryMatrixToggle.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          setTertiaryMatrixOpen(tertiaryMatrixToggle.getAttribute("aria-expanded") !== "true");
-     });
-}
+document.addEventListener("click", (event) => {
+     const toggle = event.target.closest("[data-tertiary-matrix-toggle]");
+
+     if (!toggle) {
+          return;
+     }
+
+     event.preventDefault();
+     event.stopPropagation();
+     const shouldOpen = toggle.getAttribute("aria-expanded") !== "true";
+
+     activeTertiaryMatrixToggle = toggle;
+     setTertiaryMatrixOpen(shouldOpen);
+}, true);
 pageSnapButtons.forEach((button) => {
      button.addEventListener("click", () => movePageSnap(button.dataset.pageSnap));
 });
@@ -4825,6 +4976,10 @@ document.addEventListener("click", (event) => {
           setTertiaryMatrixOpen(false);
      }
 
+     if (!event.target.closest("[data-hex-popover]") && !event.target.closest(".palette-hex-button")) {
+          closeHexPopover();
+     }
+
      if (!event.target.closest(".planner-item") && !event.target.closest(".planner-settings") && !event.target.closest(".page-snap-controls")) {
           clearSelection();
      }
@@ -4834,6 +4989,7 @@ document.addEventListener("keydown", (event) => {
           closeCustomSelects();
           clearSelectFocus();
           setTertiaryMatrixOpen(false);
+          closeHexPopover();
      }
 });
 window.addEventListener("pointermove", moveActiveItem);
