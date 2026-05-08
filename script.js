@@ -632,7 +632,7 @@ function updatePageLabels() {
           const foldElement = page.querySelector("[data-page-fold-number]");
 
           if (foldElement) {
-               foldElement.dataset.foldNumber = canTurn ? String(foldNumber) : "";
+               foldElement.textContent = canTurn ? String(foldNumber) : "";
           }
           page.querySelector("[data-page-behind-number]")?.replaceChildren(canTurn ? String(behindNumber) : "");
      });
