@@ -83,9 +83,14 @@ const viewZoomLevels = [
 ];
 const viewFocusPoints = ["left", "center", "right"];
 const viewVerticalFocusPoints = ["top", "center", "bottom"];
+const initialNotebookSpreadCount = 5;
 let viewZoomIndex = 0;
 let viewFocusIndex = 1;
 let viewVerticalFocusIndex = 1;
+let currentSpreadIndex = 0;
+let notebookSpreadCount = initialNotebookSpreadCount;
+let pageTurnTimer = 0;
+let pendingSpreadTurn = null;
 let isSinglePageViewport = singlePageViewportQuery.matches;
 let responsiveViewFrame = 0;
 let wheelZoomDelta = 0;
@@ -597,6 +602,124 @@ function movePageSnap(direction) {
      }
 
      moveViewVerticalFocus(direction === "up" ? "previous" : "next");
+}
+
+function getCurrentSpreadPageNumber(side = "left") {
+     return (currentSpreadIndex * 2) + (side === "right" ? 1 : 0);
+}
+
+function getItemSpreadIndex(item) {
+     return Number(item.dataset.spreadIndex || 0);
+}
+
+function setItemSpreadIndex(item, spreadIndex = currentSpreadIndex) {
+     item.dataset.spreadIndex = String(clamp(Number(spreadIndex) || 0, 0, notebookSpreadCount - 1));
+}
+
+function updatePageLabels() {
+     pages.forEach((page) => {
+          const side = getPageId(page);
+          const pageNumberValue = getCurrentSpreadPageNumber(side);
+          const pageNumber = String(pageNumberValue);
+          const isLeft = side === "left";
+          const canTurn = isLeft ? currentSpreadIndex > 0 : currentSpreadIndex < notebookSpreadCount - 1;
+          const foldNumber = isLeft ? pageNumberValue - 1 : pageNumberValue + 1;
+          const behindNumber = isLeft ? pageNumberValue - 2 : pageNumberValue + 2;
+
+          page.dataset.pageNumber = pageNumber;
+          page.classList.toggle("can-turn-page", canTurn);
+          page.querySelector("[data-page-number]")?.replaceChildren(pageNumber);
+          const foldElement = page.querySelector("[data-page-fold-number]");
+
+          if (foldElement) {
+               foldElement.dataset.foldNumber = canTurn ? String(foldNumber) : "";
+          }
+          page.querySelector("[data-page-behind-number]")?.replaceChildren(canTurn ? String(behindNumber) : "");
+     });
+     notebook.dataset.spreadIndex = String(currentSpreadIndex);
+     notebook.dataset.spreadCount = String(notebookSpreadCount);
+}
+
+function updateSpreadItemVisibility() {
+     getAllPlannerItems().forEach((item) => {
+          const isPageItem = Boolean(item.dataset.pageId);
+          const isVisible = !isPageItem || getItemSpreadIndex(item) === currentSpreadIndex;
+
+          item.classList.toggle("is-spread-hidden", !isVisible);
+          if (!isVisible) {
+               closeItemMenu(item);
+               selectedItems.delete(item);
+               item.classList.remove("is-selected");
+          }
+     });
+     selectedItem = selectedItems.size ? Array.from(selectedItems).at(-1) : null;
+     updateObjectControlsState();
+}
+
+function syncNotebookSpread() {
+     updatePageLabels();
+     updateSpreadItemVisibility();
+     updatePageSnapButtons();
+     requestAnimationFrame(refreshPageItemViews);
+}
+
+function animateNotebookSpreadTurn(direction) {
+     window.clearTimeout(pageTurnTimer);
+     notebook.classList.remove("is-turning-next", "is-turning-previous", "is-turning");
+     notebook.dataset.turnDirection = direction > 0 ? "next" : "previous";
+     notebook.classList.add("is-turning");
+     if (direction > 0) {
+          notebook.classList.add("is-turning-next");
+     } else if (direction < 0) {
+          notebook.classList.add("is-turning-previous");
+     }
+     pageTurnTimer = window.setTimeout(() => {
+          notebook.classList.remove("is-turning-next", "is-turning-previous", "is-turning");
+          delete notebook.dataset.turnDirection;
+          pendingSpreadTurn = null;
+     }, 760);
+}
+
+function turnNotebookSpread(step) {
+     const nextSpreadIndex = clamp(currentSpreadIndex + step, 0, notebookSpreadCount - 1);
+
+     if (nextSpreadIndex === currentSpreadIndex || pendingSpreadTurn) {
+          return;
+     }
+
+     clearSelection();
+     pendingSpreadTurn = {
+          from: currentSpreadIndex,
+          to: nextSpreadIndex,
+          direction: step
+     };
+     animateNotebookSpreadTurn(step);
+     currentSpreadIndex = nextSpreadIndex;
+     resetViewPanOffset();
+     window.setTimeout(() => {
+          syncNotebookSpread();
+          applyViewControls();
+          notifyTemplateChanged();
+     }, 380);
+}
+
+function isPageTurnCornerPointer(page, event) {
+     if (!page.classList.contains("can-turn-page")) {
+          return false;
+     }
+
+     const rect = page.getBoundingClientRect();
+     const cellWidth = rect.width / plannerConfig.gridColumns;
+     const cellHeight = rect.height / plannerConfig.gridRows;
+     const localX = event.clientX - rect.left;
+     const localY = event.clientY - rect.top;
+     const isBottomCornerArea = localY >= rect.height - (cellHeight * 2);
+
+     if (page.dataset.turnPage === "next") {
+          return isBottomCornerArea && localX >= rect.width - (cellWidth * 2);
+     }
+
+     return isBottomCornerArea && localX <= cellWidth * 2;
 }
 
 function moveViewVerticalFocus(direction) {
@@ -1604,8 +1727,10 @@ function getDeskTemplateBox(item) {
 }
 
 function getPageTemplateItems() {
-     return getPlannerItems().flatMap((item) => {
-          const page = getItemPage(item);
+     return getAllPlannerItems().flatMap((item) => {
+          const page = item.dataset.pageId
+               ? pages.find((plannerPage) => getPageId(plannerPage) === item.dataset.pageId) || null
+               : null;
 
           if (!page) {
                return [];
@@ -1636,7 +1761,8 @@ function resizePageTemplateItems(items) {
 }
 
 function serializePlannerItem(item) {
-     const page = getItemPage(item);
+     const pageId = item.dataset.pageId || "";
+     const page = pageId ? pages.find((plannerPage) => getPageId(plannerPage) === pageId) || null : null;
      const textElement = getStickyTextElement(item);
      const baseItem = {
           id: item.dataset.templateId,
@@ -1699,7 +1825,9 @@ function serializePlannerItem(item) {
           return {
                ...baseItem,
                placement: "page",
-               page: getPageId(page),
+               spreadIndex: getItemSpreadIndex(item),
+               page: pageId,
+               pageNumber: (getItemSpreadIndex(item) * 2) + (pageId === "right" ? 2 : 1),
                grid: getGridTemplateBox(item, page)
           };
      }
@@ -1740,6 +1868,9 @@ function serializePlannerTemplate() {
           },
           spread: {
                pages: ["left", "right"],
+               currentIndex: currentSpreadIndex,
+               count: notebookSpreadCount,
+               visiblePages: [getCurrentSpreadPageNumber("left"), getCurrentSpreadPageNumber("right")],
                spineLeewayGridColumns: 1
           },
           guides: {
@@ -1747,7 +1878,7 @@ function serializePlannerTemplate() {
                thirds: plannerConfig.guides.thirds,
                fourths: plannerConfig.guides.fourths
           },
-          items: Array.from(document.querySelectorAll(".planner-item:not(.is-floating-source)")).map(serializePlannerItem)
+          items: getAllPlannerItems().map(serializePlannerItem)
      };
 }
 
@@ -1824,6 +1955,9 @@ function getDeskGrid() {
 
 function getItemPage(item) {
      if (item.dataset.pageId) {
+          if (getItemSpreadIndex(item) !== currentSpreadIndex) {
+               return null;
+          }
           return pages.find((page) => getPageId(page) === item.dataset.pageId) || null;
      }
 
@@ -2304,8 +2438,12 @@ function closeItemMenu(item) {
      updateObjectControlsState();
 }
 
-function getPlannerItems() {
+function getAllPlannerItems() {
      return Array.from(document.querySelectorAll(".planner-item:not(.is-floating-source)"));
+}
+
+function getPlannerItems() {
+     return getAllPlannerItems().filter((item) => !item.classList.contains("is-spread-hidden"));
 }
 
 function clearItemSelectionClasses(item) {
@@ -2470,8 +2608,12 @@ function markGridState(item, isOnGrid, page = null) {
      item.classList.toggle("is-on-grid", isOnGrid);
      if (isOnGrid && page) {
           item.dataset.pageId = getPageId(page);
+          setItemSpreadIndex(item);
+          item.classList.remove("is-spread-hidden");
      } else if (!isOnGrid) {
           delete item.dataset.pageId;
+          delete item.dataset.spreadIndex;
+          item.classList.remove("is-spread-hidden");
      }
 }
 
@@ -4916,7 +5058,8 @@ function changePlannerSetting() {
 
 window.perfectPlanner = {
      serializeTemplate: serializePlannerTemplate,
-     snapViewToPage
+     snapViewToPage,
+     turnNotebookSpread
 };
 
 initializeCustomSelects();
@@ -4924,6 +5067,7 @@ initializePalettePreview();
 updateSettingsPanelSteps();
 updateObjectControlsState();
 applyPlannerConfig();
+syncNotebookSpread();
 if (isSinglePageViewport) {
      viewFocusIndex = 0;
 }
@@ -4964,6 +5108,25 @@ document.addEventListener("click", (event) => {
 }, true);
 pageSnapButtons.forEach((button) => {
      button.addEventListener("click", () => movePageSnap(button.dataset.pageSnap));
+});
+pages.forEach((page) => {
+     page.addEventListener("click", (event) => {
+          if (event.target.closest(".planner-item, .item-controls")) {
+               return;
+          }
+
+          if (!isPageTurnCornerPointer(page, event)) {
+               return;
+          }
+
+          turnNotebookSpread(page.dataset.turnPage === "next" ? 1 : -1);
+     });
+     page.addEventListener("pointermove", (event) => {
+          page.classList.toggle("is-corner-hover", isPageTurnCornerPointer(page, event));
+     });
+     page.addEventListener("pointerleave", () => {
+          page.classList.remove("is-corner-hover");
+     });
 });
 settingsTabs.forEach((tab) => {
      tab.addEventListener("click", (event) => {

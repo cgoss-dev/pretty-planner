@@ -954,6 +954,14 @@ body {
      transform: translate(var(--view-pan-x), var(--view-pan-y)) scale(var(--view-zoom));
      transform-origin: center center;
      filter: drop-shadow(0 28px 26px var(--paper-shadow));
+     perspective: 1800px;
+     transform-style: preserve-3d;
+     --turn-sheet-left: 50%;
+     --turn-sheet-radius: 0 var(--border-radius) var(--border-radius) 0;
+     --turn-sheet-origin: left center;
+     --turn-sheet-start: translateX(0) rotateY(0deg) scaleX(1);
+     --turn-sheet-mid: translateX(-50%) rotateY(-84deg) scaleX(0.54);
+     --turn-sheet-end: translateX(-100%) rotateY(-180deg) scaleX(1);
 }
 
 .notebook::after {
@@ -1040,6 +1048,7 @@ body {
 
 .page {
      position: relative;
+     z-index: 1;
      aspect-ratio: var(--page-aspect);
      min-width: 0;
      padding: clamp(28px, 4vw, 60px);
@@ -1101,6 +1110,63 @@ body {
           no-repeat,
           no-repeat;
      border: 0;
+     backface-visibility: hidden;
+     transform-style: preserve-3d;
+     transition:
+          filter 180ms ease,
+          transform 180ms ease;
+}
+
+.page.is-corner-hover {
+     cursor: pointer;
+}
+
+.page-turn-sheet {
+     position: absolute;
+     z-index: 6;
+     left: var(--turn-sheet-left);
+     top: 0;
+     width: 50%;
+     height: 100%;
+     border-radius: var(--turn-sheet-radius);
+     pointer-events: none;
+     opacity: 0;
+     background:
+          linear-gradient(90deg, rgba(17, 17, 17, 0.12), transparent 16%, rgba(255, 255, 255, 0.24) 52%, rgba(17, 17, 17, 0.12)),
+          var(--paper);
+     box-shadow: 0 18px 18px rgba(17, 17, 17, 0.16);
+     transform: var(--turn-sheet-start);
+     transform-origin: var(--turn-sheet-origin);
+     transform-style: preserve-3d;
+}
+
+.notebook.is-turning-previous {
+     --turn-sheet-left: 0;
+     --turn-sheet-radius: var(--border-radius) 0 0 var(--border-radius);
+     --turn-sheet-origin: right center;
+     --turn-sheet-start: translateX(0) rotateY(0deg) scaleX(1);
+     --turn-sheet-mid: translateX(50%) rotateY(84deg) scaleX(0.54);
+     --turn-sheet-end: translateX(100%) rotateY(180deg) scaleX(1);
+}
+
+.notebook.is-turning .page-turn-sheet {
+     opacity: 1;
+     animation: page-turn-roll 760ms cubic-bezier(0.32, 0.02, 0.18, 1) both;
+}
+
+@keyframes page-turn-roll {
+     0% {
+          transform: var(--turn-sheet-start);
+     }
+
+     50% {
+          box-shadow: 0 24px 18px rgba(17, 17, 17, 0.24);
+          transform: var(--turn-sheet-mid);
+     }
+
+     100% {
+          transform: var(--turn-sheet-end);
+     }
 }
 
 .page-left::after,
@@ -1147,6 +1213,154 @@ body {
 
 .page-right::after {
      left: 0;
+}
+
+.page-number,
+.page-behind-number,
+.page-corner-fold {
+     position: absolute;
+     z-index: 4;
+     color: var(--color-gray1);
+     font: 400 var(--font-size-sm) var(--font-noto);
+     line-height: 1;
+     pointer-events: none;
+}
+
+.page-number {
+     bottom: max(8px, calc(var(--dot-grid-size-y) * 0.55));
+}
+
+.page-left .page-number {
+     left: max(10px, calc(var(--dot-grid-size-x) * 0.75));
+}
+
+.page-right .page-number {
+     right: max(10px, calc(var(--dot-grid-size-x) * 0.75));
+}
+
+.page-behind-number {
+     bottom: 0;
+     display: grid;
+     width: calc(var(--dot-grid-size-x) * 3);
+     height: calc(var(--dot-grid-size-y) * 3);
+     align-items: end;
+     background:
+          radial-gradient(circle, var(--dot-grid-color) 0 1px, transparent 1.35px) calc(100% / 3) calc(100% / 3) / calc(100% / 3) calc(100% / 3) repeat,
+          rgba(17, 17, 17, 0.12),
+          var(--paper);
+     opacity: 0;
+     transition: opacity 160ms ease;
+}
+
+.page-left .page-behind-number {
+     left: 0;
+     justify-items: start;
+     padding: 0 0 max(8px, calc(var(--dot-grid-size-y) * 0.55)) max(10px, calc(var(--dot-grid-size-x) * 0.75));
+     border-radius: 0 0 0 var(--border-radius);
+}
+
+.page-right .page-behind-number {
+     right: 0;
+     justify-items: end;
+     padding: 0 max(10px, calc(var(--dot-grid-size-x) * 0.75)) max(8px, calc(var(--dot-grid-size-y) * 0.55)) 0;
+     border-radius: 0 0 var(--border-radius) 0;
+}
+
+.page-corner-fold {
+     bottom: 0;
+     display: grid;
+     width: calc(var(--dot-grid-size-x) * 3);
+     height: calc(var(--dot-grid-size-y) * 3);
+     --fold-border-color: rgba(17, 17, 17, 0.34);
+     place-items: center;
+     overflow: hidden;
+     opacity: 0;
+     font-size: 0;
+     background: transparent;
+     filter: drop-shadow(0 7px 9px rgba(17, 17, 17, 0.16));
+     transition:
+          opacity 160ms ease,
+          transform 160ms ease;
+}
+
+.page-corner-fold::before {
+     content: "";
+     position: absolute;
+     inset: 0;
+     z-index: 0;
+     border-radius: inherit;
+}
+
+.page-corner-fold::after {
+     content: attr(data-fold-number);
+     position: absolute;
+     z-index: 1;
+     color: var(--color-gray1);
+     font: 400 var(--font-size-sm) var(--font-noto);
+     line-height: 1;
+}
+
+.page-left .page-corner-fold {
+     left: 0;
+     border-top: var(--border-sm) solid var(--fold-border-color);
+     border-right: var(--border-sm) solid var(--fold-border-color);
+     border-radius: 0 var(--border-radius) 0 0;
+     background:
+          linear-gradient(45deg, transparent 0 calc(50% - 1px), rgba(17, 17, 17, 0.42) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px));
+     transform: translate(-2px, 2px) rotate(-5deg);
+     transform-origin: left bottom;
+}
+
+.page-left .page-corner-fold::before {
+     background:
+          radial-gradient(circle, var(--dot-grid-color) 0 1px, transparent 1.35px) calc(100% / 3) calc(100% / 3) / calc(100% / 3) calc(100% / 3) repeat,
+          var(--paper),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.32), rgba(17, 17, 17, 0.04));
+     clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+.page-left .page-corner-fold::after { /* Left page folded corner number handler. */
+     top: 35%;
+     right: 35%;
+     transform: translate(50%, -50%) rotate(-90deg);
+}
+
+.page-right .page-corner-fold {
+     right: 0;
+     border-top: var(--border-sm) solid var(--fold-border-color);
+     border-left: var(--border-sm) solid var(--fold-border-color);
+     border-radius: var(--border-radius) 0 0 0;
+     background:
+          linear-gradient(135deg, transparent 0 calc(50% - 1px), rgba(17, 17, 17, 0.42) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px));
+     transform: translate(2px, 2px) rotate(5deg);
+     transform-origin: right bottom;
+}
+
+.page-right .page-corner-fold::before {
+     background:
+          radial-gradient(circle, var(--dot-grid-color) 0 1px, transparent 1.35px) calc(100% / 3) calc(100% / 3) / calc(100% / 3) calc(100% / 3) repeat,
+          var(--paper),
+          linear-gradient(45deg, rgba(255, 255, 255, 0.32), rgba(17, 17, 17, 0.04));
+     clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.page-right .page-corner-fold::after { /* Right page folded corner number handler. */
+     top: 35%;
+     left: 35%;
+     transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.page.can-turn-page.is-corner-hover .page-number {
+     opacity: 0;
+}
+
+.page.can-turn-page.is-corner-hover .page-behind-number,
+.page.can-turn-page.is-corner-hover .page-corner-fold {
+     opacity: 1;
+}
+
+.page.can-turn-page.is-corner-hover .page-corner-fold {
+     transform: translate(0, 0) rotate(0deg);
 }
 
 .page.is-drag-over {
@@ -1262,6 +1476,10 @@ body {
      cursor: grab;
      user-select: none;
      touch-action: none;
+}
+
+.planner-item.is-spread-hidden {
+     display: none !important;
 }
 
 .planner-item {

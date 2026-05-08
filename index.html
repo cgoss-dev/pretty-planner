@@ -137,8 +137,17 @@
                <section class="notebook" aria-label="Open Perfect Planner notebook">
                     <span class="notebook-spine-edge notebook-spine-edge-top" aria-hidden="true"></span>
                     <span class="notebook-spine-edge notebook-spine-edge-bottom" aria-hidden="true"></span>
-                    <div class="page page-left" data-page></div>
-                    <div class="page page-right" data-page></div>
+                    <div class="page page-left" data-page data-turn-page="previous">
+                         <span class="page-number" data-page-number></span>
+                         <span class="page-behind-number" data-page-behind-number></span>
+                         <span class="page-corner-fold" data-page-fold-number></span>
+                    </div>
+                    <div class="page page-right" data-page data-turn-page="next">
+                         <span class="page-number" data-page-number></span>
+                         <span class="page-behind-number" data-page-behind-number></span>
+                         <span class="page-corner-fold" data-page-fold-number></span>
+                    </div>
+                    <div class="page-turn-sheet" data-page-turn-sheet aria-hidden="true"></div>
                </section>
           </div>
      </main>
