@@ -117,8 +117,13 @@
      --menu-fill: rgba(255, 255, 255, 0.95);
      --menu-width: clamp(250px, 30vw, 350px);
      --menu-width-safe: min(var(--menu-width), calc(100vw - 32px));
-     --notebook-width: min(92vw, 1120px, calc((100vh - 112px) * (17 / 11)));
-     --notebook-height: min(50.47vw, 724px, calc(100vh - 112px));
+
+     --notebook-width: min(132vw, 1220px, calc((100vh - 0px) * (17 / 11)));
+     --notebook-height: min(50.47vw, 724px, calc(100vh - 0px));
+     
+     --closed-settings-tabs-height: 34px;
+     --notebook-stage-y: -17px; /* Centers notebook between viewport top and closed tabs. */
+     --page-snap-y-offset: 8px;
      --side-panel-width: calc(var(--notebook-width) / 4);
      --notebook-grid-cell-width: calc(var(--notebook-width) / 68);
      --side-panel-left: calc(((100vw - var(--notebook-width)) / 2) - var(--side-panel-width) - (var(--notebook-grid-cell-width) * 3));
@@ -159,7 +164,7 @@ body {
      min-height: 100vh;
      display: grid;
      place-items: center;
-     padding: clamp(18px, 4vw, 56px);
+     padding: clamp(8px, 2vw, 28px); /* NOTE: page padding */
      background:
           var(--desk-image),
           var(--desk);
@@ -270,13 +275,15 @@ body {
      left: 50%;
 }
 
+/* NOTE: top/bot arrow positions */
+
 .page-snap-button-up {
-     top: min(12px, calc((100vh - var(--notebook-height)) / 2 - 52px));
+     top: var(--page-snap-y-offset);
      transform: translateX(-50%);
 }
 
 .page-snap-button-down {
-     bottom: max(58px, min(12px, calc((100vh - var(--notebook-height)) / 2 - 52px)));
+     bottom: calc(var(--page-snap-y-offset) + var(--closed-settings-tabs-height));
      transform: translateX(-50%) rotate(180deg);
 }
 
@@ -2343,37 +2350,30 @@ body {
      pointer-events: none;
 }
 
-@media (max-width: 880px) {
-     body {
-          overflow: auto;
-     }
+body.is-single-page-viewport {
+     overflow: auto;
+}
 
-     .planner-desk {
-          align-items: start;
-          padding: 112px 24px 24px;
-     }
+body.is-single-page-viewport .planner-settings {
+     width: fit-content !important;
+     inline-size: fit-content !important;
+     max-width: calc(100vw - 32px) !important;
+     max-height: min(68vh, var(--notebook-height));
+     min-height: min(300px, var(--notebook-height));
+     min-width: min(500px, calc(100vw - 32px)) !important;
+     grid-template-columns: 1fr;
+}
 
-     .planner-settings {
-          width: fit-content !important;
-          inline-size: fit-content !important;
-          max-width: calc(100vw - 32px) !important;
-          max-height: min(68vh, var(--notebook-height));
-          min-height: min(300px, var(--notebook-height));
-          min-width: min(500px, calc(100vw - 32px)) !important;
-          grid-template-columns: 1fr;
-     }
+body.is-single-page-viewport .settings-panel {
+     height: 100%;
+}
 
-     .settings-panel {
-          height: 100%;
-     }
+body.is-single-page-viewport .notebook {
+     grid-template-columns: 1fr 1fr;
+}
 
-     .notebook {
-          grid-template-columns: 1fr 1fr;
-     }
-
-     .planner-desk > .sticky-note {
-          display: none;
-     }
+body.is-single-page-viewport .planner-desk > .sticky-note {
+     display: none;
 }
 
 @page {

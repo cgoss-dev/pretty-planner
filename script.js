@@ -23,7 +23,11 @@ const objectControlsEmpty = document.querySelector("[data-object-controls-empty]
 const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]"));
 const zoomToast = document.querySelector("[data-zoom-toast]");
 let customSelectDetails = [];
-const singlePageViewportQuery = window.matchMedia("(max-width: 880px)");
+const singlePageViewportMaxWidth = 1000;
+const singlePageViewportQuery = window.matchMedia(`(max-width: ${singlePageViewportMaxWidth}px)`);
+const notebookViewportHeightReserve = 0;
+const notebookViewportWidth = 132;
+const notebookMaxWidth = 1220;
 
 const resizeEdgeSize = 16;
 const moveStartThreshold = 5;
@@ -355,6 +359,12 @@ function setRootLength(name, value) {
      document.documentElement.style.setProperty(name, `${value}%`);
 }
 
+function getRootPixelValue(name) {
+     const value = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+
+     return Number.isFinite(value) ? value : 0;
+}
+
 function getTextLineHeightCellSize(item) {
      if (!item) {
           return 0;
@@ -420,15 +430,18 @@ function syncViewTargetCenter(zoomAnchor = null) {
           };
           const targetX = horizontalTargets[viewFocusPoints[viewFocusIndex]];
           const targetY = verticalTargets[viewVerticalFocusPoints[viewVerticalFocusIndex]];
+          const currentPanX = getRootPixelValue("--view-pan-x");
+          const currentPanY = getRootPixelValue("--view-pan-y");
+          const notebookStageY = getRootPixelValue("--notebook-stage-y");
 
           if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) {
                return;
           }
 
           const deskCenter = deskRect.left + deskRect.width / 2;
-          const deskMiddle = deskRect.top + deskRect.height / 2;
-          const basePanX = deskCenter - targetX;
-          const basePanY = deskMiddle - targetY;
+          const deskMiddle = deskRect.top + deskRect.height / 2 + notebookStageY;
+          const basePanX = deskCenter - (targetX - currentPanX);
+          const basePanY = deskMiddle - (targetY - currentPanY);
 
           setRootNumber("--view-pan-x", `${basePanX + viewPanOffsetX}px`);
           setRootNumber("--view-pan-y", `${basePanY + viewPanOffsetY}px`);
@@ -450,15 +463,19 @@ function syncViewTargetCenter(zoomAnchor = null) {
 
 function getNotebookWidthFormula(pageWidthInches, pageHeightInches) {
      const spreadRatio = pageWidthInches * 2 / pageHeightInches;
-     const maxViewportWidth = isSinglePageViewport ? 156 : 92;
 
-     return `min(${maxViewportWidth}vw, 1120px, calc((100vh - 112px) * (${spreadRatio})))`;
+     return `min(${notebookViewportWidth}vw, ${notebookMaxWidth}px, calc((100vh - ${notebookViewportHeightReserve}px) * (${spreadRatio})))`;
+}
+
+function syncResponsiveViewportClass() {
+     document.body.classList.toggle("is-single-page-viewport", isSinglePageViewport);
 }
 
 function applyResponsiveViewMode() {
      const nextIsSinglePageViewport = singlePageViewportQuery.matches;
 
      if (nextIsSinglePageViewport === isSinglePageViewport) {
+          syncResponsiveViewportClass();
           if (isSinglePageViewport) {
                applyViewControls();
           }
@@ -466,9 +483,12 @@ function applyResponsiveViewMode() {
      }
 
      isSinglePageViewport = nextIsSinglePageViewport;
+     syncResponsiveViewportClass();
      resetViewPanOffset();
-     if (isSinglePageViewport && viewFocusIndex === 1) {
-          viewFocusIndex = 0;
+     if (isSinglePageViewport) {
+          if (viewFocusIndex === 1) {
+               viewFocusIndex = 0;
+          }
      } else if (!isSinglePageViewport) {
           viewFocusIndex = 1;
      }
@@ -747,7 +767,7 @@ function applyPlannerConfig() {
      setRootNumber("--notebook-dot-grid-size-x", `calc(50% / ${plannerConfig.gridColumns})`);
      setRootNumber("--notebook-grid-cell-width", `calc(var(--notebook-width) / ${plannerConfig.gridColumns * 2})`);
      setRootNumber("--notebook-width", getNotebookWidthFormula(pageWidthInches, pageHeightInches));
-     setRootNumber("--notebook-height", `min(${notebookHeightRatio}vw, 724px, calc(100vh - 112px))`);
+     setRootNumber("--notebook-height", `min(${notebookHeightRatio}vw, 724px, calc(100vh - ${notebookViewportHeightReserve}px))`);
      setRootNumber("--source-sticky-size", `calc(var(--notebook-width) * ${sourceStickyRatio / 100})`);
      setRootNumber("--print-page-width", `${pageWidthInches}in`);
      setRootNumber("--print-page-height", `${pageHeightInches}in`);
@@ -5066,6 +5086,7 @@ initializeCustomSelects();
 initializePalettePreview();
 updateSettingsPanelSteps();
 updateObjectControlsState();
+syncResponsiveViewportClass();
 applyPlannerConfig();
 syncNotebookSpread();
 if (isSinglePageViewport) {
