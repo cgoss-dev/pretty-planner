@@ -959,9 +959,19 @@ body {
      --turn-sheet-left: 50%;
      --turn-sheet-radius: 0 var(--border-radius) var(--border-radius) 0;
      --turn-sheet-origin: left center;
-     --turn-sheet-start: translateX(0) rotateY(0deg) scaleX(1);
-     --turn-sheet-mid: translateX(-50%) rotateY(-84deg) scaleX(0.54);
-     --turn-sheet-end: translateX(-100%) rotateY(-180deg) scaleX(1);
+     --turn-sheet-start: rotateY(0deg);
+     --turn-sheet-mid: rotateY(-90deg);
+     --turn-sheet-end: rotateY(-180deg);
+     --turn-sheet-spine-shadow: linear-gradient(90deg, rgba(17, 17, 17, 0.12), rgba(17, 17, 17, 0.06) calc(var(--dot-grid-size-x) * 0.45), transparent calc(var(--dot-grid-size-x) * 1.05));
+     --turn-sheet-surface-shading: linear-gradient(90deg, transparent, transparent 16%, rgba(255, 255, 255, 0.24) 52%, rgba(17, 17, 17, 0.12));
+     --turn-sheet-spine-edge: polygon(
+          calc(var(--spine-notch-width) * 1.5) 0,
+          100% 0,
+          100% 100%,
+          calc(var(--spine-notch-width) * 1.5) 100%,
+          0 calc(100% - var(--spine-notch-height)),
+          0 var(--spine-notch-height)
+     );
 }
 
 .notebook::after {
@@ -1132,9 +1142,17 @@ body {
      pointer-events: none;
      opacity: 0;
      background:
-          linear-gradient(90deg, rgba(17, 17, 17, 0.12), transparent 16%, rgba(255, 255, 255, 0.24) 52%, rgba(17, 17, 17, 0.12)),
+          var(--turn-sheet-spine-shadow),
+          var(--turn-sheet-surface-shading),
+          radial-gradient(circle at var(--dot-grid-size-x) var(--dot-grid-size-y), var(--dot-grid-color) 0 1px, transparent 1.35px),
           var(--paper);
+     background-size:
+          100% 100%,
+          100% 100%,
+          var(--dot-grid-size-x) var(--dot-grid-size-y),
+          auto;
      box-shadow: 0 18px 18px rgba(17, 17, 17, 0.16);
+     clip-path: var(--turn-sheet-spine-edge);
      transform: var(--turn-sheet-start);
      transform-origin: var(--turn-sheet-origin);
      transform-style: preserve-3d;
@@ -1144,9 +1162,19 @@ body {
      --turn-sheet-left: 0;
      --turn-sheet-radius: var(--border-radius) 0 0 var(--border-radius);
      --turn-sheet-origin: right center;
-     --turn-sheet-start: translateX(0) rotateY(0deg) scaleX(1);
-     --turn-sheet-mid: translateX(50%) rotateY(84deg) scaleX(0.54);
-     --turn-sheet-end: translateX(100%) rotateY(180deg) scaleX(1);
+     --turn-sheet-start: rotateY(0deg);
+     --turn-sheet-mid: rotateY(92deg);
+     --turn-sheet-end: rotateY(180deg);
+     --turn-sheet-spine-shadow: linear-gradient(270deg, rgba(17, 17, 17, 0.12), rgba(17, 17, 17, 0.06) calc(var(--dot-grid-size-x) * 0.45), transparent calc(var(--dot-grid-size-x) * 1.05));
+     --turn-sheet-surface-shading: linear-gradient(270deg, transparent, transparent 16%, rgba(255, 255, 255, 0.24) 52%, rgba(17, 17, 17, 0.12));
+     --turn-sheet-spine-edge: polygon(
+          0 0,
+          calc(100% - (var(--spine-notch-width) * 2)) 0,
+          100% var(--spine-notch-height),
+          100% calc(100% - var(--spine-notch-height)),
+          calc(100% - (var(--spine-notch-width) * 2)) 100%,
+          0 100%
+     );
 }
 
 .notebook.is-turning .page-turn-sheet {
