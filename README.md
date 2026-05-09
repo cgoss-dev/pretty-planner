@@ -26,7 +26,7 @@ Current page settings are included in the serialized template:
 
 - paper size: Letter, Half Letter, A4, or A5
 - paper color: white, vanilla, beige, or black
-- grid: 1/4 inch, 1/8 inch, 1/2 cm, or 1/4 cm
+- grid: 1/4 inch or 1/2 cm
 - guide visibility for halves, thirds, and fourths
 - calculated grid columns and rows for the selected paper and grid
 

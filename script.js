@@ -4,17 +4,13 @@ const plannerSettings = document.querySelector(".planner-settings");
 const notebook = document.querySelector(".notebook");
 const sourceItems = Array.from(document.querySelectorAll("[data-create-item]"));
 const paperSelect = document.querySelector("[data-setting='paper']");
-const gridSelect = document.querySelector("[data-setting='grid']");
 const paperColorSelect = document.querySelector("[data-setting='paper-color']");
 const deskColorSelect = document.querySelector("[data-setting='desk-color']");
 const palettePreviewSwatches = document.querySelector("[data-palette-preview-swatches]");
 const tertiaryMatrixPopover = document.querySelector("[data-tertiary-matrix]");
 const tertiaryMatrixGrid = document.querySelector("[data-tertiary-matrix-grid]");
-const settingSelects = Array.from(document.querySelectorAll("[data-setting]")).filter((select) => select.dataset.setting !== "paper-color");
+const settingSelects = Array.from(document.querySelectorAll("[data-setting]")).filter((select) => !["paper", "grid", "paper-color", "desk-color"].includes(select.dataset.setting));
 const guideInputs = Array.from(document.querySelectorAll("[data-guide]"));
-const guideDetails = document.querySelector(".guide-settings");
-const guideSummary = document.querySelector(".guide-settings summary");
-const guideToggle = document.querySelector("[data-guide-toggle]");
 const settingsTabs = Array.from(document.querySelectorAll("[data-settings-tab]"));
 const settingsPanels = Array.from(document.querySelectorAll("[data-settings-panel]"));
 const settingsStepButtons = Array.from(document.querySelectorAll("[data-settings-step]"));
@@ -22,12 +18,18 @@ const objectControlsShell = document.querySelector("[data-object-controls-shell]
 const objectControlsEmpty = document.querySelector("[data-object-controls-empty]");
 const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]"));
 const zoomToast = document.querySelector("[data-zoom-toast]");
+const settingChoiceInputs = Array.from(document.querySelectorAll("[data-setting-choice]"));
 let customSelectDetails = [];
 const singlePageViewportMaxWidth = 1000;
 const singlePageViewportQuery = window.matchMedia(`(max-width: ${singlePageViewportMaxWidth}px)`);
 const notebookViewportHeightReserve = 0;
 const notebookViewportWidth = 132;
 const notebookMaxWidth = 1220;
+const screenReferencePaper = {
+     unit: "in",
+     width: 8.5,
+     height: 11
+};
 
 const resizeEdgeSize = 16;
 const moveStartThreshold = 5;
@@ -127,26 +129,22 @@ const paperSizes = {
           height: 21
      }
 };
+const paperViewScales = {
+     "letter": 1,
+     "half-letter": 1.28,
+     "a4": 0.92,
+     "a5": 1.28
+};
 const gridSizes = {
      "quarter-inch": {
           label: "1/4 inch",
           unit: "in",
           size: 0.25
      },
-     "eighth-inch": {
-          label: "1/8 inch",
-          unit: "in",
-          size: 0.125
-     },
      "half-centimeter": {
           label: "1/2 cm",
           unit: "cm",
           size: 0.5
-     },
-     "quarter-centimeter": {
-          label: "1/4 cm",
-          unit: "cm",
-          size: 0.25
      }
 };
 const colorPalettes = {
@@ -270,11 +268,11 @@ function convertLength(value, fromUnit, toUnit) {
 
 function buildPlannerConfig() {
      const paperKey = paperSelect ? paperSelect.value : "letter";
-     const gridKey = gridSelect ? gridSelect.value : "quarter-inch";
+     const gridKey = getGridKeyForPaper(paperKey);
      const paperColorKey = paperColorSelect ? paperColorSelect.value : "Offwhite";
      const deskColorKey = deskColorSelect ? deskColorSelect.value : "pink";
      const guides = {
-          halves: false,
+          halves: true,
           thirds: false,
           fourths: false
      };
@@ -341,6 +339,10 @@ function buildPlannerConfig() {
      };
 }
 
+function getGridKeyForPaper(paperKey) {
+     return paperSizes[paperKey]?.unit === "cm" ? "half-centimeter" : "quarter-inch";
+}
+
 function getGridSize(page) {
      const rect = page.getBoundingClientRect();
      const viewZoom = getViewZoom();
@@ -401,6 +403,7 @@ function getTextLineHeightPixels(item, cellCount) {
 function applyViewControls(zoomAnchor = null) {
      const zoom = viewZoomLevels[viewZoomIndex];
 
+     document.documentElement.dataset.viewFocus = viewFocusPoints[viewFocusIndex];
      setRootNumber("--view-zoom", zoom.value);
      setRootNumber("--view-pan-x", "0px");
      setRootNumber("--view-pan-y", "0px");
@@ -461,8 +464,16 @@ function syncViewTargetCenter(zoomAnchor = null) {
      });
 }
 
-function getNotebookWidthFormula(pageWidthInches, pageHeightInches) {
-     const spreadRatio = pageWidthInches * 2 / pageHeightInches;
+function getReferencePaperSizeInches() {
+     return {
+          width: convertLength(screenReferencePaper.width, screenReferencePaper.unit, "in"),
+          height: convertLength(screenReferencePaper.height, screenReferencePaper.unit, "in")
+     };
+}
+
+function getNotebookWidthFormula() {
+     const referencePaper = getReferencePaperSizeInches();
+     const spreadRatio = referencePaper.width * 2 / referencePaper.height;
 
      return `min(${notebookViewportWidth}vw, ${notebookMaxWidth}px, calc((100vh - ${notebookViewportHeightReserve}px) * (${spreadRatio})))`;
 }
@@ -757,16 +768,38 @@ function getViewZoom() {
 function applyPlannerConfig() {
      const pageWidthInches = convertLength(plannerConfig.pageWidth, plannerConfig.grid.unit, "in");
      const pageHeightInches = convertLength(plannerConfig.pageHeight, plannerConfig.grid.unit, "in");
-     const notebookHeightRatio = Math.min(50.47, 78 / (pageWidthInches * 2 / pageHeightInches));
+     const referencePaper = getReferencePaperSizeInches();
+     const referenceSpreadRatio = referencePaper.width * 2 / referencePaper.height;
+     const notebookHeightRatio = Math.min(50.47, 78 / referenceSpreadRatio);
      const sourceStickyRatio = 50 / plannerConfig.gridColumns * stickyGridUnits;
+     const pageViewScale = paperViewScales[plannerConfig.paperKey] || 1;
+     const screenPageWidthInches = pageWidthInches * pageViewScale;
+     const screenPageHeightInches = pageHeightInches * pageViewScale;
+     const pageSpreadWidth = screenPageWidthInches / (referencePaper.width * 2) * 100;
+     const pageSpineGapWidth = Math.max(0, 50 - pageSpreadWidth);
+     const pageLeftInset = (50 - pageSpreadWidth) / 2;
 
      setRootNumber("--page-aspect", `${pageWidthInches} / ${pageHeightInches}`);
      setRootNumber("--spread-aspect", `${pageWidthInches * 2} / ${pageHeightInches}`);
+     setRootNumber("--notebook-screen-aspect", `${referencePaper.width * 2} / ${referencePaper.height}`);
+     setRootNumber("--page-screen-width", `${screenPageWidthInches / referencePaper.width * 100}%`);
+     setRootNumber("--page-screen-height", `${screenPageHeightInches / referencePaper.height * 100}%`);
+     setRootNumber("--page-spread-width", `${pageSpreadWidth}%`);
+     setRootNumber("--page-spine-gap-ratio", pageSpineGapWidth / 100);
+     setRootNumber("--page-spine-x-left-focus", `${50 - pageLeftInset}%`);
+     setRootNumber("--page-spine-x-right-focus", `${50 + pageLeftInset}%`);
+     setRootNumber("--page-turn-left", `${pageLeftInset}%`);
+     setRootNumber("--page-turn-right", `${50 + pageLeftInset}%`);
+     setRootNumber("--page-spread-left-left", `${pageSpineGapWidth}%`);
+     setRootNumber("--page-joined-left-left", `${pageLeftInset + pageSpineGapWidth}%`);
+     setRootNumber("--page-joined-right-left", `${50 - pageLeftInset}%`);
      setRootNumber("--dot-grid-size-x", `calc(100% / ${plannerConfig.gridColumns})`);
      setRootNumber("--dot-grid-size-y", `calc(100% / ${plannerConfig.gridRows})`);
+     setRootNumber("--dot-grid-half-size-x", `calc(50% / ${plannerConfig.gridColumns})`);
+     setRootNumber("--dot-grid-half-size-y", `calc(50% / ${plannerConfig.gridRows})`);
      setRootNumber("--notebook-dot-grid-size-x", `calc(50% / ${plannerConfig.gridColumns})`);
      setRootNumber("--notebook-grid-cell-width", `calc(var(--notebook-width) / ${plannerConfig.gridColumns * 2})`);
-     setRootNumber("--notebook-width", getNotebookWidthFormula(pageWidthInches, pageHeightInches));
+     setRootNumber("--notebook-width", getNotebookWidthFormula());
      setRootNumber("--notebook-height", `min(${notebookHeightRatio}vw, 724px, calc(100vh - ${notebookViewportHeightReserve}px))`);
      setRootNumber("--source-sticky-size", `calc(var(--notebook-width) * ${sourceStickyRatio / 100})`);
      setRootNumber("--print-page-width", `${pageWidthInches}in`);
@@ -820,44 +853,6 @@ function applyPlannerConfig() {
      document.documentElement.dataset.guideHalves = String(plannerConfig.guides.halves);
      document.documentElement.dataset.guideThirds = String(plannerConfig.guides.thirds);
      document.documentElement.dataset.guideFourths = String(plannerConfig.guides.fourths);
-     updateGuideSummary();
-}
-
-function updateGuideSummary() {
-     if (!guideSummary) {
-          return;
-     }
-
-     const selectedGuides = guideOrder.filter((guide) => plannerConfig.guides[guide]);
-     const hasAllGuides = selectedGuides.length === guideOrder.length;
-     const summaryList = document.createElement("span");
-
-     summaryList.className = "guide-summary-list";
-     if (selectedGuides.length) {
-          selectedGuides.forEach((guide) => {
-               const option = document.createElement("span");
-               const checkbox = document.createElement("input");
-               const label = document.createElement("span");
-
-               option.className = "guide-summary-option";
-               option.dataset.guideOption = guide;
-               checkbox.type = "checkbox";
-               checkbox.checked = true;
-               checkbox.tabIndex = -1;
-               checkbox.setAttribute("aria-hidden", "true");
-               label.textContent = guideLabels[guide];
-               option.append(checkbox, label);
-               summaryList.append(option);
-          });
-     } else {
-          summaryList.textContent = "None";
-     }
-
-     guideSummary.replaceChildren(summaryList);
-
-     if (guideToggle) {
-          guideToggle.textContent = hasAllGuides ? "None" : "All";
-     }
 }
 
 function getPalette(paletteKey) {
@@ -1055,13 +1050,14 @@ function renderPaletteControl(swatches, selectedColor = "", onSelect = null, swa
      swatches.replaceChildren();
      appendColorSwatches(
           swatches,
-          [...getPaperPaletteColors(), getClearPaletteColor()],
+          getPaperPaletteColors(),
           selectedColor,
           onSelect,
           swatchClass
      );
-     appendPaletteUtilityControls(swatches, onSelect, swatchClass);
      appendColorSwatches(swatches, getGrayPaletteColors(), selectedColor, onSelect, swatchClass);
+     appendColorSwatches(swatches, [getClearPaletteColor()], selectedColor, onSelect, swatchClass);
+     appendPaletteUtilityControls(swatches, onSelect, swatchClass);
 }
 
 
@@ -1135,7 +1131,7 @@ function getTertiaryMatrixRows() {
                step
           })),
           {
-               label: "Base",
+               label: "Tertiary",
                mode: "base",
                step: 0
           },
@@ -1571,35 +1567,6 @@ function makeCustomSelect(select) {
 
 function initializeCustomSelects() {
      settingSelects.forEach(makeCustomSelect);
-}
-
-function toggleAllGuides() {
-     const shouldSelectAll = guideInputs.some((input) => !input.checked);
-
-     guideInputs.forEach((input) => {
-          input.checked = shouldSelectAll;
-     });
-     changePlannerSetting();
-}
-
-function removeGuideFromSummary(event) {
-     const option = event.target.closest(".guide-summary-option");
-
-     if (!option) {
-          return;
-     }
-
-     const input = guideInputs.find((guideInput) => guideInput.dataset.guide === option.dataset.guideOption);
-
-     event.preventDefault();
-     event.stopPropagation();
-
-     if (!input) {
-          return;
-     }
-
-     input.checked = false;
-     changePlannerSetting();
 }
 
 function selectSettingsTab(tabName) {
@@ -5076,12 +5043,49 @@ function changePlannerSetting() {
      });
 }
 
+function syncSettingChoiceInputs(settingName) {
+     const select = document.querySelector(`[data-setting='${settingName}']`);
+
+     if (!select) {
+          return;
+     }
+
+     settingChoiceInputs
+          .filter((input) => input.dataset.settingChoice === settingName)
+          .forEach((input) => {
+               input.checked = input.value === select.value;
+          });
+}
+
+function syncAllSettingChoiceInputs() {
+     ["paper", "desk-color"].forEach(syncSettingChoiceInputs);
+}
+
+function changeSettingChoice(input) {
+     const settingName = input.dataset.settingChoice;
+     const select = document.querySelector(`[data-setting='${settingName}']`);
+
+     if (!select) {
+          return;
+     }
+
+     if (input.type === "checkbox" && !input.checked) {
+          input.checked = true;
+          return;
+     }
+
+     select.value = input.value;
+     syncSettingChoiceInputs(settingName);
+     select.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
 window.perfectPlanner = {
      serializeTemplate: serializePlannerTemplate,
      snapViewToPage,
      turnNotebookSpread
 };
 
+syncAllSettingChoiceInputs();
 initializeCustomSelects();
 initializePalettePreview();
 updateSettingsPanelSteps();
@@ -5094,25 +5098,27 @@ if (isSinglePageViewport) {
 }
 applyViewControls();
 syncSidebarSnap();
-paperSelect.addEventListener("change", changePlannerSetting);
-gridSelect.addEventListener("change", changePlannerSetting);
+paperSelect.addEventListener("change", () => {
+     syncSettingChoiceInputs("paper");
+     changePlannerSetting();
+});
 paperColorSelect.addEventListener("change", () => {
      changePlannerSetting();
      updatePalettePreview();
 });
-deskColorSelect.addEventListener("change", changePlannerSetting);
+deskColorSelect.addEventListener("change", () => {
+     syncSettingChoiceInputs("desk-color");
+     changePlannerSetting();
+});
 settingSelects.forEach((select) => {
      select.addEventListener("change", () => updateCustomSelectDisplay(select));
+});
+settingChoiceInputs.forEach((input) => {
+     input.addEventListener("change", () => changeSettingChoice(input));
 });
 guideInputs.forEach((input) => {
      input.addEventListener("change", changePlannerSetting);
 });
-if (guideToggle) {
-     guideToggle.addEventListener("click", toggleAllGuides);
-}
-if (guideSummary) {
-     guideSummary.addEventListener("click", removeGuideFromSummary);
-}
 document.addEventListener("click", (event) => {
      const toggle = event.target.closest("[data-tertiary-matrix-toggle]");
 
@@ -5219,10 +5225,6 @@ document.addEventListener("click", (event) => {
      if (shouldSkipNextClear) {
           shouldSkipNextClear = false;
           return;
-     }
-
-     if (guideDetails && !event.target.closest(".guide-settings")) {
-          guideDetails.removeAttribute("open");
      }
 
      customSelectDetails.forEach((details) => {

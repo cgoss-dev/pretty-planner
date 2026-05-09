@@ -81,6 +81,8 @@
      --dot-grid-color: var(--color-gray3);
      --dot-grid-size-x: calc(100% / 34);
      --dot-grid-size-y: calc(100% / 44);
+     --dot-grid-half-size-x: calc(50% / 34);
+     --dot-grid-half-size-y: calc(50% / 44);
      --notebook-dot-grid-size-x: calc(50% / 34);
      --half-x: 50%;
      --half-left-x: var(--half-x);
@@ -114,16 +116,34 @@
      --ink: var(--color-gray1);
      --page-aspect: 8.5 / 11;
      --spread-aspect: 17 / 11;
+     --notebook-screen-aspect: 17 / 11;
+     --page-screen-width: 100%;
+     --page-screen-height: 100%;
+     --page-spread-width: 50%;
+     --page-spine-gap-ratio: 0;
+     --page-spine-x: 50%;
+     --page-spine-x-left-focus: 50%;
+     --page-spine-x-right-focus: 50%;
+     --page-turn-left: 0%;
+     --page-turn-right: 50%;
+     --page-spread-left-left: 0%;
+     --page-joined-left-left: 0%;
+     --page-joined-right-left: 50%;
+     --opposite-page-shift: 0px;
+     --spread-page-shift: 0px;
+     --page-left-shift: 0px;
+     --page-right-shift: 0px;
      --menu-fill: rgba(255, 255, 255, 0.95);
      --menu-width: clamp(250px, 30vw, 350px);
      --menu-width-safe: min(var(--menu-width), calc(100vw - 32px));
 
-     --notebook-width: min(132vw, 1220px, calc((100vh - 0px) * (17 / 11)));
+     --notebook-width: min(132vw, 1220px, calc((100vh - 0px) * var(--notebook-screen-aspect)));
      --notebook-height: min(50.47vw, 724px, calc(100vh - 0px));
      
      --closed-settings-tabs-height: 34px;
      --notebook-stage-y: -17px; /* Centers notebook between viewport top and closed tabs. */
      --page-snap-y-offset: 8px;
+     --page-snap-side-y: calc(50vh + var(--notebook-stage-y));
      --side-panel-width: calc(var(--notebook-width) / 4);
      --notebook-grid-cell-width: calc(var(--notebook-width) / 68);
      --side-panel-left: calc(((100vw - var(--notebook-width)) / 2) - var(--side-panel-width) - (var(--notebook-grid-cell-width) * 3));
@@ -257,7 +277,7 @@ body {
 
 .page-snap-button-prev,
 .page-snap-button-next {
-     top: 50vh;
+     top: var(--page-snap-side-y);
 }
 
 .page-snap-button-prev {
@@ -494,12 +514,56 @@ body {
      font: 400 var(--font-size-sm) var(--font-noto);
 }
 
+.setting-choice-group {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+     gap: 6px;
+}
+
+.guide-settings {
+     display: grid;
+     grid-template-columns: repeat(3, minmax(0, 1fr));
+     gap: 6px;
+}
+
+.setting-choice-group[aria-label="Desk"] {
+     grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.setting-choice {
+     position: relative;
+     min-height: 30px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     gap: 0;
+     padding: 5px 8px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-radius: 6px;
+     background: rgba(255, 255, 255, 0.32);
+     color: var(--color-gray1);
+     cursor: pointer;
+     font: 400 var(--font-size-sm) var(--font-noto);
+     line-height: 1.1;
+     text-align: center;
+}
+
+.setting-choice:has(input:checked) {
+     border-color: rgba(17, 17, 17, 0.32);
+     background: var(--color-gray4);
+}
+
+.setting-choice input {
+     position: absolute;
+     opacity: 0;
+     pointer-events: none;
+}
+
 .native-select {
      display: none;
 }
 
-.custom-select,
-.guide-settings {
+.custom-select {
      position: relative;
      gap: 0;
      margin: 0;
@@ -507,8 +571,7 @@ body {
      border: 0;
 }
 
-.custom-select summary,
-.guide-settings summary {
+.custom-select summary {
      display: flex;
      align-items: center;
      justify-content: space-between;
@@ -527,8 +590,7 @@ body {
      overflow: hidden;
 }
 
-.custom-select summary::-webkit-details-marker,
-.guide-settings summary::-webkit-details-marker {
+.custom-select summary::-webkit-details-marker {
      display: none;
 }
 
@@ -581,6 +643,7 @@ body {
 }
 
 .palette-preview .palette-swatches {
+     grid-template-columns: repeat(12, var(--color-swatch-size));
      padding: 7px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      border-radius: 6px;
@@ -668,18 +731,30 @@ body {
      width: var(--color-swatch-size);
      height: var(--color-swatch-size);
      padding: 0;
-     border: var(--palette-swatch-border);
+     border: var(--border-sm) solid transparent;
      border-radius: var(--palette-swatch-radius);
-     background: rgba(255, 255, 255, 0.56);
+     background:
+          linear-gradient(rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0.56)) padding-box,
+          linear-gradient(
+               90deg,
+               var(--tertiary-01),
+               var(--tertiary-02),
+               var(--tertiary-03),
+               var(--tertiary-04),
+               var(--tertiary-05),
+               var(--tertiary-06),
+               var(--tertiary-07),
+               var(--tertiary-08),
+               var(--tertiary-09),
+               var(--tertiary-10),
+               var(--tertiary-11),
+               var(--tertiary-12)
+          ) border-box;
      color: var(--color-gray1);
      cursor: pointer;
      font: 400 var(--font-size-sm) var(--font-noto);
      line-height: 1;
      overflow: hidden;
-}
-
-.palette-hex-button {
-     background: rgba(255, 255, 255, 0.56);
 }
 
 .hex-popover {
@@ -873,67 +948,6 @@ body {
      }
 }
 
-.guide-summary-list {
-     display: flex;
-     align-items: center;
-     gap: 16px;
-     min-width: 0;
-     overflow: hidden;
-}
-
-.guide-summary-option {
-     display: inline-flex;
-     align-items: center;
-     gap: 4px;
-     min-width: 0;
-}
-
-.guide-summary-option input {
-     margin: 0;
-}
-
-.guide-settings label,
-.guide-toggle {
-     grid-template-columns: auto auto;
-     align-items: center;
-     justify-content: start;
-     gap: 5px;
-     padding: 5px 8px;
-}
-
-.guide-toggle {
-     display: none;
-     width: 100%;
-     border: 0;
-     border-left: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-     border-right: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-     background: rgba(255, 255, 255, 0.48);
-     color: var(--color-gray1);
-     cursor: pointer;
-     font: 400 var(--font-size-sm) var(--font-noto);
-     text-align: left;
-}
-
-.guide-settings input {
-     margin: 0;
-}
-
-.guide-settings[open] {
-     z-index: 6;
-}
-
-.guide-settings[open] label,
-.guide-settings[open] .guide-toggle {
-     display: grid;
-     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-     border-top: 0;
-     background: rgba(255, 255, 255, 0.48);
-}
-
-.guide-settings[open] label:last-child {
-     border-radius: 0 0 6px 6px;
-}
-
 [data-guide-option="halves"] input {
      accent-color: var(--tertiary-12);
 }
@@ -946,16 +960,11 @@ body {
      accent-color: var(--tertiary-08);
 }
 
-.guide-settings:not([open]) label,
-.guide-settings:not([open]) .guide-toggle {
-     display: none;
-}
-
 .notebook {
      position: relative;
      z-index: 2;
      width: var(--notebook-width);
-     aspect-ratio: var(--spread-aspect);
+     aspect-ratio: var(--notebook-screen-aspect);
      display: grid;
      grid-template-columns: 1fr 1fr;
      transform: translate(var(--view-pan-x), var(--view-pan-y)) scale(var(--view-zoom));
@@ -963,7 +972,7 @@ body {
      filter: drop-shadow(0 28px 26px var(--paper-shadow));
      perspective: 1800px;
      transform-style: preserve-3d;
-     --turn-sheet-left: 50%;
+     --turn-sheet-left: var(--page-turn-right);
      --turn-sheet-radius: 0 var(--border-radius) var(--border-radius) 0;
      --turn-sheet-origin: left center;
      --turn-sheet-start: rotateY(0deg);
@@ -984,14 +993,53 @@ body {
      );
 }
 
+:root:not([data-paper="letter"]) {
+     --opposite-page-shift: calc(var(--notebook-width) * var(--page-spine-gap-ratio));
+     --spread-page-shift: calc(var(--opposite-page-shift) / 2);
+     --page-left-shift: var(--spread-page-shift);
+     --page-right-shift: calc(var(--spread-page-shift) * -1);
+}
+
+:root:not([data-paper="letter"])[data-view-focus="left"] {
+     --page-spine-x: var(--page-spine-x-left-focus);
+     --page-left-shift: 0px;
+     --page-right-shift: calc(var(--opposite-page-shift) * -1);
+}
+
+:root:not([data-paper="letter"])[data-view-focus="right"] {
+     --page-spine-x: var(--page-spine-x-right-focus);
+     --page-left-shift: var(--opposite-page-shift);
+     --page-right-shift: 0px;
+}
+
+:root:not([data-paper="letter"]) .notebook {
+     --turn-sheet-left: 50%;
+}
+
+:root:not([data-paper="letter"]) .notebook.is-turning-previous {
+     --turn-sheet-left: var(--page-spread-left-left);
+}
+
+:root:not([data-paper="letter"])[data-view-focus="left"] .notebook {
+     --turn-sheet-left: var(--page-joined-right-left);
+}
+
+:root:not([data-paper="letter"])[data-view-focus="right"] .notebook {
+     --turn-sheet-left: var(--page-turn-right);
+}
+
+:root:not([data-paper="letter"])[data-view-focus="right"] .notebook.is-turning-previous {
+     --turn-sheet-left: var(--page-joined-left-left);
+}
+
 .notebook::after {
      content: "";
      position: absolute;
      z-index: 3;
-     top: 0;
-     bottom: 0;
-     left: calc(50% - (var(--spine-notch-width) / 2));
+     top: calc((100% - var(--page-screen-height)) / 2);
+     left: calc(var(--page-spine-x) - (var(--spine-notch-width) / 2));
      width: var(--spine-notch-width);
+     height: var(--page-screen-height);
      pointer-events: none;
      clip-path: polygon(
           0 0,
@@ -1008,18 +1056,18 @@ body {
 .notebook-spine-edge {
      position: absolute;
      z-index: 5;
-     left: calc(50% - (var(--spine-notch-width) / 2));
+     left: calc(var(--page-spine-x) - (var(--spine-notch-width) / 2));
      width: var(--spine-notch-width);
      height: var(--spine-notch-height);
      pointer-events: none;
 }
 
 .notebook-spine-edge-top {
-     top: 0;
+     top: calc((100% - var(--page-screen-height)) / 2);
 }
 
 .notebook-spine-edge-bottom {
-     bottom: 0;
+     bottom: calc((100% - var(--page-screen-height)) / 2);
 }
 
 .notebook-spine-edge::before,
@@ -1069,13 +1117,16 @@ body {
 .page {
      position: relative;
      z-index: 1;
+     width: var(--page-screen-width);
+     height: var(--page-screen-height);
+     align-self: center;
      aspect-ratio: var(--page-aspect);
      min-width: 0;
      padding: clamp(28px, 4vw, 60px);
      overflow: visible;
      --dot-x: var(--dot-grid-size-x);
      --dot-grid-position: 0 0;
-     --page-number-dot-mask-position: 100% 100%;
+     --page-number-dot-mask-position: calc(100% - var(--dot-grid-size-x) + 1px) calc(100% - var(--dot-grid-size-y) + 1px);
      --half-page-x: var(--half-x);
      --third-x-start: var(--third-x-1);
      --third-x-end: var(--third-x-2);
@@ -1150,9 +1201,9 @@ body {
      position: absolute;
      z-index: 6;
      left: var(--turn-sheet-left);
-     top: 0;
-     width: 50%;
-     height: 100%;
+     top: calc((100% - var(--page-screen-height)) / 2);
+     width: var(--page-spread-width);
+     height: var(--page-screen-height);
      border-radius: var(--turn-sheet-radius);
      pointer-events: none;
      opacity: 0;
@@ -1211,7 +1262,7 @@ body {
 }
 
 .notebook.is-turning-previous {
-     --turn-sheet-left: 0;
+     --turn-sheet-left: var(--page-turn-left);
      --turn-sheet-radius: var(--border-radius) 0 0 var(--border-radius);
      --turn-sheet-origin: right center;
      --turn-sheet-start: rotateY(0deg);
@@ -1310,15 +1361,39 @@ body {
 }
 
 .page-number {
-     bottom: max(8px, calc(var(--dot-grid-size-y) * 0.55));
+     --page-number-x-offset: max(10px, calc(var(--dot-grid-size-x) * 0.75));
+     --page-number-y-offset: max(8px, calc(var(--dot-grid-size-y) * 0.55));
+     bottom: var(--page-number-y-offset);
+}
+
+.outside-corner-dot-mask {
+     position: absolute;
+     z-index: 3;
+     bottom: var(--dot-grid-size-y);
+     width: var(--dot-grid-size-x);
+     height: var(--dot-grid-size-y);
+     box-sizing: border-box;
+     border: 0;
+     background: var(--paper);
+     pointer-events: none;
 }
 
 .page-left .page-number {
-     left: max(10px, calc(var(--dot-grid-size-x) * 0.75));
+     left: var(--page-number-x-offset);
+}
+
+.page-left .outside-corner-dot-mask {
+     left: var(--dot-grid-size-x);
+     transform: translate(-50%, 50%);
 }
 
 .page-right .page-number {
-     right: max(10px, calc(var(--dot-grid-size-x) * 0.75));
+     right: var(--page-number-x-offset);
+}
+
+.page-right .outside-corner-dot-mask {
+     right: var(--dot-grid-size-x);
+     transform: translate(50%, 50%);
 }
 
 .page-behind-number {
@@ -1481,13 +1556,15 @@ body {
 .page-left {
      --dot-x: var(--dot-grid-size-x);
      --dot-grid-position: calc(100% + var(--dot-grid-size-x)) 0;
-     --page-number-dot-mask-position: 0 100%;
+     --page-number-dot-mask-position: calc(var(--dot-grid-size-x) - 1px) calc(100% - var(--dot-grid-size-y) + 1px);
      --half-page-x: var(--half-left-x);
      --third-x-start: var(--third-left-x-1);
      --third-x-end: var(--third-left-x-2);
      --fourth-x-start: var(--fourth-left-x-1);
      --fourth-x-mid: var(--fourth-left-x-2);
      --fourth-x-end: var(--fourth-left-x-3);
+     justify-self: center;
+     transform: translateX(var(--page-left-shift));
      border-radius: var(--border-radius) 0 0 var(--border-radius);
      clip-path: polygon(
           0 0,
@@ -1507,6 +1584,8 @@ body {
      --fourth-x-start: var(--fourth-right-x-1);
      --fourth-x-mid: var(--fourth-right-x-2);
      --fourth-x-end: var(--fourth-right-x-3);
+     justify-self: center;
+     transform: translateX(var(--page-right-shift));
      border-radius: 0 var(--border-radius) var(--border-radius) 0;
      clip-path: polygon(
           calc(var(--page-notch-width) / 2) 0,
