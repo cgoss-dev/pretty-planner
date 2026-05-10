@@ -3,6 +3,9 @@ const plannerDesk = document.querySelector(".planner-desk");
 const plannerSettings = document.querySelector(".planner-settings");
 const notebook = document.querySelector(".notebook");
 const sourceItems = Array.from(document.querySelectorAll("[data-create-item]"));
+const insertPageButton = document.querySelector("[data-insert-page]");
+const deletePageButton = document.querySelector("[data-delete-page]");
+const pageCountStatus = document.querySelector("[data-page-count-status]");
 const clearPageButton = document.querySelector("[data-clear-page]");
 const clearBookButton = document.querySelector("[data-clear-book]");
 const paperSelect = document.querySelector("[data-setting='paper']");
@@ -58,7 +61,8 @@ const itemGridUnits = {
 const templateSchemaVersion = 1;
 const plannerStorageKey = "perfectPlanner:v1";
 const plannerStateSchemaVersion = 1;
-const maxStoredSpreadCount = 60;
+const minNotebookPageCount = 10;
+const maxNotebookPageCount = 1000;
 const inchToCentimeters = 2.54;
 const calendarMonthNames = [
      "January",
@@ -92,10 +96,14 @@ const viewZoomLevels = [
           value: 2
      }
 ];
-const viewFocusPoints = ["left", "center", "right"];
-const initialNotebookSpreadCount = 5;
+const viewFocusPoints = ["left", "right"];
+const viewVerticalFocusPoints = ["top", "mid", "bottom"];
+const initialNotebookPageCount = 10;
+const initialNotebookSpreadCount = Math.ceil(initialNotebookPageCount / 2);
 let viewZoomIndex = 0;
-let viewFocusIndex = 1;
+let viewFocusIndex = 0;
+let viewVerticalFocusIndex = 1;
+let notebookPageCount = initialNotebookPageCount;
 let currentSpreadIndex = 0;
 let notebookSpreadCount = initialNotebookSpreadCount;
 let pageTurnTimer = 0;
@@ -447,6 +455,13 @@ function setRootLength(name, value) {
      document.documentElement.style.setProperty(name, `${value}%`);
 }
 
+function getMiniCalGridUnits(item) {
+     return {
+          width: 8,
+          height: item?.dataset?.monthRows === "2" ? 9 : 8
+     };
+}
+
 function getRootPixelValue(name) {
      const value = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
 
@@ -463,7 +478,7 @@ function getTextLineHeightCellSize(item) {
      }
 
      if (item.dataset.itemType === "mini-cal") {
-          return item.offsetHeight / itemGridUnits["mini-cal"].height;
+          return item.offsetHeight / getMiniCalGridUnits(item).height;
      }
 
      if (item.dataset.itemType === "full-cal" || item.dataset.itemType === "weekly-vertical") {
@@ -509,11 +524,15 @@ function syncViewTargetCenter(zoomAnchor = null) {
           const deskRect = plannerDesk.getBoundingClientRect();
           const horizontalTargets = {
                left: leftPageRect ? leftPageRect.left + leftPageRect.width / 2 : notebookRect.left + notebookRect.width / 4,
-               center: notebookRect.left + notebookRect.width / 2,
                right: rightPageRect ? rightPageRect.left + rightPageRect.width / 2 : notebookRect.left + (notebookRect.width * 0.75)
           };
+          const verticalTargets = {
+               top: notebookRect.top + notebookRect.height / 4,
+               mid: notebookRect.top + notebookRect.height / 2,
+               bottom: notebookRect.top + (notebookRect.height * 0.75)
+          };
           const targetX = horizontalTargets[viewFocusPoints[viewFocusIndex]];
-          const targetY = notebookRect.top + notebookRect.height / 2;
+          const targetY = verticalTargets[viewVerticalFocusPoints[viewVerticalFocusIndex]];
           const currentPanX = getRootPixelValue("--view-pan-x");
           const currentPanY = getRootPixelValue("--view-pan-y");
           const notebookStageY = getRootPixelValue("--notebook-stage-y");
@@ -578,11 +597,9 @@ function applyResponsiveViewMode() {
      syncResponsiveViewportClass();
      resetViewPanOffset();
      if (isSinglePageViewport) {
-          if (viewFocusIndex === 1) {
-               viewFocusIndex = 0;
-          }
-     } else if (!isSinglePageViewport) {
-          viewFocusIndex = 1;
+          viewFocusIndex = 0;
+     } else {
+          viewFocusIndex = clamp(viewFocusIndex, 0, viewFocusPoints.length - 1);
      }
 
      applyPlannerConfig();
@@ -673,16 +690,29 @@ function resetViewPanOffset() {
 
 function moveViewFocus(direction) {
      const step = direction === "next" ? 1 : -1;
+     const nextFocusIndex = clamp(viewFocusIndex + step, 0, viewFocusPoints.length - 1);
+
+     if (nextFocusIndex === viewFocusIndex || !isPageSideAvailable(viewFocusPoints[nextFocusIndex])) {
+          return;
+     }
 
      resetViewPanOffset();
-     viewFocusIndex = clamp(viewFocusIndex + step, 0, viewFocusPoints.length - 1);
+     viewFocusIndex = nextFocusIndex;
+     applyViewControls();
+}
+
+function moveViewVerticalFocus(direction) {
+     const step = direction === "next" ? 1 : -1;
+
+     resetViewPanOffset();
+     viewVerticalFocusIndex = clamp(viewVerticalFocusIndex + step, 0, viewVerticalFocusPoints.length - 1);
      applyViewControls();
 }
 
 function snapViewToPage(pageSide) {
      const nextFocusIndex = viewFocusPoints.indexOf(pageSide);
 
-     if (nextFocusIndex === -1 || pageSide === "center") {
+     if (nextFocusIndex === -1 || !isPageSideAvailable(pageSide)) {
           return;
      }
 
@@ -692,23 +722,98 @@ function snapViewToPage(pageSide) {
 }
 
 function updatePageSnapButtons() {
+     const canUsePageSnapControls = isSinglePageViewport || viewZoomIndex > 0;
+
      pageSnapButtons.forEach((button) => {
           const direction = button.dataset.pageSnap;
 
+          if (!canUsePageSnapControls) {
+               button.hidden = true;
+               return;
+          }
+
           if (direction === "previous") {
                button.hidden = viewFocusIndex <= 0;
+          } else if (direction === "next") {
+               const nextFocusIndex = viewFocusIndex + 1;
+
+               button.hidden = viewFocusIndex >= viewFocusPoints.length - 1 || !isPageSideAvailable(viewFocusPoints[nextFocusIndex]);
+          } else if (direction === "up") {
+               button.hidden = viewVerticalFocusIndex <= 0;
           } else {
-               button.hidden = viewFocusIndex >= viewFocusPoints.length - 1;
+               button.hidden = viewVerticalFocusIndex >= viewVerticalFocusPoints.length - 1;
           }
      });
+     updatePageActionButtons();
 }
 
 function movePageSnap(direction) {
-     moveViewFocus(direction);
+     if (direction === "previous" || direction === "next") {
+          moveViewFocus(direction);
+          return;
+     }
+
+     moveViewVerticalFocus(direction === "up" ? "previous" : "next");
 }
 
 function getCurrentSpreadPageNumber(side = "left") {
      return (currentSpreadIndex * 2) + (side === "right" ? 1 : 0);
+}
+
+function getSpreadCountForPageCount(pageCount) {
+     return Math.max(1, Math.ceil(pageCount / 2));
+}
+
+function normalizeNotebookPageCount(pageCount) {
+     const roundedPageCount = Math.round(Number(pageCount)) || initialNotebookPageCount;
+
+     return clamp(roundedPageCount, minNotebookPageCount, maxNotebookPageCount);
+}
+
+function getPageSideForPageNumber(pageNumber) {
+     return pageNumber % 2 === 0 ? "left" : "right";
+}
+
+function isPageNumberAvailable(pageNumber) {
+     return pageNumber >= 0 && pageNumber < notebookPageCount;
+}
+
+function isFinalRightPlaceholderPage(pageNumber) {
+     return pageNumber === notebookPageCount && pageNumber % 2 === 1;
+}
+
+function isPageSideAvailable(side, spreadIndex = currentSpreadIndex) {
+     return isPageNumberAvailable((spreadIndex * 2) + (side === "right" ? 1 : 0));
+}
+
+function formatPageNumber(pageNumber) {
+     return isPageNumberAvailable(pageNumber) ? String(pageNumber) : "";
+}
+
+function getFocusedPageSide() {
+     return viewFocusPoints[viewFocusIndex] || "left";
+}
+
+function getFocusedPageNumber() {
+     return getCurrentSpreadPageNumber(getFocusedPageSide());
+}
+
+function setNotebookPageCount(pageCount) {
+     notebookPageCount = normalizeNotebookPageCount(pageCount);
+     notebookSpreadCount = getSpreadCountForPageCount(notebookPageCount);
+     currentSpreadIndex = clamp(currentSpreadIndex, 0, notebookSpreadCount - 1);
+     if (!isPageSideAvailable(getFocusedPageSide())) {
+          viewFocusIndex = 0;
+     }
+}
+
+function setFocusedPageNumber(pageNumber) {
+     const nextPageNumber = clamp(Math.round(Number(pageNumber)) || 0, 0, notebookPageCount - 1);
+     const nextSide = getPageSideForPageNumber(nextPageNumber);
+     const nextFocusIndex = viewFocusPoints.indexOf(nextSide);
+
+     currentSpreadIndex = clamp(Math.floor(nextPageNumber / 2), 0, notebookSpreadCount - 1);
+     viewFocusIndex = nextFocusIndex === -1 ? 0 : nextFocusIndex;
 }
 
 function getItemSpreadIndex(item) {
@@ -719,34 +824,72 @@ function setItemSpreadIndex(item, spreadIndex = currentSpreadIndex) {
      item.dataset.spreadIndex = String(clamp(Number(spreadIndex) || 0, 0, notebookSpreadCount - 1));
 }
 
+function getItemPageNumber(item) {
+     return (getItemSpreadIndex(item) * 2) + (item.dataset.pageId === "right" ? 1 : 0);
+}
+
+function getStoredItemPageNumber(itemData) {
+     const spreadIndex = Number(itemData.spreadIndex) || 0;
+     const pageId = itemData.page || itemData.pageId || "left";
+
+     return (spreadIndex * 2) + (pageId === "right" ? 1 : 0);
+}
+
+function setItemPageNumber(item, pageNumber) {
+     item.dataset.spreadIndex = String(Math.floor(pageNumber / 2));
+     item.dataset.pageId = getPageSideForPageNumber(pageNumber);
+}
+
+function updatePageActionButtons() {
+     const focusedPageNumber = getFocusedPageNumber();
+     const focusedPageExists = isPageNumberAvailable(focusedPageNumber);
+
+     if (insertPageButton) {
+          insertPageButton.disabled = notebookPageCount >= maxNotebookPageCount;
+     }
+
+     if (deletePageButton) {
+          deletePageButton.disabled = notebookPageCount <= minNotebookPageCount || !focusedPageExists;
+     }
+
+     if (pageCountStatus) {
+          pageCountStatus.textContent = `${notebookPageCount} pages`;
+     }
+}
+
 function updatePageLabels() {
      pages.forEach((page) => {
           const side = getPageId(page);
           const pageNumberValue = getCurrentSpreadPageNumber(side);
           const pageNumber = String(pageNumberValue);
+          const pageExists = isPageNumberAvailable(pageNumberValue);
+          const isFinalRightPlaceholder = isFinalRightPlaceholderPage(pageNumberValue);
           const isLeft = side === "left";
-          const canTurn = isLeft ? currentSpreadIndex > 0 : currentSpreadIndex < notebookSpreadCount - 1;
+          const canTurn = pageExists && (isLeft ? currentSpreadIndex > 0 : currentSpreadIndex < notebookSpreadCount - 1);
           const foldNumber = isLeft ? pageNumberValue - 1 : pageNumberValue + 1;
           const behindNumber = isLeft ? pageNumberValue - 2 : pageNumberValue + 2;
 
           page.dataset.pageNumber = pageNumber;
+          page.classList.toggle("is-missing-page", !pageExists && !isFinalRightPlaceholder);
+          page.classList.toggle("is-placeholder-page", isFinalRightPlaceholder);
           page.classList.toggle("can-turn-page", canTurn);
-          page.querySelector("[data-page-number]")?.replaceChildren(pageNumber);
+          page.querySelector("[data-page-number]")?.replaceChildren(pageExists ? pageNumber : "");
           const foldElement = page.querySelector("[data-page-fold-number]");
 
           if (foldElement) {
-               foldElement.textContent = canTurn ? String(foldNumber) : "";
+               foldElement.textContent = canTurn ? formatPageNumber(foldNumber) : "";
           }
-          page.querySelector("[data-page-behind-number]")?.replaceChildren(canTurn ? String(behindNumber) : "");
+          page.querySelector("[data-page-behind-number]")?.replaceChildren(canTurn ? formatPageNumber(behindNumber) : "");
      });
      notebook.dataset.spreadIndex = String(currentSpreadIndex);
      notebook.dataset.spreadCount = String(notebookSpreadCount);
+     notebook.dataset.pageCount = String(notebookPageCount);
 }
 
 function updateSpreadItemVisibility() {
      getAllPlannerItems().forEach((item) => {
           const isPageItem = Boolean(item.dataset.pageId);
-          const isVisible = !isPageItem || getItemSpreadIndex(item) === currentSpreadIndex;
+          const isVisible = !isPageItem || (getItemSpreadIndex(item) === currentSpreadIndex && isPageNumberAvailable(getItemPageNumber(item)));
 
           item.classList.toggle("is-spread-hidden", !isVisible);
           if (!isVisible) {
@@ -1841,6 +1984,7 @@ function serializePlannerItem(item) {
                ? {
                     weekNumbers: item.dataset.weekNumbers !== "false",
                     weekStart: item.dataset.weekStart || "monday",
+                    monthRows: item.dataset.monthRows || "1",
                     monthDisplay: item.dataset.monthDisplay || "full",
                     monthVisible: item.dataset.monthDisplay !== "none",
                     month: Number(item.dataset.month) || 0,
@@ -1892,7 +2036,7 @@ function serializePlannerItem(item) {
                placement: "page",
                spreadIndex: getItemSpreadIndex(item),
                page: pageId,
-               pageNumber: (getItemSpreadIndex(item) * 2) + (pageId === "right" ? 2 : 1),
+               pageNumber: getItemPageNumber(item),
                grid: getGridTemplateBox(item, page)
           };
      }
@@ -1935,7 +2079,8 @@ function serializePlannerTemplate() {
                pages: ["left", "right"],
                currentIndex: currentSpreadIndex,
                count: notebookSpreadCount,
-               visiblePages: [getCurrentSpreadPageNumber("left"), getCurrentSpreadPageNumber("right")],
+               pageCount: notebookPageCount,
+               visiblePages: [getCurrentSpreadPageNumber("left"), getCurrentSpreadPageNumber("right")].filter(isPageNumberAvailable),
                spineLeewayGridColumns: 1
           },
           guides: {
@@ -1997,6 +2142,25 @@ function setSelectValue(select, value) {
      }
 }
 
+function normalizeStoredViewFocusIndex(value) {
+     if (value === "right") {
+          return 1;
+     }
+
+     if (value === "left") {
+          return 0;
+     }
+
+     const storedIndex = Number(value);
+
+     if (!Number.isFinite(storedIndex)) {
+          return 0;
+     }
+
+     // Previous saves used 0 = left, 1 = center, 2 = right.
+     return storedIndex >= 2 ? 1 : 0;
+}
+
 function serializePlannerSettings() {
      return {
           paper: paperSelect?.value || "letter",
@@ -2006,7 +2170,9 @@ function serializePlannerSettings() {
           guides: Object.fromEntries(guideInputs.map((input) => [input.dataset.guide, input.checked])),
           view: {
                zoomIndex: viewZoomIndex,
-               focusIndex: viewFocusIndex
+               focusIndex: viewFocusIndex,
+               focusSide: viewFocusPoints[viewFocusIndex],
+               verticalFocusIndex: viewVerticalFocusIndex
           }
      };
 }
@@ -2033,16 +2199,19 @@ function restoreSavedSettings() {
      }
      if (settings.view && typeof settings.view === "object") {
           viewZoomIndex = clamp(Number(settings.view.zoomIndex) || 0, 0, viewZoomLevels.length - 1);
-          viewFocusIndex = clamp(Number(settings.view.focusIndex) || 1, 0, viewFocusPoints.length - 1);
+          viewFocusIndex = normalizeStoredViewFocusIndex(settings.view.focusSide ?? settings.view.focusIndex);
+          viewVerticalFocusIndex = clamp(Number(settings.view.verticalFocusIndex) || 1, 0, viewVerticalFocusPoints.length - 1);
      }
 }
 
 function serializePlannerBook() {
      return {
           schemaVersion: plannerStateSchemaVersion,
+          pageCount: notebookPageCount,
           spread: {
                currentIndex: currentSpreadIndex,
-               count: notebookSpreadCount
+               count: notebookSpreadCount,
+               pageCount: notebookPageCount
           },
           items: getAllPlannerItems().map(serializePlannerItem)
      };
@@ -2083,16 +2252,28 @@ function normalizeStoredBoolean(value, fallback = "false") {
      return value === true || value === "true" ? "true" : "false";
 }
 
+function normalizePlannerItemType(type = "sticky") {
+     return type === "mini-cal2" ? "mini-cal" : type;
+}
+
 function getStoredItemGrid(itemData) {
-     const type = itemData.type || "sticky";
-     const fallback = itemGridUnits[type] || itemGridUnits.sticky;
+     const type = normalizePlannerItemType(itemData.type || "sticky");
+     const isLegacyMiniCal2 = itemData.type === "mini-cal2";
+     const fallback = isLegacyMiniCal2 ? getMiniCalGridUnits({
+          dataset: {
+               monthRows: "2"
+          }
+     }) : itemGridUnits[type] || itemGridUnits.sticky;
      const grid = itemData.grid || {};
+     const storedWidth = Number(grid.width);
+     const storedHeight = Number(grid.height);
+     const shouldUseMiniCal2DefaultSize = isLegacyMiniCal2 && storedWidth === 16 && storedHeight === 15;
 
      return {
           x: Number.isFinite(Number(grid.x)) ? Number(grid.x) : 0,
           y: Number.isFinite(Number(grid.y)) ? Number(grid.y) : 0,
-          width: Math.max(1, Number.isFinite(Number(grid.width)) ? Number(grid.width) : fallback.width),
-          height: Math.max(1, Number.isFinite(Number(grid.height)) ? Number(grid.height) : fallback.height)
+          width: shouldUseMiniCal2DefaultSize ? fallback.width : Math.max(1, Number.isFinite(storedWidth) ? storedWidth : fallback.width),
+          height: shouldUseMiniCal2DefaultSize ? fallback.height : Math.max(1, Number.isFinite(storedHeight) ? storedHeight : fallback.height)
      };
 }
 
@@ -2138,6 +2319,7 @@ function restorePlannerItemSettings(item, itemData) {
           setMiniCalSettings(item, {
                weekNumbers: normalizeStoredBoolean(widget.weekNumbers, "true"),
                weekStart: widget.weekStart,
+               monthRows: widget.monthRows || (itemData.type === "mini-cal2" ? "2" : undefined),
                monthDisplay: widget.monthDisplay || "full",
                monthVisible: normalizeStoredBoolean(widget.monthVisible, "true"),
                month: widget.month !== undefined && widget.month !== null ? String(widget.month) : undefined,
@@ -2159,9 +2341,14 @@ function restorePlannerItemSettings(item, itemData) {
 }
 
 function restorePlannerItem(itemData) {
-     const type = itemData.type || "sticky";
+     const type = normalizePlannerItemType(itemData.type || "sticky");
+     const isPagePlacement = itemData.placement === "page" || itemData.page;
 
      if (!itemGridUnits[type]) {
+          return null;
+     }
+
+     if (isPagePlacement && !isPageNumberAvailable(getStoredItemPageNumber(itemData))) {
           return null;
      }
 
@@ -2170,7 +2357,7 @@ function restorePlannerItem(itemData) {
      plannerDesk.append(item);
      restorePlannerItemSettings(item, itemData);
 
-     if (itemData.placement === "page" || itemData.page) {
+     if (isPagePlacement) {
           const page = pages.find((plannerPage) => getPageId(plannerPage) === (itemData.page || "left")) || pages[0];
           const grid = getGridSize(page);
           const origin = getGridSnapOrigin(page);
@@ -2188,7 +2375,7 @@ function restorePlannerItem(itemData) {
      } else {
           const deskRect = plannerDesk.getBoundingClientRect();
           const frame = itemData.frame || {};
-          const fallback = itemGridUnits[type] || itemGridUnits.sticky;
+          const fallback = itemData.type === "mini-cal2" ? getMiniCalGridUnits(item) : itemGridUnits[type] || itemGridUnits.sticky;
           const frameX = Number(frame.x);
           const frameY = Number(frame.y);
           const frameWidth = Number(frame.width);
@@ -2216,12 +2403,22 @@ function clearCurrentBookItems() {
      updateObjectControlsState();
 }
 
-function getStoredSpreadCount(book) {
+function getStoredPageCount(book) {
      const items = Array.isArray(book?.items) ? book.items : [];
-     const highestSpreadIndex = items.reduce((highest, item) => Math.max(highest, Number(item.spreadIndex) || 0), 0);
-     const storedCount = Number(book?.spread?.count) || initialNotebookSpreadCount;
+     const highestPageNumber = items.reduce((highest, item) => {
+          if (item.placement !== "page" && !item.page) {
+               return highest;
+          }
 
-     return clamp(Math.max(storedCount, highestSpreadIndex + 1, 1), 1, maxStoredSpreadCount);
+          return Math.max(highest, getStoredItemPageNumber(item));
+     }, -1);
+     const storedPageCount = Number(book?.pageCount ?? book?.spread?.pageCount);
+     const storedSpreadCount = Number(book?.spread?.count);
+     const fallbackPageCount = Number.isFinite(storedPageCount) && storedPageCount > 0
+          ? storedPageCount
+          : (Number.isFinite(storedSpreadCount) && storedSpreadCount > 0 ? storedSpreadCount * 2 : initialNotebookPageCount);
+
+     return normalizeNotebookPageCount(Math.max(fallbackPageCount, highestPageNumber + 1, minNotebookPageCount));
 }
 
 function restorePlannerBook(paperKey = plannerConfig.paperKey) {
@@ -2229,8 +2426,11 @@ function restorePlannerBook(paperKey = plannerConfig.paperKey) {
 
      isRestoringPlannerState = true;
      clearCurrentBookItems();
-     notebookSpreadCount = getStoredSpreadCount(book);
+     setNotebookPageCount(getStoredPageCount(book));
      currentSpreadIndex = clamp(Number(book?.spread?.currentIndex) || 0, 0, notebookSpreadCount - 1);
+     if (!isPageSideAvailable(getFocusedPageSide())) {
+          viewFocusIndex = 0;
+     }
      if (book && Array.isArray(book.items)) {
           book.items.forEach(restorePlannerItem);
      }
@@ -2266,6 +2466,69 @@ function clearItems(items) {
      });
      selectedItem = selectedItems.size ? Array.from(selectedItems).at(-1) : null;
      updateObjectControlsState();
+}
+
+function shiftPageItemsFromPage(startPageNumber, offset) {
+     getAllPlannerItems().forEach((item) => {
+          if (!item.dataset.pageId) {
+               return;
+          }
+
+          const pageNumber = getItemPageNumber(item);
+
+          if (pageNumber >= startPageNumber) {
+               setItemPageNumber(item, pageNumber + offset);
+          }
+     });
+}
+
+function insertFocusedPage() {
+     if (notebookPageCount >= maxNotebookPageCount) {
+          return;
+     }
+
+     const insertPageNumber = clamp(getFocusedPageNumber(), 0, notebookPageCount);
+
+     clearSelection();
+     closeItemMenus();
+     shiftPageItemsFromPage(insertPageNumber, 1);
+     setNotebookPageCount(notebookPageCount + 1);
+     setFocusedPageNumber(insertPageNumber);
+     syncNotebookSpread();
+     applyViewControls();
+     notifyTemplateChanged();
+}
+
+function deleteFocusedPage() {
+     const deletePageNumber = getFocusedPageNumber();
+
+     if (notebookPageCount <= minNotebookPageCount || !isPageNumberAvailable(deletePageNumber)) {
+          return;
+     }
+
+     const removedItems = [];
+
+     clearSelection();
+     closeItemMenus();
+     getAllPlannerItems().forEach((item) => {
+          if (!item.dataset.pageId) {
+               return;
+          }
+
+          const pageNumber = getItemPageNumber(item);
+
+          if (pageNumber === deletePageNumber) {
+               removedItems.push(item);
+          } else if (pageNumber > deletePageNumber) {
+               setItemPageNumber(item, pageNumber - 1);
+          }
+     });
+     clearItems(removedItems);
+     setNotebookPageCount(notebookPageCount - 1);
+     setFocusedPageNumber(Math.min(deletePageNumber, notebookPageCount - 1));
+     syncNotebookSpread();
+     applyViewControls();
+     notifyTemplateChanged();
 }
 
 function clearFocusedPage() {
@@ -2492,6 +2755,7 @@ function setItemStyle(item, style) {
      delete item.dataset.fillAlpha;
      delete item.dataset.borderAlpha;
      item.style.setProperty("--sticky-fill", item.dataset.fillColor);
+     item.style.setProperty("--sticky-fill-opaque", item.dataset.fillColor === "transparent" ? "var(--paper-offwhite)" : item.dataset.fillColor);
      item.style.setProperty("--sticky-border-color", item.dataset.borderColor);
      item.style.setProperty("--sticky-border-size", `${item.dataset.borderWidth}px`);
 
@@ -2768,6 +3032,10 @@ function getGridSnappedSize(item, page) {
 }
 
 function getItemGridUnits(item) {
+     if (item.dataset.itemType === "mini-cal") {
+          return getMiniCalGridUnits(item);
+     }
+
      if (item.dataset.itemType === "full-cal" || item.dataset.itemType === "weekly-vertical") {
           return {
                width: plannerConfig.gridColumns,
@@ -3029,6 +3297,7 @@ function groupItems(items, preferredItem = null) {
      nextGroupId += 1;
      items.forEach((item) => {
           item.dataset.groupId = groupId;
+          setResizeCursor(item, "");
      });
      syncSelectionToActionItems(items, preferredItem);
      notifyTemplateChanged();
@@ -3176,6 +3445,10 @@ function markSnapReady(item, isSnapReady) {
 
 function getResizeMode(item, event) {
      if (item !== selectedItem) {
+          return "";
+     }
+
+     if (item.dataset.groupId) {
           return "";
      }
 
@@ -3895,10 +4168,14 @@ function renderMiniCal(item) {
           1,
           ...weekRows.map((weekIndex) => weekIndex + 2)
      ];
+     const hasTallMonthRow = item.dataset.itemType === "mini-cal" && item.dataset.monthRows === "2" && titleVisible;
+     const usesExpandedCalendarUnits = item.dataset.itemType === "full-cal";
+     const titleRowUnits = hasTallMonthRow ? 2 : 1;
+     const weekRowUnits = usesExpandedCalendarUnits ? 2 : 1;
      const visibleColumnCount = 8;
      const visibleRowCount = calendarRows.length;
-     const visibleColumnUnits = 16;
-     const visibleRowUnits = (titleVisible ? 1 : 0) + 1 + (weekRows.length * 2);
+     const visibleColumnUnits = usesExpandedCalendarUnits ? 16 : 8;
+     const visibleRowUnits = (titleVisible ? titleRowUnits : 0) + 1 + (weekRows.length * weekRowUnits);
 
      if (!calendar) {
           calendar = document.createElement("div");
@@ -3910,6 +4187,7 @@ function renderMiniCal(item) {
      calendar.classList.toggle("has-week-numbers", weekNumbersEnabled);
      calendar.classList.toggle("has-title-row", titleVisible);
      calendar.classList.toggle("no-title-row", !titleVisible);
+     calendar.classList.toggle("has-tall-month-row", hasTallMonthRow);
      calendar.style.setProperty("--mini-cal-visible-columns", String(visibleColumnCount));
      calendar.style.setProperty("--mini-cal-visible-rows", String(visibleRowCount));
      calendar.style.setProperty("--mini-cal-visible-column-units", String(visibleColumnUnits));
@@ -3925,13 +4203,13 @@ function renderMiniCal(item) {
 
                const cell = document.createElement("span");
                const dayIndex = column - 1;
-               const isTitleCell = calendarRow === 0 && ((weekNumbersEnabled && column === 0) || (!weekNumbersEnabled && column === 1));
+               const isTitleCell = calendarRow === 0 && column === 1;
                const displayColumn = column + 1;
 
                cell.className = "mini-cal-cell";
                cell.style.gridRow = String(displayRow);
                cell.style.gridColumn = isTitleCell
-                    ? (weekNumbersEnabled ? `1 / span ${visibleColumnCount}` : "2 / span 7")
+                    ? "2 / span 7"
                     : String(displayColumn);
 
                if (calendarRow === 0) {
@@ -3952,8 +4230,7 @@ function renderMiniCal(item) {
                } else if (column === 0) {
                     cell.classList.add("mini-cal-week");
                     if (calendarRow === 1) {
-                         cell.classList.add("weekName");
-                         cell.textContent = "#";
+                         continue;
                     } else {
                          const weekDate = new Date(year, month, 1 - firstDayOffset + ((calendarRow - 2) * 7));
                          const weekNumberLabel = document.createElement("span");
@@ -4120,15 +4397,12 @@ function renderWeeklyVertical(item) {
 
                if (calendarRow === 0 && column === 0) {
                     cell.classList.add("weekly-vertical-title", (month + 1) % 2 === 1 ? "monthOdd" : "monthEven");
-                    cell.style.gridColumn = weekNumbersEnabled
-                         ? `span ${renderedColumnCount}`
-                         : `2 / span ${renderedColumnCount - 1}`;
+                    cell.style.gridColumn = `2 / span ${renderedColumnCount - 1}`;
                     cell.textContent = titleParts.join(" ");
                } else if (calendarRow === 0) {
                     continue;
                } else if (calendarRow === 1 && column === weekNumberColumn) {
-                    cell.classList.add("weekly-vertical-week", "weekName");
-                    cell.textContent = "#";
+                    continue;
                } else if (column === weekNumberColumn) {
                     cell.classList.add("weekly-vertical-week", "weekNumberCell");
                     if (calendarRow === 2) {
@@ -4266,11 +4540,41 @@ function syncStartDayOptions(select, year, month, selectedDay) {
      select.value = String(nextDay);
 }
 
+function syncMiniCalMonthRowsSize(item, previousMonthRows) {
+     if (item.dataset.itemType !== "mini-cal" || previousMonthRows === item.dataset.monthRows) {
+          return;
+     }
+
+     const page = getItemPage(item);
+
+     if (!page) {
+          return;
+     }
+
+     const grid = getGridSize(page);
+     const box = getItemBox(item);
+     const previousHeight = previousMonthRows === "2" ? 9 : 8;
+     const nextHeight = getMiniCalGridUnits(item).height;
+     const currentHeight = Math.round(box.height / grid.y);
+
+     if (currentHeight !== previousHeight) {
+          return;
+     }
+
+     setItemBox(item, {
+          ...box,
+          height: grid.y * nextHeight
+     });
+     positionItemControls(item);
+}
+
 function setMiniCalSettings(item, settings = {}) {
      const today = new Date();
+     const previousMonthRows = item.dataset.monthRows || "1";
 
      item.dataset.weekNumbers = settings.weekNumbers || item.dataset.weekNumbers || "true";
      item.dataset.weekStart = settings.weekStart || item.dataset.weekStart || "monday";
+     item.dataset.monthRows = settings.monthRows || item.dataset.monthRows || "1";
      item.dataset.monthDisplay = settings.monthDisplay || item.dataset.monthDisplay || "full";
      item.dataset.monthVisible = item.dataset.monthDisplay === "none" ? "false" : "true";
      item.dataset.month = settings.month || item.dataset.month || String(today.getMonth());
@@ -4286,11 +4590,13 @@ function setMiniCalSettings(item, settings = {}) {
      item.dataset.timeVisible = settings.timeVisible ?? item.dataset.timeVisible ?? "true";
      item.dataset.shareWeekends = settings.shareWeekends ?? item.dataset.shareWeekends ?? "false";
      renderMiniCal(item);
+     syncMiniCalMonthRowsSize(item, previousMonthRows);
      updateCalendarGridMetrics(item, getItemPage(item), getItemBox(item));
 
      const controls = getItemControls(item) || item;
      const weekNumberInput = controls.querySelector("[data-widget-control='week-numbers']");
      const weekStartSelect = controls.querySelector("[data-widget-control='week-start']");
+     const monthRowsInput = controls.querySelector("[data-widget-control='month-rows']");
      const monthSelect = controls.querySelector("[data-widget-control='month']");
      const monthDisplaySelect = controls.querySelector("[data-widget-control='month-display']");
      const yearSelect = controls.querySelector("[data-widget-control='year']");
@@ -4309,6 +4615,10 @@ function setMiniCalSettings(item, settings = {}) {
 
      if (weekStartSelect) {
           weekStartSelect.value = item.dataset.weekStart;
+     }
+
+     if (monthRowsInput) {
+          monthRowsInput.checked = item.dataset.monthRows === "2";
      }
 
      if (monthSelect) {
@@ -4415,6 +4725,8 @@ function makePlannerItem(type = "sticky") {
      const weekNumberInput = document.createElement("input");
      const weekStartLabel = document.createElement("label");
      const weekStartSelect = document.createElement("select");
+     const monthRowsLabel = document.createElement("label");
+     const monthRowsInput = document.createElement("input");
      const monthLabel = document.createElement("label");
      const monthSelect = document.createElement("select");
      const monthDisplayLabel = document.createElement("label");
@@ -4640,6 +4952,12 @@ function makePlannerItem(type = "sticky") {
           option.textContent = value[0].toUpperCase() + value.slice(1);
           weekStartSelect.append(option);
      });
+     monthRowsLabel.className = "item-control-row item-widget-control item-widget-control-month-rows";
+     monthRowsLabel.textContent = "Month 2x";
+     monthRowsInput.type = "checkbox";
+     monthRowsInput.dataset.widgetControl = "month-rows";
+     monthRowsInput.setAttribute("aria-label", "Use two-row calendar month heading");
+     monthRowsInput.title = "Use two-row month heading";
      monthLabel.className = "item-control-row item-widget-control";
      monthLabel.textContent = "Month";
      monthSelect.dataset.widgetControl = "month";
@@ -4782,7 +5100,11 @@ function makePlannerItem(type = "sticky") {
      yearDisplayLabel.append(yearDisplaySelect);
      weekStartLabel.append(weekStartSelect);
      weekNumberLabel.append(weekNumberInput);
+     monthRowsLabel.append(monthRowsInput);
      calendarAttributesGrid.append(weekStartLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
+     if (type === "mini-cal") {
+          calendarAttributesGrid.append(monthRowsLabel);
+     }
      startDayLabel.append(startDaySelect);
      visibleDaysLabel.append(visibleDaysSelect);
      timeIncrementLabel.append(timeIncrementSelect);
@@ -5044,6 +5366,11 @@ function makePlannerItem(type = "sticky") {
                weekStart: weekStartSelect.value
           });
      });
+     monthRowsInput.addEventListener("change", () => {
+          applyMiniCalSettingsToActionItems(item, {
+               monthRows: monthRowsInput.checked ? "2" : "1"
+          });
+     });
      monthSelect.addEventListener("change", () => {
           applyMiniCalSettingsToActionItems(item, {
                month: monthSelect.value
@@ -5149,6 +5476,7 @@ function copyItemConfiguration(source, target) {
           setMiniCalSettings(target, {
                weekNumbers: source.dataset.weekNumbers,
                weekStart: source.dataset.weekStart,
+               monthRows: source.dataset.monthRows,
                monthDisplay: source.dataset.monthDisplay,
                monthVisible: source.dataset.monthVisible,
                month: source.dataset.month,
@@ -5180,6 +5508,34 @@ function copyItemConfiguration(source, target) {
      }
 }
 
+function advanceDuplicatedCalendarView(source, target) {
+     if (!isCalendarItem(source) || !isCalendarItem(target)) {
+          return;
+     }
+
+     if (source.dataset.itemType === "weekly-vertical") {
+          const visibleDays = clamp(Number(source.dataset.visibleDays) || 7, 1, 7);
+          const nextStartDate = getWeeklyViewStartDate(source);
+
+          nextStartDate.setDate(nextStartDate.getDate() + visibleDays);
+          setMiniCalSettings(target, {
+               month: String(nextStartDate.getMonth()),
+               year: String(nextStartDate.getFullYear()),
+               startDay: String(nextStartDate.getDate())
+          });
+          return;
+     }
+
+     const month = Number(source.dataset.month) || 0;
+     const year = Number(source.dataset.year) || new Date().getFullYear();
+     const nextMonthDate = new Date(year, month + 1, 1);
+
+     setMiniCalSettings(target, {
+          month: String(nextMonthDate.getMonth()),
+          year: String(nextMonthDate.getFullYear())
+     });
+}
+
 function duplicateItem(item) {
      const actionItems = getActionItems(item);
 
@@ -5207,6 +5563,7 @@ function duplicateItem(item) {
 
      parent.append(duplicate);
      copyItemConfiguration(item, duplicate);
+     advanceDuplicatedCalendarView(item, duplicate);
      markGridState(duplicate, Boolean(page), page);
      setItemBox(duplicate, nextBox);
      selectItem(duplicate);
@@ -5504,6 +5861,10 @@ function startSourceMove(event) {
 }
 
 function startResize(item, event, mode) {
+     if (item.dataset.groupId) {
+          return;
+     }
+
      event.preventDefault();
      closeItemMenus();
      selectItem(item);
@@ -5782,6 +6143,8 @@ settingChoiceInputs.forEach((input) => {
 guideInputs.forEach((input) => {
      input.addEventListener("change", changePlannerSetting);
 });
+insertPageButton?.addEventListener("click", insertFocusedPage);
+deletePageButton?.addEventListener("click", deleteFocusedPage);
 clearPageButton?.addEventListener("click", clearFocusedPage);
 clearBookButton?.addEventListener("click", clearCurrentBook);
 document.addEventListener("click", (event) => {

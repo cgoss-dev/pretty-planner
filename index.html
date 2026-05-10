@@ -10,13 +10,15 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee+Shade&family=Dancing+Script:wght@400..700&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-25">
+     <link rel="stylesheet" href="style.css?v=planner-storage-43">
 </head>
 <body>
      <main class="planner-desk">
           <div class="page-snap-controls" aria-label="Planner page navigation">
                <button class="page-snap-button page-snap-button-prev" type="button" data-page-snap="previous" aria-label="Previous page">&#8679;</button>
                <button class="page-snap-button page-snap-button-next" type="button" data-page-snap="next" aria-label="Next page">&#8679;</button>
+               <button class="page-snap-button page-snap-button-up" type="button" data-page-snap="up" aria-label="Page up">&#8679;</button>
+               <button class="page-snap-button page-snap-button-down" type="button" data-page-snap="down" aria-label="Page down">&#8679;</button>
           </div>
 
           <div class="zoom-toast" data-zoom-toast aria-live="polite" aria-atomic="true">100%</div>
@@ -136,6 +138,12 @@
                          <div class="palette-swatches" data-palette-preview-swatches></div>
                     </div>
 
+                    <div class="page-panel-actions">
+                         <button class="settings-action-button" type="button" data-insert-page>Insert Page</button>
+                         <button class="settings-action-button" type="button" data-delete-page>Delete Page</button>
+                         <span class="page-count-status" data-page-count-status aria-live="polite"></span>
+                    </div>
+
                </div>
 
                <div class="settings-panel add-panel" id="add-panel" role="tabpanel" data-settings-panel="add" hidden>
@@ -202,6 +210,6 @@
           </div>
      </main>
 
-     <script src="script.js?v=planner-storage-25"></script>
+     <script src="script.js?v=planner-storage-43"></script>
 </body>
 </html>

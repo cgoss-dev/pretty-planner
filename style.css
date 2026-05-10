@@ -68,7 +68,15 @@
      --arrow-control-fill: var(--tint-50);
      --arrow-active-fill: var(--color-gray3);
      --arrow-border: var(--border-sm) solid rgba(17, 17, 17, 0.25);
-     --calendar-tint: rgba(17, 17, 17, 0.04);
+     --calendar-tint-alpha: 0.1;
+     --calendar-tint: rgba(0, 0, 0, var(--calendar-tint-alpha));
+     --calendar-weekday-header-tint: rgba(0, 0, 0, calc(var(--calendar-tint-alpha) * 2));
+     --calendar-tint-background:
+          linear-gradient(var(--calendar-tint), var(--calendar-tint)),
+          var(--sticky-fill, var(--paper-offwhite));
+     --calendar-weekday-header-background:
+          linear-gradient(var(--calendar-weekday-header-tint), var(--calendar-weekday-header-tint)),
+          var(--sticky-fill-opaque, var(--sticky-fill, var(--paper-offwhite)));
 
      --desk: var(--paper-linen);
      --desk-image: none;
@@ -78,7 +86,7 @@
      --view-zoom: 1;
      --view-pan-x: 0px;
      --view-pan-y: 0px;
-     --dot-grid-color: var(--color-gray3);
+     --dot-grid-color: var(--color-gray4);
      --dot-grid-size-x: calc(100% / 34);
      --dot-grid-size-y: calc(100% / 44);
      --dot-grid-half-size-x: calc(50% / 34);
@@ -108,9 +116,9 @@
      --fourth-y-1: 25%;
      --fourth-y-2: 50%;
      --fourth-y-3: 75%;
-     --half-guide-opacity: 0.25;
-     --third-guide-opacity: 0.25;
-     --fourth-guide-opacity: 0.25;
+     --half-guide-opacity: 0.5;
+     --third-guide-opacity: 0.5;
+     --fourth-guide-opacity: 0.5;
      --source-sticky-size: calc(var(--notebook-width) * 0.1764705882);
      --sticky-grid-units: 12;
      --ink: var(--color-gray1);
@@ -142,6 +150,7 @@
      
      --closed-settings-tabs-height: 34px;
      --notebook-stage-y: -17px; /* Centers notebook between viewport top and closed tabs. */
+     --page-snap-y-offset: 8px;
      --page-snap-side-y: calc(50vh + var(--notebook-stage-y));
      --side-panel-width: calc(var(--notebook-width) / 4);
      --notebook-grid-cell-width: calc(var(--notebook-width) / 68);
@@ -287,6 +296,25 @@ body {
 .page-snap-button-next {
      right: 16px;
      transform: translateY(-50%) rotate(90deg);
+}
+
+.page-snap-button-up,
+.page-snap-button-down {
+     left: 50%;
+}
+
+.page-snap-button-up {
+     top: var(--page-snap-y-offset);
+     transform: translateX(-50%);
+}
+
+.page-snap-button-down {
+     bottom: calc(var(--page-snap-y-offset) + var(--closed-settings-tabs-height));
+     transform: translateX(-50%) rotate(180deg);
+}
+
+.planner-desk.has-open-main-menu .page-snap-button-down {
+     display: none;
 }
 
 .zoom-toast {
@@ -1218,6 +1246,11 @@ body {
      cursor: pointer;
 }
 
+.page.is-missing-page {
+     opacity: 0;
+     pointer-events: none;
+}
+
 .page-turn-sheet {
      position: absolute;
      z-index: 6;
@@ -1646,7 +1679,8 @@ body {
      gap: 22px 12px;
 }
 
-.add-panel-actions {
+.add-panel-actions,
+.page-panel-actions {
      grid-column: 1 / -1;
      width: 100%;
      display: grid;
@@ -1654,6 +1688,14 @@ body {
      justify-content: center;
      gap: 8px;
      margin-top: 2px;
+}
+
+.page-count-status {
+     grid-column: 1 / -1;
+     justify-self: center;
+     color: var(--color-gray2);
+     font: 400 var(--font-size-sm) var(--font-noto);
+     line-height: 1;
 }
 
 .settings-action-button {
@@ -1670,6 +1712,13 @@ body {
 
 .settings-action-button:hover {
      background: var(--color-gray4);
+}
+
+.settings-action-button:disabled {
+     border-color: rgba(17, 17, 17, 0.12);
+     background: rgba(255, 255, 255, 0.18);
+     color: var(--color-gray4);
+     cursor: not-allowed;
 }
 
 .add-panel .sticky-note,
@@ -1827,18 +1876,13 @@ body {
      height: calc((var(--mini-cal-visible-rows, 8) / 8) * 100%);
      overflow: hidden;
      border-radius: inherit;
-     outline: var(--sticky-border-size, var(--border-sm)) solid var(--sticky-border-color, rgba(17, 17, 17, 0.18));
-     outline-offset: calc(var(--sticky-border-size, var(--border-sm)) * -1);
+     outline: 0;
      background: transparent;
      grid-template-columns: repeat(8, calc(100% / var(--mini-cal-visible-columns, 8)));
      grid-template-rows: repeat(8, calc(100% / var(--mini-cal-visible-rows, 8)));
 }
 
-.mini-cal:not(.has-week-numbers) {
-     outline: 0;
-}
-
-.mini-cal:not(.has-week-numbers)::before {
+.mini-cal::before {
      content: "";
      position: absolute;
      inset: 0 0 0 calc(100% / 8);
@@ -1863,6 +1907,13 @@ body {
      grid-template-rows:
           var(--weekly-row-cell-height, 12px)
           repeat(6, calc(var(--weekly-row-cell-height, 12px) * 2));
+}
+
+.planner-item-mini-cal .mini-cal.has-tall-month-row {
+     height: calc((var(--mini-cal-visible-row-units, 9) / 9) * 100%);
+     grid-template-rows:
+          calc((100% / var(--mini-cal-visible-row-units, 9)) * 2)
+          repeat(7, calc(100% / var(--mini-cal-visible-row-units, 9)));
 }
 
 .mini-cal-cell {
@@ -1901,8 +1952,8 @@ body {
 
 .planner-item-mini-cal .weekNumberCell,
 .planner-item-full-cal .weekNumberCell {
-     place-items: start;
-     padding: 3px;
+     place-items: center;
+     padding: 0;
 }
 
 .mini-cal-day-number {
@@ -1923,7 +1974,7 @@ body {
 }
 
 .weekNumber {
-     align-self: start;
+     align-self: center;
      justify-self: center;
 }
 
@@ -1991,24 +2042,28 @@ body {
 }
 
 .mini-cal-month,
-.mini-cal-week,
 .mini-cal-day-name {
-     background:
-          linear-gradient(var(--calendar-tint), var(--calendar-tint)),
-          var(--sticky-fill, var(--paper-offwhite));
+     background: var(--calendar-tint-background);
      color: var(--color-gray1);
+}
+
+.mini-cal-week {
+     place-items: center;
+     padding: 0;
+     border-right: 0;
+     border-bottom: 0;
+     background: transparent;
+     color: var(--color-gray3);
 }
 
 .planner-item-mini-cal .mini-cal-weekend,
 .planner-item-full-cal .mini-cal-weekend {
-     background:
-          linear-gradient(var(--calendar-tint), var(--calendar-tint)),
-          var(--sticky-fill, var(--paper-offwhite));
+     background: var(--calendar-tint-background);
 }
 
 .planner-item-mini-cal .mini-cal-day-name,
 .planner-item-full-cal .mini-cal-day-name {
-     background: var(--color-gray4);
+     background: var(--calendar-weekday-header-background);
 }
 
 /* NOTE: weeklyVertical */
@@ -2020,18 +2075,13 @@ body {
      height: 100%;
      overflow: hidden;
      border-radius: inherit;
-     outline: var(--sticky-border-size, var(--border-sm)) solid var(--sticky-border-color, rgba(17, 17, 17, 0.18));
-     outline-offset: calc(var(--sticky-border-size, var(--border-sm)) * -1);
+     outline: 0;
      background: transparent;
      grid-template-columns: calc(var(--weekly-column-cell-width, 12px) * 2) repeat(var(--weekly-day-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 2), 1fr));
      grid-template-rows: repeat(var(--weekly-row-count, 50), var(--weekly-row-cell-height, 12px));
 }
 
-.weekly-vertical:not(.has-week-numbers) {
-     outline: 0;
-}
-
-.weekly-vertical:not(.has-week-numbers)::before {
+.weekly-vertical::before {
      content: "";
      position: absolute;
      inset: 0 0 0 calc(var(--weekly-column-cell-width, 12px) * 2);
@@ -2062,12 +2112,18 @@ body {
 }
 
 .weekly-vertical-title,
-.weekly-vertical-time-heading,
-.weekly-vertical-week {
-     background:
-          linear-gradient(var(--calendar-tint), var(--calendar-tint)),
-          var(--sticky-fill, var(--paper-offwhite));
+.weekly-vertical-time-heading {
+     background: var(--calendar-tint-background);
      color: var(--color-gray1);
+}
+
+.weekly-vertical-week {
+     place-items: center;
+     padding: 0;
+     border-right: 0;
+     border-bottom: 0;
+     background: transparent;
+     color: var(--color-gray3);
 }
 
 .weekly-vertical-date {
@@ -2075,9 +2131,6 @@ body {
      align-items: center;
      justify-content: center;
      gap: 0.35em;
-     background:
-          linear-gradient(var(--calendar-tint), var(--calendar-tint)),
-          var(--sticky-fill, var(--paper-offwhite));
      padding: 3px;
 }
 
@@ -2105,9 +2158,7 @@ body {
 
 .weekly-vertical-time {
      justify-items: end;
-     background:
-          linear-gradient(var(--calendar-tint), var(--calendar-tint)),
-          var(--sticky-fill, var(--paper-offwhite));
+     background: var(--calendar-tint-background);
      padding-right: 3px;
      color: var(--color-gray1);
      font-weight: 400;
@@ -2130,15 +2181,13 @@ body {
 
 .weekly-vertical-weekend,
 .weekly-vertical-shared-weekend {
-     background:
-          linear-gradient(var(--calendar-tint), var(--calendar-tint)),
-          var(--sticky-fill, var(--paper-offwhite));
+     background: var(--calendar-tint-background);
 }
 
 .weekly-vertical-date,
 .weekly-vertical-date.weekly-vertical-weekend,
 .weekly-vertical-date.weekly-vertical-shared-weekend {
-     background: var(--color-gray4);
+     background: var(--calendar-weekday-header-background);
 }
 
 .weekly-vertical-edge-right {
@@ -2502,6 +2551,10 @@ body {
      grid-column: auto;
      justify-self: start;
      width: auto;
+}
+
+.item-calendar-attributes-grid .item-widget-control-month-rows {
+     grid-column: 2;
 }
 
 .item-widget-group-title {
