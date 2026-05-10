@@ -1126,6 +1126,18 @@ body {
      overflow: visible;
      --dot-x: var(--dot-grid-size-x);
      --dot-grid-position: 0 0;
+     --grid-snap-origin-x: 0;
+     --grid-snap-origin-y: 0;
+     --dot-repeat-position-x: calc(var(--grid-snap-origin-x) * var(--dot-grid-size-x));
+     --dot-repeat-position-y: calc(var(--grid-snap-origin-y) * var(--dot-grid-size-y));
+     --dot-repeat-position: calc(var(--dot-repeat-position-x) + var(--dot-grid-size-x) - 1px) calc(var(--dot-repeat-position-y) + var(--dot-grid-size-y) - 1px);
+     --dot-edge-mask-width: 2px;
+     --dot-edge-mask-height: 2px;
+     --dot-bottom-mask-height: calc(var(--dot-grid-size-y) * 0.5);
+     --outside-edge-dot-mask-width: 0px;
+     --outside-edge-dot-mask-position: 100% 0;
+     --outside-corner-dot-mask-offset-x: var(--dot-grid-size-x);
+     --outside-corner-dot-mask-offset-y: var(--dot-grid-size-y);
      --page-number-dot-mask-position: calc(100% - var(--dot-grid-size-x) + 1px) calc(100% - var(--dot-grid-size-y) + 1px);
      --half-page-x: var(--half-x);
      --third-x-start: var(--third-x-1);
@@ -1134,11 +1146,12 @@ body {
      --fourth-x-mid: var(--fourth-x-2);
      --fourth-x-end: var(--fourth-x-3);
      background:
-          linear-gradient(var(--paper), var(--paper)) 0 0 / 100% var(--dot-grid-size-y) no-repeat,
-          linear-gradient(var(--paper), var(--paper)) 0 0 / var(--dot-grid-size-x) 100% no-repeat,
-          linear-gradient(var(--paper), var(--paper)) 0 100% / 100% calc(var(--dot-grid-size-y) * 0.5) no-repeat,
+          linear-gradient(var(--paper), var(--paper)) 0 0 / 100% var(--dot-edge-mask-height) no-repeat,
+          linear-gradient(var(--paper), var(--paper)) 0 0 / var(--dot-edge-mask-width) 100% no-repeat,
+          linear-gradient(var(--paper), var(--paper)) 0 100% / 100% var(--dot-bottom-mask-height) no-repeat,
           linear-gradient(var(--paper), var(--paper)),
-          radial-gradient(circle at var(--dot-x) var(--dot-grid-size-y), var(--dot-grid-color) 0 1px, transparent 1.35px),
+          linear-gradient(var(--paper), var(--paper)),
+          radial-gradient(circle at 1px 1px, var(--dot-grid-color) 0 1px, transparent 1.35px),
           linear-gradient(90deg, transparent calc(var(--half-page-x) - 4px), rgba(245, 194, 231, var(--half-guide-opacity)) var(--half-page-x), transparent calc(var(--half-page-x) + 4px)),
           linear-gradient(180deg, transparent calc(var(--half-y) - 4px), rgba(245, 194, 231, var(--half-guide-opacity)) var(--half-y), transparent calc(var(--half-y) + 4px)),
           linear-gradient(90deg, transparent calc(var(--third-x-start) - 4px), rgba(166, 227, 161, var(--third-guide-opacity)) var(--third-x-start), transparent calc(var(--third-x-start) + 4px), transparent calc(var(--third-x-end) - 4px), rgba(166, 227, 161, var(--third-guide-opacity)) var(--third-x-end), transparent calc(var(--third-x-end) + 4px)),
@@ -1147,9 +1160,10 @@ body {
           linear-gradient(180deg, transparent calc(var(--fourth-y-1) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-y-1), transparent calc(var(--fourth-y-1) + 4px), transparent calc(var(--fourth-y-2) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-y-2), transparent calc(var(--fourth-y-2) + 4px), transparent calc(var(--fourth-y-3) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-y-3), transparent calc(var(--fourth-y-3) + 4px)),
           var(--paper);
      background-size:
-          100% var(--dot-grid-size-y),
-          var(--dot-grid-size-x) 100%,
-          100% calc(var(--dot-grid-size-y) * 0.5),
+          100% var(--dot-edge-mask-height),
+          var(--dot-edge-mask-width) 100%,
+          100% var(--dot-bottom-mask-height),
+          var(--outside-edge-dot-mask-width) 100%,
           var(--dot-grid-size-x) var(--dot-grid-size-y),
           var(--dot-grid-size-x) var(--dot-grid-size-y),
           100% calc(100% - var(--dot-grid-size-y)),
@@ -1163,8 +1177,9 @@ body {
           var(--dot-grid-position),
           0 0,
           0 100%,
+          var(--outside-edge-dot-mask-position),
           var(--page-number-dot-mask-position),
-          0 0,
+          var(--dot-repeat-position),
           0 var(--dot-grid-size-y),
           var(--dot-grid-size-x) 0,
           0 var(--dot-grid-size-y),
@@ -1173,6 +1188,7 @@ body {
           var(--dot-grid-size-x) 0,
           0 0;
      background-repeat:
+          no-repeat,
           no-repeat,
           no-repeat,
           no-repeat,
@@ -1217,7 +1233,7 @@ body {
           linear-gradient(var(--paper), var(--paper)),
           linear-gradient(var(--paper), var(--paper)),
           linear-gradient(var(--paper), var(--paper)),
-          radial-gradient(circle at var(--dot-grid-size-x) var(--dot-grid-size-y), var(--dot-grid-color) 0 1px, transparent 1.35px),
+          radial-gradient(circle at 1px 1px, var(--dot-grid-color) 0 1px, transparent 1.35px),
           var(--paper);
      background-size:
           100% 100%,
@@ -1240,7 +1256,7 @@ body {
           0 100%,
           var(--turn-sheet-page-number-mask-position),
           var(--turn-sheet-spine-corner-mask-position),
-          0 0,
+          calc(var(--dot-grid-size-x) - 1px) calc(var(--dot-grid-size-y) - 1px),
           0 0;
      background-repeat:
           no-repeat,
@@ -1369,7 +1385,7 @@ body {
 .outside-corner-dot-mask {
      position: absolute;
      z-index: 3;
-     bottom: var(--dot-grid-size-y);
+     bottom: var(--outside-corner-dot-mask-offset-y);
      width: var(--dot-grid-size-x);
      height: var(--dot-grid-size-y);
      box-sizing: border-box;
@@ -1383,7 +1399,7 @@ body {
 }
 
 .page-left .outside-corner-dot-mask {
-     left: var(--dot-grid-size-x);
+     left: var(--outside-corner-dot-mask-offset-x);
      transform: translate(-50%, 50%);
 }
 
@@ -1392,7 +1408,7 @@ body {
 }
 
 .page-right .outside-corner-dot-mask {
-     right: var(--dot-grid-size-x);
+     right: var(--outside-corner-dot-mask-offset-x);
      transform: translate(50%, 50%);
 }
 
@@ -1577,6 +1593,7 @@ body {
 }
 
 .page-right {
+     --outside-edge-dot-mask-width: var(--dot-grid-size-x);
      --page-number-dot-mask-position: 100% 100%;
      --half-page-x: var(--half-right-x);
      --third-x-start: var(--third-right-x-1);
@@ -1595,6 +1612,10 @@ body {
           0 calc(100% - var(--page-notch-height)),
           0 var(--page-notch-height)
      );
+}
+
+:root[data-paper="a4"] .page {
+     --dot-bottom-mask-height: var(--dot-grid-size-y);
 }
 
 .sticky-note {
@@ -1681,14 +1702,16 @@ body {
 
 .planner-item-sticky {
      aspect-ratio: 1;
-     overflow: hidden;
+     overflow: visible;
 }
 
 .planner-item-sticky[data-dot-grid="true"] {
      background:
-          radial-gradient(circle at var(--sticky-dot-grid-size-x, calc(100% / var(--sticky-grid-units))) var(--sticky-dot-grid-size-y, calc(100% / var(--sticky-grid-units))), rgba(17, 17, 17, 0.24) 0 1px, transparent 1.35px),
+          radial-gradient(circle at 1px 1px, rgba(17, 17, 17, 0.24) 0 1px, transparent 1.35px),
           var(--sticky-fill, var(--paper-offwhite));
-     background-position: var(--sticky-dot-grid-offset-x, 0) var(--sticky-dot-grid-offset-y, 0), 0 0;
+     background-position:
+          calc(var(--sticky-dot-grid-offset-x, 0px) + var(--sticky-dot-grid-size-x, calc(100% / var(--sticky-grid-units))) - 1px) calc(var(--sticky-dot-grid-offset-y, 0px) + var(--sticky-dot-grid-size-y, calc(100% / var(--sticky-grid-units))) - 1px),
+          0 0;
      background-size: var(--sticky-dot-grid-size-x, calc(100% / var(--sticky-grid-units))) var(--sticky-dot-grid-size-y, calc(100% / var(--sticky-grid-units))), auto;
 }
 
@@ -2065,6 +2088,7 @@ body {
 
 .item-size-label {
      position: absolute;
+     z-index: 5;
      left: 0;
      top: 0;
      display: none;

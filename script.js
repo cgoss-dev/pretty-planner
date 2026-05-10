@@ -285,10 +285,11 @@ function buildPlannerConfig() {
      const guideColumns = Math.round(gridColumns);
      const guideRows = Math.round(gridRows);
      const outerEdgeLeewayColumns = 1;
+     const centerColumn = gridColumns / 2;
      const halfColumn = Math.round(guideColumns / 2);
-     const halfLeftColumn = guideColumns - halfColumn;
-     const halfRightColumn = halfColumn;
-     const halfRow = Math.floor(guideRows / 2);
+     const halfLeftColumn = getNearestSnapUnit(centerColumn, getGridSnapOriginUnitsForPaper(paperKey, "left").x);
+     const halfRightColumn = getNearestSnapUnit(centerColumn, getGridSnapOriginUnitsForPaper(paperKey, "right").x);
+     const halfRow = gridRows / 2;
      const outerFourthColumns = Math.floor((halfColumn - outerEdgeLeewayColumns) / 2);
      const thirdColumnOffset = Math.floor(guideColumns / 6);
      const thirdRowOffset = Math.floor(guideRows / 6);
@@ -351,6 +352,85 @@ function getGridSize(page) {
           x: rect.width / viewZoom / plannerConfig.gridColumns,
           y: rect.height / viewZoom / plannerConfig.gridRows
      };
+}
+
+function getNearestSnapUnit(targetUnit, originUnit) {
+     return originUnit + Math.round(targetUnit - originUnit);
+}
+
+function getGridSnapOriginUnitsForPaper(paperKey, pageId) {
+     const isShiftedA5RightPage = paperKey === "a5" && pageId === "right";
+     const isA4Page = paperKey === "a4";
+
+     return {
+          x: isShiftedA5RightPage ? -0.4 : 0,
+          y: isA4Page ? -0.3 : 0
+     };
+}
+
+function getGridSnapOriginUnitsForPageId(pageId) {
+     return getGridSnapOriginUnitsForPaper(plannerConfig.paperKey, pageId);
+}
+
+function getGridSnapOriginUnits(page) {
+     const fallback = page ? getGridSnapOriginUnitsForPageId(getPageId(page)) : { x: 0, y: 0 };
+     const x = Number(page?.dataset.gridSnapOriginX);
+     const y = Number(page?.dataset.gridSnapOriginY);
+
+     return {
+          x: Number.isFinite(x) ? x : fallback.x,
+          y: Number.isFinite(y) ? y : fallback.y
+     };
+}
+
+function getGridSnapOrigin(page) {
+     const grid = getGridSize(page);
+     const origin = getGridSnapOriginUnits(page);
+
+     return {
+          x: origin.x * grid.x,
+          y: origin.y * grid.y
+     };
+}
+
+function formatGridUnit(value) {
+     return String(Number(value.toFixed(4)));
+}
+
+function getFirstVisibleDotOffsetFromStart(origin, edgeMaskUnits) {
+     const dotIndex = Math.max(1, Math.ceil(edgeMaskUnits - origin - 0.000001));
+
+     return origin + dotIndex;
+}
+
+function getLastVisibleDotOffsetFromEnd(totalUnits, origin, edgeMaskUnits) {
+     const dotIndex = Math.max(1, Math.floor(totalUnits - edgeMaskUnits - origin + 0.000001));
+
+     return totalUnits - (origin + dotIndex);
+}
+
+function getOutsideCornerMaskOffsetUnits(pageId, origin) {
+     return {
+          x: pageId === "left"
+               ? getFirstVisibleDotOffsetFromStart(origin.x, 1)
+               : getLastVisibleDotOffsetFromEnd(plannerConfig.gridColumns, origin.x, 1),
+          y: getLastVisibleDotOffsetFromEnd(plannerConfig.gridRows, origin.y, 0.5)
+     };
+}
+
+function syncGridSnapOrigins() {
+     pages.forEach((page) => {
+          const pageId = getPageId(page);
+          const origin = getGridSnapOriginUnitsForPageId(pageId);
+          const cornerMaskOffset = getOutsideCornerMaskOffsetUnits(pageId, origin);
+
+          page.dataset.gridSnapOriginX = String(origin.x);
+          page.dataset.gridSnapOriginY = String(origin.y);
+          page.style.setProperty("--grid-snap-origin-x", String(origin.x));
+          page.style.setProperty("--grid-snap-origin-y", String(origin.y));
+          page.style.setProperty("--outside-corner-dot-mask-offset-x", `calc(var(--dot-grid-size-x) * ${formatGridUnit(cornerMaskOffset.x)})`);
+          page.style.setProperty("--outside-corner-dot-mask-offset-y", `calc(var(--dot-grid-size-y) * ${formatGridUnit(cornerMaskOffset.y)})`);
+     });
 }
 
 function setRootNumber(name, value) {
@@ -799,6 +879,7 @@ function applyPlannerConfig() {
      setRootNumber("--dot-grid-half-size-y", `calc(50% / ${plannerConfig.gridRows})`);
      setRootNumber("--notebook-dot-grid-size-x", `calc(50% / ${plannerConfig.gridColumns})`);
      setRootNumber("--notebook-grid-cell-width", `calc(var(--notebook-width) / ${plannerConfig.gridColumns * 2})`);
+     syncGridSnapOrigins();
      setRootNumber("--notebook-width", getNotebookWidthFormula());
      setRootNumber("--notebook-height", `min(${notebookHeightRatio}vw, 724px, calc(100vh - ${notebookViewportHeightReserve}px))`);
      setRootNumber("--source-sticky-size", `calc(var(--notebook-width) * ${sourceStickyRatio / 100})`);
@@ -1691,11 +1772,12 @@ function getPageId(page) {
 
 function getGridTemplateBox(item, page) {
      const grid = getGridSize(page);
+     const origin = getGridSnapOrigin(page);
      const box = getItemBox(item);
 
      return {
-          x: Math.round(box.x / grid.x),
-          y: Math.round(box.y / grid.y),
+          x: Math.round((box.x - origin.x) / grid.x),
+          y: Math.round((box.y - origin.y) / grid.y),
           width: Math.round(box.width / grid.x),
           height: Math.round(box.height / grid.y)
      };
@@ -1734,11 +1816,12 @@ function getPageTemplateItems() {
 function resizePageTemplateItems(items) {
      items.forEach(({ item, page, grid }) => {
           const nextGrid = getGridSize(page);
+          const origin = getGridSnapOrigin(page);
           const maxX = plannerConfig.gridColumns - Math.max(1, grid.width);
           const maxY = plannerConfig.gridRows - Math.max(1, grid.height);
           const nextBox = {
-               x: clamp(grid.x, 0, maxX) * nextGrid.x,
-               y: clamp(grid.y, 0, maxY) * nextGrid.y,
+               x: origin.x + clamp(grid.x, 0, maxX) * nextGrid.x,
+               y: origin.y + clamp(grid.y, 0, maxY) * nextGrid.y,
                width: Math.max(1, grid.width) * nextGrid.x,
                height: Math.max(1, grid.height) * nextGrid.y
           };
@@ -2023,8 +2106,9 @@ function updateStickyDotGrid(item, page, box) {
      }
 
      const grid = getGridSize(page);
-     const offsetX = ((box.x % grid.x) + grid.x) % grid.x;
-     const offsetY = ((box.y % grid.y) + grid.y) % grid.y;
+     const origin = getGridSnapOrigin(page);
+     const offsetX = (((box.x - origin.x) % grid.x) + grid.x) % grid.x;
+     const offsetY = (((box.y - origin.y) % grid.y) + grid.y) % grid.y;
 
      item.style.setProperty("--sticky-dot-grid-size-x", `${grid.x}px`);
      item.style.setProperty("--sticky-dot-grid-size-y", `${grid.y}px`);
@@ -2658,11 +2742,12 @@ function getMovedBox(item, page, clientX, clientY, offsetX, offsetY, shouldClamp
      const pageRect = page.getBoundingClientRect();
      const viewZoom = getViewZoom();
      const grid = getGridSize(page);
+     const origin = getGridSnapOrigin(page);
      const current = getItemBox(item);
      const rawX = (clientX - pageRect.left - offsetX) / viewZoom;
      const rawY = (clientY - pageRect.top - offsetY) / viewZoom;
-     const nextX = shouldClamp ? snap(rawX, grid.x) : rawX;
-     const nextY = shouldClamp ? snap(rawY, grid.y) : rawY;
+     const nextX = shouldClamp ? snapToGridOrigin(rawX, origin.x, grid.x) : rawX;
+     const nextY = shouldClamp ? snapToGridOrigin(rawY, origin.y, grid.y) : rawY;
      const minX = grid.x * pageStickDepth - current.width;
      const minY = grid.y * pageStickDepth - current.height;
      const maxX = (pageRect.width / viewZoom) - grid.x * pageStickDepth;
@@ -2706,14 +2791,15 @@ function getResizedBox(item, page, clientX, clientY, mode) {
      const pageRect = page.getBoundingClientRect();
      const viewZoom = getViewZoom();
      const grid = getGridSize(page);
+     const origin = getGridSnapOrigin(page);
      const minGridWidth = item.dataset.itemType === "full-cal" || item.dataset.itemType === "weekly-vertical" ? 16 : 2;
      const minGridHeight = item.dataset.itemType === "full-cal" || item.dataset.itemType === "weekly-vertical" ? 14 : 2;
      const minWidth = grid.x * minGridWidth;
      const minHeight = grid.y * minGridHeight;
      const right = current.x + current.width;
      const bottom = current.y + current.height;
-     const pointerX = snap((clientX - pageRect.left) / viewZoom, grid.x);
-     const pointerY = snap((clientY - pageRect.top) / viewZoom, grid.y);
+     const pointerX = snapToGridOrigin((clientX - pageRect.left) / viewZoom, origin.x, grid.x);
+     const pointerY = snapToGridOrigin((clientY - pageRect.top) / viewZoom, origin.y, grid.y);
      const nextLeft = resizeLeft ? clamp(pointerX, grid.x * pageStickDepth - current.width, right - minWidth) : current.x;
      const nextTop = resizeTop ? clamp(pointerY, grid.y * pageStickDepth - current.height, bottom - minHeight) : current.y;
      const nextRight = resizeRight ? clamp(pointerX, current.x + minWidth, (pageRect.width / viewZoom) - grid.x * pageStickDepth + current.width) : right;
@@ -4453,9 +4539,10 @@ function makePlannerItem(type = "sticky") {
 function addItemToPage(page, x = 4, y = 4) {
      const item = makePlannerItem();
      const grid = getGridSize(page);
+     const origin = getGridSnapOrigin(page);
      const box = {
-          x: snap(x * grid.x, grid.x),
-          y: snap(y * grid.y, grid.y),
+          x: origin.x + x * grid.x,
+          y: origin.y + y * grid.y,
           width: grid.x * stickyGridUnits,
           height: grid.y * stickyGridUnits
      };
@@ -4641,11 +4728,12 @@ function snapItemToPage(item, page, event) {
 
      if (isNewPageCalendar) {
           const grid = getGridSize(page);
+          const origin = getGridSnapOrigin(page);
 
           setItemBox(item, {
                ...getItemBox(item),
-               x: grid.x,
-               y: grid.y,
+               x: origin.x + grid.x,
+               y: origin.y + grid.y,
                width: Math.max(grid.x, snappedSize.width - (grid.x * 2)),
                height: Math.max(grid.y, snappedSize.height - (grid.y * 2))
           });
@@ -4687,13 +4775,14 @@ function moveGroupItemsToDestination(destinationPage, activeStart, activeFinalRe
 
           if (destinationPage) {
                const grid = getGridSize(destinationPage);
+               const origin = getGridSnapOrigin(destinationPage);
 
                plannerDesk.append(item);
                markGridState(item, true, destinationPage);
                setItemBox(item, {
                     ...nextBox,
-                    x: snap(nextBox.x, grid.x),
-                    y: snap(nextBox.y, grid.y),
+                    x: snapToGridOrigin(nextBox.x, origin.x, grid.x),
+                    y: snapToGridOrigin(nextBox.y, origin.y, grid.y),
                     width: current.width,
                     height: current.height
                });
