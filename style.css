@@ -1671,6 +1671,21 @@ body {
      touch-action: none;
 }
 
+.page-title-source {
+     display: grid;
+     place-items: center;
+     width: var(--source-sticky-size);
+     aspect-ratio: 6 / 1.6;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-radius: 5px;
+     background: var(--paper-offwhite);
+     color: var(--color-gray1);
+     cursor: grab;
+     font: 700 var(--font-size-sm) var(--font-noto);
+     line-height: 1;
+     touch-action: none;
+}
+
 .add-panel {
      grid-template-columns: repeat(auto-fit, 100px);
      align-items: start;
@@ -1722,6 +1737,7 @@ body {
 }
 
 .add-panel .sticky-note,
+.add-panel .page-title-source,
 .add-panel .mini-cal-source,
 .add-panel .full-cal-source,
 .add-panel .weekly-vertical-source {
@@ -1733,6 +1749,7 @@ body {
 }
 
 .add-panel .sticky-note,
+.add-panel .page-title-source,
 .add-panel .mini-cal-source,
 .add-panel .full-cal-source,
 .add-panel .weekly-vertical-source {
@@ -1785,6 +1802,10 @@ body {
      overflow: visible;
 }
 
+.planner-item-page-title {
+     overflow: visible;
+}
+
 .planner-item-sticky[data-dot-grid="true"] {
      background:
           radial-gradient(circle at 1px 1px, rgba(17, 17, 17, 0.24) 0 1px, transparent 1.35px),
@@ -1810,6 +1831,22 @@ body {
 }
 
 .planner-item-sticky.is-editing-text .sticky-text {
+     overflow-y: auto;
+     pointer-events: auto;
+}
+
+.planner-item-page-title .sticky-text {
+     inset: 4px 6px;
+     display: grid;
+     align-items: center;
+}
+
+.planner-item-page-title .sticky-text:empty::before {
+     content: "Page Title";
+     color: var(--color-gray4);
+}
+
+.planner-item-page-title.is-editing-text .sticky-text {
      overflow-y: auto;
      pointer-events: auto;
 }

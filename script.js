@@ -45,6 +45,10 @@ const itemGridUnits = {
           width: 12,
           height: 12
      },
+     "page-title": {
+          width: 18,
+          height: 3
+     },
      "mini-cal": {
           width: 8,
           height: 8
@@ -473,8 +477,8 @@ function getTextLineHeightCellSize(item) {
           return 0;
      }
 
-     if (item.dataset.itemType === "sticky") {
-          return item.offsetHeight / stickyGridUnits;
+     if (isStickyTextItem(item)) {
+          return item.offsetHeight / (itemGridUnits[item.dataset.itemType]?.height || stickyGridUnits);
      }
 
      if (item.dataset.itemType === "mini-cal") {
@@ -1970,6 +1974,7 @@ function serializePlannerItem(item) {
      const pageId = item.dataset.pageId || "";
      const page = pageId ? pages.find((plannerPage) => getPageId(plannerPage) === pageId) || null : null;
      const textElement = getStickyTextElement(item);
+     const isTextItem = isStickyTextItem(item);
      const baseItem = {
           id: item.dataset.templateId,
           type: item.dataset.itemType || "sticky",
@@ -2012,9 +2017,9 @@ function serializePlannerItem(item) {
                               lineHeight: Number(item.dataset.dayTextLineHeight) || 1
                          }
                          : null
-               }
+          }
                : null,
-          text: item.dataset.itemType === "sticky"
+          text: isTextItem
                ? {
                     enabled: item.dataset.textEnabled === "true",
                     content: textElement ? textElement.textContent : "",
@@ -2088,6 +2093,7 @@ function serializePlannerTemplate() {
                thirds: plannerConfig.guides.thirds,
                fourths: plannerConfig.guides.fourths
           },
+          pageTitles: getPageTitleEntries(),
           items: getAllPlannerItems().map(serializePlannerItem)
      };
 }
@@ -2288,7 +2294,7 @@ function restorePlannerItemSettings(item, itemData) {
           borderWidth: style.borderWidth,
           dotGrid: normalizeStoredBoolean(style.dotGrid)
      });
-     if (item.dataset.itemType === "sticky") {
+     if (isStickyTextItem(item)) {
           setStickyTextSettings(item, {
                enabled: normalizeStoredBoolean(text.enabled),
                content: text.content || "",
@@ -2349,6 +2355,10 @@ function restorePlannerItem(itemData) {
      }
 
      if (isPagePlacement && !isPageNumberAvailable(getStoredItemPageNumber(itemData))) {
+          return null;
+     }
+
+     if (type === "page-title" && isPagePlacement && getPageTitleItemForPageNumber(getStoredItemPageNumber(itemData))) {
           return null;
      }
 
@@ -2456,6 +2466,83 @@ function getClearPageSides() {
      }
 
      return ["left", "right"];
+}
+
+function isPageTitleItemType(type) {
+     return type === "page-title";
+}
+
+function isPageTitleItem(item) {
+     return isPageTitleItemType(item?.dataset?.itemType);
+}
+
+function isStickyTextItemType(type) {
+     return type === "sticky" || type === "page-title";
+}
+
+function isStickyTextItem(item) {
+     return isStickyTextItemType(item?.dataset?.itemType);
+}
+
+function getPageNumberForPage(page) {
+     return getCurrentSpreadPageNumber(getPageId(page));
+}
+
+function getPageTitleText(item) {
+     const text = getStickyTextElement(item)?.textContent?.trim() || "";
+
+     return text;
+}
+
+function getPageTitleItemForPageNumber(pageNumber, exceptItem = null) {
+     return getAllPlannerItems().find((item) => (
+          item !== exceptItem &&
+          isPageTitleItem(item) &&
+          item.dataset.pageId &&
+          getItemPageNumber(item) === pageNumber
+     )) || null;
+}
+
+function getPageTitleEntries() {
+     return getAllPlannerItems()
+          .filter((item) => isPageTitleItem(item) && item.dataset.pageId && isPageNumberAvailable(getItemPageNumber(item)))
+          .map((item) => ({
+               pageNumber: getItemPageNumber(item),
+               title: getPageTitleText(item)
+          }))
+          .filter((entry) => entry.title !== "")
+          .sort((first, second) => first.pageNumber - second.pageNumber);
+}
+
+function canPlaceItemOnPage(item, page) {
+     if (!page || !isPageTitleItem(item)) {
+          return true;
+     }
+
+     const pageNumber = getPageNumberForPage(page);
+
+     return isPageNumberAvailable(pageNumber) && !getPageTitleItemForPageNumber(pageNumber, item);
+}
+
+function canPlaceActiveMoveItemsOnPage(page) {
+     if (!page || activeAction?.type !== "move") {
+          return true;
+     }
+
+     const pageNumber = getPageNumberForPage(page);
+     const pageTitleItems = activeAction.items.filter(({ item }) => isPageTitleItem(item));
+
+     if (!pageTitleItems.length) {
+          return true;
+     }
+
+     if (!isPageNumberAvailable(pageNumber) || pageTitleItems.length > 1) {
+          return false;
+     }
+
+     const existingTitleItem = getPageTitleItemForPageNumber(pageNumber);
+
+     return !existingTitleItem || pageTitleItems.some(({ item }) => item === existingTitleItem);
 }
 
 function clearItems(items) {
@@ -2795,7 +2882,7 @@ function updateItemTextLineHeight(item) {
           return;
      }
 
-     if (item.dataset.itemType === "sticky") {
+     if (isStickyTextItem(item)) {
           const textElement = getStickyTextElement(item);
 
           if (textElement) {
@@ -2811,13 +2898,13 @@ function updateItemTextLineHeight(item) {
 }
 
 function setStickyTextSettings(item, settings = {}) {
-     if (item.dataset.itemType !== "sticky") {
+     if (!isStickyTextItem(item)) {
           return;
      }
 
      const textElement = getStickyTextElement(item);
      const controls = getItemControls(item) || item;
-     const isEnabled = settings.enabled ?? item.dataset.textEnabled ?? "false";
+     const isEnabled = isPageTitleItem(item) ? "true" : settings.enabled ?? item.dataset.textEnabled ?? "false";
 
      item.dataset.textEnabled = String(isEnabled);
      item.dataset.textSize = settings.size || item.dataset.textSize || "10";
@@ -2909,7 +2996,7 @@ function getStickyTextFont(fontKey) {
 }
 
 function updateStickyTextOverflow(item) {
-     if (!item || item.dataset.itemType !== "sticky") {
+     if (!item || !isStickyTextItem(item)) {
           return;
      }
 
@@ -2944,7 +3031,7 @@ function stopStickyTextEditing(item) {
 }
 
 function startStickyTextEditing(item) {
-     if (item.dataset.itemType !== "sticky") {
+     if (!isStickyTextItem(item)) {
           return;
      }
 
@@ -3448,6 +3535,10 @@ function getResizeMode(item, event) {
           return "";
      }
 
+     if (selectedItems.size !== 1) {
+          return "";
+     }
+
      if (item.dataset.groupId) {
           return "";
      }
@@ -3619,12 +3710,14 @@ function setResizeCursor(item, resizeMode) {
      }
 }
 
+function clearSelectedResizeCursors() {
+     selectedItems.forEach((item) => setResizeCursor(item, ""));
+}
+
 function updateDeskResizeCursor(event) {
-     if (activeAction || !selectedItem || event.target.closest(".planner-settings, .item-controls, .page-snap-controls")) {
+     if (activeAction || !selectedItem || selectedItems.size !== 1 || event.target.closest(".planner-settings, .item-controls, .page-snap-controls")) {
           plannerDesk.style.cursor = "";
-          if (selectedItem) {
-               setResizeCursor(selectedItem, "");
-          }
+          clearSelectedResizeCursors();
           return;
      }
 
@@ -4667,6 +4760,7 @@ function setMiniCalSettings(item, settings = {}) {
 }
 
 function makePlannerItem(type = "sticky") {
+     const hasWidgetControls = type === "sticky" || isCalendarItemType(type);
      const item = document.createElement("div");
      const sizeLabel = document.createElement("span");
      const controls = document.createElement("div");
@@ -4756,7 +4850,7 @@ function makePlannerItem(type = "sticky") {
      nextTemplateItemId += 1;
      item.tabIndex = 0;
      item.setAttribute("role", "button");
-     item.setAttribute("aria-label", isCalendarItemType(type) ? "Calendar widget" : "Sticky note");
+     item.setAttribute("aria-label", isPageTitleItemType(type) ? "Page title widget" : (isCalendarItemType(type) ? "Calendar widget" : "Sticky note"));
 
      sizeLabel.className = "item-size-label";
      sizeLabel.setAttribute("aria-hidden", "true");
@@ -5114,7 +5208,7 @@ function makePlannerItem(type = "sticky") {
      controlTabs.append(styleTab);
      actionsPanel.append(duplicateButton, groupButton, bringForwardButton, sendBackwardButton, deleteButton);
      stylePanel.append(fillLabel, borderColorLabel, borderSizeField);
-     if (type === "sticky") {
+     if (isStickyTextItemType(type)) {
           textPanel.append(
                textToggleLabel,
                textColorLabel,
@@ -5132,7 +5226,7 @@ function makePlannerItem(type = "sticky") {
                textLineHeightLabel
           );
      }
-     if (type === "sticky" || isCalendarTextItemType(type)) {
+     if (isStickyTextItemType(type) || isCalendarTextItemType(type)) {
           controlTabs.append(textTab);
      }
      if (type === "sticky") {
@@ -5146,12 +5240,16 @@ function makePlannerItem(type = "sticky") {
           timeWidgetGroup.append(timeWidgetTitle, startTimeLabel, timeFormatLabel, timeIncrementLabel, visibleDaysLabel, shareWeekendsLabel);
           widgetPanel.append(dateWidgetGroup, timeWidgetGroup);
      }
-     controlTabs.append(widgetTab);
+     if (hasWidgetControls) {
+          controlTabs.append(widgetTab);
+     }
      controls.append(controlTabs, actionsPanel, stylePanel);
-     if (type === "sticky" || isCalendarTextItemType(type)) {
+     if (isStickyTextItemType(type) || isCalendarTextItemType(type)) {
           controls.append(textPanel);
      }
-     controls.append(widgetPanel);
+     if (hasWidgetControls) {
+          controls.append(widgetPanel);
+     }
      initializePaletteColorControl(fillInput, fillSwatches, "var(--paper-offwhite)", (nextColor) => {
           applyStyleToActionItems(item, {
                fillColor: nextColor
@@ -5173,7 +5271,7 @@ function makePlannerItem(type = "sticky") {
      });
      setItemControlsTab(controls, "style");
      item.append(sizeLabel);
-     if (type === "sticky") {
+     if (isStickyTextItemType(type)) {
           item.append(textElement);
      }
      item.append(controls);
@@ -5183,7 +5281,12 @@ function makePlannerItem(type = "sticky") {
           borderWidth: borderWidthSelect.value,
           dotGrid: "false"
      });
-     setStickyTextSettings(item);
+     setStickyTextSettings(item, isPageTitleItemType(type) ? {
+          enabled: "true",
+          size: "14",
+          bold: "true",
+          align: "center"
+     } : {});
      setCalendarDayTextSettings(item);
      if (isCalendarItemType(type)) {
           setMiniCalSettings(item);
@@ -5198,7 +5301,7 @@ function makePlannerItem(type = "sticky") {
                return;
           }
 
-          if (item.dataset.itemType === "sticky" && event.detail > 1) {
+          if (isStickyTextItem(item) && event.detail > 1) {
                event.preventDefault();
                selectItem(item);
                return;
@@ -5546,6 +5649,11 @@ function duplicateItem(item) {
      }
 
      const page = getItemPage(item);
+
+     if (page && isPageTitleItem(item)) {
+          return;
+     }
+
      const box = getItemBox(item);
      const duplicate = makePlannerItem(item.dataset.itemType || "sticky");
      const parent = plannerDesk;
@@ -5576,6 +5684,11 @@ function duplicateSelectedItems() {
 
      selectedItems.forEach((item) => {
           const page = getItemPage(item);
+
+          if (page && isPageTitleItem(item)) {
+               return;
+          }
+
           const box = getItemBox(item);
           const duplicate = makePlannerItem(item.dataset.itemType || "sticky");
           const parent = plannerDesk;
@@ -5608,6 +5721,10 @@ function duplicateSelectedItems() {
 
           copies.push(duplicate);
      });
+
+     if (!copies.length) {
+          return;
+     }
 
      selectItems(copies);
      notifyTemplateChanged();
@@ -5644,6 +5761,10 @@ function placeItemOnDesk(item, event) {
 }
 
 function snapItemToPage(item, page, event) {
+     if (!canPlaceItemOnPage(item, page)) {
+          return false;
+     }
+
      const snappedSize = getGridSnappedSize(item, page);
      const isNewPageCalendar = activeAction.type === "source" && (item.dataset.itemType === "full-cal" || item.dataset.itemType === "weekly-vertical");
 
@@ -5667,7 +5788,7 @@ function snapItemToPage(item, page, event) {
                width: Math.max(grid.x, snappedSize.width - (grid.x * 2)),
                height: Math.max(grid.y, snappedSize.height - (grid.y * 2))
           });
-          return;
+          return true;
      }
 
      setItemBox(
@@ -5681,6 +5802,25 @@ function snapItemToPage(item, page, event) {
                activeAction.offsetY
           )
      );
+     return true;
+}
+
+function restoreActiveMoveItems() {
+     activeAction.items.forEach(({ item, page, box }) => {
+          plannerDesk.append(item);
+          markGridState(item, Boolean(page), page);
+          setItemBox(item, box);
+          item.classList.remove("is-dragging");
+     });
+}
+
+function removeRejectedSourceItem() {
+     selectedItems.delete(activeAction.item);
+     if (selectedItem === activeAction.item) {
+          selectedItem = null;
+     }
+     activeAction.item.remove();
+     updateObjectControlsState();
 }
 
 function moveGroupItemsToDestination(destinationPage, activeStart, activeFinalRect) {
@@ -5861,7 +6001,7 @@ function startSourceMove(event) {
 }
 
 function startResize(item, event, mode) {
-     if (item.dataset.groupId) {
+     if (selectedItems.size !== 1 || item.dataset.groupId) {
           return;
      }
 
@@ -6027,8 +6167,28 @@ function endActiveItem(event) {
                activeAction.offsetY
           );
 
+          if (page && !canPlaceActiveMoveItemsOnPage(page)) {
+               restoreActiveMoveItems();
+               markSnapReady(activeAction.item, false);
+               activeAction = null;
+               clearDragOver();
+               return;
+          }
+
           if (page) {
-               snapItemToPage(activeAction.item, page, event);
+               const didPlaceOnPage = snapItemToPage(activeAction.item, page, event);
+
+               if (!didPlaceOnPage) {
+                    if (activeAction.type === "source") {
+                         removeRejectedSourceItem();
+                    } else {
+                         restoreActiveMoveItems();
+                    }
+                    markSnapReady(activeAction.item, false);
+                    activeAction = null;
+                    clearDragOver();
+                    return;
+               }
           } else {
                placeItemOnDesk(activeAction.item, event);
           }
