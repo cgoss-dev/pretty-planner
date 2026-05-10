@@ -3,6 +3,8 @@ const plannerDesk = document.querySelector(".planner-desk");
 const plannerSettings = document.querySelector(".planner-settings");
 const notebook = document.querySelector(".notebook");
 const sourceItems = Array.from(document.querySelectorAll("[data-create-item]"));
+const clearPageButton = document.querySelector("[data-clear-page]");
+const clearBookButton = document.querySelector("[data-clear-book]");
 const paperSelect = document.querySelector("[data-setting='paper']");
 const paperColorSelect = document.querySelector("[data-setting='paper-color']");
 const deskColorSelect = document.querySelector("[data-setting='desk-color']");
@@ -54,6 +56,9 @@ const itemGridUnits = {
      }
 };
 const templateSchemaVersion = 1;
+const plannerStorageKey = "perfectPlanner:v1";
+const plannerStateSchemaVersion = 1;
+const maxStoredSpreadCount = 60;
 const inchToCentimeters = 2.54;
 const calendarMonthNames = [
      "January",
@@ -88,11 +93,9 @@ const viewZoomLevels = [
      }
 ];
 const viewFocusPoints = ["left", "center", "right"];
-const viewVerticalFocusPoints = ["top", "center", "bottom"];
 const initialNotebookSpreadCount = 5;
 let viewZoomIndex = 0;
 let viewFocusIndex = 1;
-let viewVerticalFocusIndex = 1;
 let currentSpreadIndex = 0;
 let notebookSpreadCount = initialNotebookSpreadCount;
 let pageTurnTimer = 0;
@@ -254,9 +257,12 @@ let nextGroupId = 1;
 let shouldSkipNextClear = false;
 let shouldSkipNextItemClick = false;
 let shouldSkipNextTabClick = false;
-let plannerConfig = buildPlannerConfig();
 let activeTertiaryMatrixToggle = document.querySelector("[data-tertiary-matrix-toggle]");
 let activeHexTarget = null;
+let isRestoringPlannerState = false;
+
+restoreSavedSettings();
+let plannerConfig = buildPlannerConfig();
 
 function convertLength(value, fromUnit, toUnit) {
      if (fromUnit === toUnit) {
@@ -506,13 +512,8 @@ function syncViewTargetCenter(zoomAnchor = null) {
                center: notebookRect.left + notebookRect.width / 2,
                right: rightPageRect ? rightPageRect.left + rightPageRect.width / 2 : notebookRect.left + (notebookRect.width * 0.75)
           };
-          const verticalTargets = {
-               top: notebookRect.top + notebookRect.height / 4,
-               center: notebookRect.top + notebookRect.height / 2,
-               bottom: notebookRect.top + (notebookRect.height * 0.75)
-          };
           const targetX = horizontalTargets[viewFocusPoints[viewFocusIndex]];
-          const targetY = verticalTargets[viewVerticalFocusPoints[viewVerticalFocusIndex]];
+          const targetY = notebookRect.top + notebookRect.height / 2;
           const currentPanX = getRootPixelValue("--view-pan-x");
           const currentPanY = getRootPixelValue("--view-pan-y");
           const notebookStageY = getRootPixelValue("--notebook-stage-y");
@@ -696,23 +697,14 @@ function updatePageSnapButtons() {
 
           if (direction === "previous") {
                button.hidden = viewFocusIndex <= 0;
-          } else if (direction === "next") {
-               button.hidden = viewFocusIndex >= viewFocusPoints.length - 1;
-          } else if (direction === "up") {
-               button.hidden = viewVerticalFocusIndex <= 0;
           } else {
-               button.hidden = viewVerticalFocusIndex >= viewVerticalFocusPoints.length - 1;
+               button.hidden = viewFocusIndex >= viewFocusPoints.length - 1;
           }
      });
 }
 
 function movePageSnap(direction) {
-     if (direction === "previous" || direction === "next") {
-          moveViewFocus(direction);
-          return;
-     }
-
-     moveViewVerticalFocus(direction === "up" ? "previous" : "next");
+     moveViewFocus(direction);
 }
 
 function getCurrentSpreadPageNumber(side = "left") {
@@ -831,14 +823,6 @@ function isPageTurnCornerPointer(page, event) {
      }
 
      return isBottomCornerArea && localX <= cellWidth * 2;
-}
-
-function moveViewVerticalFocus(direction) {
-     const step = direction === "next" ? 1 : -1;
-
-     resetViewPanOffset();
-     viewVerticalFocusIndex = clamp(viewVerticalFocusIndex + step, 0, viewVerticalFocusPoints.length - 1);
-     applyViewControls();
 }
 
 function getViewZoom() {
@@ -1202,6 +1186,15 @@ function closeHexPopover() {
      if (popover) {
           popover.hidden = true;
      }
+     activeHexTarget = null;
+}
+
+function closeHexPopoverFromOutsidePointer(event) {
+     if (event.target.closest("[data-hex-popover]") || event.target.closest(".palette-hex-button")) {
+          return;
+     }
+
+     closeHexPopover();
 }
 
 function getTertiaryMatrixRows() {
@@ -1580,7 +1573,7 @@ function setSelectFocus(dropdown) {
      const menu = getSelectFocusMenu(dropdown);
      const panel = getSelectFocusPanel(dropdown);
      const row = getSelectFocusRow(dropdown);
-     const group = row ? row.closest(".item-widget-group") : null;
+     const group = row ? row.closest(".item-widget-group, .item-calendar-attributes-grid") : null;
 
      if (!menu || !panel || !row) {
           return;
@@ -1848,10 +1841,12 @@ function serializePlannerItem(item) {
                ? {
                     weekNumbers: item.dataset.weekNumbers !== "false",
                     weekStart: item.dataset.weekStart || "monday",
-                    monthVisible: item.dataset.monthVisible !== "false",
+                    monthDisplay: item.dataset.monthDisplay || "full",
+                    monthVisible: item.dataset.monthDisplay !== "none",
                     month: Number(item.dataset.month) || 0,
                     monthLabel: calendarMonthNames[Number(item.dataset.month) || 0],
-                    yearVisible: item.dataset.yearVisible !== "false",
+                    yearDisplay: item.dataset.yearDisplay || "full",
+                    yearVisible: item.dataset.yearDisplay !== "none",
                     year: Number(item.dataset.year) || new Date().getFullYear(),
                     startDay: Number(item.dataset.startDay) || 1,
                     visibleDays: Number(item.dataset.visibleDays) || 7,
@@ -1952,7 +1947,359 @@ function serializePlannerTemplate() {
      };
 }
 
+function getEmptyPlannerState() {
+     return {
+          schemaVersion: plannerStateSchemaVersion,
+          settings: null,
+          books: {}
+     };
+}
+
+function readPlannerState() {
+     try {
+          const storedState = window.localStorage.getItem(plannerStorageKey);
+          const state = storedState ? JSON.parse(storedState) : null;
+
+          if (!state || typeof state !== "object") {
+               return getEmptyPlannerState();
+          }
+
+          return {
+               schemaVersion: plannerStateSchemaVersion,
+               settings: state.settings || null,
+               books: state.books && typeof state.books === "object" ? state.books : {}
+          };
+     } catch {
+          return getEmptyPlannerState();
+     }
+}
+
+function writePlannerState(state) {
+     try {
+          window.localStorage.setItem(plannerStorageKey, JSON.stringify({
+               schemaVersion: plannerStateSchemaVersion,
+               settings: state.settings || null,
+               books: state.books || {}
+          }));
+     } catch {
+     }
+}
+
+function setSelectValue(select, value) {
+     if (!select || value === undefined || value === null) {
+          return;
+     }
+
+     const nextValue = String(value);
+
+     if (Array.from(select.options).some((option) => option.value === nextValue)) {
+          select.value = nextValue;
+     }
+}
+
+function serializePlannerSettings() {
+     return {
+          paper: paperSelect?.value || "letter",
+          paperColor: paperColorSelect?.value || "Offwhite",
+          customPaperColor: paperColors.Custom?.color || "#ffffee",
+          deskColor: deskColorSelect?.value || "wood-brown",
+          guides: Object.fromEntries(guideInputs.map((input) => [input.dataset.guide, input.checked])),
+          view: {
+               zoomIndex: viewZoomIndex,
+               focusIndex: viewFocusIndex
+          }
+     };
+}
+
+function restoreSavedSettings() {
+     const settings = readPlannerState().settings;
+
+     if (!settings) {
+          return;
+     }
+
+     setSelectValue(paperSelect, settings.paper);
+     if (settings.customPaperColor && paperColors.Custom) {
+          paperColors.Custom.color = settings.customPaperColor;
+     }
+     setSelectValue(paperColorSelect, settings.paperColor);
+     setSelectValue(deskColorSelect, settings.deskColor);
+     if (settings.guides && typeof settings.guides === "object") {
+          guideInputs.forEach((input) => {
+               if (settings.guides[input.dataset.guide] !== undefined) {
+                    input.checked = Boolean(settings.guides[input.dataset.guide]);
+               }
+          });
+     }
+     if (settings.view && typeof settings.view === "object") {
+          viewZoomIndex = clamp(Number(settings.view.zoomIndex) || 0, 0, viewZoomLevels.length - 1);
+          viewFocusIndex = clamp(Number(settings.view.focusIndex) || 1, 0, viewFocusPoints.length - 1);
+     }
+}
+
+function serializePlannerBook() {
+     return {
+          schemaVersion: plannerStateSchemaVersion,
+          spread: {
+               currentIndex: currentSpreadIndex,
+               count: notebookSpreadCount
+          },
+          items: getAllPlannerItems().map(serializePlannerItem)
+     };
+}
+
+function savePlannerBook(paperKey = plannerConfig.paperKey) {
+     if (isRestoringPlannerState) {
+          return;
+     }
+
+     const state = readPlannerState();
+
+     state.books[paperKey] = serializePlannerBook();
+     writePlannerState(state);
+}
+
+function savePlannerState() {
+     if (isRestoringPlannerState) {
+          return;
+     }
+
+     const state = readPlannerState();
+
+     state.settings = serializePlannerSettings();
+     state.books[plannerConfig.paperKey] = serializePlannerBook();
+     writePlannerState(state);
+}
+
+function getStoredBook(paperKey) {
+     return readPlannerState().books?.[paperKey] || null;
+}
+
+function normalizeStoredBoolean(value, fallback = "false") {
+     if (value === undefined || value === null) {
+          return fallback;
+     }
+
+     return value === true || value === "true" ? "true" : "false";
+}
+
+function getStoredItemGrid(itemData) {
+     const type = itemData.type || "sticky";
+     const fallback = itemGridUnits[type] || itemGridUnits.sticky;
+     const grid = itemData.grid || {};
+
+     return {
+          x: Number.isFinite(Number(grid.x)) ? Number(grid.x) : 0,
+          y: Number.isFinite(Number(grid.y)) ? Number(grid.y) : 0,
+          width: Math.max(1, Number.isFinite(Number(grid.width)) ? Number(grid.width) : fallback.width),
+          height: Math.max(1, Number.isFinite(Number(grid.height)) ? Number(grid.height) : fallback.height)
+     };
+}
+
+function restorePlannerItemSettings(item, itemData) {
+     const style = itemData.style || {};
+     const text = itemData.text || {};
+     const widget = itemData.widget || {};
+
+     setItemStyle(item, {
+          fillColor: style.fillColor,
+          borderColor: style.borderColor,
+          borderWidth: style.borderWidth,
+          dotGrid: normalizeStoredBoolean(style.dotGrid)
+     });
+     if (item.dataset.itemType === "sticky") {
+          setStickyTextSettings(item, {
+               enabled: normalizeStoredBoolean(text.enabled),
+               content: text.content || "",
+               size: text.size,
+               font: text.font,
+               color: text.color,
+               bold: normalizeStoredBoolean(text.bold),
+               italic: normalizeStoredBoolean(text.italic),
+               underline: normalizeStoredBoolean(text.underline),
+               align: text.align,
+               lineHeight: text.lineHeight
+          });
+     }
+     if (isCalendarItem(item)) {
+          if (isCalendarTextItem(item)) {
+               item.dataset.dayNotes = JSON.stringify(widget.dayNotes || {});
+               setCalendarDayTextSettings(item, {
+                    size: widget.dayText?.size,
+                    font: widget.dayText?.font,
+                    color: widget.dayText?.color,
+                    bold: normalizeStoredBoolean(widget.dayText?.bold),
+                    italic: normalizeStoredBoolean(widget.dayText?.italic),
+                    underline: normalizeStoredBoolean(widget.dayText?.underline),
+                    align: widget.dayText?.align,
+                    lineHeight: widget.dayText?.lineHeight
+               });
+          }
+          setMiniCalSettings(item, {
+               weekNumbers: normalizeStoredBoolean(widget.weekNumbers, "true"),
+               weekStart: widget.weekStart,
+               monthDisplay: widget.monthDisplay || "full",
+               monthVisible: normalizeStoredBoolean(widget.monthVisible, "true"),
+               month: widget.month !== undefined && widget.month !== null ? String(widget.month) : undefined,
+               yearDisplay: widget.yearDisplay || (widget.yearVisible === false || widget.yearVisible === "false" ? "none" : undefined),
+               yearVisible: normalizeStoredBoolean(widget.yearVisible, "true"),
+               year: widget.year !== undefined && widget.year !== null ? String(widget.year) : undefined,
+               startDay: widget.startDay !== undefined && widget.startDay !== null ? String(widget.startDay) : undefined,
+               visibleDays: widget.visibleDays !== undefined && widget.visibleDays !== null ? String(widget.visibleDays) : undefined,
+               timeIncrement: widget.timeIncrement !== undefined && widget.timeIncrement !== null ? String(widget.timeIncrement) : undefined,
+               startTime: widget.startTime,
+               timeFormat: widget.timeFormat,
+               timeVisible: normalizeStoredBoolean(widget.timeVisible, "true"),
+               shareWeekends: normalizeStoredBoolean(widget.shareWeekends)
+          });
+     }
+     if (itemData.groupId) {
+          item.dataset.groupId = itemData.groupId;
+     }
+}
+
+function restorePlannerItem(itemData) {
+     const type = itemData.type || "sticky";
+
+     if (!itemGridUnits[type]) {
+          return null;
+     }
+
+     const item = makePlannerItem(type);
+
+     plannerDesk.append(item);
+     restorePlannerItemSettings(item, itemData);
+
+     if (itemData.placement === "page" || itemData.page) {
+          const page = pages.find((plannerPage) => getPageId(plannerPage) === (itemData.page || "left")) || pages[0];
+          const grid = getGridSize(page);
+          const origin = getGridSnapOrigin(page);
+          const storedGrid = getStoredItemGrid(itemData);
+          const box = {
+               x: origin.x + (storedGrid.x * grid.x),
+               y: origin.y + (storedGrid.y * grid.y),
+               width: storedGrid.width * grid.x,
+               height: storedGrid.height * grid.y
+          };
+
+          markGridState(item, true, page);
+          setItemBox(item, box);
+          setItemSpreadIndex(item, Number(itemData.spreadIndex) || 0);
+     } else {
+          const deskRect = plannerDesk.getBoundingClientRect();
+          const frame = itemData.frame || {};
+          const fallback = itemGridUnits[type] || itemGridUnits.sticky;
+          const frameX = Number(frame.x);
+          const frameY = Number(frame.y);
+          const frameWidth = Number(frame.width);
+          const frameHeight = Number(frame.height);
+          const box = {
+               x: (Number.isFinite(frameX) ? frameX : 0) * deskRect.width,
+               y: (Number.isFinite(frameY) ? frameY : 0) * deskRect.height,
+               width: Number.isFinite(frameWidth) && frameWidth > 0 ? frameWidth * deskRect.width : fallback.width * 12,
+               height: Number.isFinite(frameHeight) && frameHeight > 0 ? frameHeight * deskRect.height : fallback.height * 12
+          };
+
+          markGridState(item, false);
+          setItemBox(item, box);
+     }
+
+     return item;
+}
+
+function clearCurrentBookItems() {
+     clearSelection();
+     getAllPlannerItems().forEach((item) => {
+          closeItemMenu(item);
+          item.remove();
+     });
+     updateObjectControlsState();
+}
+
+function getStoredSpreadCount(book) {
+     const items = Array.isArray(book?.items) ? book.items : [];
+     const highestSpreadIndex = items.reduce((highest, item) => Math.max(highest, Number(item.spreadIndex) || 0), 0);
+     const storedCount = Number(book?.spread?.count) || initialNotebookSpreadCount;
+
+     return clamp(Math.max(storedCount, highestSpreadIndex + 1, 1), 1, maxStoredSpreadCount);
+}
+
+function restorePlannerBook(paperKey = plannerConfig.paperKey) {
+     const book = getStoredBook(paperKey);
+
+     isRestoringPlannerState = true;
+     clearCurrentBookItems();
+     notebookSpreadCount = getStoredSpreadCount(book);
+     currentSpreadIndex = clamp(Number(book?.spread?.currentIndex) || 0, 0, notebookSpreadCount - 1);
+     if (book && Array.isArray(book.items)) {
+          book.items.forEach(restorePlannerItem);
+     }
+     isRestoringPlannerState = false;
+     syncNextGroupId();
+}
+
+function syncNextGroupId() {
+     const highestGroupId = getAllPlannerItems().reduce((highest, item) => {
+          const match = item.dataset.groupId?.match(/^group-(\d+)$/);
+
+          return match ? Math.max(highest, Number(match[1]) || 0) : highest;
+     }, 0);
+
+     nextGroupId = Math.max(nextGroupId, highestGroupId + 1);
+}
+
+function getClearPageSides() {
+     const focus = viewFocusPoints[viewFocusIndex];
+
+     if (focus === "left" || focus === "right") {
+          return [focus];
+     }
+
+     return ["left", "right"];
+}
+
+function clearItems(items) {
+     items.forEach((item) => {
+          selectedItems.delete(item);
+          closeItemMenu(item);
+          item.remove();
+     });
+     selectedItem = selectedItems.size ? Array.from(selectedItems).at(-1) : null;
+     updateObjectControlsState();
+}
+
+function clearFocusedPage() {
+     const pageSides = new Set(getClearPageSides());
+     const items = getAllPlannerItems().filter((item) => (
+          item.dataset.pageId &&
+          getItemSpreadIndex(item) === currentSpreadIndex &&
+          pageSides.has(item.dataset.pageId)
+     ));
+
+     clearItems(items);
+     notifyTemplateChanged();
+}
+
+function clearCurrentBook() {
+     clearCurrentBookItems();
+     notifyTemplateChanged();
+}
+
+function changePaperSetting() {
+     const previousPaperKey = plannerConfig.paperKey;
+
+     savePlannerBook(previousPaperKey);
+     clearCurrentBookItems();
+     plannerConfig = buildPlannerConfig();
+     applyPlannerConfig();
+     restorePlannerBook(plannerConfig.paperKey);
+     syncNotebookSpread();
+     applyViewControls();
+     notifyTemplateChanged();
+}
+
 function notifyTemplateChanged() {
+     savePlannerState();
      window.dispatchEvent(new CustomEvent("perfectplanner:templatechange", {
           detail: serializePlannerTemplate()
      }));
@@ -2122,8 +2469,8 @@ function updateCalendarGridMetrics(item, page, box) {
      }
 
      const visibleDays = clamp(Number(item.dataset.visibleDays) || 7, 1, 7);
-     const timeColumnUnits = item.dataset.itemType === "weekly-vertical" && item.dataset.timeVisible === "false" ? 0 : 2;
-     const columnUnits = item.dataset.itemType === "full-cal" ? 16 : (visibleDays * 2) + timeColumnUnits;
+     const timeColumnUnits = item.dataset.itemType === "weekly-vertical" && item.dataset.timeVisible !== "false" ? 2 : 0;
+     const columnUnits = item.dataset.itemType === "full-cal" ? 16 : (visibleDays * 2) + timeColumnUnits + 2;
      const rowUnits = item.dataset.itemType === "full-cal"
           ? 14
           : Math.max(1, Number(item.style.getPropertyValue("--weekly-row-count")) || 14);
@@ -2462,6 +2809,10 @@ function positionItemControls(item) {
           return;
      }
 
+     if (controls.classList.contains("is-actions-popup")) {
+          return;
+     }
+
      const itemRect = item.getBoundingClientRect();
      const deskRect = plannerDesk.getBoundingClientRect();
      const menuWidth = controls.offsetWidth || 148;
@@ -2477,20 +2828,102 @@ function positionItemControls(item) {
      controls.style.top = `${top}px`;
 }
 
+function positionItemActionsPopup(controls, event) {
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const gap = 8;
+     const menuWidth = controls.offsetWidth || 156;
+     const menuHeight = controls.offsetHeight || 0;
+     const x = clamp(event.clientX - deskRect.left, gap, Math.max(gap, deskRect.width - menuWidth - gap));
+     const y = clamp(event.clientY - deskRect.top, gap, Math.max(gap, deskRect.height - menuHeight - gap));
+
+     controls.style.left = `${x}px`;
+     controls.style.top = `${y}px`;
+}
+
+function getSelectedOrGroupedActionItems(item) {
+     if (selectedItems.has(item)) {
+          return Array.from(selectedItems);
+     }
+
+     if (item.dataset.groupId) {
+          return getPlannerItems().filter((plannerItem) => plannerItem.dataset.groupId === item.dataset.groupId);
+     }
+
+     return [item];
+}
+
+function itemsShareWidgetType(items) {
+     if (items.length < 2) {
+          return true;
+     }
+
+     const type = items[0]?.dataset.itemType;
+
+     return Boolean(type) && items.every((item) => item.dataset.itemType === type);
+}
+
+function setControlsActionItems(controls, items) {
+     controls.dataset.actionItemIds = items.map((item) => item.dataset.templateId).filter(Boolean).join(" ");
+}
+
+function clearControlsActionItems(controls) {
+     delete controls.dataset.actionItemIds;
+}
+
+function getControlsActionItems(controls) {
+     const ids = controls?.dataset.actionItemIds?.split(" ").filter(Boolean) || [];
+
+     if (!ids.length) {
+          return [];
+     }
+
+     const idSet = new Set(ids);
+
+     return getPlannerItems().filter((item) => idSet.has(item.dataset.templateId));
+}
+
 function openItemMenu(item) {
      const controls = getItemControls(item);
+     const actionItems = getSelectedOrGroupedActionItems(item);
 
      if (!controls || !objectControlsShell) {
           return;
      }
 
-     closeItemMenus(item);
+     if (!itemsShareWidgetType(actionItems)) {
+          return;
+     }
+
+     closeItemMenu(item);
+     closeItemMenus();
      objectControlsShell.append(controls);
+     setControlsActionItems(controls, actionItems);
+     controls.classList.remove("is-floating", "is-actions-popup");
      controls.classList.add("is-docked");
+     setItemControlsTab(controls, "style");
      item.classList.add("is-menu-open");
      updateObjectControlsState();
      selectSettingsTab("style");
      openSidebar();
+}
+
+function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedActionItems(item)) {
+     const controls = getItemControls(item);
+
+     if (!controls) {
+          return;
+     }
+
+     closeSidebar();
+     closeItemMenus();
+     plannerDesk.append(controls);
+     setControlsActionItems(controls, actionItems);
+     controls.classList.remove("is-docked");
+     controls.classList.add("is-floating", "is-actions-popup");
+     item.classList.add("is-menu-open");
+     setItemControlsTab(controls, "actions");
+     positionItemActionsPopup(controls, event);
+     updateObjectControlsState();
 }
 
 function closeItemMenu(item) {
@@ -2503,8 +2936,9 @@ function closeItemMenu(item) {
 
      closeCustomSelects(controls);
      clearSelectFocus(controls);
-     controls.classList.remove("is-floating", "is-docked");
+     controls.classList.remove("is-floating", "is-docked", "is-actions-popup");
      controls.removeAttribute("style");
+     clearControlsActionItems(controls);
      item.append(controls);
      updateObjectControlsState();
 }
@@ -2573,24 +3007,43 @@ function closeItemMenus(exceptItem = null) {
      });
 }
 
-function groupSelectedItems() {
-     if (selectedItems.size < 2) {
-          return;
+function syncSelectionToActionItems(items, preferredItem = null) {
+     const nextSelection = new Set(items);
+
+     selectedItems.forEach((item) => {
+          if (!nextSelection.has(item)) {
+               item.classList.remove("is-selected", "is-resizing", "is-resize-ew", "is-resize-ns", "is-resize-nwse", "is-resize-nesw");
+          }
+     });
+     items.forEach((item) => item.classList.add("is-selected"));
+     selectedItems = nextSelection;
+     selectedItem = preferredItem && nextSelection.has(preferredItem) ? preferredItem : items.at(-1) || null;
+}
+
+function groupItems(items, preferredItem = null) {
+     if (items.length < 2) {
+          return false;
      }
 
      const groupId = `group-${nextGroupId}`;
      nextGroupId += 1;
-     selectedItems.forEach((item) => {
+     items.forEach((item) => {
           item.dataset.groupId = groupId;
      });
+     syncSelectionToActionItems(items, preferredItem);
      notifyTemplateChanged();
+     return true;
 }
 
-function ungroupSelectedItems() {
-     const groupIds = new Set(Array.from(selectedItems).map((item) => item.dataset.groupId).filter(Boolean));
+function groupSelectedItems() {
+     return groupItems(Array.from(selectedItems), selectedItem);
+}
+
+function ungroupItems(items) {
+     const groupIds = new Set(items.map((item) => item.dataset.groupId).filter(Boolean));
 
      if (!groupIds.size) {
-          return;
+          return false;
      }
 
      getPlannerItems().forEach((item) => {
@@ -2598,30 +3051,39 @@ function ungroupSelectedItems() {
                delete item.dataset.groupId;
           }
      });
+     syncSelectionToActionItems(items.filter((item) => getPlannerItems().includes(item)), selectedItem);
      notifyTemplateChanged();
+     return true;
+}
+
+function ungroupSelectedItems() {
+     return ungroupItems(Array.from(selectedItems));
+}
+
+function itemsHaveGroup(items) {
+     return items.some((item) => item.dataset.groupId);
 }
 
 function selectedItemsHaveGroup() {
-     return Array.from(selectedItems).some((item) => item.dataset.groupId);
+     return itemsHaveGroup(Array.from(selectedItems));
 }
 
-function updateGroupButton(button) {
-     const isGrouped = selectedItemsHaveGroup();
+function updateGroupButton(button, items = Array.from(selectedItems)) {
+     const isGrouped = itemsHaveGroup(items);
 
+     button.classList.toggle("is-grouped", isGrouped);
      button.textContent = isGrouped ? "Ungroup" : "Group";
      button.setAttribute("aria-label", isGrouped ? "Ungroup selected sticky notes" : "Group selected sticky notes");
 }
 
 function getActionItems(item) {
-     if (selectedItems.has(item)) {
-          return Array.from(selectedItems);
+     const controlsActionItems = getControlsActionItems(getItemControls(item));
+
+     if (controlsActionItems.length) {
+          return controlsActionItems;
      }
 
-     if (item.dataset.groupId) {
-          return getPlannerItems().filter((plannerItem) => plannerItem.dataset.groupId === item.dataset.groupId);
-     }
-
-     return [item];
+     return getSelectedOrGroupedActionItems(item);
 }
 
 function moveActionItemsLayer(item, direction) {
@@ -2660,6 +3122,26 @@ function moveActionItemsLayer(item, direction) {
 
 function applyStyleToActionItems(item, style) {
      getActionItems(item).forEach((targetItem) => setItemStyle(targetItem, style));
+     notifyTemplateChanged();
+}
+
+function applyTextSettingsToActionItems(item, settings) {
+     getActionItems(item).forEach((targetItem) => {
+          if (isCalendarTextItem(targetItem)) {
+               setCalendarDayTextSettings(targetItem, settings);
+          } else {
+               setStickyTextSettings(targetItem, settings);
+          }
+     });
+     notifyTemplateChanged();
+}
+
+function applyMiniCalSettingsToActionItems(item, settings) {
+     getActionItems(item).forEach((targetItem) => {
+          if (isCalendarItem(targetItem)) {
+               setMiniCalSettings(targetItem, settings);
+          }
+     });
      notifyTemplateChanged();
 }
 
@@ -3171,6 +3653,33 @@ function getCalendarDayKey(year, month, dayNumber) {
      return `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
 }
 
+function getTodayCalendarDayKey() {
+     const today = new Date();
+
+     return getCalendarDayKey(today.getFullYear(), today.getMonth(), today.getDate());
+}
+
+function hasCalendarDayKey(dayKeys, targetDayKey) {
+     const keys = Array.isArray(dayKeys) ? dayKeys : String(dayKeys).split(/[,+]/);
+
+     return keys.some((key) => key.split("T")[0] === targetDayKey);
+}
+
+function markCurrentCalendarDay(cell, dayKeys, todayKey = getTodayCalendarDayKey()) {
+     const isCurrentDay = hasCalendarDayKey(dayKeys, todayKey);
+
+     cell.classList.toggle("calendar-current-day", isCurrentDay);
+     if (isCurrentDay) {
+          cell.dataset.currentDay = "true";
+     } else {
+          delete cell.dataset.currentDay;
+     }
+}
+
+function markCurrentCalendarDayNumber(element, dayKey, todayKey = getTodayCalendarDayKey()) {
+     element.classList.toggle("calendar-current-day-number", dayKey === todayKey);
+}
+
 function getCalendarDaysInMonth(year, month) {
      return new Date(year, month + 1, 0).getDate();
 }
@@ -3320,6 +3829,30 @@ function startCalendarDayTextEditing(textElement, item) {
      });
 }
 
+function getCalendarMonthTitle(month, display = "full") {
+     if (display === "number") {
+          return String(month + 1);
+     }
+
+     if (display === "short") {
+          return calendarMonthNames[month].slice(0, 3);
+     }
+
+     return calendarMonthNames[month];
+}
+
+function getCalendarYearTitle(year, display = "full") {
+     if (display === "none") {
+          return "";
+     }
+
+     if (display === "short") {
+          return String(year).slice(-2);
+     }
+
+     return String(year);
+}
+
 function renderMiniCal(item) {
      if (item.dataset.itemType === "weekly-vertical") {
           renderWeeklyVertical(item);
@@ -3329,11 +3862,15 @@ function renderMiniCal(item) {
      let calendar = item.querySelector(".mini-cal");
      const weekNumbersEnabled = item.dataset.weekNumbers !== "false";
      const weekStart = item.dataset.weekStart || "monday";
-     const monthVisible = item.dataset.monthVisible !== "false";
-     const yearVisible = item.dataset.yearVisible !== "false";
-     const titleVisible = monthVisible || yearVisible;
+     const monthDisplay = item.dataset.monthDisplay || "full";
+     const yearDisplay = item.dataset.yearDisplay || (item.dataset.yearVisible === "false" ? "none" : "full");
      const month = Number(item.dataset.month) || 0;
      const year = Number(item.dataset.year) || new Date().getFullYear();
+     const titleMonthText = getCalendarMonthTitle(month, monthDisplay);
+     const titleYearText = getCalendarYearTitle(year, yearDisplay);
+     const monthVisible = titleMonthText !== "";
+     const yearVisible = titleYearText !== "";
+     const titleVisible = monthVisible || yearVisible;
      const firstDay = new Date(year, month, 1);
      const daysInMonth = new Date(year, month + 1, 0).getDate();
      const firstDayOffset = weekStart === "monday"
@@ -3345,6 +3882,23 @@ function renderMiniCal(item) {
      const weekendIndexes = weekStart === "monday" ? [5, 6] : [0, 6];
      const hasDayText = isCalendarTextItem(item);
      const dayNotes = hasDayText ? getCalendarDayNotes(item) : {};
+     const todayKey = getTodayCalendarDayKey();
+     const weekRows = Array.from({
+          length: 6
+     }, (_, weekIndex) => weekIndex).filter((weekIndex) => {
+          const weekStartDayNumber = (weekIndex * 7) + 1 - firstDayOffset;
+
+          return weekStartDayNumber <= daysInMonth && weekStartDayNumber + 6 >= 1;
+     });
+     const calendarRows = [
+          ...(titleVisible ? [0] : []),
+          1,
+          ...weekRows.map((weekIndex) => weekIndex + 2)
+     ];
+     const visibleColumnCount = 8;
+     const visibleRowCount = calendarRows.length;
+     const visibleColumnUnits = 16;
+     const visibleRowUnits = (titleVisible ? 1 : 0) + 1 + (weekRows.length * 2);
 
      if (!calendar) {
           calendar = document.createElement("div");
@@ -3356,36 +3910,44 @@ function renderMiniCal(item) {
      calendar.classList.toggle("has-week-numbers", weekNumbersEnabled);
      calendar.classList.toggle("has-title-row", titleVisible);
      calendar.classList.toggle("no-title-row", !titleVisible);
-     for (let row = 0; row < (titleVisible ? 8 : 7); row += 1) {
-          const calendarRow = titleVisible ? row : row + 1;
+     calendar.style.setProperty("--mini-cal-visible-columns", String(visibleColumnCount));
+     calendar.style.setProperty("--mini-cal-visible-rows", String(visibleRowCount));
+     calendar.style.setProperty("--mini-cal-visible-column-units", String(visibleColumnUnits));
+     calendar.style.setProperty("--mini-cal-visible-row-units", String(visibleRowUnits));
+     for (let row = 0; row < calendarRows.length; row += 1) {
+          const calendarRow = calendarRows[row];
+          const displayRow = row + 1;
 
           for (let column = 0; column < 8; column += 1) {
-               const cell = document.createElement("span");
-               const dayIndex = column - 1;
-
-               cell.className = "mini-cal-cell";
                if (!weekNumbersEnabled && column === 0) {
-                    cell.classList.add("mini-cal-hidden");
-                    cell.setAttribute("aria-hidden", "true");
-                    calendar.append(cell);
                     continue;
                }
 
+               const cell = document.createElement("span");
+               const dayIndex = column - 1;
+               const isTitleCell = calendarRow === 0 && ((weekNumbersEnabled && column === 0) || (!weekNumbersEnabled && column === 1));
+               const displayColumn = column + 1;
+
+               cell.className = "mini-cal-cell";
+               cell.style.gridRow = String(displayRow);
+               cell.style.gridColumn = isTitleCell
+                    ? (weekNumbersEnabled ? `1 / span ${visibleColumnCount}` : "2 / span 7")
+                    : String(displayColumn);
+
                if (calendarRow === 0) {
-                    if ((weekNumbersEnabled && column === 0) || (!weekNumbersEnabled && column === 1)) {
+                    if (isTitleCell) {
                          const titleYear = document.createElement("span");
                          const titleMonth = document.createElement("span");
 
                          cell.classList.add("mini-cal-month", (month + 1) % 2 === 1 ? "monthOdd" : "monthEven");
-                         titleYear.textContent = String(year);
-                         titleMonth.textContent = calendarMonthNames[month];
+                         titleYear.textContent = titleYearText;
+                         titleMonth.textContent = titleMonthText;
                          titleYear.hidden = !yearVisible;
                          titleMonth.hidden = !monthVisible;
                          cell.classList.toggle("has-title-pair", monthVisible && yearVisible);
                          cell.append(titleMonth, titleYear);
                     } else {
-                         cell.classList.add("mini-cal-hidden");
-                         cell.setAttribute("aria-hidden", "true");
+                         continue;
                     }
                } else if (column === 0) {
                     cell.classList.add("mini-cal-week");
@@ -3421,7 +3983,9 @@ function renderMiniCal(item) {
 
                          cell.classList.add("dayCell");
                          cell.dataset.dayKey = dayKey;
+                         markCurrentCalendarDay(cell, dayKey, todayKey);
                          dayNumberLabel.className = "mini-cal-day-number dayNumber";
+                         markCurrentCalendarDayNumber(dayNumberLabel, dayKey, todayKey);
                          dayNumberLabel.textContent = String(dayNumber);
                          cell.addEventListener("pointerdown", (event) => {
                               if (getResizeMode(item, event)) {
@@ -3469,7 +4033,7 @@ function renderMiniCal(item) {
                if (column === 7) {
                     cell.classList.add("mini-cal-edge-right");
                }
-               if (calendarRow === 7) {
+               if (row === calendarRows.length - 1) {
                     cell.classList.add("mini-cal-edge-bottom");
                }
 
@@ -3480,10 +4044,16 @@ function renderMiniCal(item) {
 
 function renderWeeklyVertical(item) {
      let calendar = item.querySelector(".weekly-vertical");
-     const monthVisible = item.dataset.monthVisible !== "false";
-     const yearVisible = item.dataset.yearVisible !== "false";
+     const weekNumbersEnabled = item.dataset.weekNumbers !== "false";
+     const weekStart = item.dataset.weekStart || "monday";
+     const monthDisplay = item.dataset.monthDisplay || "full";
+     const yearDisplay = item.dataset.yearDisplay || (item.dataset.yearVisible === "false" ? "none" : "full");
      const month = Number(item.dataset.month) || 0;
      const year = Number(item.dataset.year) || new Date().getFullYear();
+     const titleMonthText = getCalendarMonthTitle(month, monthDisplay);
+     const titleYearText = getCalendarYearTitle(year, yearDisplay);
+     const monthVisible = titleMonthText !== "";
+     const yearVisible = titleYearText !== "";
      const visibleDays = clamp(Number(item.dataset.visibleDays) || 7, 1, 7);
      const timeIncrement = Number(item.dataset.timeIncrement) || 30;
      const startTime = item.dataset.startTime || "00:00";
@@ -3497,9 +4067,13 @@ function renderWeeklyVertical(item) {
      const dayNotes = getCalendarDayNotes(item);
      const titleParts = [];
      const displayColumns = getWeeklyDisplayColumns(weekStartDate, visibleDays, shareWeekends);
-     const dayColumnStart = timeVisible ? 1 : 0;
+     const weekNumberColumn = 0;
+     const timeColumn = timeVisible ? 1 : -1;
+     const dayColumnStart = 1 + (timeVisible ? 1 : 0);
      const columnCount = displayColumns.length + dayColumnStart;
+     const renderedColumnCount = columnCount;
      const titleVisible = monthVisible || yearVisible;
+     const todayKey = getTodayCalendarDayKey();
 
      if (!calendar) {
           calendar = document.createElement("div");
@@ -3511,34 +4085,60 @@ function renderWeeklyVertical(item) {
      calendar.style.setProperty("--weekly-slot-count", String(slotCount));
      calendar.style.setProperty("--weekly-row-count", String(slotCount + (titleVisible ? 2 : 1)));
      calendar.style.setProperty("--weekly-day-count", String(displayColumns.length));
+     calendar.style.setProperty("--weekly-visible-column-units", String(renderedColumnCount * 2));
+     calendar.style.gridTemplateColumns = `${Array(dayColumnStart).fill("calc(var(--weekly-column-cell-width, 12px) * 2)").join(" ")} repeat(${displayColumns.length}, minmax(calc(var(--weekly-column-cell-width, 12px) * 2), 1fr))`.trim();
+     calendar.classList.toggle("has-week-numbers", weekNumbersEnabled);
      calendar.classList.toggle("has-time-column", timeVisible);
      calendar.classList.toggle("has-title-row", titleVisible);
      calendar.classList.toggle("no-title-row", !titleVisible);
 
      if (monthVisible) {
-          titleParts.push(calendarMonthNames[month]);
+          titleParts.push(titleMonthText);
      }
 
      if (yearVisible) {
-          titleParts.push(String(year));
+          titleParts.push(titleYearText);
      }
 
      for (let row = 0; row < slotCount + (titleVisible ? 2 : 1); row += 1) {
           const calendarRow = titleVisible ? row : row + 1;
 
           for (let column = 0; column < columnCount; column += 1) {
+               if (calendarRow !== 0 && !weekNumbersEnabled && column === weekNumberColumn) {
+                    continue;
+               }
+
                const cell = document.createElement("span");
                const dayIndex = column - dayColumnStart;
+               const displayColumn = column + 1;
 
                cell.className = "weekly-vertical-cell";
+               cell.style.gridRow = String(row + 1);
+               if (!(calendarRow === 0 && column === 0)) {
+                    cell.style.gridColumn = String(displayColumn);
+               }
 
                if (calendarRow === 0 && column === 0) {
                     cell.classList.add("weekly-vertical-title", (month + 1) % 2 === 1 ? "monthOdd" : "monthEven");
-                    cell.style.gridColumn = `span ${columnCount}`;
+                    cell.style.gridColumn = weekNumbersEnabled
+                         ? `span ${renderedColumnCount}`
+                         : `2 / span ${renderedColumnCount - 1}`;
                     cell.textContent = titleParts.join(" ");
                } else if (calendarRow === 0) {
                     continue;
-               } else if (calendarRow === 1 && timeVisible && column === 0) {
+               } else if (calendarRow === 1 && column === weekNumberColumn) {
+                    cell.classList.add("weekly-vertical-week", "weekName");
+                    cell.textContent = "#";
+               } else if (column === weekNumberColumn) {
+                    cell.classList.add("weekly-vertical-week", "weekNumberCell");
+                    if (calendarRow === 2) {
+                         const weekNumberLabel = document.createElement("span");
+
+                         weekNumberLabel.className = "weekNumber";
+                         weekNumberLabel.textContent = String(getCalendarWeekNumber(weekStartDate, weekStart));
+                         cell.append(weekNumberLabel);
+                    }
+               } else if (calendarRow === 1 && column === timeColumn) {
                     cell.classList.add("weekly-vertical-time-heading");
                     cell.textContent = "Time";
                } else if (calendarRow === 1) {
@@ -3552,6 +4152,7 @@ function renderWeeklyVertical(item) {
                          cell.classList.add("weekly-vertical-weekend");
                     }
                     cell.dataset.dayKey = displayColumn.dates.map((date) => getCalendarDayKey(date.getFullYear(), date.getMonth(), date.getDate())).join(",");
+                    markCurrentCalendarDay(cell, displayColumn.dates.map((date) => getCalendarDayKey(date.getFullYear(), date.getMonth(), date.getDate())), todayKey);
                     displayColumn.dates.slice(0, 1).forEach((date) => {
                          const dateLabel = document.createElement("span");
                          const dayName = document.createElement("span");
@@ -3561,11 +4162,12 @@ function renderWeeklyVertical(item) {
                          dayName.className = "weekly-vertical-day-name";
                          dayName.textContent = dayLabels[date.getDay()];
                          dayNumber.className = "dayNumber";
+                         markCurrentCalendarDayNumber(dayNumber, getCalendarDayKey(date.getFullYear(), date.getMonth(), date.getDate()), todayKey);
                          dayNumber.textContent = String(date.getDate()).padStart(2, "0");
                          dateLabel.append(dayName, dayNumber);
                          cell.append(dateLabel);
                     });
-               } else if (timeVisible && column === 0) {
+               } else if (column === timeColumn) {
                     const timeMinutes = startMinutes + ((calendarRow - 2) * timeIncrement);
 
                     cell.classList.add("weekly-vertical-time");
@@ -3589,6 +4191,7 @@ function renderWeeklyVertical(item) {
                     }
                     cell.classList.add("dayCell");
                     cell.dataset.dayKey = slotKey;
+                    markCurrentCalendarDay(cell, displayColumn.dates.map((date) => getCalendarDayKey(date.getFullYear(), date.getMonth(), date.getDate())), todayKey);
                     if (isSharedWeekendLabelRow) {
                          const sundayDate = displayColumn.dates[1];
                          const sundayMarker = document.createElement("span");
@@ -3599,6 +4202,7 @@ function renderWeeklyVertical(item) {
                          sundayName.className = "weekly-vertical-day-name";
                          sundayName.textContent = dayLabels[sundayDate.getDay()];
                          sundayNumber.className = "dayNumber";
+                         markCurrentCalendarDayNumber(sundayNumber, getCalendarDayKey(sundayDate.getFullYear(), sundayDate.getMonth(), sundayDate.getDate()), todayKey);
                          sundayNumber.textContent = String(sundayDate.getDate()).padStart(2, "0");
                          sundayMarker.append(sundayName, sundayNumber);
                          cell.append(sundayMarker);
@@ -3667,9 +4271,11 @@ function setMiniCalSettings(item, settings = {}) {
 
      item.dataset.weekNumbers = settings.weekNumbers || item.dataset.weekNumbers || "true";
      item.dataset.weekStart = settings.weekStart || item.dataset.weekStart || "monday";
-     item.dataset.monthVisible = settings.monthVisible || item.dataset.monthVisible || "true";
+     item.dataset.monthDisplay = settings.monthDisplay || item.dataset.monthDisplay || "full";
+     item.dataset.monthVisible = item.dataset.monthDisplay === "none" ? "false" : "true";
      item.dataset.month = settings.month || item.dataset.month || String(today.getMonth());
-     item.dataset.yearVisible = settings.yearVisible || item.dataset.yearVisible || "true";
+     item.dataset.yearDisplay = settings.yearDisplay || item.dataset.yearDisplay || (settings.yearVisible === "false" || item.dataset.yearVisible === "false" ? "none" : "full");
+     item.dataset.yearVisible = item.dataset.yearDisplay === "none" ? "false" : "true";
      item.dataset.year = settings.year || item.dataset.year || String(today.getFullYear());
      item.dataset.startDay = settings.startDay || item.dataset.startDay || "1";
      item.dataset.visibleDays = settings.visibleDays || item.dataset.visibleDays || "7";
@@ -3680,14 +4286,15 @@ function setMiniCalSettings(item, settings = {}) {
      item.dataset.timeVisible = settings.timeVisible ?? item.dataset.timeVisible ?? "true";
      item.dataset.shareWeekends = settings.shareWeekends ?? item.dataset.shareWeekends ?? "false";
      renderMiniCal(item);
+     updateCalendarGridMetrics(item, getItemPage(item), getItemBox(item));
 
      const controls = getItemControls(item) || item;
      const weekNumberInput = controls.querySelector("[data-widget-control='week-numbers']");
      const weekStartSelect = controls.querySelector("[data-widget-control='week-start']");
-     const monthVisibleInput = controls.querySelector("[data-widget-control='month-visible']");
      const monthSelect = controls.querySelector("[data-widget-control='month']");
-     const yearVisibleInput = controls.querySelector("[data-widget-control='year-visible']");
+     const monthDisplaySelect = controls.querySelector("[data-widget-control='month-display']");
      const yearSelect = controls.querySelector("[data-widget-control='year']");
+     const yearDisplaySelect = controls.querySelector("[data-widget-control='year-display']");
      const startDaySelect = controls.querySelector("[data-widget-control='start-day']");
      const visibleDaysSelect = controls.querySelector("[data-widget-control='visible-days']");
      const timeIncrementSelect = controls.querySelector("[data-widget-control='time-increment']");
@@ -3704,20 +4311,20 @@ function setMiniCalSettings(item, settings = {}) {
           weekStartSelect.value = item.dataset.weekStart;
      }
 
-     if (monthVisibleInput) {
-          monthVisibleInput.checked = item.dataset.monthVisible !== "false";
-     }
-
      if (monthSelect) {
           monthSelect.value = item.dataset.month;
      }
 
-     if (yearVisibleInput) {
-          yearVisibleInput.checked = item.dataset.yearVisible !== "false";
+     if (monthDisplaySelect) {
+          monthDisplaySelect.value = item.dataset.monthDisplay;
      }
 
      if (yearSelect) {
           yearSelect.value = item.dataset.year;
+     }
+
+     if (yearDisplaySelect) {
+          yearDisplaySelect.value = item.dataset.yearDisplay;
      }
 
      syncStartDayOptions(startDaySelect, Number(item.dataset.year), Number(item.dataset.month), item.dataset.startDay);
@@ -3764,6 +4371,7 @@ function makePlannerItem(type = "sticky") {
      const widgetPanel = document.createElement("div");
      const dateWidgetGroup = document.createElement("div");
      const dateWidgetTitle = document.createElement("div");
+     const calendarAttributesGrid = document.createElement("div");
      const timeWidgetGroup = document.createElement("div");
      const timeWidgetTitle = document.createElement("div");
      const duplicateButton = document.createElement("button");
@@ -3808,11 +4416,13 @@ function makePlannerItem(type = "sticky") {
      const weekStartLabel = document.createElement("label");
      const weekStartSelect = document.createElement("select");
      const monthLabel = document.createElement("label");
-     const monthVisibleInput = document.createElement("input");
      const monthSelect = document.createElement("select");
+     const monthDisplayLabel = document.createElement("label");
+     const monthDisplaySelect = document.createElement("select");
      const yearLabel = document.createElement("label");
-     const yearVisibleInput = document.createElement("input");
      const yearSelect = document.createElement("select");
+     const yearDisplayLabel = document.createElement("label");
+     const yearDisplaySelect = document.createElement("select");
      const startDayLabel = document.createElement("label");
      const startDaySelect = document.createElement("select");
      const visibleDaysLabel = document.createElement("label");
@@ -3878,6 +4488,7 @@ function makePlannerItem(type = "sticky") {
      dateWidgetGroup.className = "item-widget-group item-widget-date-group";
      dateWidgetTitle.className = "item-widget-group-title";
      dateWidgetTitle.textContent = "Day";
+     calendarAttributesGrid.className = "item-calendar-attributes-grid";
      timeWidgetGroup.className = "item-widget-group item-widget-time-group";
      timeWidgetTitle.className = "item-widget-group-title";
      timeWidgetTitle.textContent = "Time";
@@ -4017,6 +4628,7 @@ function makePlannerItem(type = "sticky") {
      weekNumberInput.checked = true;
      weekNumberInput.dataset.widgetControl = "week-numbers";
      weekNumberInput.setAttribute("aria-label", "Show week numbers");
+     weekNumberInput.title = "Show week numbers";
      weekStartLabel.className = "item-control-row item-widget-control";
      weekStartLabel.textContent = "Week Start";
      weekStartSelect.dataset.widgetControl = "week-start";
@@ -4030,10 +4642,6 @@ function makePlannerItem(type = "sticky") {
      });
      monthLabel.className = "item-control-row item-widget-control";
      monthLabel.textContent = "Month";
-     monthVisibleInput.type = "checkbox";
-     monthVisibleInput.checked = true;
-     monthVisibleInput.dataset.widgetControl = "month-visible";
-     monthVisibleInput.setAttribute("aria-label", "Show calendar month label");
      monthSelect.dataset.widgetControl = "month";
      monthSelect.setAttribute("aria-label", "Calendar month");
      calendarMonthNames.forEach((monthName, index) => {
@@ -4043,12 +4651,23 @@ function makePlannerItem(type = "sticky") {
           option.textContent = monthName;
           monthSelect.append(option);
      });
+     monthDisplayLabel.className = "item-control-row item-widget-control";
+     monthDisplayLabel.textContent = "Month Display";
+     monthDisplaySelect.dataset.widgetControl = "month-display";
+     monthDisplaySelect.setAttribute("aria-label", "Calendar month display");
+     [
+          ["number", "#"],
+          ["short", "MMM"],
+          ["full", "Full"]
+     ].forEach(([value, label]) => {
+          const option = document.createElement("option");
+
+          option.value = value;
+          option.textContent = label;
+          monthDisplaySelect.append(option);
+     });
      yearLabel.className = "item-control-row item-widget-control";
      yearLabel.textContent = "Year";
-     yearVisibleInput.type = "checkbox";
-     yearVisibleInput.checked = true;
-     yearVisibleInput.dataset.widgetControl = "year-visible";
-     yearVisibleInput.setAttribute("aria-label", "Show calendar year label");
      yearSelect.dataset.widgetControl = "year";
      yearSelect.setAttribute("aria-label", "Calendar year");
      for (let year = calendarYearRange.start; year <= calendarYearRange.end; year += 1) {
@@ -4058,6 +4677,21 @@ function makePlannerItem(type = "sticky") {
           option.textContent = String(year);
           yearSelect.append(option);
      }
+     yearDisplayLabel.className = "item-control-row item-widget-control";
+     yearDisplayLabel.textContent = "Year Display";
+     yearDisplaySelect.dataset.widgetControl = "year-display";
+     yearDisplaySelect.setAttribute("aria-label", "Calendar year display");
+     [
+          ["none", "Off"],
+          ["short", "YY"],
+          ["full", "YYYY"]
+     ].forEach(([value, label]) => {
+          const option = document.createElement("option");
+
+          option.value = value;
+          option.textContent = label;
+          yearDisplaySelect.append(option);
+     });
      startDayLabel.className = "item-control-row item-widget-control";
      startDayLabel.textContent = "Day";
      startDaySelect.dataset.widgetControl = "start-day";
@@ -4142,16 +4776,20 @@ function makePlannerItem(type = "sticky") {
      textFormatGroup.append(textBoldLabel, textItalicLabel, textUnderlineLabel);
      textAlignLabel.append(textAlignSelect);
      textLineHeightLabel.append(textLineHeightSelect);
-     monthLabel.append(monthVisibleInput, monthSelect);
-     yearLabel.append(yearVisibleInput, yearSelect);
-     weekStartLabel.append(weekStartSelect, weekNumberInput);
+     monthLabel.append(monthSelect);
+     monthDisplayLabel.append(monthDisplaySelect);
+     yearLabel.append(yearSelect);
+     yearDisplayLabel.append(yearDisplaySelect);
+     weekStartLabel.append(weekStartSelect);
+     weekNumberLabel.append(weekNumberInput);
+     calendarAttributesGrid.append(weekStartLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
      startDayLabel.append(startDaySelect);
      visibleDaysLabel.append(visibleDaysSelect);
      timeIncrementLabel.append(timeIncrementSelect);
      startTimeLabel.append(timeVisibleInput, startTimeSelect);
      timeFormatLabel.append(timeFormatSelect);
      shareWeekendsLabel.append(shareWeekendsInput);
-     controlTabs.append(actionsTab, styleTab);
+     controlTabs.append(styleTab);
      actionsPanel.append(duplicateButton, groupButton, bringForwardButton, sendBackwardButton, deleteButton);
      stylePanel.append(fillLabel, borderColorLabel, borderSizeField);
      if (type === "sticky") {
@@ -4179,10 +4817,10 @@ function makePlannerItem(type = "sticky") {
           widgetPanel.append(dotGridLabel);
      }
      if (isCalendarItemType(type) && type !== "weekly-vertical") {
-          widgetPanel.append(yearLabel, monthLabel, weekStartLabel);
+          widgetPanel.append(calendarAttributesGrid);
      }
      if (type === "weekly-vertical") {
-          dateWidgetGroup.append(dateWidgetTitle, yearLabel, monthLabel, startDayLabel);
+          dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid, startDayLabel);
           timeWidgetGroup.append(timeWidgetTitle, startTimeLabel, timeFormatLabel, timeIncrementLabel, visibleDaysLabel, shareWeekendsLabel);
           widgetPanel.append(dateWidgetGroup, timeWidgetGroup);
      }
@@ -4203,22 +4841,15 @@ function makePlannerItem(type = "sticky") {
           });
      });
      initializePaletteColorControl(textColorInput, textColorSwatches, "var(--color-gray1)", (nextColor) => {
-          if (isCalendarTextItem(item)) {
-               setCalendarDayTextSettings(item, {
-                    color: nextColor
-               });
-          } else {
-               setStickyTextSettings(item, {
-                    color: nextColor
-               });
-          }
-          notifyTemplateChanged();
+          applyTextSettingsToActionItems(item, {
+               color: nextColor
+          });
      });
      controls.querySelectorAll("select:not([data-style-control='fill']):not([data-style-control='border-color']):not([data-text-control='color'])").forEach((select) => {
           makeCustomSelect(select);
           select.addEventListener("change", () => updateCustomSelectDisplay(select));
      });
-     setItemControlsTab(controls, "actions");
+     setItemControlsTab(controls, "style");
      item.append(sizeLabel);
      if (type === "sticky") {
           item.append(textElement);
@@ -4297,7 +4928,7 @@ function makePlannerItem(type = "sticky") {
           startStickyTextEditing(item);
      });
      item.addEventListener("focus", () => {
-          if (!item.classList.contains("is-menu-open")) {
+          if (!item.classList.contains("is-menu-open") && !selectedItems.has(item)) {
                selectItem(item);
           }
      });
@@ -4307,9 +4938,11 @@ function makePlannerItem(type = "sticky") {
           if (!selectedItems.has(item)) {
                selectItem(item);
           }
+          const actionItems = getSelectedOrGroupedActionItems(item);
+
           closeItemMenus(item);
-          updateGroupButton(groupButton);
-          openItemMenu(item);
+          updateGroupButton(groupButton, actionItems);
+          openItemActionsPopup(item, event, actionItems);
      });
      controls.addEventListener("pointerdown", (event) => event.stopPropagation());
      controls.addEventListener("click", (event) => event.stopPropagation());
@@ -4322,12 +4955,14 @@ function makePlannerItem(type = "sticky") {
      });
      groupButton.addEventListener("click", (event) => {
           event.stopPropagation();
-          if (selectedItemsHaveGroup()) {
-               ungroupSelectedItems();
+          const actionItems = getActionItems(item);
+
+          if (itemsHaveGroup(actionItems)) {
+               ungroupItems(actionItems);
           } else {
-               groupSelectedItems();
+               groupItems(actionItems, item);
           }
-          updateGroupButton(groupButton);
+          updateGroupButton(groupButton, getActionItems(item));
      });
      bringForwardButton.addEventListener("click", (event) => {
           event.stopPropagation();
@@ -4348,95 +4983,44 @@ function makePlannerItem(type = "sticky") {
           });
      });
      textToggleInput.addEventListener("change", () => {
-          setStickyTextSettings(item, {
+          applyTextSettingsToActionItems(item, {
                enabled: textToggleInput.checked ? "true" : "false"
           });
-          notifyTemplateChanged();
      });
      textSizeInput.addEventListener("input", () => {
-          if (isCalendarTextItem(item)) {
-               setCalendarDayTextSettings(item, {
-                    size: textSizeInput.value
-               });
-          } else {
-               setStickyTextSettings(item, {
-                    size: textSizeInput.value
-               });
-          }
-          notifyTemplateChanged();
+          applyTextSettingsToActionItems(item, {
+               size: textSizeInput.value
+          });
      });
      textFontSelect.addEventListener("change", () => {
-          if (isCalendarTextItem(item)) {
-               setCalendarDayTextSettings(item, {
-                    font: textFontSelect.value
-               });
-          } else {
-               setStickyTextSettings(item, {
-                    font: textFontSelect.value
-               });
-          }
-          notifyTemplateChanged();
+          applyTextSettingsToActionItems(item, {
+               font: textFontSelect.value
+          });
      });
      textBoldInput.addEventListener("change", () => {
-          if (isCalendarTextItem(item)) {
-               setCalendarDayTextSettings(item, {
-                    bold: textBoldInput.checked ? "true" : "false"
-               });
-          } else {
-               setStickyTextSettings(item, {
-                    bold: textBoldInput.checked ? "true" : "false"
-               });
-          }
-          notifyTemplateChanged();
+          applyTextSettingsToActionItems(item, {
+               bold: textBoldInput.checked ? "true" : "false"
+          });
      });
      textItalicInput.addEventListener("change", () => {
-          if (isCalendarTextItem(item)) {
-               setCalendarDayTextSettings(item, {
-                    italic: textItalicInput.checked ? "true" : "false"
-               });
-          } else {
-               setStickyTextSettings(item, {
-                    italic: textItalicInput.checked ? "true" : "false"
-               });
-          }
-          notifyTemplateChanged();
+          applyTextSettingsToActionItems(item, {
+               italic: textItalicInput.checked ? "true" : "false"
+          });
      });
      textUnderlineInput.addEventListener("change", () => {
-          if (isCalendarTextItem(item)) {
-               setCalendarDayTextSettings(item, {
-                    underline: textUnderlineInput.checked ? "true" : "false"
-               });
-          } else {
-               setStickyTextSettings(item, {
-                    underline: textUnderlineInput.checked ? "true" : "false"
-               });
-          }
-          notifyTemplateChanged();
+          applyTextSettingsToActionItems(item, {
+               underline: textUnderlineInput.checked ? "true" : "false"
+          });
      });
      textAlignSelect.addEventListener("change", () => {
-          if (isCalendarTextItem(item)) {
-               setCalendarDayTextSettings(item, {
-                    align: textAlignSelect.value
-               });
-          } else {
-               setStickyTextSettings(item, {
-                    align: textAlignSelect.value
-               });
-          }
-          notifyTemplateChanged();
+          applyTextSettingsToActionItems(item, {
+               align: textAlignSelect.value
+          });
      });
      textLineHeightSelect.addEventListener("change", () => {
-          if (isCalendarTextItem(item)) {
-               setCalendarDayTextSettings(item, {
-                    lineHeight: textLineHeightSelect.value
-               });
-               updateCalendarTextOverflow(item);
-          } else {
-               setStickyTextSettings(item, {
-                    lineHeight: textLineHeightSelect.value
-               });
-          }
-          notifyTemplateChanged();
+          applyTextSettingsToActionItems(item, {
+               lineHeight: textLineHeightSelect.value
+          });
      });
      textElement.addEventListener("input", () => updateStickyTextOverflow(item));
      textElement.addEventListener("blur", () => stopStickyTextEditing(item));
@@ -4451,82 +5035,69 @@ function makePlannerItem(type = "sticky") {
           }
      });
      weekNumberInput.addEventListener("change", () => {
-          setMiniCalSettings(item, {
+          applyMiniCalSettingsToActionItems(item, {
                weekNumbers: weekNumberInput.checked ? "true" : "false"
           });
-          notifyTemplateChanged();
      });
      weekStartSelect.addEventListener("change", () => {
-          setMiniCalSettings(item, {
+          applyMiniCalSettingsToActionItems(item, {
                weekStart: weekStartSelect.value
           });
-          notifyTemplateChanged();
-     });
-     monthVisibleInput.addEventListener("change", () => {
-          setMiniCalSettings(item, {
-               monthVisible: monthVisibleInput.checked ? "true" : "false"
-          });
-          notifyTemplateChanged();
      });
      monthSelect.addEventListener("change", () => {
-          setMiniCalSettings(item, {
+          applyMiniCalSettingsToActionItems(item, {
                month: monthSelect.value
           });
-          notifyTemplateChanged();
      });
-     yearVisibleInput.addEventListener("change", () => {
-          setMiniCalSettings(item, {
-               yearVisible: yearVisibleInput.checked ? "true" : "false"
+     monthDisplaySelect.addEventListener("change", () => {
+          applyMiniCalSettingsToActionItems(item, {
+               monthDisplay: monthDisplaySelect.value
           });
-          notifyTemplateChanged();
      });
      yearSelect.addEventListener("change", () => {
-          setMiniCalSettings(item, {
+          applyMiniCalSettingsToActionItems(item, {
                year: yearSelect.value
           });
-          notifyTemplateChanged();
+     });
+     yearDisplaySelect.addEventListener("change", () => {
+          applyMiniCalSettingsToActionItems(item, {
+               yearDisplay: yearDisplaySelect.value
+          });
      });
      startDaySelect.addEventListener("change", () => {
-          setMiniCalSettings(item, {
+          applyMiniCalSettingsToActionItems(item, {
                startDay: startDaySelect.value
           });
-          notifyTemplateChanged();
      });
      visibleDaysSelect.addEventListener("change", () => {
-          setMiniCalSettings(item, {
+          applyMiniCalSettingsToActionItems(item, {
                visibleDays: visibleDaysSelect.value
           });
-          notifyTemplateChanged();
      });
      timeIncrementSelect.addEventListener("change", () => {
-          setMiniCalSettings(item, {
+          applyMiniCalSettingsToActionItems(item, {
                timeIncrement: timeIncrementSelect.value
           });
-          notifyTemplateChanged();
      });
      startTimeSelect.addEventListener("change", () => {
-          setMiniCalSettings(item, {
+          applyMiniCalSettingsToActionItems(item, {
                startTime: startTimeSelect.value
           });
-          notifyTemplateChanged();
      });
      timeFormatSelect.addEventListener("change", () => {
-          setMiniCalSettings(item, {
+          applyMiniCalSettingsToActionItems(item, {
                timeFormat: timeFormatSelect.value
           });
-          notifyTemplateChanged();
      });
      timeVisibleInput.addEventListener("change", () => {
-          setMiniCalSettings(item, {
+          applyMiniCalSettingsToActionItems(item, {
                timeVisible: timeVisibleInput.checked ? "true" : "false"
           });
-          notifyTemplateChanged();
      });
      shareWeekendsInput.addEventListener("change", () => {
-          setMiniCalSettings(item, {
+          applyMiniCalSettingsToActionItems(item, {
                shareWeekends: shareWeekendsInput.checked ? "true" : "false"
           });
-          notifyTemplateChanged();
      });
      deleteButton.addEventListener("click", (event) => {
           event.stopPropagation();
@@ -4578,8 +5149,10 @@ function copyItemConfiguration(source, target) {
           setMiniCalSettings(target, {
                weekNumbers: source.dataset.weekNumbers,
                weekStart: source.dataset.weekStart,
+               monthDisplay: source.dataset.monthDisplay,
                monthVisible: source.dataset.monthVisible,
                month: source.dataset.month,
+               yearDisplay: source.dataset.yearDisplay,
                yearVisible: source.dataset.yearVisible,
                year: source.dataset.year,
                startDay: source.dataset.startDay,
@@ -5181,6 +5754,7 @@ updateSettingsPanelSteps();
 updateObjectControlsState();
 syncResponsiveViewportClass();
 applyPlannerConfig();
+restorePlannerBook(plannerConfig.paperKey);
 syncNotebookSpread();
 if (isSinglePageViewport) {
      viewFocusIndex = 0;
@@ -5189,7 +5763,7 @@ applyViewControls();
 syncSidebarSnap();
 paperSelect.addEventListener("change", () => {
      syncSettingChoiceInputs("paper");
-     changePlannerSetting();
+     changePaperSetting();
 });
 paperColorSelect.addEventListener("change", () => {
      changePlannerSetting();
@@ -5208,6 +5782,8 @@ settingChoiceInputs.forEach((input) => {
 guideInputs.forEach((input) => {
      input.addEventListener("change", changePlannerSetting);
 });
+clearPageButton?.addEventListener("click", clearFocusedPage);
+clearBookButton?.addEventListener("click", clearCurrentBook);
 document.addEventListener("click", (event) => {
      const toggle = event.target.closest("[data-tertiary-matrix-toggle]");
 
@@ -5331,14 +5907,11 @@ document.addEventListener("click", (event) => {
           setTertiaryMatrixOpen(false);
      }
 
-     if (!event.target.closest("[data-hex-popover]") && !event.target.closest(".palette-hex-button")) {
-          closeHexPopover();
-     }
-
      if (!event.target.closest(".planner-item") && !event.target.closest(".planner-settings") && !event.target.closest(".page-snap-controls")) {
           clearSelection();
      }
 });
+document.addEventListener("pointerdown", closeHexPopoverFromOutsidePointer, true);
 document.addEventListener("keydown", (event) => {
      if (event.key === "Escape") {
           closeCustomSelects();

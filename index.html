@@ -10,15 +10,13 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee+Shade&family=Dancing+Script:wght@400..700&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=shared-grid-origin-13">
+     <link rel="stylesheet" href="style.css?v=planner-storage-25">
 </head>
 <body>
      <main class="planner-desk">
           <div class="page-snap-controls" aria-label="Planner page navigation">
                <button class="page-snap-button page-snap-button-prev" type="button" data-page-snap="previous" aria-label="Previous page">&#8679;</button>
                <button class="page-snap-button page-snap-button-next" type="button" data-page-snap="next" aria-label="Next page">&#8679;</button>
-               <button class="page-snap-button page-snap-button-up" type="button" data-page-snap="up" aria-label="Page up">&#8679;</button>
-               <button class="page-snap-button page-snap-button-down" type="button" data-page-snap="down" aria-label="Page down">&#8679;</button>
           </div>
 
           <div class="zoom-toast" data-zoom-toast aria-live="polite" aria-atomic="true">100%</div>
@@ -151,6 +149,10 @@
                     <button class="weekly-vertical-source" type="button" data-create-item data-create-type="weekly-vertical" data-widget-label="Vertical Week" aria-label="Add weekly vertical calendar widget">
                          <span>Vertical Week</span>
                     </button>
+                    <div class="add-panel-actions">
+                         <button class="settings-action-button" type="button" data-clear-page>Clear Page</button>
+                         <button class="settings-action-button" type="button" data-clear-book>Clear Book</button>
+                    </div>
                </div>
 
                <div class="settings-panel style-panel" id="style-panel" role="tabpanel" data-settings-panel="style" hidden>
@@ -200,6 +202,6 @@
           </div>
      </main>
 
-     <script src="script.js?v=shared-grid-origin-13"></script>
+     <script src="script.js?v=planner-storage-25"></script>
 </body>
 </html>
