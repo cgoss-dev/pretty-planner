@@ -40,8 +40,12 @@ const resizeEdgeSize = 16;
 const moveStartThreshold = 5;
 const pageStickDepth = 2;
 const stickyGridUnits = 12;
+const tocLeftColumnGridUnits = 2;
+const tocRightColumnMinGridUnits = 8;
 const perpetualCalendarMaxDayRows = 31;
 const perpetualCalendarHeaderRows = 1;
+const perpetualCalendarLeftColumnGridUnits = 2;
+const perpetualCalendarRightColumnMinGridUnits = 8;
 const itemGridUnits = {
      sticky: {
           width: 12,
@@ -68,8 +72,8 @@ const itemGridUnits = {
           height: 10
      },
      "perpetual-calendar": {
-          width: 14,
-          height: 14
+          width: perpetualCalendarLeftColumnGridUnits + perpetualCalendarRightColumnMinGridUnits,
+          height: 32
      },
      "weekly-vertical": {
           width: 14,
@@ -2729,12 +2733,18 @@ function renderToc(item) {
 
      const list = document.createElement("div");
      const tocTitle = document.createElement("div");
+     const tocTitlePage = document.createElement("span");
+     const tocTitleName = document.createElement("span");
      const entries = getPageTitleEntries();
 
      list.className = "toc-list";
      toc.replaceChildren(list);
      tocTitle.className = "toc-title";
-     tocTitle.textContent = "Table of Contents";
+     tocTitlePage.className = "toc-title-page";
+     tocTitleName.className = "toc-title-name";
+     tocTitlePage.textContent = "Page";
+     tocTitleName.textContent = "Table of Contents";
+     tocTitle.append(tocTitlePage, tocTitleName);
      list.append(tocTitle);
 
      if (!entries.length) {
@@ -3012,6 +3022,7 @@ function setItemBox(item, box) {
 
      if (page) {
           box = clampPerpetualCalendarBox(item, page, box);
+          box = clampTocBox(item, page, box);
      }
 
      item.dataset.x = String(box.x);
@@ -3100,16 +3111,49 @@ function updateTocGridMetrics(item, page, box) {
      }
 
      const grid = page ? getGridSize(page) : null;
-     const fallbackUnits = itemGridUnits.toc?.height || 18;
-     const rowHeight = grid ? grid.y : box.height / fallbackUnits;
+     const fallbackWidthUnits = itemGridUnits.toc?.width || 18;
+     const fallbackHeightUnits = itemGridUnits.toc?.height || 18;
+     const columnWidth = grid ? grid.x : box.width / fallbackWidthUnits;
+     const rowHeight = grid ? grid.y : box.height / fallbackHeightUnits;
      const rowCount = Math.max(1, Math.round(box.height / rowHeight));
-
+     item.style.setProperty("--toc-left-column-width", `${columnWidth * tocLeftColumnGridUnits}px`);
+     item.style.setProperty("--toc-right-column-min-width", `${columnWidth * tocRightColumnMinGridUnits}px`);
      item.style.setProperty("--toc-row-height", `${rowHeight}px`);
      item.style.setProperty("--toc-row-count", String(rowCount));
 }
 
+function getTocMinGridColumns() {
+     return tocLeftColumnGridUnits + tocRightColumnMinGridUnits;
+}
+
+function clampTocBox(item, page, box) {
+     if (!isTocItem(item)) {
+          return box;
+     }
+
+     const grid = getGridSize(page);
+     const minWidth = grid.x * getTocMinGridColumns();
+     const snappedWidth = Math.max(minWidth, Math.round(box.width / grid.x) * grid.x);
+
+     return {
+          ...box,
+          width: snappedWidth
+     };
+}
+
 function getPerpetualCalendarMaxGridRows() {
      return perpetualCalendarMaxDayRows + perpetualCalendarHeaderRows;
+}
+
+function getPerpetualCalendarMinGridColumns() {
+     return perpetualCalendarLeftColumnGridUnits + perpetualCalendarRightColumnMinGridUnits;
+}
+
+function getPerpetualCalendarVisibleGridRows(item) {
+     const month = Number(item.dataset.month) || 0;
+     const year = Number(item.dataset.year) || new Date().getFullYear();
+
+     return perpetualCalendarHeaderRows + getCalendarDaysInMonth(year, month);
 }
 
 function clampPerpetualCalendarBox(item, page, box) {
@@ -3118,15 +3162,14 @@ function clampPerpetualCalendarBox(item, page, box) {
      }
 
      const grid = getGridSize(page);
-     const maxHeight = grid.y * getPerpetualCalendarMaxGridRows();
-
-     if (box.height <= maxHeight) {
-          return box;
-     }
+     const minWidth = grid.x * getPerpetualCalendarMinGridColumns();
+     const fixedHeight = grid.y * getPerpetualCalendarMaxGridRows();
+     const snappedWidth = Math.max(minWidth, Math.round(box.width / grid.x) * grid.x);
 
      return {
           ...box,
-          height: maxHeight
+          width: snappedWidth,
+          height: fixedHeight
      };
 }
 
@@ -3136,12 +3179,19 @@ function updatePerpetualCalendarGridMetrics(item, page, box) {
      }
 
      const grid = page ? getGridSize(page) : null;
-     const fallbackUnits = itemGridUnits["perpetual-calendar"]?.height || 14;
-     const rowHeight = grid ? grid.y : box.height / fallbackUnits;
+     const fallbackWidthUnits = itemGridUnits["perpetual-calendar"]?.width || getPerpetualCalendarMinGridColumns();
+     const fallbackHeightUnits = itemGridUnits["perpetual-calendar"]?.height || getPerpetualCalendarMaxGridRows();
+     const columnWidth = grid ? grid.x : box.width / fallbackWidthUnits;
+     const rowHeight = grid ? grid.y : box.height / fallbackHeightUnits;
      const rowCount = Math.min(getPerpetualCalendarMaxGridRows(), Math.max(1, Math.round(box.height / rowHeight)));
+     const visibleRows = getPerpetualCalendarVisibleGridRows(item);
 
+     item.style.setProperty("--perpetual-calendar-left-column-width", `${columnWidth * perpetualCalendarLeftColumnGridUnits}px`);
+     item.style.setProperty("--perpetual-calendar-right-column-min-width", `${columnWidth * perpetualCalendarRightColumnMinGridUnits}px`);
      item.style.setProperty("--perpetual-calendar-row-height", `${rowHeight}px`);
      item.style.setProperty("--perpetual-calendar-row-count", String(rowCount));
+     item.style.setProperty("--perpetual-calendar-visible-height", `${rowHeight * visibleRows}px`);
+     item.style.setProperty("--perpetual-calendar-visible-rows", String(visibleRows));
 }
 
 function updateMiniYearGridMetrics(item, page, box) {
@@ -3918,6 +3968,10 @@ function getResizeMode(item, event) {
           return "";
      }
 
+     if (item.dataset.itemType === "perpetual-calendar" && event.target.closest(".perpetual-calendar-title")) {
+          return "";
+     }
+
      const rect = item.getBoundingClientRect();
      const isLeftEdge = event.clientX >= rect.left - resizeEdgeSize && event.clientX <= rect.left + resizeEdgeSize;
      const isRightEdge = event.clientX >= rect.right - resizeEdgeSize && event.clientX <= rect.right + resizeEdgeSize;
@@ -3981,6 +4035,35 @@ function getMovedBox(item, page, clientX, clientY, offsetX, offsetY, shouldClamp
      };
 }
 
+function getResizedPerpetualCalendarBox(item, page, clientX, current, mode, grid, origin, pageRect, viewZoom) {
+     const resizeLeft = mode.includes("left");
+     const resizeRight = mode.includes("right");
+     const minWidth = grid.x * getPerpetualCalendarMinGridColumns();
+     const fixedHeight = grid.y * getPerpetualCalendarMaxGridRows();
+     const right = current.x + current.width;
+     const pointerX = snapToGridOrigin((clientX - pageRect.left) / viewZoom, origin.x, grid.x);
+     let nextX = current.x;
+     let nextWidth = current.width;
+
+     if (resizeLeft) {
+          nextX = clamp(pointerX, grid.x * pageStickDepth - current.width, right - minWidth);
+          nextWidth = right - nextX;
+     } else if (resizeRight) {
+          const nextRight = clamp(pointerX, current.x + minWidth, (pageRect.width / viewZoom) - grid.x * pageStickDepth + current.width);
+
+          nextWidth = nextRight - current.x;
+     }
+
+     nextWidth = Math.max(minWidth, Math.round(nextWidth / grid.x) * grid.x);
+
+     return clampPerpetualCalendarBox(item, page, {
+          ...current,
+          x: resizeLeft ? right - nextWidth : nextX,
+          width: nextWidth,
+          height: fixedHeight
+     });
+}
+
 function getResizedBox(item, page, clientX, clientY, mode) {
      const current = getItemBox(item);
      const resizeLeft = mode.includes("left");
@@ -4013,8 +4096,12 @@ function getResizedBox(item, page, clientX, clientY, mode) {
      const viewZoom = getViewZoom();
      const grid = getGridSize(page);
      const origin = getGridSnapOrigin(page);
-     const minGridWidth = item.dataset.itemType === "mini-year" ? 24 : (isFullPageCalendarType(item.dataset.itemType) ? 16 : 2);
-     const minGridHeight = item.dataset.itemType === "mini-year" ? 32 : (isFullPageCalendarType(item.dataset.itemType) ? 14 : 2);
+     if (item.dataset.itemType === "perpetual-calendar") {
+          return getResizedPerpetualCalendarBox(item, page, clientX, current, mode, grid, origin, pageRect, viewZoom);
+     }
+
+     const minGridWidth = isTocItem(item) ? getTocMinGridColumns() : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMinGridColumns() : (item.dataset.itemType === "mini-year" ? 24 : (isFullPageCalendarType(item.dataset.itemType) ? 16 : 2)));
+     const minGridHeight = item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMaxGridRows() : (item.dataset.itemType === "mini-year" ? 32 : (isFullPageCalendarType(item.dataset.itemType) ? 14 : 2));
      const minWidth = grid.x * minGridWidth;
      const minHeight = grid.y * minGridHeight;
      const maxHeight = item.dataset.itemType === "perpetual-calendar" ? grid.y * getPerpetualCalendarMaxGridRows() : Infinity;
@@ -4961,14 +5048,10 @@ function renderMiniMonth(item) {
 function renderPerpetualCalendar(item) {
      let calendar = item.querySelector(".perpetual-calendar");
      const monthDisplay = item.dataset.monthDisplay || "full";
-     const yearDisplay = item.dataset.yearDisplay || (item.dataset.yearVisible === "false" ? "none" : "full");
      const month = Number(item.dataset.month) || 0;
      const year = Number(item.dataset.year) || new Date().getFullYear();
      const titleMonthText = getCalendarMonthTitle(month, monthDisplay);
-     const titleYearText = getCalendarYearTitle(year, yearDisplay);
-     const monthVisible = titleMonthText !== "";
-     const yearVisible = titleYearText !== "";
-     const titleVisible = monthVisible || yearVisible;
+     const titleYearText = String(year);
      const daysInMonth = getCalendarDaysInMonth(year, month);
      const todayKey = getTodayCalendarDayKey();
 
@@ -4979,24 +5062,21 @@ function renderPerpetualCalendar(item) {
      }
 
      calendar.replaceChildren();
-     calendar.classList.toggle("has-title-row", titleVisible);
-     calendar.classList.toggle("no-title-row", !titleVisible);
+     calendar.classList.add("has-title-row");
+     calendar.classList.remove("no-title-row");
      calendar.style.removeProperty("grid-template-rows");
 
-     if (titleVisible) {
-          const titleCell = document.createElement("span");
-          const titleMonth = document.createElement("span");
-          const titleYear = document.createElement("span");
+     const titleCell = document.createElement("span");
+     const titleYear = document.createElement("span");
+     const titleMonth = document.createElement("span");
 
-          titleCell.className = "perpetual-calendar-title";
-          titleCell.classList.toggle("has-title-pair", monthVisible && yearVisible);
-          titleMonth.textContent = titleMonthText;
-          titleYear.textContent = titleYearText;
-          titleMonth.hidden = !monthVisible;
-          titleYear.hidden = !yearVisible;
-          titleCell.append(titleMonth, titleYear);
-          calendar.append(titleCell);
-     }
+     titleCell.className = "perpetual-calendar-title";
+     titleYear.className = "perpetual-calendar-title-year";
+     titleMonth.className = "perpetual-calendar-title-month";
+     titleYear.textContent = titleYearText;
+     titleMonth.textContent = titleMonthText ? `Perpetual ${titleMonthText}` : "Perpetual";
+     titleCell.append(titleYear, titleMonth);
+     calendar.append(titleCell);
 
      for (let day = 1; day <= daysInMonth; day += 1) {
           const date = new Date(year, month, day);
@@ -5275,6 +5355,7 @@ function setMiniMonthSettings(item, settings = {}) {
      item.dataset.shareWeekends = settings.shareWeekends ?? item.dataset.shareWeekends ?? "false";
      renderMiniMonth(item);
      updateCalendarGridMetrics(item, getItemPage(item), getItemBox(item));
+     updatePerpetualCalendarGridMetrics(item, getItemPage(item), getItemBox(item));
 
      const controls = getItemControls(item) || item;
      const weekNumberSelect = controls.querySelector("[data-widget-control='week-number-format']");
