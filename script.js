@@ -254,11 +254,11 @@
           },
           pageNumbers: {
                badge: {
-                    sizeMultiplier: 1.7,
-                    minSize: "22px",
-                    xOffsetMultiplier: 0.75,
+                    sizeMultiplier: 1,
+                    minSize: "20px",
+                    xOffsetMultiplier: 0.5,
                     xOffsetMin: "10px",
-                    yOffsetMultiplier: 0.55,
+                    yOffsetMultiplier: 0.5,
                     yOffsetMin: "8px"
                },
                layering: {
@@ -279,14 +279,14 @@
                     "--page-corner-fold-top-z": "1",
                     "--page-corner-fold-border-z": "2"
                },
-               debugColors: {
-                    "--page-corner-fold-bottom-fill": "rgba(65, 105, 225, 0.45)",
-                    "--page-corner-fold-top-fill": "rgba(255, 99, 71, 0.62)",
-                    "--page-corner-fold-border-color": "#00a86b",
-                    "--page-corner-fold-number-fill": "#fff176",
-                    "--page-corner-fold-bottom-number-fill": "#8fd3ff",
-                    "--page-corner-fold-number-color": "#111"
-               }
+               // debugColors: {
+               //      "--page-corner-fold-bottom-fill": "rgba(65, 105, 225, 0.45)",
+               //      "--page-corner-fold-top-fill": "rgba(255, 99, 71, 0.62)",
+               //      "--page-corner-fold-border-color": "#00a86b",
+               //      "--page-corner-fold-number-fill": "#fff176",
+               //      "--page-corner-fold-bottom-number-fill": "#8fd3ff",
+               //      "--page-corner-fold-number-color": "#111"
+               // }
           }
      };
 
@@ -819,8 +819,10 @@ function updateCustomSelectDisplay(select) {
 
      const summary = dropdown.querySelector("summary");
      const selectedOption = select.options[select.selectedIndex];
+     const selectedFontFamily = getCustomSelectOptionFont(select, select.value);
 
      summary.textContent = selectedOption ? selectedOption.textContent : "";
+     summary.style.fontFamily = selectedFontFamily || "";
      dropdown.querySelectorAll(".custom-select-option").forEach((option) => {
           const isSelected = option.dataset.value === select.value;
 
@@ -845,6 +847,7 @@ function buildCustomSelectOptions(select, dropdown) {
           option.dataset.value = selectOption.value;
           option.setAttribute("role", "option");
           option.textContent = selectOption.textContent;
+          option.style.fontFamily = getCustomSelectOptionFont(select, selectOption.value) || "";
           option.addEventListener("click", (event) => {
                event.preventDefault();
                event.stopPropagation();
@@ -855,6 +858,26 @@ function buildCustomSelectOptions(select, dropdown) {
           });
           optionsBox.append(option);
      });
+}
+
+function getCustomSelectOptionFont(select, value) {
+     if (select.dataset.textControl !== "font") {
+          return "";
+     }
+
+     if (value === "dancing") {
+          return "var(--font-dancing)";
+     }
+
+     if (value === "sans") {
+          return "Arial, Helvetica, sans-serif";
+     }
+
+     if (value === "serif") {
+          return "Georgia, 'Times New Roman', serif";
+     }
+
+     return "var(--font-noto)";
 }
 
 function syncCustomSelect(select) {
@@ -949,7 +972,7 @@ function setSelectFocus(dropdown) {
      const menu = getSelectFocusMenu(dropdown);
      const panel = getSelectFocusPanel(dropdown);
      const row = getSelectFocusRow(dropdown);
-     const group = row ? row.closest(".item-widget-group, .item-calendar-attributes-grid") : null;
+     const group = row ? row.closest(".item-text-control-row, .item-widget-group, .item-calendar-attributes-grid") : null;
 
      if (!menu || !panel || !row) {
           return;
@@ -998,7 +1021,7 @@ function makeCustomSelect(select) {
                          details.removeAttribute("open");
                     }
                });
-               setSelectFocus(dropdown);
+               updateSelectFocusSpace(dropdown);
           } else {
                const menu = getSelectFocusMenu(dropdown);
 
@@ -1020,6 +1043,32 @@ function initializeCustomSelects() {
 }
 
 // NOTE: Bottom Menu And Object Settings Panel
+const objectSettingsControlTabs = {
+     appearance: "style",
+     text: "text",
+     attributes: "widget"
+};
+
+function syncObjectControlsSettingsTab(tabName) {
+     const controlTabName = objectSettingsControlTabs[tabName];
+
+     if (!controlTabName || !objectControlsShell) {
+          return;
+     }
+
+     const targetPanel = settingsPanels.find((panel) => panel.dataset.settingsPanel === tabName);
+
+     if (targetPanel && objectControlsShell.parentElement !== targetPanel) {
+          targetPanel.append(objectControlsShell);
+     }
+
+     const controls = objectControlsShell.querySelector(".item-controls");
+
+     if (controls && typeof setItemControlsTab === "function") {
+          setItemControlsTab(controls, controlTabName);
+     }
+}
+
 function selectSettingsTab(tabName) {
      closeCustomSelects(plannerSettings);
      clearSelectFocus(plannerSettings);
@@ -1034,6 +1083,8 @@ function selectSettingsTab(tabName) {
      settingsPanels.forEach((panel) => {
           panel.hidden = panel.dataset.settingsPanel !== tabName;
      });
+
+     syncObjectControlsSettingsTab(tabName);
 
      const activeTab = settingsTabs.find((tab) => tab.dataset.settingsTab === tabName);
 
@@ -1115,6 +1166,10 @@ function isPointerInsideElementBox(event, element) {
 }
 
 function collapseMenusFromOutsidePointer(event) {
+     if (event.target.closest("[data-create-item]")) {
+          return;
+     }
+
      if (plannerSettings.classList.contains("is-open") && !isPointerInsideElementBox(event, plannerSettings)) {
           closeSidebar();
      }

@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee+Shade&family=Dancing+Script:wght@400..700&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-91">
+     <link rel="stylesheet" href="style.css?v=planner-storage-125">
 </head>
 <body>
      <main class="planner-desk">
@@ -35,9 +35,19 @@
                          <span class="settings-tab-label">Widgets</span>
                          <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
                     </button>
-                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-label="Style" aria-controls="style-panel" data-settings-tab="style">
+                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-label="Appearance" aria-controls="appearance-panel" data-settings-tab="appearance">
                          <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
-                         <span class="settings-tab-label">Style</span>
+                         <span class="settings-tab-label">Appearance</span>
+                         <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
+                    </button>
+                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-label="Text" aria-controls="text-panel" data-settings-tab="text">
+                         <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
+                         <span class="settings-tab-label">Text</span>
+                         <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
+                    </button>
+                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-label="Attributes" aria-controls="attributes-panel" data-settings-tab="attributes">
+                         <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
+                         <span class="settings-tab-label">Attributes</span>
                          <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
                     </button>
                </div>
@@ -173,11 +183,13 @@
                     </div>
                </div>
 
-               <div class="settings-panel style-panel" id="style-panel" role="tabpanel" data-settings-panel="style" hidden>
+               <div class="settings-panel style-panel" id="appearance-panel" role="tabpanel" data-settings-panel="appearance" hidden>
                     <div class="settings-object-shell is-inactive" data-object-controls-shell>
                          <div class="settings-object-empty" data-object-controls-empty>Select an object</div>
                     </div>
                </div>
+               <div class="settings-panel style-panel" id="text-panel" role="tabpanel" data-settings-panel="text" hidden></div>
+               <div class="settings-panel style-panel" id="attributes-panel" role="tabpanel" data-settings-panel="attributes" hidden></div>
           </form>
 
           <div class="tertiary-matrix-popover" data-tertiary-matrix hidden>
@@ -220,9 +232,9 @@
           </div>
      </main>
 
-     <script src="script.js?v=planner-storage-90"></script>
-     <script src="widgets.js?v=planner-storage-95"></script>
+     <script src="script.js?v=planner-storage-125"></script>
+     <script src="widgets.js?v=planner-storage-125"></script>
      <script src="storage.js?v=planner-storage-2"></script>
-     <script src="app.js?v=planner-storage-96"></script>
+     <script src="app.js?v=planner-storage-125"></script>
 </body>
 </html>

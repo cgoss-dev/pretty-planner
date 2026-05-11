@@ -1312,7 +1312,7 @@ window.perfectPlanner = {
      serializeTemplate: serializePlannerTemplate,
      snapViewToPage,
      turnNotebookSpread,
-     version: "planner-storage-96"
+     version: "planner-storage-125"
 };
 
 syncAllSettingChoiceInputs();
@@ -1443,7 +1443,8 @@ plannerSettings.addEventListener("pointerleave", () => {
 });
 initializeCalendarSourcePreviews(sourceItems);
 sourceItems.forEach((sourceItem) => {
-     sourceItem.addEventListener("pointerdown", startSourceMove);
+     sourceItem.addEventListener("pointerdown", startSourceMove, true);
+     sourceItem.addEventListener("mousedown", startSourceMove, true);
 });
 plannerDesk.addEventListener("pointerdown", startMarquee);
 plannerDesk.addEventListener("pointermove", updateDeskResizeCursor);

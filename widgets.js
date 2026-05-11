@@ -143,11 +143,12 @@ function getTocDisplayTitle(title) {
      return String(title || "").replace(/\s+/g, " ").trim();
 }
 
-function renderToc(item, entries) {
+function renderToc(item, entries = []) {
      if (!isTocItem(item)) {
           return;
      }
 
+     const tocEntries = Array.isArray(entries) ? entries : [];
      let toc = item.querySelector(".toc-widget");
 
      if (!toc) {
@@ -171,7 +172,7 @@ function renderToc(item, entries) {
      tocTitle.append(tocTitlePage, tocTitleName);
      list.append(tocTitle);
 
-     if (!entries.length) {
+     if (!tocEntries.length) {
           const empty = document.createElement("div");
 
           empty.className = "toc-empty";
@@ -180,7 +181,7 @@ function renderToc(item, entries) {
           return;
      }
 
-     entries.forEach((entry) => {
+     tocEntries.forEach((entry) => {
           const row = document.createElement("div");
           const number = document.createElement("span");
           const title = document.createElement("span");
@@ -386,8 +387,8 @@ function updateCalendarGridMetrics(item, page, box) {
      const fallbackCellWidth = box.width / columnUnits;
      const fallbackCellHeight = box.height / rowUnits;
      const grid = page ? getGridSize(page) : null;
-     const cellWidth = grid ? grid.x : fallbackCellWidth;
-     const cellHeight = grid ? grid.y : fallbackCellHeight;
+     const cellWidth = item.dataset.itemType === "full-month" || !grid ? fallbackCellWidth : grid.x;
+     const cellHeight = item.dataset.itemType === "full-month" || !grid ? fallbackCellHeight : grid.y;
 
      item.style.setProperty("--weekly-column-cell-width", `${cellWidth}px`);
      item.style.setProperty("--weekly-row-cell-height", `${cellHeight}px`);
@@ -608,6 +609,7 @@ function setCalendarDayTextSettings(item, settings = {}) {
      item.dataset.dayTextItalic = settings.italic ?? item.dataset.dayTextItalic ?? "false";
      item.dataset.dayTextUnderline = settings.underline ?? item.dataset.dayTextUnderline ?? "false";
      item.dataset.dayTextAlign = settings.align || item.dataset.dayTextAlign || "left";
+     item.dataset.dayTextYAlign = settings.yAlign || item.dataset.dayTextYAlign || "top";
      item.dataset.dayTextLineHeight = settings.lineHeight || item.dataset.dayTextLineHeight || "1";
 
      item.querySelectorAll(".calendar-day-text").forEach((textElement) => {
@@ -615,7 +617,6 @@ function setCalendarDayTextSettings(item, settings = {}) {
           updateCalendarDayTextOverflow(textElement);
      });
 
-     const sizeInput = controls.querySelector("[data-text-control='size']");
      const fontSelect = controls.querySelector("[data-text-control='font']");
      const colorInput = controls.querySelector("[data-text-control='color']");
      const colorSwatches = controls.querySelector("[data-text-swatches='color']");
@@ -623,11 +624,10 @@ function setCalendarDayTextSettings(item, settings = {}) {
      const italicInput = controls.querySelector("[data-text-control='italic']");
      const underlineInput = controls.querySelector("[data-text-control='underline']");
      const alignSelect = controls.querySelector("[data-text-control='align']");
+     const yAlignSelect = controls.querySelector("[data-text-control='y-align']");
      const lineHeightSelect = controls.querySelector("[data-text-control='line-height']");
 
-     if (sizeInput) {
-          sizeInput.value = item.dataset.dayTextSize;
-     }
+     updateTextSizeControls(controls, item.dataset.dayTextSize);
 
      if (fontSelect) {
           fontSelect.value = item.dataset.dayTextFont;
@@ -638,20 +638,26 @@ function setCalendarDayTextSettings(item, settings = {}) {
      }
 
      if (boldInput) {
-          boldInput.checked = item.dataset.dayTextBold === "true";
+          updateTextToggleControl(boldInput, item.dataset.dayTextBold === "true");
      }
 
      if (italicInput) {
-          italicInput.checked = item.dataset.dayTextItalic === "true";
+          updateTextToggleControl(italicInput, item.dataset.dayTextItalic === "true");
      }
 
      if (underlineInput) {
-          underlineInput.checked = item.dataset.dayTextUnderline === "true";
+          updateTextToggleControl(underlineInput, item.dataset.dayTextUnderline === "true");
      }
 
      if (alignSelect) {
           alignSelect.value = item.dataset.dayTextAlign;
      }
+
+     if (yAlignSelect) {
+          yAlignSelect.value = item.dataset.dayTextYAlign;
+     }
+
+     updateTextAlignmentControls(controls, item.dataset.dayTextAlign, item.dataset.dayTextYAlign);
 
      if (lineHeightSelect) {
           lineHeightSelect.value = item.dataset.dayTextLineHeight;
@@ -668,6 +674,7 @@ function applyCalendarDayTextStyle(item, textElement) {
      textElement.style.fontStyle = item.dataset.dayTextItalic === "true" ? "italic" : "normal";
      textElement.style.textDecoration = item.dataset.dayTextUnderline === "true" ? "underline" : "none";
      textElement.style.textAlign = item.dataset.dayTextAlign || "left";
+     textElement.style.alignContent = getTextYAlignValue(item.dataset.dayTextYAlign);
      textElement.style.lineHeight = getTextLineHeightPixels(item, item.dataset.dayTextLineHeight);
 }
 
@@ -1122,7 +1129,6 @@ function renderPerpetualCalendar(item) {
      const month = Number(item.dataset.month) || 0;
      const year = Number(item.dataset.year) || new Date().getFullYear();
      const titleMonthText = getCalendarMonthTitle(month, monthDisplay);
-     const titleYearText = String(year);
      const daysInMonth = getCalendarDaysInMonth(year, month);
      const todayKey = getTodayCalendarDayKey();
 
@@ -1138,15 +1144,9 @@ function renderPerpetualCalendar(item) {
      calendar.style.removeProperty("grid-template-rows");
 
      const titleCell = document.createElement("span");
-     const titleYear = document.createElement("span");
-     const titleMonth = document.createElement("span");
 
      titleCell.className = "perpetual-calendar-title";
-     titleYear.className = "perpetual-calendar-title-year";
-     titleMonth.className = "perpetual-calendar-title-month";
-     titleYear.textContent = titleYearText;
-     titleMonth.textContent = titleMonthText ? `Perpetual ${titleMonthText}` : "Perpetual";
-     titleCell.append(titleYear, titleMonth);
+     titleCell.textContent = titleMonthText;
      calendar.append(titleCell);
 
      for (let day = 1; day <= daysInMonth; day += 1) {
@@ -1525,7 +1525,7 @@ function getPageNumberForPage(page) {
 function getPageTitleText(item) {
      const text = getStickyTextElement(item)?.textContent?.trim() || "";
 
-     return text;
+     return text || "Page Title";
 }
 
 function getPageTitleItemForPageNumber(pageNumber, exceptItem = null) {
@@ -1825,7 +1825,7 @@ function setItemBox(item, box) {
      updateMiniYearGridMetrics(item, page, box);
      updateItemTextLineHeight(item);
      updateStickyTextOverflow(item);
-     renderToc(item);
+     renderToc(item, getPageTitleEntries());
      if (item.dataset.itemType === "weekly-vertical") {
           renderWeeklyVertical(item);
      }
@@ -1859,6 +1859,52 @@ function updateStickyDotGrid(item, page, box) {
 // NOTE: Text Inside Notes, Titles, And Calendars
 function getStickyTextElement(item) {
      return item.querySelector(".sticky-text");
+}
+
+function getTextYAlignValue(value = "top") {
+     if (value === "center") {
+          return "center";
+     }
+     if (value === "bottom") {
+          return "end";
+     }
+     return "start";
+}
+
+function updateTextToggleControl(control, isActive) {
+     if (!control) {
+          return;
+     }
+
+     control.classList.toggle("is-active", Boolean(isActive));
+     control.setAttribute("aria-pressed", String(Boolean(isActive)));
+}
+
+function updateTextVisibilityToggle(control, isVisible) {
+     if (!control) {
+          return;
+     }
+
+     control.dataset.visibilityEnabled = String(Boolean(isVisible));
+     updateTextToggleControl(control, !isVisible);
+}
+
+function updateTextSizeControls(controls, size) {
+     controls.querySelectorAll("[data-text-size-value]").forEach((button) => {
+          const isActive = button.dataset.textSizeValue === String(size);
+
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", String(isActive));
+     });
+}
+
+function updateTextAlignmentControls(controls, align, yAlign) {
+     controls.querySelectorAll("[data-text-align-value][data-text-y-align-value]").forEach((button) => {
+          const isActive = button.dataset.textAlignValue === align && button.dataset.textYAlignValue === yAlign;
+
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", String(isActive));
+     });
 }
 
 function updateItemTextLineHeight(item) {
@@ -1899,6 +1945,7 @@ function setStickyTextSettings(item, settings = {}) {
      item.dataset.textItalic = settings.italic ?? item.dataset.textItalic ?? "false";
      item.dataset.textUnderline = settings.underline ?? item.dataset.textUnderline ?? "false";
      item.dataset.textAlign = settings.align || item.dataset.textAlign || "left";
+     item.dataset.textYAlign = settings.yAlign || item.dataset.textYAlign || "top";
      item.dataset.textLineHeight = settings.lineHeight || item.dataset.textLineHeight || "1";
 
      if (textElement) {
@@ -1914,11 +1961,11 @@ function setStickyTextSettings(item, settings = {}) {
           textElement.style.fontStyle = item.dataset.textItalic === "true" ? "italic" : "normal";
           textElement.style.textDecoration = item.dataset.textUnderline === "true" ? "underline" : "none";
           textElement.style.textAlign = item.dataset.textAlign;
+          textElement.style.alignContent = getTextYAlignValue(item.dataset.textYAlign);
           textElement.style.lineHeight = getTextLineHeightPixels(item, item.dataset.textLineHeight);
      }
 
      const enabledInput = controls.querySelector("[data-text-control='enabled']");
-     const sizeInput = controls.querySelector("[data-text-control='size']");
      const fontSelect = controls.querySelector("[data-text-control='font']");
      const colorInput = controls.querySelector("[data-text-control='color']");
      const colorSwatches = controls.querySelector("[data-text-swatches='color']");
@@ -1926,15 +1973,14 @@ function setStickyTextSettings(item, settings = {}) {
      const italicInput = controls.querySelector("[data-text-control='italic']");
      const underlineInput = controls.querySelector("[data-text-control='underline']");
      const alignSelect = controls.querySelector("[data-text-control='align']");
+     const yAlignSelect = controls.querySelector("[data-text-control='y-align']");
      const lineHeightSelect = controls.querySelector("[data-text-control='line-height']");
 
      if (enabledInput) {
-          enabledInput.checked = item.dataset.textEnabled === "true";
+          updateTextVisibilityToggle(enabledInput, item.dataset.textEnabled === "true");
      }
 
-     if (sizeInput) {
-          sizeInput.value = item.dataset.textSize;
-     }
+     updateTextSizeControls(controls, item.dataset.textSize);
 
      if (fontSelect) {
           fontSelect.value = item.dataset.textFont;
@@ -1945,20 +1991,26 @@ function setStickyTextSettings(item, settings = {}) {
      }
 
      if (boldInput) {
-          boldInput.checked = item.dataset.textBold === "true";
+          updateTextToggleControl(boldInput, item.dataset.textBold === "true");
      }
 
      if (italicInput) {
-          italicInput.checked = item.dataset.textItalic === "true";
+          updateTextToggleControl(italicInput, item.dataset.textItalic === "true");
      }
 
      if (underlineInput) {
-          underlineInput.checked = item.dataset.textUnderline === "true";
+          updateTextToggleControl(underlineInput, item.dataset.textUnderline === "true");
      }
 
      if (alignSelect) {
           alignSelect.value = item.dataset.textAlign;
      }
+
+     if (yAlignSelect) {
+          yAlignSelect.value = item.dataset.textYAlign;
+     }
+
+     updateTextAlignmentControls(controls, item.dataset.textAlign, item.dataset.textYAlign);
 
      if (lineHeightSelect) {
           lineHeightSelect.value = item.dataset.textLineHeight;
@@ -2105,6 +2157,10 @@ function getGridSnappedSize(item, page) {
 function getItemGridUnits(item) {
      if (item.dataset.itemType === "mini-month") {
           return getMiniMonthGridUnits(item);
+     }
+
+     if (item.dataset.itemType === "perpetual-calendar") {
+          return itemGridUnits["perpetual-calendar"];
      }
 
      if (isFullPageCalendarType(item.dataset.itemType)) {
@@ -2263,7 +2319,7 @@ function openItemMenu(item) {
      item.classList.add("is-menu-open");
      updateObjectControlsState();
      updateClipboardControls();
-     selectSettingsTab("style");
+     selectSettingsTab("appearance");
      openSidebar();
 }
 
@@ -2901,8 +2957,10 @@ function makePlannerItem(type = "sticky") {
      const timeWidgetGroup = document.createElement("div");
      const timeWidgetTitle = document.createElement("div");
      const duplicateButton = document.createElement("button");
+     const duplicateGroupActions = document.createElement("div");
      const copyButton = document.createElement("button");
      const pasteButton = document.createElement("button");
+     const clipboardActions = document.createElement("div");
      const groupButton = document.createElement("button");
      const layerButtonGroup = document.createElement("div");
      const bringForwardButton = document.createElement("button");
@@ -2921,24 +2979,26 @@ function makePlannerItem(type = "sticky") {
      const dotGridInput = document.createElement("input");
      const textElement = document.createElement("div");
      const tocElement = document.createElement("div");
+     const textControlsRow = document.createElement("div");
      const textToggleLabel = document.createElement("label");
      const textTitle = document.createElement("span");
-     const textToggleInput = document.createElement("input");
-     const textSizeInput = document.createElement("input");
+     const textToggleInput = document.createElement("button");
+     const textSizeGroup = document.createElement("div");
      const textFontSelect = document.createElement("select");
      const textColorLabel = document.createElement("label");
      const textColorTitle = document.createElement("span");
      const textColorInput = document.createElement("select");
      const textColorSwatches = document.createElement("div");
      const textFormatGroup = document.createElement("div");
-     const textBoldLabel = document.createElement("label");
-     const textBoldInput = document.createElement("input");
-     const textItalicLabel = document.createElement("label");
-     const textItalicInput = document.createElement("input");
-     const textUnderlineLabel = document.createElement("label");
-     const textUnderlineInput = document.createElement("input");
+     const textFormatTitle = document.createElement("span");
+     const textBoldInput = document.createElement("button");
+     const textItalicInput = document.createElement("button");
+     const textUnderlineInput = document.createElement("button");
      const textAlignLabel = document.createElement("label");
+     const textAlignTitle = document.createElement("span");
+     const textAlignmentGrid = document.createElement("div");
      const textAlignSelect = document.createElement("select");
+     const textYAlignSelect = document.createElement("select");
      const textLineHeightLabel = document.createElement("label");
      const textLineHeightSelect = document.createElement("select");
      const weekNumberLabel = document.createElement("label");
@@ -3029,6 +3089,7 @@ function makePlannerItem(type = "sticky") {
      duplicateButton.type = "button";
      duplicateButton.textContent = "Duplicate";
      duplicateButton.setAttribute("aria-label", "Duplicate sticky note");
+     duplicateGroupActions.className = "item-action-row";
      copyButton.className = "item-control";
      copyButton.type = "button";
      copyButton.textContent = "Copy";
@@ -3040,6 +3101,7 @@ function makePlannerItem(type = "sticky") {
      pasteButton.dataset.clipboardAction = "paste";
      pasteButton.setAttribute("aria-label", "Paste copied planner items");
      pasteButton.disabled = !plannerClipboard;
+     clipboardActions.className = "item-action-row";
      groupButton.className = "item-control";
      groupButton.type = "button";
      groupButton.textContent = "Group";
@@ -3065,7 +3127,7 @@ function makePlannerItem(type = "sticky") {
      borderTitle.className = "item-control-title";
      borderTitle.textContent = "Border";
      borderSizeField.className = "item-control-row";
-     borderSizeField.textContent = "Size";
+     borderSizeField.textContent = "Border Style";
      borderColorInput.className = "native-select";
      borderColorInput.dataset.styleControl = "border-color";
      borderColorInput.setAttribute("aria-label", "Sticky note border palette");
@@ -3094,16 +3156,32 @@ function makePlannerItem(type = "sticky") {
      textToggleLabel.className = "item-control-row item-text-control item-text-settings-control";
      textTitle.className = "item-control-title";
      textTitle.textContent = "Text";
-     textToggleInput.type = "checkbox";
+     textToggleInput.className = "item-text-toggle item-text-visibility-toggle";
+     textToggleInput.type = "button";
+     textToggleInput.textContent = "Text Visibility On/Off";
      textToggleInput.dataset.textControl = "enabled";
-     textToggleInput.setAttribute("aria-label", "Show sticky note text");
-     textSizeInput.type = "number";
-     textSizeInput.min = "8";
-     textSizeInput.max = "48";
-     textSizeInput.step = "1";
-     textSizeInput.value = "10";
-     textSizeInput.dataset.textControl = "size";
-     textSizeInput.setAttribute("aria-label", "Sticky note text size");
+     textToggleInput.setAttribute("aria-label", "Text visibility on/off");
+     textToggleInput.setAttribute("aria-pressed", "false");
+     textSizeGroup.className = "item-text-size-options";
+     textSizeGroup.setAttribute("role", "group");
+     textSizeGroup.setAttribute("aria-label", "Sticky note text size");
+     [
+          ["10", "SM"],
+          ["20", "MD"],
+          ["30", "LG"],
+          ["40", "1X"],
+          ["50", "2X"]
+     ].forEach(([value, label]) => {
+          const button = document.createElement("button");
+
+          button.className = "item-text-size-button";
+          button.type = "button";
+          button.textContent = label;
+          button.dataset.textSizeValue = value;
+          button.setAttribute("aria-label", `${label} text size`);
+          button.setAttribute("aria-pressed", "false");
+          textSizeGroup.append(button);
+     });
      textFontSelect.dataset.textControl = "font";
      textFontSelect.setAttribute("aria-label", "Sticky note text font");
      [
@@ -3126,32 +3204,80 @@ function makePlannerItem(type = "sticky") {
      textColorInput.setAttribute("aria-label", "Sticky note text palette");
      textColorSwatches.className = "item-color-swatches";
      textColorSwatches.dataset.textSwatches = "color";
+     textControlsRow.className = "item-text-control-row";
      textFormatGroup.className = "item-text-format item-text-control";
-     textBoldLabel.className = "item-text-toggle";
-     textBoldLabel.textContent = "B";
-     textBoldInput.type = "checkbox";
+     textFormatTitle.className = "item-control-title";
+     textFormatTitle.textContent = "BIU";
+     textBoldInput.className = "item-text-toggle item-text-toggle-bold";
+     textBoldInput.type = "button";
+     textBoldInput.textContent = "Bold";
      textBoldInput.dataset.textControl = "bold";
      textBoldInput.setAttribute("aria-label", "Bold sticky note text");
-     textItalicLabel.className = "item-text-toggle";
-     textItalicLabel.textContent = "I";
-     textItalicInput.type = "checkbox";
+     textBoldInput.setAttribute("aria-pressed", "false");
+     textItalicInput.className = "item-text-toggle item-text-toggle-italic";
+     textItalicInput.type = "button";
+     textItalicInput.textContent = "Italic";
      textItalicInput.dataset.textControl = "italic";
      textItalicInput.setAttribute("aria-label", "Italic sticky note text");
-     textUnderlineLabel.className = "item-text-toggle";
-     textUnderlineLabel.textContent = "U";
-     textUnderlineInput.type = "checkbox";
+     textItalicInput.setAttribute("aria-pressed", "false");
+     textUnderlineInput.className = "item-text-toggle item-text-toggle-underline";
+     textUnderlineInput.type = "button";
+     textUnderlineInput.textContent = "Underline";
      textUnderlineInput.dataset.textControl = "underline";
      textUnderlineInput.setAttribute("aria-label", "Underline sticky note text");
-     textAlignLabel.className = "item-control-row item-text-control";
-     textAlignLabel.textContent = "Alignment";
+     textUnderlineInput.setAttribute("aria-pressed", "false");
+     textAlignLabel.className = "item-control-row item-text-control item-text-align-control";
+     textAlignTitle.className = "item-control-title";
+     textAlignTitle.textContent = "Alignment";
+     textAlignmentGrid.className = "item-text-alignment-grid";
+     textAlignmentGrid.setAttribute("role", "group");
+     textAlignmentGrid.setAttribute("aria-label", "Text placement");
      textAlignSelect.dataset.textControl = "align";
-     textAlignSelect.setAttribute("aria-label", "Sticky note text alignment");
+     textAlignSelect.setAttribute("aria-label", "Sticky note horizontal alignment");
      ["left", "center", "right"].forEach((value) => {
           const option = document.createElement("option");
 
           option.value = value;
           option.textContent = value[0].toUpperCase() + value.slice(1);
           textAlignSelect.append(option);
+     });
+     textYAlignSelect.dataset.textControl = "y-align";
+     textYAlignSelect.setAttribute("aria-label", "Sticky note vertical alignment");
+     [
+          ["top", "Top"],
+          ["center", "Center"],
+          ["bottom", "Bottom"]
+     ].forEach(([value, label]) => {
+          const option = document.createElement("option");
+
+          option.value = value;
+          option.textContent = label;
+          textYAlignSelect.append(option);
+     });
+     [
+          ["top", "left"],
+          ["top", "center"],
+          ["top", "right"],
+          ["center", "left"],
+          ["center", "center"],
+          ["center", "right"],
+          ["bottom", "left"],
+          ["bottom", "center"],
+          ["bottom", "right"]
+     ].forEach(([yAlign, align]) => {
+          const button = document.createElement("button");
+          const glyph = document.createElement("span");
+
+          button.className = "item-text-alignment-button";
+          button.type = "button";
+          button.dataset.textAlignValue = align;
+          button.dataset.textYAlignValue = yAlign;
+          button.setAttribute("aria-label", `${yAlign} ${align} text alignment`);
+          button.setAttribute("aria-pressed", "false");
+          glyph.className = "item-text-alignment-glyph";
+          glyph.textContent = "☰";
+          button.append(glyph);
+          textAlignmentGrid.append(button);
      });
      textLineHeightLabel.className = "item-control-row item-text-control";
      textLineHeightLabel.textContent = "Line Height";
@@ -3318,18 +3444,16 @@ function makePlannerItem(type = "sticky") {
      borderColorLabel.append(borderTitle, borderColorInput, borderColorSwatches);
      dotGridLabel.append(dotGridInput);
      if (type === "sticky") {
-          textToggleLabel.append(textTitle, textToggleInput, textSizeInput, textFontSelect);
+          textToggleLabel.append(textTitle, textToggleInput, textSizeGroup, textFontSelect);
      } else {
           textToggleLabel.classList.add("item-text-settings-control-no-toggle");
-          textToggleLabel.append(textTitle, textSizeInput, textFontSelect);
+          textToggleLabel.append(textTitle, textSizeGroup, textFontSelect);
      }
      textColorLabel.append(textColorTitle, textColorInput, textColorSwatches);
-     textBoldLabel.append(textBoldInput);
-     textItalicLabel.append(textItalicInput);
-     textUnderlineLabel.append(textUnderlineInput);
-     textFormatGroup.append(textBoldLabel, textItalicLabel, textUnderlineLabel);
-     textAlignLabel.append(textAlignSelect);
+     textFormatGroup.append(textFormatTitle, textBoldInput, textItalicInput, textUnderlineInput);
+     textAlignLabel.append(textAlignTitle, textAlignmentGrid);
      textLineHeightLabel.append(textLineHeightSelect);
+     textControlsRow.append(textToggleLabel, textFormatGroup, textAlignLabel);
      monthLabel.append(monthSelect);
      monthDisplayLabel.append(monthDisplaySelect);
      yearLabel.append(yearSelect);
@@ -3350,25 +3474,21 @@ function makePlannerItem(type = "sticky") {
      timeFormatLabel.append(timeFormatSelect);
      shareWeekendsLabel.append(shareWeekendsInput);
      controlTabs.append(styleTab);
-     layerButtonGroup.append(bringForwardButton, sendBackwardButton);
-     actionsPanel.append(actionsWidgetType, duplicateButton, copyButton, pasteButton, groupButton, layerButtonGroup, deleteButton);
+     duplicateGroupActions.append(duplicateButton, groupButton);
+     clipboardActions.append(copyButton, pasteButton);
+     layerButtonGroup.append(sendBackwardButton, bringForwardButton);
+     actionsPanel.append(actionsWidgetType, duplicateGroupActions, clipboardActions, layerButtonGroup, deleteButton);
      stylePanel.append(fillLabel, borderColorLabel, borderSizeField);
      if (isStickyTextItemType(type)) {
           textPanel.append(
-               textToggleLabel,
-               textColorLabel,
-               textFormatGroup,
-               textAlignLabel,
-               textLineHeightLabel
+               textControlsRow,
+               textColorLabel
           );
      }
      if (isCalendarTextItemType(type)) {
           textPanel.append(
-               textToggleLabel,
-               textColorLabel,
-               textFormatGroup,
-               textAlignLabel,
-               textLineHeightLabel
+               textControlsRow,
+               textColorLabel
           );
      }
      if (isStickyTextItemType(type) || isCalendarTextItemType(type)) {
@@ -3431,7 +3551,7 @@ function makePlannerItem(type = "sticky") {
      });
      setStickyTextSettings(item, isPageTitleItemType(type) ? {
           enabled: "true",
-          size: "14",
+          size: "10",
           bold: "true",
           align: "center"
      } : {});
@@ -3564,14 +3684,18 @@ function makePlannerItem(type = "sticky") {
                dotGrid: dotGridInput.checked ? "true" : "false"
           });
      });
-     textToggleInput.addEventListener("change", () => {
+     textToggleInput.addEventListener("click", () => {
+          const isVisible = textToggleInput.dataset.visibilityEnabled === "true";
+
           applyTextSettingsToActionItems(item, {
-               enabled: textToggleInput.checked ? "true" : "false"
+               enabled: isVisible ? "false" : "true"
           });
      });
-     textSizeInput.addEventListener("input", () => {
-          applyTextSettingsToActionItems(item, {
-               size: textSizeInput.value
+     textSizeGroup.querySelectorAll("[data-text-size-value]").forEach((button) => {
+          button.addEventListener("click", () => {
+               applyTextSettingsToActionItems(item, {
+                    size: button.dataset.textSizeValue
+               });
           });
      });
      textFontSelect.addEventListener("change", () => {
@@ -3579,24 +3703,33 @@ function makePlannerItem(type = "sticky") {
                font: textFontSelect.value
           });
      });
-     textBoldInput.addEventListener("change", () => {
+     textBoldInput.addEventListener("click", () => {
+          const isActive = textBoldInput.getAttribute("aria-pressed") === "true";
+
           applyTextSettingsToActionItems(item, {
-               bold: textBoldInput.checked ? "true" : "false"
+               bold: isActive ? "false" : "true"
           });
      });
-     textItalicInput.addEventListener("change", () => {
+     textItalicInput.addEventListener("click", () => {
+          const isActive = textItalicInput.getAttribute("aria-pressed") === "true";
+
           applyTextSettingsToActionItems(item, {
-               italic: textItalicInput.checked ? "true" : "false"
+               italic: isActive ? "false" : "true"
           });
      });
-     textUnderlineInput.addEventListener("change", () => {
+     textUnderlineInput.addEventListener("click", () => {
+          const isActive = textUnderlineInput.getAttribute("aria-pressed") === "true";
+
           applyTextSettingsToActionItems(item, {
-               underline: textUnderlineInput.checked ? "true" : "false"
+               underline: isActive ? "false" : "true"
           });
      });
-     textAlignSelect.addEventListener("change", () => {
-          applyTextSettingsToActionItems(item, {
-               align: textAlignSelect.value
+     textAlignmentGrid.querySelectorAll("[data-text-align-value][data-text-y-align-value]").forEach((button) => {
+          button.addEventListener("click", () => {
+               applyTextSettingsToActionItems(item, {
+                    align: button.dataset.textAlignValue,
+                    yAlign: button.dataset.textYAlignValue
+               });
           });
      });
      textLineHeightSelect.addEventListener("change", () => {
@@ -3712,6 +3845,7 @@ function copyItemConfiguration(source, target) {
           italic: source.dataset.textItalic,
           underline: source.dataset.textUnderline,
           align: source.dataset.textAlign,
+          yAlign: source.dataset.textYAlign,
           lineHeight: source.dataset.textLineHeight
      });
      if (isCalendarItem(source)) {
@@ -3743,6 +3877,7 @@ function copyItemConfiguration(source, target) {
                     italic: source.dataset.dayTextItalic,
                     underline: source.dataset.dayTextUnderline,
                     align: source.dataset.dayTextAlign,
+                    yAlign: source.dataset.dayTextYAlign,
                     lineHeight: source.dataset.dayTextLineHeight
                });
           }
@@ -4290,13 +4425,19 @@ function startMove(item, event) {
 }
 
 function startSourceMove(event) {
+     if (activeAction || event.button > 0) {
+          return;
+     }
+
+     event.preventDefault();
+     event.stopPropagation();
+
      const source = event.currentTarget;
      const item = makePlannerItem(source.dataset.createType || "sticky");
      const sourceRect = source.getBoundingClientRect();
      const offsetX = event.clientX - sourceRect.left;
      const offsetY = event.clientY - sourceRect.top;
 
-     event.preventDefault();
      closeItemMenus();
      document.body.append(item);
      item.classList.add("is-floating-source", "is-dragging");
@@ -4308,15 +4449,16 @@ function startSourceMove(event) {
           type: "source",
           item,
           page: null,
-          didCloseSidebar: false,
+          didMove: false,
           offsetX,
           offsetY
      };
 
-     try {
-          item.setPointerCapture(event.pointerId);
-     } catch {
-     }
+     document.addEventListener("pointermove", moveActiveItem, true);
+     document.addEventListener("pointerup", endActiveItem, true);
+     document.addEventListener("pointercancel", endActiveItem, true);
+     document.addEventListener("mousemove", moveActiveItem, true);
+     document.addEventListener("mouseup", endActiveItem, true);
 }
 
 function startResize(item, event, mode) {
@@ -4389,10 +4531,7 @@ function moveActiveItem(event) {
      }
 
      if (activeAction.type === "source") {
-          if (!activeAction.didCloseSidebar) {
-               closeSidebar();
-               activeAction.didCloseSidebar = true;
-          }
+          activeAction.didMove = true;
           setFloatingBox(activeAction.item, event.clientX, event.clientY, activeAction.offsetX, activeAction.offsetY);
           return;
      }
@@ -4447,6 +4586,12 @@ function endActiveItem(event) {
           return;
      }
 
+     document.removeEventListener("pointermove", moveActiveItem, true);
+     document.removeEventListener("pointerup", endActiveItem, true);
+     document.removeEventListener("pointercancel", endActiveItem, true);
+     document.removeEventListener("mousemove", moveActiveItem, true);
+     document.removeEventListener("mouseup", endActiveItem, true);
+
      if (activeAction.type === "sidebar-move" || activeAction.type === "sidebar-resize") {
           try {
                plannerSettings.releasePointerCapture(event.pointerId);
@@ -4481,21 +4626,16 @@ function endActiveItem(event) {
           return;
      }
 
-     if (activeAction.type === "source" && !activeAction.didCloseSidebar) {
-          removeRejectedSourceItem();
-          activeAction = null;
-          clearDragOver();
-          return;
-     }
-
      if (activeAction.type === "source" || activeAction.type === "move") {
-          const page = getPageFromDraggedBox(
+          const pointerPage = getPageFromPoint(event.clientX, event.clientY);
+          const overlapPage = getPageFromDraggedBox(
                activeAction.item,
                event.clientX,
                event.clientY,
                activeAction.offsetX,
                activeAction.offsetY
           );
+          const page = pointerPage || overlapPage;
 
           if (page && !canPlaceActiveMoveItemsOnPage(page)) {
                restoreActiveMoveItems();
@@ -4519,7 +4659,16 @@ function endActiveItem(event) {
                     clearDragOver();
                     return;
                }
+               if (activeAction.type === "source") {
+                    closeSidebar();
+               }
           } else {
+               if (activeAction.type === "source") {
+                    removeRejectedSourceItem();
+                    activeAction = null;
+                    clearDragOver();
+                    return;
+               }
                placeItemOnDesk(activeAction.item, event);
           }
 

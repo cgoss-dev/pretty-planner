@@ -107,6 +107,7 @@ function serializePlannerItem(item) {
                               italic: item.dataset.dayTextItalic === "true",
                               underline: item.dataset.dayTextUnderline === "true",
                               align: item.dataset.dayTextAlign || "left",
+                              yAlign: item.dataset.dayTextYAlign || "top",
                               lineHeight: Number(item.dataset.dayTextLineHeight) || 1
                          }
                          : null
@@ -123,6 +124,7 @@ function serializePlannerItem(item) {
                     italic: item.dataset.textItalic === "true",
                     underline: item.dataset.textUnderline === "true",
                     align: item.dataset.textAlign || "left",
+                    yAlign: item.dataset.textYAlign || "top",
                     lineHeight: Number(item.dataset.textLineHeight) || 1
                }
                : null
@@ -437,6 +439,7 @@ function restorePlannerItemSettings(item, itemData) {
                italic: normalizeStoredBoolean(text.italic),
                underline: normalizeStoredBoolean(text.underline),
                align: text.align,
+               yAlign: text.yAlign,
                lineHeight: text.lineHeight
           });
      }
@@ -451,6 +454,7 @@ function restorePlannerItemSettings(item, itemData) {
                     italic: normalizeStoredBoolean(widget.dayText?.italic),
                     underline: normalizeStoredBoolean(widget.dayText?.underline),
                     align: widget.dayText?.align,
+                    yAlign: widget.dayText?.yAlign,
                     lineHeight: widget.dayText?.lineHeight
                });
           }
