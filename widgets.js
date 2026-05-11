@@ -4298,7 +4298,6 @@ function startSourceMove(event) {
 
      event.preventDefault();
      closeItemMenus();
-     closeSidebar();
      document.body.append(item);
      item.classList.add("is-floating-source", "is-dragging");
      item.style.width = `${sourceRect.width}px`;
@@ -4309,6 +4308,7 @@ function startSourceMove(event) {
           type: "source",
           item,
           page: null,
+          didCloseSidebar: false,
           offsetX,
           offsetY
      };
@@ -4389,6 +4389,10 @@ function moveActiveItem(event) {
      }
 
      if (activeAction.type === "source") {
+          if (!activeAction.didCloseSidebar) {
+               closeSidebar();
+               activeAction.didCloseSidebar = true;
+          }
           setFloatingBox(activeAction.item, event.clientX, event.clientY, activeAction.offsetX, activeAction.offsetY);
           return;
      }
@@ -4472,6 +4476,13 @@ function endActiveItem(event) {
 
      if (activeAction.type === "pending-move") {
           selectItem(activeAction.item);
+          activeAction = null;
+          clearDragOver();
+          return;
+     }
+
+     if (activeAction.type === "source" && !activeAction.didCloseSidebar) {
+          removeRejectedSourceItem();
           activeAction = null;
           clearDragOver();
           return;
