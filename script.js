@@ -6,7 +6,7 @@
      const rootControls = {
           app: {
                singlePageViewportMaxWidth: 1000,
-               notebookViewportHeightReserve: 0,
+               notebookViewportHeightReserve: 68,
                notebookViewportWidth: 132,
                notebookMaxWidth: 1220,
                resizeEdgeSize: 16,
@@ -268,7 +268,7 @@
                }
           },
           pageCornerFlip: {
-               hitAreaGridCells: 2,
+               hitAreaGridCells: 4,
                animation: {
                     classResetDelayMs: 760,
                     spreadSyncDelayMs: 380
@@ -1087,10 +1087,6 @@ function updateObjectControlsState() {
 }
 
 function updateClipboardControls() {
-     if (pastePageButton) {
-          pastePageButton.disabled = !plannerClipboard;
-     }
-
      document.querySelectorAll("[data-clipboard-action='paste']").forEach((button) => {
           button.disabled = !plannerClipboard;
      });

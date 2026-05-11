@@ -146,8 +146,8 @@
      --menu-width: clamp(250px, 30vw, 350px);
      --menu-width-safe: min(var(--menu-width), calc(100vw - 32px));
 
-     --notebook-width: min(132vw, 1220px, calc((100vh - 0px) * var(--notebook-screen-aspect)));
-     --notebook-height: min(50.47vw, 724px, calc(100vh - 0px));
+     --notebook-width: min(132vw, 1220px, calc((100vh - 68px) * var(--notebook-screen-aspect)));
+     --notebook-height: min(50.47vw, 724px, calc(100vh - 68px));
      
      --closed-settings-tabs-height: 34px;
      --notebook-stage-y: -17px; /* Centers notebook between viewport top and closed tabs. */
@@ -501,7 +501,7 @@ body {
      display: none;
 }
 
-/* NOTE: Form Fields, Choices, And Custom Drop-Down Menus */
+/* NOTE: Form Fields, Choices, And Drop-Down Menus */
 .planner-settings label,
 .setting-field,
 .guide-settings {
@@ -1731,7 +1731,8 @@ body {
      align-items: start;
      justify-items: center;
      justify-content: center;
-     gap: 22px 12px;
+     gap: 12px;
+     padding-bottom: 18px;
 }
 
 .add-panel-actions,
@@ -1743,6 +1744,10 @@ body {
      justify-content: center;
      gap: 8px;
      margin-top: 2px;
+}
+
+.add-panel-actions {
+     margin-top: 42px;
 }
 
 .page-count-status {
@@ -1787,8 +1792,12 @@ body {
      position: relative;
      top: auto;
      left: auto;
-     margin-top: calc(var(--font-size-sm) + 8px);
+     margin-top: 0;
      filter: drop-shadow(0 14px 12px rgba(17, 17, 17, 0.18));
+     transform: scale(1);
+     transition:
+          filter 150ms ease,
+          transform 150ms ease;
 }
 
 .add-panel .sticky-note,
@@ -1802,38 +1811,49 @@ body {
      width: 100px;
 }
 
+.add-panel .sticky-note:hover,
+.add-panel .sticky-note:focus-visible,
+.add-panel .page-title-source:hover,
+.add-panel .page-title-source:focus-visible,
+.add-panel .toc-source:hover,
+.add-panel .toc-source:focus-visible,
+.add-panel .mini-month-source:hover,
+.add-panel .mini-month-source:focus-visible,
+.add-panel .full-month-source:hover,
+.add-panel .full-month-source:focus-visible,
+.add-panel .mini-year-source:hover,
+.add-panel .mini-year-source:focus-visible,
+.add-panel .perpetual-calendar-source:hover,
+.add-panel .perpetual-calendar-source:focus-visible,
+.add-panel .weekly-vertical-source:hover,
+.add-panel .weekly-vertical-source:focus-visible {
+     z-index: 4;
+     filter: drop-shadow(0 18px 16px rgba(17, 17, 17, 0.22));
+     transform: scale(1.2);
+}
+
 .add-panel [data-widget-label]::before {
      content: attr(data-widget-label);
      position: absolute;
-     left: 50%;
-     bottom: calc(100% + 5px);
-     width: max-content;
-     max-width: 120px;
+     z-index: 3;
+     inset: 0;
+     display: grid;
+     place-items: center;
+     padding: 8px;
+     background: transparent;
      color: var(--color-gray1);
      font: 400 var(--font-size-sm) var(--font-noto);
-     line-height: 1;
+     line-height: 1.15;
      text-align: center;
-     transform: translateX(-50%);
+     pointer-events: none;
+     white-space: normal;
 }
 
 .add-panel .toc-source[data-widget-label]::before {
-     content: "Table\A of\A Contents";
-     inset: 0;
-     z-index: 1;
-     display: grid;
-     place-items: center;
-     width: auto;
-     max-width: none;
-     padding: 8px;
-     background: none;
-     color: var(--color-gray1);
-     font: 400 var(--font-size-sm) var(--font-noto);
-     line-height: 1.25;
-     text-align: center;
-     white-space: pre-line;
-     transform: none;
+     content: "Table of Contents";
 }
 
+.add-panel .page-title-source > span,
 .add-panel .mini-month-source > span:not(.calendar-source-preview),
 .add-panel .full-month-source > span:not(.calendar-source-preview),
 .add-panel .mini-year-source > span:not(.calendar-source-preview),
@@ -2116,6 +2136,21 @@ body {
 
 .weekly-vertical-source {
      aspect-ratio: 0.72;
+}
+
+.add-panel .page-title-source,
+.add-panel .toc-source,
+.add-panel .mini-month-source,
+.add-panel .full-month-source,
+.add-panel .mini-year-source,
+.add-panel .perpetual-calendar-source,
+.add-panel .weekly-vertical-source {
+     min-height: 100px;
+}
+
+.add-panel .page-title-source {
+     min-height: 33px;
+     aspect-ratio: 3;
 }
 
 .calendar-source-preview {

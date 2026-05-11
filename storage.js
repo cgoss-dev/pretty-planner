@@ -566,19 +566,34 @@ function getStoredPageCount(book) {
 function restorePlannerBook(paperKey = plannerConfig.paperKey) {
      const book = getStoredBook(paperKey);
 
-     isRestoringPlannerState = true;
-     clearCurrentBookItems();
-     setNotebookPageCount(getStoredPageCount(book));
-     currentSpreadIndex = clamp(Number(book?.spread?.currentIndex) || 0, 0, notebookSpreadCount - 1);
-     if (!isPageSideAvailable(getFocusedPageSide())) {
+     try {
+          isRestoringPlannerState = true;
+          clearCurrentBookItems();
+          setNotebookPageCount(getStoredPageCount(book));
+          currentSpreadIndex = clamp(Number(book?.spread?.currentIndex) || 0, 0, notebookSpreadCount - 1);
+          if (!isPageSideAvailable(getFocusedPageSide())) {
+               viewFocusIndex = 0;
+          }
+          if (book && Array.isArray(book.items)) {
+               book.items.forEach((itemData) => {
+                    try {
+                         restorePlannerItem(itemData);
+                    } catch (error) {
+                         console.warn("Skipped saved planner item that could not be restored.", error);
+                    }
+               });
+          }
+          renderTocWidgets();
+     } catch (error) {
+          console.warn("Saved planner book could not be restored. Opening an empty planner instead.", error);
+          clearCurrentBookItems();
+          setNotebookPageCount(initialNotebookPageCount);
+          currentSpreadIndex = 0;
           viewFocusIndex = 0;
+     } finally {
+          isRestoringPlannerState = false;
+          syncNextGroupId();
      }
-     if (book && Array.isArray(book.items)) {
-          book.items.forEach(restorePlannerItem);
-     }
-     renderTocWidgets();
-     isRestoringPlannerState = false;
-     syncNextGroupId();
 }
 
 function syncNextGroupId() {

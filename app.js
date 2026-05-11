@@ -458,7 +458,6 @@ const notebook = document.querySelector(".notebook");
 const sourceItems = Array.from(document.querySelectorAll("[data-create-item]"));
 const insertPageButton = document.querySelector("[data-insert-page]");
 const deletePageButton = document.querySelector("[data-delete-page]");
-const pastePageButton = document.querySelector("[data-paste-page]");
 const pageCountStatus = document.querySelector("[data-page-count-status]");
 const clearPageButton = document.querySelector("[data-clear-page]");
 const clearBookButton = document.querySelector("[data-clear-book]");
@@ -775,15 +774,19 @@ function getTextLineHeightPixels(item, cellCount) {
 // NOTE: Zoom And Which Page You Are Looking At
 function applyViewControls(zoomAnchor = null) {
      const zoom = viewZoomLevels[viewZoomIndex];
+     const shouldCenterFocusedPage = isSinglePageViewport || viewZoomIndex > 0;
 
      document.documentElement.dataset.viewFocus = viewFocusPoints[viewFocusIndex];
      setRootNumber("--view-zoom", zoom.value);
      setRootNumber("--view-pan-x", "0px");
      setRootNumber("--view-pan-y", "0px");
 
-     syncViewTargetCenter(zoomAnchor);
+     if (shouldCenterFocusedPage) {
+          syncViewTargetCenter(zoomAnchor);
+     } else {
+          requestAnimationFrame(refreshPageItemViews);
+     }
      updatePageSnapButtons();
-     requestAnimationFrame(refreshPageItemViews);
 }
 
 function syncViewTargetCenter(zoomAnchor = null) {
@@ -1014,6 +1017,11 @@ function updatePageSnapButtons() {
 }
 
 function movePageSnap(direction) {
+     if (direction === "previous" || direction === "next") {
+          moveViewFocus(direction);
+          return;
+     }
+
      PageControls.movePageSnap({
           direction,
           moveViewFocus,
@@ -1303,7 +1311,8 @@ function applyPlannerConfig() {
 window.perfectPlanner = {
      serializeTemplate: serializePlannerTemplate,
      snapViewToPage,
-     turnNotebookSpread
+     turnNotebookSpread,
+     version: "planner-storage-96"
 };
 
 syncAllSettingChoiceInputs();
@@ -1343,7 +1352,6 @@ guideInputs.forEach((input) => {
 });
 insertPageButton?.addEventListener("click", insertFocusedPage);
 deletePageButton?.addEventListener("click", deleteFocusedPage);
-pastePageButton?.addEventListener("click", pastePlannerClipboard);
 clearPageButton?.addEventListener("click", clearFocusedPage);
 clearBookButton?.addEventListener("click", clearCurrentBook);
 document.addEventListener("click", (event) => {
@@ -1388,6 +1396,17 @@ settingsTabs.forEach((tab) => {
           selectSettingsTab(tab.dataset.settingsTab);
           openSidebar();
      });
+});
+plannerSettings.addEventListener("pointerdown", (event) => {
+     const tab = event.target.closest("[data-settings-tab]");
+
+     if (!tab || plannerSettings.classList.contains("is-open")) {
+          return;
+     }
+
+     selectSettingsTab(tab.dataset.settingsTab);
+     openSidebar();
+     shouldSkipNextTabClick = true;
 });
 settingsStepButtons.forEach((button) => {
      button.addEventListener("click", (event) => {
@@ -1473,6 +1492,7 @@ document.addEventListener("keydown", (event) => {
           closeHexPopover();
      }
 });
+document.documentElement.dataset.appReady = "true";
 window.addEventListener("pointermove", moveActiveItem);
 window.addEventListener("pointerup", endActiveItem);
 window.addEventListener("pointercancel", endActiveItem);

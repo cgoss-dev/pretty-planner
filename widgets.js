@@ -1497,7 +1497,7 @@ function setMiniMonthSettings(item, settings = {}) {
      controls.querySelectorAll("select").forEach(syncCustomSelect);
 }
 
-// NOTE: Page Titles, Table Of Contents, And Page Insert/Delete Rules
+// NOTE: Page Titles, Table Of Contents, And Page Ins/Rmv Rules
 function getClearPageSides() {
      return PageControls.getClearPageSides({ viewFocusPoints, viewFocusIndex });
 }
