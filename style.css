@@ -1,5 +1,5 @@
 :root {
-     /* NOTE: THEME */
+     /* NOTE: Basic Colors */
      --color-black: #000;
      --color-gray1: #333;
      --color-gray2: #666;
@@ -8,21 +8,21 @@
      --color-white: #fff;
      --color-rainbow: #f00;
 
-     /* BLACK/SHADE ALPHA */
+     /* NOTE: Transparent Black Overlays */
      --shade-10: rgba(0, 0, 0, 0.1);
      --shade-30: rgba(0, 0, 0, 0.3);
      --shade-50: rgba(0, 0, 0, 0.5);
      --shade-70: rgba(0, 0, 0, 0.7);
      --shade-90: rgba(0, 0, 0, 0.9);
 
-     /* WHITE/TINT ALPHA */
+     /* NOTE: Transparent White Overlays */
      --tint-10: rgba(255, 255, 255, 0.1);
      --tint-30: rgba(255, 255, 255, 0.3);
      --tint-50: rgba(255, 255, 255, 0.5);
      --tint-70: rgba(255, 255, 255, 0.7);
      --tint-90: rgba(255, 255, 255, 0.9);
 
-     /* TERTIARY PALETTE */
+     /* NOTE: Rainbow Debug And Swatch Colors */
      --tertiary-01: #f00;
      --tertiary-02: #f40;
      --tertiary-03: #f80;
@@ -36,13 +36,13 @@
      --tertiary-11: #80f;
      --tertiary-12: #f0f;
 
-     /* PAPER PALETTE */
+     /* NOTE: Paper Colors */
      --paper-offwhite: #ffe;
      --paper-cream: #edb;
      --paper-linen: #dca;
      --paper-charcoal: #222;
 
-     /* COMPONENTS */
+     /* NOTE: Shared Sizes, Fonts, And Layout Knobs */
      --border-lg: 3px;
      --border-md: 2px;
      --border-sm: 1px;
@@ -171,6 +171,7 @@
      box-sizing: border-box;
 }
 
+/* NOTE: Whole App Page And Desk Background */
 html,
 body {
      margin: 0;
@@ -214,6 +215,7 @@ body {
      gap: 18px;
 }
 
+/* NOTE: Bottom Settings Menu */
 .planner-settings {
      position: absolute;
      z-index: 200;
@@ -250,6 +252,7 @@ body {
      pointer-events: none;
 }
 
+/* NOTE: Page Navigation Arrow Buttons */
 .page-snap-button {
      position: absolute;
      display: grid;
@@ -344,6 +347,7 @@ body {
      transform: translate(-50%, -50%);
 }
 
+/* NOTE: Top Tabs Inside The Bottom Menu */
 .settings-tabs {
      display: flex;
      align-items: end;
@@ -497,6 +501,7 @@ body {
      display: none;
 }
 
+/* NOTE: Form Fields, Choices, And Custom Drop-Down Menus */
 .planner-settings label,
 .setting-field,
 .guide-settings {
@@ -649,6 +654,7 @@ body {
      font: 400 var(--font-size-sm) var(--font-noto);
 }
 
+/* NOTE: Color Swatches, Hex Picker, And Color Matrix */
 .palette-preview .palette-swatches {
      grid-template-columns: repeat(12, var(--color-swatch-size));
      padding: 7px;
@@ -994,6 +1000,7 @@ body {
      accent-color: var(--tertiary-08);
 }
 
+/* NOTE: Notebook Cover, Pages, Spine, And Dot Grid */
 .notebook {
      position: relative;
      z-index: 2;
@@ -1250,6 +1257,7 @@ body {
      pointer-events: none;
 }
 
+/* NOTE: Page Turn Animation */
 .page-turn-sheet {
      position: absolute;
      z-index: 6;
@@ -1402,6 +1410,7 @@ body {
      left: 0;
 }
 
+/* NOTE: Page Numbers And Page Corner Folds */
 .page-number,
 .page-behind-number,
 .page-corner-fold {
@@ -1664,6 +1673,7 @@ body {
      --dot-bottom-mask-height: var(--dot-grid-size-y);
 }
 
+/* NOTE: Widget Tray Buttons */
 .sticky-note {
      position: absolute;
      z-index: 1;
@@ -1832,6 +1842,7 @@ body {
      opacity: 0;
 }
 
+/* NOTE: Planner Items Sitting On The Desk Or Page */
 .planner-item {
      border: var(--sticky-border-size, var(--border-sm)) solid var(--sticky-border-color, rgba(17, 17, 17, 0.18));
      border-radius: 5px;
@@ -2070,6 +2081,7 @@ body {
      transform: rotate(180deg);
 }
 
+/* NOTE: Widget Tray Mini Preview Pictures */
 .mini-month-source,
 .full-month-source,
 .mini-year-source,
@@ -2183,6 +2195,7 @@ body {
      border-bottom: 0;
 }
 
+/* NOTE: Calendar Widgets On The Page */
 .planner-item-mini-month,
 .planner-item-full-month,
 .planner-item-mini-year,
@@ -2665,6 +2678,7 @@ body {
      border-bottom: 0;
 }
 
+/* NOTE: Item Dragging, Selection, And Resize Handles */
 .planner-item.is-dragging {
      z-index: 30;
      cursor: grabbing;
@@ -2722,6 +2736,7 @@ body {
      display: block;
 }
 
+/* NOTE: Item Settings Popups And Docked Controls */
 .item-controls {
      position: absolute;
      z-index: 45;
@@ -3127,6 +3142,7 @@ body {
      color: var(--tertiary-01);
 }
 
+/* NOTE: Cursor Shape While Resizing */
 .planner-item.is-resize-ew {
      cursor: ew-resize;
 }
@@ -3151,6 +3167,7 @@ body {
      pointer-events: none;
 }
 
+/* NOTE: Single Page View On Smaller Screens */
 body.is-single-page-viewport {
      overflow: auto;
 }
@@ -3177,6 +3194,7 @@ body.is-single-page-viewport .planner-desk > .sticky-note {
      display: none;
 }
 
+/* NOTE: Printing */
 @page {
      size: var(--print-spread-width) var(--print-page-height);
      margin: 0;
