@@ -6,7 +6,7 @@
      --color-gray3: #999;
      --color-gray4: #ccc;
      --color-white: #fff;
-     --color-rainbow: #f0f;
+     --color-rainbow: #f00;
 
      /* BLACK/SHADE ALPHA */
      --shade-10: rgba(0, 0, 0, 0.1);
@@ -1170,8 +1170,6 @@ body {
      --dot-bottom-mask-height: calc(var(--dot-grid-size-y) * 0.5);
      --outside-edge-dot-mask-width: 0px;
      --outside-edge-dot-mask-position: 100% 0;
-     --outside-corner-dot-mask-offset-x: var(--dot-grid-size-x);
-     --outside-corner-dot-mask-offset-y: var(--dot-grid-size-y);
      --page-number-dot-mask-position: calc(100% - var(--dot-grid-size-x) + 1px) calc(100% - var(--dot-grid-size-y) + 1px);
      --half-page-x: var(--half-x);
      --third-x-start: var(--third-x-1);
@@ -1408,51 +1406,41 @@ body {
 .page-behind-number,
 .page-corner-fold {
      position: absolute;
-     z-index: 4;
      color: var(--color-gray1);
      font: 400 var(--font-size-sm) var(--font-noto);
      line-height: 1;
      pointer-events: none;
 }
 
-.page-number {
-     --page-number-x-offset: max(10px, calc(var(--dot-grid-size-x) * 0.75));
-     --page-number-y-offset: max(8px, calc(var(--dot-grid-size-y) * 0.55));
-     bottom: var(--page-number-y-offset);
+.page-number,
+.page-corner-fold-number {
+     --page-number-x-offset: var(--page-number-badge-x-offset, max(10px, calc(var(--dot-grid-size-x) * 0.75)));
+     --page-number-y-offset: var(--page-number-badge-y-offset, max(8px, calc(var(--dot-grid-size-y) * 0.55)));
+     display: grid;
+     width: var(--page-number-badge-width, max(22px, calc(var(--dot-grid-size-x) * 1.7)));
+     height: var(--page-number-badge-height, max(22px, calc(var(--dot-grid-size-y) * 1.7)));
+     place-items: center;
+     border-radius: 999px;
+     background: var(--paper);
+     box-shadow: 0 0 0 var(--border-sm) rgba(17, 17, 17, 0.08);
 }
 
-.outside-corner-dot-mask {
-     position: absolute;
-     z-index: 3;
-     bottom: var(--outside-corner-dot-mask-offset-y);
-     width: var(--dot-grid-size-x);
-     height: var(--dot-grid-size-y);
-     box-sizing: border-box;
-     border: 0;
-     background: var(--paper);
-     pointer-events: none;
+.page-number {
+     bottom: var(--page-number-y-offset);
+     z-index: var(--page-number-z, 4);
 }
 
 .page-left .page-number {
      left: var(--page-number-x-offset);
 }
 
-.page-left .outside-corner-dot-mask {
-     left: var(--outside-corner-dot-mask-offset-x);
-     transform: translate(-50%, 50%);
-}
-
 .page-right .page-number {
      right: var(--page-number-x-offset);
 }
 
-.page-right .outside-corner-dot-mask {
-     right: var(--outside-corner-dot-mask-offset-x);
-     transform: translate(50%, 50%);
-}
-
 .page-behind-number {
      bottom: 0;
+     z-index: var(--page-behind-number-z, 4);
      display: grid;
      width: calc(var(--dot-grid-size-x) * 3);
      height: calc(var(--dot-grid-size-y) * 3);
@@ -1481,11 +1469,12 @@ body {
 
 .page-corner-fold {
      bottom: 0;
+     z-index: var(--page-corner-fold-z, 4);
      display: grid;
      width: calc(var(--dot-grid-size-x) * 3);
      height: calc(var(--dot-grid-size-y) * 3);
-     --fold-border-color: var(--color-gray3);
-     --page-corner-fold-fill: var(--paper);
+     --fold-border-color: var(--page-corner-fold-border-color, var(--color-gray3));
+     --page-corner-fold-fill: var(--page-corner-fold-top-fill, var(--paper));
      place-items: center;
      overflow: hidden;
      opacity: 0;
@@ -1506,15 +1495,16 @@ body {
 }
 
 .page-corner-fold-bottom {
-     z-index: 0;
+     z-index: var(--page-corner-fold-bottom-z, 0);
+     background: var(--page-corner-fold-bottom-fill, transparent);
 }
 
 .page-corner-fold-top {
-     z-index: 1;
+     z-index: var(--page-corner-fold-top-z, 1);
 }
 
 .page-corner-fold-top-border {
-     z-index: 2;
+     z-index: var(--page-corner-fold-border-z, 2);
      fill: none;
      overflow: visible;
      pointer-events: none;
@@ -1530,10 +1520,15 @@ body {
 
 .page-corner-fold-number {
      position: absolute;
-     z-index: 3;
-     color: var(--color-gray1);
+     z-index: var(--page-corner-fold-number-z, 3);
+     color: var(--page-corner-fold-number-color, var(--color-gray1));
+     background: var(--page-corner-fold-number-fill, var(--paper));
      font: 400 var(--font-size-sm) var(--font-noto);
      line-height: 1;
+}
+
+.page-corner-fold-number-bottom {
+     background: var(--page-corner-fold-bottom-number-fill, var(--page-corner-fold-number-fill, var(--paper)));
 }
 
 .page-left .page-corner-fold {
@@ -1557,10 +1552,16 @@ body {
      d: path("M 1 1 L 99 99");
 }
 
-.page-left .page-corner-fold-number { /* Left page folded corner number handler. */
+.page-left .page-corner-fold-number-top { /* Left page folded corner top number handler. */
      top: 35%;
      right: 35%;
      transform: translate(50%, -50%) rotate(-90deg);
+}
+
+.page-left .page-corner-fold-number-bottom { /* Left page folded corner bottom number handler. */
+     bottom: 35%;
+     left: 35%;
+     transform: translate(-50%, 50%);
 }
 
 .page-right .page-corner-fold {
@@ -1584,10 +1585,16 @@ body {
      d: path("M 99 1 L 1 99");
 }
 
-.page-right .page-corner-fold-number { /* Right page folded corner number handler. */
+.page-right .page-corner-fold-number-top { /* Right page folded corner top number handler. */
      top: 35%;
      left: 35%;
      transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.page-right .page-corner-fold-number-bottom { /* Right page folded corner bottom number handler. */
+     right: 35%;
+     bottom: 35%;
+     transform: translate(50%, 50%);
 }
 
 .page.can-turn-page.is-corner-hover .page-number {
@@ -1855,6 +1862,11 @@ body {
      overflow: visible;
 }
 
+.planner-item-page-title[data-has-clear-fill="true"],
+.planner-item-page-title[data-has-clear-fill="true"] .sticky-text {
+     background: transparent;
+}
+
 .planner-item-toc {
      padding: 0;
      overflow: visible;
@@ -2057,8 +2069,6 @@ body {
      pointer-events: none;
      transform: rotate(180deg);
 }
-
-/* NOTE: month widgets */
 
 .mini-month-source,
 .full-month-source,
@@ -2425,8 +2435,6 @@ body {
      background: var(--calendar-weekday-header-background);
 }
 
-/* NOTE: perpetual calendar */
-
 .perpetual-calendar {
      position: relative;
      display: grid;
@@ -2512,8 +2520,6 @@ body {
 .perpetual-calendar-edge-bottom {
      border-bottom: 0;
 }
-
-/* NOTE: weeklyVertical */
 
 .weekly-vertical {
      position: relative;

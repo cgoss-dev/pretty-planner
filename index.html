@@ -141,6 +141,7 @@
                     <div class="page-panel-actions">
                          <button class="settings-action-button" type="button" data-insert-page>Insert Page</button>
                          <button class="settings-action-button" type="button" data-delete-page>Delete Page</button>
+                         <button class="settings-action-button" type="button" data-paste-page disabled>Paste Objects</button>
                          <span class="page-count-status" data-page-count-status aria-live="polite"></span>
                     </div>
 
@@ -190,29 +191,29 @@
                     <span class="notebook-spine-edge notebook-spine-edge-top" aria-hidden="true"></span>
                     <span class="notebook-spine-edge notebook-spine-edge-bottom" aria-hidden="true"></span>
                     <div class="page page-left" data-page data-turn-page="previous">
-                         <span class="outside-corner-dot-mask" aria-hidden="true"></span>
                          <span class="page-number" data-page-number></span>
                          <span class="page-behind-number" data-page-behind-number></span>
                          <span class="page-corner-fold">
                               <span class="page-corner-fold-bottom" aria-hidden="true"></span>
+                              <span class="page-corner-fold-number page-corner-fold-number-bottom" data-page-fold-behind-number></span>
                               <span class="page-corner-fold-top" aria-hidden="true"></span>
                               <svg class="page-corner-fold-top-border" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                                    <path class="page-corner-fold-top-border-path" pathLength="100"></path>
                               </svg>
-                              <span class="page-corner-fold-number" data-page-fold-number></span>
+                              <span class="page-corner-fold-number page-corner-fold-number-top" data-page-fold-number></span>
                          </span>
                     </div>
                     <div class="page page-right" data-page data-turn-page="next">
-                         <span class="outside-corner-dot-mask" aria-hidden="true"></span>
                          <span class="page-number" data-page-number></span>
                          <span class="page-behind-number" data-page-behind-number></span>
                          <span class="page-corner-fold">
                               <span class="page-corner-fold-bottom" aria-hidden="true"></span>
+                              <span class="page-corner-fold-number page-corner-fold-number-bottom" data-page-fold-behind-number></span>
                               <span class="page-corner-fold-top" aria-hidden="true"></span>
                               <svg class="page-corner-fold-top-border" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                                    <path class="page-corner-fold-top-border-path" pathLength="100"></path>
                               </svg>
-                              <span class="page-corner-fold-number" data-page-fold-number></span>
+                              <span class="page-corner-fold-number page-corner-fold-number-top" data-page-fold-number></span>
                          </span>
                     </div>
                     <div class="page-turn-sheet" data-page-turn-sheet aria-hidden="true"></div>
@@ -220,6 +221,8 @@
           </div>
      </main>
 
-     <script src="script.js?v=planner-storage-86"></script>
+     <script src="script.js?v=planner-storage-87"></script>
+     <script src="widgets.js?v=planner-storage-92"></script>
+     <script src="app.js?v=planner-storage-91"></script>
 </body>
 </html>
