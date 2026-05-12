@@ -262,8 +262,8 @@
                     yOffsetMin: "8px"
                },
                layering: {
-                    "--page-number-z": "4",
-                    "--page-behind-number-z": "4",
+                    "--page-number-z": "20",
+                    "--page-behind-number-z": "20",
                     "--page-corner-fold-number-z": "3"
                }
           },
@@ -274,7 +274,7 @@
                     spreadSyncDelayMs: 380
                },
                layering: {
-                    "--page-corner-fold-z": "4",
+                    "--page-corner-fold-z": "20",
                     "--page-corner-fold-bottom-z": "0",
                     "--page-corner-fold-top-z": "1",
                     "--page-corner-fold-border-z": "2"

@@ -367,7 +367,7 @@ const PageControls = (() => {
           return isBottomCornerArea && localX <= cellWidth * hitAreaGridCells;
      }
 
-     function bindPageTurnControls({ pages, getGridMetrics, turnNotebookSpread }) {
+     function bindPageTurnControls({ pages, getGridMetrics, turnNotebookSpread, setCornerOverlay = () => {} }) {
           pages.forEach((page) => {
                page.addEventListener("click", (event) => {
                     if (event.target.closest(".planner-item, .item-controls")) {
@@ -378,15 +378,20 @@ const PageControls = (() => {
                          return;
                     }
 
+                    setCornerOverlay(page, false);
                     turnNotebookSpread(page.dataset.turnPage === "next" ? 1 : -1);
                });
 
                page.addEventListener("pointermove", (event) => {
-                    page.classList.toggle("is-corner-hover", isCornerPointer(page, event, getGridMetrics()));
+                    const isHover = isCornerPointer(page, event, getGridMetrics());
+
+                    page.classList.toggle("is-corner-hover", isHover);
+                    setCornerOverlay(page, isHover);
                });
 
                page.addEventListener("pointerleave", () => {
                     page.classList.remove("is-corner-hover");
+                    setCornerOverlay(page, false);
                });
           });
      }
@@ -476,6 +481,8 @@ const objectControlsShell = document.querySelector("[data-object-controls-shell]
 const objectControlsEmpty = document.querySelector("[data-object-controls-empty]");
 const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]"));
 const zoomToast = document.querySelector("[data-zoom-toast]");
+const pageCornerFoldOverlay = document.createElement("div");
+const pageCornerFoldOverlayNumber = document.createElement("span");
 const settingChoiceInputs = Array.from(document.querySelectorAll("[data-setting-choice]"));
 let customSelectDetails = [];
 const {
@@ -562,6 +569,11 @@ let plannerClipboard = null;
 let shouldSkipNextClear = false;
 let shouldSkipNextItemClick = false;
 let shouldSkipNextTabClick = false;
+
+pageCornerFoldOverlay.className = "page-corner-fold-overlay";
+pageCornerFoldOverlayNumber.className = "page-corner-fold-overlay-number";
+pageCornerFoldOverlay.append(pageCornerFoldOverlayNumber);
+plannerDesk.append(pageCornerFoldOverlay);
 let activeTertiaryMatrixToggle = document.querySelector("[data-tertiary-matrix-toggle]");
 let activeHexTarget = null;
 let isRestoringPlannerState = false;
@@ -1204,6 +1216,34 @@ function turnNotebookSpread(step) {
      });
 }
 
+function setPageCornerOverlay(page, isVisible) {
+     if (!isVisible || !page) {
+          pageCornerFoldOverlay.classList.remove("is-visible");
+          pageCornerFoldOverlayNumber.textContent = "";
+          return;
+     }
+
+     const fold = page.querySelector(".page-corner-fold");
+     const foldNumber = page.querySelector("[data-page-fold-number]");
+
+     if (!fold) {
+          return;
+     }
+
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const foldRect = fold.getBoundingClientRect();
+     const side = getPageId(page);
+
+     pageCornerFoldOverlay.style.left = `${foldRect.left - deskRect.left}px`;
+     pageCornerFoldOverlay.style.top = `${foldRect.top - deskRect.top}px`;
+     pageCornerFoldOverlay.style.width = `${foldRect.width}px`;
+     pageCornerFoldOverlay.style.height = `${foldRect.height}px`;
+     pageCornerFoldOverlayNumber.textContent = foldNumber?.textContent || "";
+     pageCornerFoldOverlay.classList.toggle("is-left", side === "left");
+     pageCornerFoldOverlay.classList.toggle("is-right", side === "right");
+     pageCornerFoldOverlay.classList.add("is-visible");
+}
+
 // NOTE: Drawing The Notebook Pages
 function getViewZoom() {
      return viewZoomLevels[viewZoomIndex].value;
@@ -1312,7 +1352,7 @@ window.perfectPlanner = {
      serializeTemplate: serializePlannerTemplate,
      snapViewToPage,
      turnNotebookSpread,
-     version: "planner-storage-133"
+     version: "planner-storage-139"
 };
 
 syncAllSettingChoiceInputs();
@@ -1377,7 +1417,8 @@ PageControls.bindPageTurnControls({
           gridColumns: plannerConfig.gridColumns,
           gridRows: plannerConfig.gridRows
      }),
-     turnNotebookSpread
+     turnNotebookSpread,
+     setCornerOverlay: setPageCornerOverlay
 });
 settingsTabs.forEach((tab) => {
      tab.addEventListener("click", (event) => {
