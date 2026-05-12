@@ -1425,10 +1425,11 @@ body {
      left: 0;
 }
 
-/* NOTE: Page Numbers And Page Corner Folds */
+/* SECTION: Page Numbers And Page Corner Folds */
 .page-number,
 .page-behind-number,
-.page-corner-fold {
+.page-corner-fold,
+.page-corner-fold-number {
      position: absolute;
      color: var(--color-gray1);
      font: 400 var(--font-size-sm) var(--font-noto);
@@ -1437,16 +1438,22 @@ body {
 }
 
 .page-number,
+.page-behind-number,
 .page-corner-fold-number {
      --page-number-x-offset: var(--page-number-badge-x-offset, max(10px, calc(var(--dot-grid-size-x) * 0.75)));
      --page-number-y-offset: var(--page-number-badge-y-offset, max(8px, calc(var(--dot-grid-size-y) * 0.55)));
+}
+
+.page-number,
+.page-corner-fold-number {
      display: grid;
      width: var(--page-number-badge-width, max(22px, calc(var(--dot-grid-size-x) * 1.7)));
      height: var(--page-number-badge-height, max(22px, calc(var(--dot-grid-size-y) * 1.7)));
      place-items: center;
      border-radius: 999px;
      background: var(--paper);
-     box-shadow: 0 0 0 var(--border-sm) rgba(17, 17, 17, 0.08);
+     border: var(--border-sm) solid var(--paper);
+     box-shadow: none;
 }
 
 .page-number {
@@ -1462,49 +1469,54 @@ body {
      right: var(--page-number-x-offset);
 }
 
-.page-behind-number {
+.page-behind-number,
+.page-corner-fold {
      bottom: 0;
-     z-index: var(--page-behind-number-z, 4);
-     display: grid;
      width: calc(var(--dot-grid-size-x) * 3);
      height: calc(var(--dot-grid-size-y) * 3);
-     align-items: end;
-     background:
-          radial-gradient(circle, var(--dot-grid-color) 0 1px, transparent 1.35px) calc(100% / 3) calc(100% / 3) / calc(100% / 3) calc(100% / 3) repeat,
-          rgba(17, 17, 17, 0.12),
-          var(--paper);
      opacity: 0;
+}
+
+.page-behind-number {
+     z-index: var(--page-behind-number-z, 4);
+     display: grid;
+     align-items: end;
+     background: var(--paper);
      transition: opacity 160ms ease;
 }
 
-.page-left .page-behind-number {
+.page-left .page-behind-number,
+.page-left .page-corner-fold {
      left: 0;
+}
+
+.page-right .page-behind-number,
+.page-right .page-corner-fold {
+     right: 0;
+}
+
+.page-left .page-behind-number {
      justify-items: start;
-     padding: 0 0 max(8px, calc(var(--dot-grid-size-y) * 0.55)) max(10px, calc(var(--dot-grid-size-x) * 0.75));
+     padding: 0 0 var(--page-number-y-offset) var(--page-number-x-offset);
      border-radius: 0 0 0 var(--border-radius);
 }
 
 .page-right .page-behind-number {
-     right: 0;
      justify-items: end;
-     padding: 0 max(10px, calc(var(--dot-grid-size-x) * 0.75)) max(8px, calc(var(--dot-grid-size-y) * 0.55)) 0;
+     padding: 0 var(--page-number-x-offset) var(--page-number-y-offset) 0;
      border-radius: 0 0 var(--border-radius) 0;
 }
 
 .page-corner-fold {
-     bottom: 0;
      z-index: var(--page-corner-fold-z, 4);
      display: grid;
-     width: calc(var(--dot-grid-size-x) * 3);
-     height: calc(var(--dot-grid-size-y) * 3);
      --fold-border-color: var(--page-corner-fold-border-color, var(--color-gray3));
      --page-corner-fold-fill: var(--page-corner-fold-top-fill, var(--paper));
+     --page-corner-fold-bottom-shade: rgba(17, 17, 17, 0.1);
      place-items: center;
      overflow: hidden;
-     opacity: 0;
      font-size: 0;
-     background: transparent;
-     filter: drop-shadow(0 7px 9px rgba(17, 17, 17, 0.16));
+     filter: none;
      transition:
           opacity 160ms ease,
           transform 160ms ease;
@@ -1512,23 +1524,40 @@ body {
 
 .page-corner-fold-bottom,
 .page-corner-fold-top,
-.page-corner-fold-top-border {
+.page-corner-fold-top-border,
+.page-corner-fold::before {
      position: absolute;
      inset: 0;
      border-radius: inherit;
 }
 
+.page-corner-fold::before {
+     content: "";
+     z-index: 2;
+     background: var(--page-corner-fold-bottom-shade);
+     pointer-events: none;
+}
+
 .page-corner-fold-bottom {
      z-index: var(--page-corner-fold-bottom-z, 0);
-     background: var(--page-corner-fold-bottom-fill, transparent);
+     background: var(--page-corner-fold-bottom-fill, var(--paper));
+}
+
+.page-left .page-corner-fold-bottom {
+     border-bottom-left-radius: var(--border-radius);
+}
+
+.page-right .page-corner-fold-bottom {
+     border-bottom-right-radius: var(--border-radius);
 }
 
 .page-corner-fold-top {
-     z-index: var(--page-corner-fold-top-z, 1);
+     z-index: 3;
+     background: var(--page-corner-fold-fill);
 }
 
 .page-corner-fold-top-border {
-     z-index: var(--page-corner-fold-border-z, 2);
+     z-index: 4;
      fill: none;
      overflow: visible;
      pointer-events: none;
@@ -1543,20 +1572,19 @@ body {
 }
 
 .page-corner-fold-number {
-     position: absolute;
-     z-index: var(--page-corner-fold-number-z, 3);
      color: var(--page-corner-fold-number-color, var(--color-gray1));
      background: var(--page-corner-fold-number-fill, var(--paper));
-     font: 400 var(--font-size-sm) var(--font-noto);
-     line-height: 1;
 }
 
 .page-corner-fold-number-bottom {
-     background: var(--page-corner-fold-bottom-number-fill, var(--page-corner-fold-number-fill, var(--paper)));
+     z-index: 1;
+}
+
+.page-corner-fold-number-top {
+     z-index: 5;
 }
 
 .page-left .page-corner-fold {
-     left: 0;
      border-top: var(--border-sm) solid var(--fold-border-color);
      border-right: var(--border-sm) solid var(--fold-border-color);
      border-radius: 0 var(--border-radius) 0 0;
@@ -1564,32 +1592,31 @@ body {
      transform-origin: left bottom;
 }
 
-.page-left .page-corner-fold-top {
-     background: /* FIXME: Left flip shade */
-          linear-gradient(var(--paper), var(--paper)) 0 100% / calc(100% / 3) calc(100% / 3) no-repeat,
-          linear-gradient(135deg, rgba(255, 255, 255, 0.32), rgba(17, 17, 17, 0.04)),
-          linear-gradient(var(--page-corner-fold-fill), var(--page-corner-fold-fill));
-     clip-path: polygon(0 0, 100% 0, 100% 100%);
-}
-
 .page-left .page-corner-fold-top-border-path {
      d: path("M 1 1 L 99 99");
 }
 
-.page-left .page-corner-fold-number-top { /* Left page folded corner top number handler. */
+.page-left .page-corner-fold-top {
+     clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+.page-left .page-corner-fold::before {
+     clip-path: polygon(0 0, 0 100%, 100% 100%);
+}
+
+.page-left .page-corner-fold-number-top { /* Left page folded corner top number badge. */
      top: 35%;
      right: 35%;
      transform: translate(50%, -50%) rotate(-90deg);
 }
 
-.page-left .page-corner-fold-number-bottom { /* Left page folded corner bottom number handler. */
+.page-left .page-corner-fold-number-bottom { /* Left page folded corner bottom number badge. */
      bottom: 35%;
      left: 35%;
      transform: translate(-50%, 50%);
 }
 
 .page-right .page-corner-fold {
-     right: 0;
      border-top: var(--border-sm) solid var(--fold-border-color);
      border-left: var(--border-sm) solid var(--fold-border-color);
      border-radius: var(--border-radius) 0 0 0;
@@ -1597,29 +1624,30 @@ body {
      transform-origin: right bottom;
 }
 
-.page-right .page-corner-fold-top {
-     background: /* FIXME: Right flip shade */
-          linear-gradient(var(--paper), var(--paper)) 100% 100% / calc(100% / 3) calc(100% / 3) no-repeat,
-          linear-gradient(45deg, rgba(255, 255, 255, 0.32), rgba(17, 17, 17, 0.04)),
-          linear-gradient(var(--page-corner-fold-fill), var(--page-corner-fold-fill));
-     clip-path: polygon(0 0, 100% 0, 0 100%);
-}
-
 .page-right .page-corner-fold-top-border-path {
      d: path("M 99 1 L 1 99");
 }
 
-.page-right .page-corner-fold-number-top { /* Right page folded corner top number handler. */
+.page-right .page-corner-fold-top {
+     clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.page-right .page-corner-fold::before {
+     clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+.page-right .page-corner-fold-number-top { /* Right page folded corner top number badge. */
      top: 35%;
      left: 35%;
      transform: translate(-50%, -50%) rotate(90deg);
 }
 
-.page-right .page-corner-fold-number-bottom { /* Right page folded corner bottom number handler. */
+.page-right .page-corner-fold-number-bottom { /* Right page folded corner bottom number badge. */
      right: 35%;
      bottom: 35%;
      transform: translate(50%, 50%);
 }
+/* !SECTION */
 
 .page.can-turn-page.is-corner-hover .page-number {
      opacity: 0;

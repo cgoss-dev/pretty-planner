@@ -54,7 +54,7 @@ const PageControls = (() => {
                     foldElement.textContent = canTurn ? formatPageNumber(behindNumber) : "";
                });
 
-               page.querySelector("[data-page-behind-number]")?.replaceChildren(canTurn ? formatPageNumber(behindNumber) : "");
+               page.querySelector("[data-page-behind-number]")?.replaceChildren();
           });
 
           notebook.dataset.spreadIndex = String(currentSpreadIndex);
@@ -1312,7 +1312,7 @@ window.perfectPlanner = {
      serializeTemplate: serializePlannerTemplate,
      snapViewToPage,
      turnNotebookSpread,
-     version: "planner-storage-125"
+     version: "planner-storage-133"
 };
 
 syncAllSettingChoiceInputs();
