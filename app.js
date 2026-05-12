@@ -1216,6 +1216,27 @@ function turnNotebookSpread(step) {
      });
 }
 
+function handlePageTurnKey(event) {
+     if (
+          activeAction ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTextInputShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (event.key === "PageDown") {
+          event.preventDefault();
+          turnNotebookSpread(-1);
+     } else if (event.key === "PageUp") {
+          event.preventDefault();
+          turnNotebookSpread(1);
+     }
+}
+
 function setPageCornerOverlay(page, isVisible) {
      if (!isVisible || !page) {
           pageCornerFoldOverlay.classList.remove("is-visible");
@@ -1352,7 +1373,7 @@ window.perfectPlanner = {
      serializeTemplate: serializePlannerTemplate,
      snapViewToPage,
      turnNotebookSpread,
-     version: "planner-storage-139"
+     version: "planner-storage-141"
 };
 
 syncAllSettingChoiceInputs();
@@ -1527,6 +1548,7 @@ document.addEventListener("click", (event) => {
 document.addEventListener("pointerdown", closeHexPopoverFromOutsidePointer, true);
 document.addEventListener("keydown", (event) => {
      handleClipboardShortcut(event);
+     handlePageTurnKey(event);
      if (event.key === "Escape") {
           closeCustomSelects();
           clearSelectFocus();
