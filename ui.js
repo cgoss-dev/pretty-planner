@@ -624,7 +624,11 @@ function updateSelectFocusSpace(dropdown) {
 
      const menuRect = menu.getBoundingClientRect();
      const summaryRect = summary.getBoundingClientRect();
-     const availableHeight = Math.max(92, Math.floor(menuRect.bottom - summaryRect.bottom - 12));
+     const opensUp = Boolean(dropdown.closest(".item-widget-time-group"));
+     const availableSpace = opensUp
+          ? summaryRect.top - menuRect.top - 12
+          : menuRect.bottom - summaryRect.bottom - 12;
+     const availableHeight = Math.max(92, Math.floor(availableSpace));
 
      dropdown.style.setProperty("--select-focus-options-height", `${availableHeight}px`);
 }
@@ -636,6 +640,11 @@ function setSelectFocus(dropdown) {
      const group = row ? row.closest(".item-text-control-row, .item-widget-group, .item-calendar-attributes-grid") : null;
 
      if (!menu || !panel || !row) {
+          return;
+     }
+
+     if (menu.classList.contains("item-controls")) {
+          updateSelectFocusSpace(dropdown);
           return;
      }
 

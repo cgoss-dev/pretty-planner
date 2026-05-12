@@ -224,6 +224,7 @@ body {
      width: fit-content !important;
      inline-size: fit-content !important;
      max-width: calc(100vw - 32px) !important;
+     height: min(68vh, var(--notebook-height));
      max-height: min(68vh, var(--notebook-height));
      min-height: min(300px, var(--notebook-height));
      min-width: min(500px, calc(100vw - 32px)) !important;
@@ -650,6 +651,26 @@ body {
      border-radius: 0 0 6px 6px;
 }
 
+.item-widget-time-group .custom-select[open] .custom-select-options {
+     top: auto;
+     bottom: calc(100% - 1px);
+     border-radius: 6px 6px 0 0;
+     animation-name: select-options-slide-up;
+}
+
+.item-widget-time-group .custom-select[open] .custom-select-option {
+     border-top: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-bottom: 0;
+}
+
+.item-widget-time-group .custom-select[open] .custom-select-option:first-child {
+     border-radius: 6px 6px 0 0;
+}
+
+.item-widget-time-group .custom-select[open] .custom-select-option:last-child {
+     border-radius: 0;
+}
+
 .item-color-control {
      display: grid;
      gap: 7px;
@@ -944,8 +965,7 @@ body {
      line-height: 1;
 }
 
-.planner-settings.is-select-focused .settings-panel,
-.item-controls.is-select-focused .item-control-panel {
+.planner-settings.is-select-focused .settings-panel {
      overflow: hidden;
 }
 
@@ -987,11 +1007,7 @@ body {
      transform: translateY(0);
 }
 
-.settings-panel.is-select-focused > :not(.is-select-focus),
-.item-control-panel.is-select-focused > :not(.is-select-focus):not(.is-select-focus-group),
-.item-text-control-row.is-select-focus-group > :not(.is-select-focus),
-.item-calendar-attributes-grid.is-select-focus-group > :not(.is-select-focus),
-.item-widget-group.is-select-focus-group > :not(.is-select-focus) {
+.settings-panel.is-select-focused > :not(.is-select-focus) {
      display: none;
      max-height: 0;
      margin: 0;
@@ -1004,8 +1020,7 @@ body {
      transform: translateY(-14px);
 }
 
-.settings-panel.is-select-focused .is-select-focus,
-.item-control-panel.is-select-focused .is-select-focus {
+.settings-panel.is-select-focused .is-select-focus {
      align-self: start;
      order: -1;
 }
@@ -1014,6 +1029,18 @@ body {
      from {
           opacity: 0;
           transform: translateY(-12px);
+     }
+
+     to {
+          opacity: 1;
+          transform: translateY(0);
+     }
+}
+
+@keyframes select-options-slide-up {
+     from {
+          opacity: 0;
+          transform: translateY(12px);
      }
 
      to {
@@ -2413,7 +2440,7 @@ body {
      position: relative;
      display: grid;
      width: calc((var(--mini-month-visible-columns, 8) / 8) * 100%);
-     height: calc((var(--mini-month-visible-rows, 8) / 8) * 100%);
+     height: calc((var(--mini-month-visible-row-units, var(--mini-month-visible-rows, 8)) / 8) * 100%);
      overflow: hidden;
      border-radius: inherit;
      outline: 0;
@@ -2435,10 +2462,10 @@ body {
 
 .planner-item-full-month .mini-month {
      width: 100%;
-     height: calc(100% / var(--mini-month-max-row-units, 16) * var(--mini-month-visible-row-units, 16));
+     height: calc(var(--mini-month-visible-row-units, 16) * var(--weekly-row-cell-height, 12px));
      grid-template-columns:
           var(--weekly-column-cell-width, 12px)
-          repeat(var(--mini-month-day-column-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 4), 1fr));
+          repeat(var(--mini-month-day-column-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 5), 1fr));
      grid-template-rows:
           calc(var(--weekly-row-cell-height, 12px) * 2)
           var(--weekly-row-cell-height, 12px)
@@ -2605,11 +2632,36 @@ body {
      align-items: stretch;
 }
 
+.mini-month-day-name.mini-month-shared-weekend {
+     grid-template-rows: none;
+     align-items: center;
+}
+
+.planner-item-full-month .dayCell.mini-month-shared-weekend {
+     grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
 .mini-month-shared-weekend > span {
      display: grid;
      place-items: center;
      min-width: 0;
      min-height: 0;
+}
+
+.mini-month-shared-weekend-day {
+     display: grid;
+     min-width: 0;
+     min-height: 0;
+     padding: 2px;
+}
+
+.planner-item-full-month .mini-month-shared-weekend-day {
+     grid-template-rows: auto minmax(0, 1fr);
+     place-items: stretch;
+}
+
+.mini-month-shared-weekend-day.is-saturday {
+     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.16);
 }
 
 .mini-month-hidden {
@@ -2744,29 +2796,31 @@ body {
 .weekly-vertical {
      position: relative;
      display: grid;
-     width: calc(var(--weekly-visible-column-units, 16) * var(--weekly-column-cell-width, 12px));
+     width: 100%;
      height: 100%;
      overflow: hidden;
      border-radius: inherit;
      outline: 0;
      background: transparent;
-     grid-template-columns: calc(var(--weekly-column-cell-width, 12px) * 2) repeat(var(--weekly-day-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 2), 1fr));
+     grid-template-columns:
+          var(--weekly-column-cell-width, 12px)
+          repeat(var(--weekly-day-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 5), 1fr));
      grid-template-rows: repeat(var(--weekly-row-count, 50), var(--weekly-row-cell-height, 12px));
 }
 
 .weekly-vertical::before {
      content: "";
      position: absolute;
-     inset: 0 0 0 calc(var(--weekly-column-cell-width, 12px) * 2);
+     inset: 0;
      z-index: 2;
      border-radius: inherit;
-     outline: var(--sticky-border-size, var(--border-sm)) solid var(--sticky-border-color, rgba(17, 17, 17, 0.18));
-     outline-offset: calc(var(--sticky-border-size, var(--border-sm)) * -1);
+     border: var(--sticky-border-size, var(--border-sm)) solid var(--sticky-border-color, rgba(17, 17, 17, 0.18));
      pointer-events: none;
 }
 
 .weekly-vertical:not(.has-time-column) {
-     grid-template-columns: repeat(var(--weekly-day-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 2), 1fr));
+     grid-template-columns:
+          repeat(var(--weekly-day-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 5), 1fr));
 }
 
 .weekly-vertical-cell {
@@ -2784,9 +2838,9 @@ body {
      overflow: hidden;
 }
 
-.weekly-vertical-title,
 .weekly-vertical-time-heading {
-     background: var(--calendar-tint-background);
+     border-top-left-radius: 6px;
+     background: var(--calendar-weekday-header-background);
      color: var(--color-gray1);
 }
 
@@ -2828,7 +2882,7 @@ body {
 
 .weekly-vertical-date-label {
      display: grid;
-     grid-template-columns: auto auto;
+     grid-template-columns: auto auto auto;
      align-items: center;
      justify-content: center;
      gap: 0.35em;
@@ -2838,15 +2892,15 @@ body {
 .weekly-vertical-sunday-mid-marker {
      width: 100%;
      height: 100%;
+     background: var(--calendar-weekday-header-background);
      color: var(--color-gray1);
      line-height: 1;
      pointer-events: none;
 }
 
 .weekly-vertical-time {
-     justify-items: end;
+     justify-items: center;
      background: var(--calendar-tint-background);
-     padding-right: 3px;
      color: var(--color-gray1);
      font-weight: 400;
 }
@@ -3498,6 +3552,7 @@ body.is-single-page-viewport .planner-settings {
      width: fit-content !important;
      inline-size: fit-content !important;
      max-width: calc(100vw - 32px) !important;
+     height: min(68vh, var(--notebook-height));
      max-height: min(68vh, var(--notebook-height));
      min-height: min(300px, var(--notebook-height));
      min-width: min(500px, calc(100vw - 32px)) !important;
