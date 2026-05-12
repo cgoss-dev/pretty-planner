@@ -615,14 +615,14 @@ body {
 }
 
 .custom-select[open] {
-     z-index: 60;
+     z-index: 120;
 }
 
 .custom-select[open] .custom-select-options {
      position: absolute;
      top: calc(100% - 1px);
      left: 0;
-     z-index: 20;
+     z-index: 130;
      display: grid;
      width: 100%;
      max-height: var(--select-focus-options-height, 240px);
@@ -947,6 +947,25 @@ body {
 .planner-settings.is-select-focused .settings-panel,
 .item-controls.is-select-focused .item-control-panel {
      overflow: hidden;
+}
+
+.settings-panel:has(.custom-select[open]),
+.item-control-panel:has(.custom-select[open]),
+.item-control-row:has(.custom-select[open]),
+.item-text-control-row:has(.custom-select[open]),
+.item-widget-control:has(.custom-select[open]),
+.item-calendar-attributes-grid:has(.custom-select[open]),
+.item-widget-group:has(.custom-select[open]),
+.custom-select[open] {
+     position: relative;
+     overflow: visible;
+     z-index: 120;
+}
+
+.item-control-row:has(.custom-select[open]),
+.item-widget-control:has(.custom-select[open]),
+.item-text-control-row:has(.custom-select[open]) {
+     z-index: 140;
 }
 
 .settings-panel > label,
@@ -1930,7 +1949,6 @@ body {
 .add-panel .toc-source,
 .add-panel .mini-month-source,
 .add-panel .full-month-source,
-.add-panel .mini-year-source,
 .add-panel .perpetual-calendar-source,
 .add-panel .weekly-vertical-source {
      position: relative;
@@ -1949,7 +1967,6 @@ body {
 .add-panel .toc-source,
 .add-panel .mini-month-source,
 .add-panel .full-month-source,
-.add-panel .mini-year-source,
 .add-panel .perpetual-calendar-source,
 .add-panel .weekly-vertical-source {
      width: 100px;
@@ -1964,9 +1981,7 @@ body {
 .add-panel .mini-month-source:hover,
 .add-panel .mini-month-source:focus-visible,
 .add-panel .full-month-source:hover,
-.add-panel .full-month-source:focus-visible,
-.add-panel .mini-year-source:hover,
-.add-panel .mini-year-source:focus-visible,
+.add-panel .full-month-source:focus-visible:hover:focus-visible,
 .add-panel .perpetual-calendar-source:hover,
 .add-panel .perpetual-calendar-source:focus-visible,
 .add-panel .weekly-vertical-source:hover,
@@ -1999,8 +2014,7 @@ body {
 
 .add-panel .page-title-source > span,
 .add-panel .mini-month-source > span:not(.calendar-source-preview),
-.add-panel .full-month-source > span:not(.calendar-source-preview),
-.add-panel .mini-year-source > span:not(.calendar-source-preview),
+.add-panel .full-month-source > span:not(.calendar-source-preview) > span:not(.calendar-source-preview),
 .add-panel .perpetual-calendar-source > span:not(.calendar-source-preview),
 .add-panel .weekly-vertical-source > span:not(.calendar-source-preview) {
      opacity: 0;
@@ -2033,7 +2047,17 @@ body {
      overflow: visible;
 }
 
+.planner-item-sticky[data-has-clear-fill="true"],
+.planner-item-sticky[data-has-clear-fill="true"][data-dot-grid="true"] {
+     background: transparent;
+}
+
+.planner-item-sticky[data-has-clear-border="true"] {
+     border-color: transparent;
+}
+
 .planner-item-page-title {
+     z-index: 29;
      overflow: visible;
 }
 
@@ -2075,14 +2099,19 @@ body {
 }
 
 .planner-item-sticky.is-editing-text .sticky-text {
-     overflow-y: auto;
+     overflow-y: visible;
      pointer-events: auto;
 }
 
+.planner-item-sticky .sticky-text {
+     overflow: visible;
+}
+
 .planner-item-page-title .sticky-text {
-     inset: 4px 6px;
+     inset: -3px 6px -5px;
      display: grid;
      align-items: center;
+     overflow: visible;
 }
 
 .planner-item-page-title .sticky-text:empty::before {
@@ -2091,7 +2120,7 @@ body {
 }
 
 .planner-item-page-title.is-editing-text .sticky-text {
-     overflow-y: auto;
+     overflow-y: visible;
      pointer-events: auto;
 }
 
@@ -2233,7 +2262,7 @@ body {
      display: none;
 }
 
-.planner-item-sticky[data-text-overflow="true"]::after {
+.planner-item-sticky.is-editing-text[data-text-overflow="true"]::after {
      content: "⇧";
      position: absolute;
      right: 5px;
@@ -2249,7 +2278,6 @@ body {
 /* NOTE: Widget Tray Mini Preview Pictures */
 .mini-month-source,
 .full-month-source,
-.mini-year-source,
 .perpetual-calendar-source,
 .weekly-vertical-source {
      display: grid;
@@ -2271,10 +2299,6 @@ body {
      aspect-ratio: 1.4;
 }
 
-.mini-year-source {
-     aspect-ratio: 0.75;
-}
-
 .perpetual-calendar-source {
      aspect-ratio: 0.72;
 }
@@ -2287,7 +2311,6 @@ body {
 .add-panel .toc-source,
 .add-panel .mini-month-source,
 .add-panel .full-month-source,
-.add-panel .mini-year-source,
 .add-panel .perpetual-calendar-source,
 .add-panel .weekly-vertical-source {
      min-height: 100px;
@@ -2378,7 +2401,6 @@ body {
 /* NOTE: Calendar Widgets On The Page */
 .planner-item-mini-month,
 .planner-item-full-month,
-.planner-item-mini-year,
 .planner-item-perpetual-calendar,
 .planner-item-weekly-vertical {
      padding: 0;
@@ -2412,38 +2434,25 @@ body {
 }
 
 .planner-item-full-month .mini-month {
-     width: calc(var(--mini-month-visible-column-units, 16) * var(--weekly-column-cell-width, 12px));
-     height: calc(var(--mini-month-visible-row-units, 14) * var(--weekly-row-cell-height, 12px));
-     grid-template-columns: repeat(8, calc(var(--weekly-column-cell-width, 12px) * 2));
+     width: 100%;
+     height: calc(100% / var(--mini-month-max-row-units, 16) * var(--mini-month-visible-row-units, 16));
+     grid-template-columns:
+          var(--weekly-column-cell-width, 12px)
+          repeat(var(--mini-month-day-column-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 4), 1fr));
      grid-template-rows:
+          calc(var(--weekly-row-cell-height, 12px) * 2)
           var(--weekly-row-cell-height, 12px)
-          var(--weekly-row-cell-height, 12px)
-          repeat(6, calc(var(--weekly-row-cell-height, 12px) * 2));
+          repeat(var(--mini-month-week-row-count, 6), var(--mini-month-week-row-height, var(--weekly-row-cell-height, 12px)));
+}
+
+.planner-item-full-month .mini-month::before {
+     inset: 0 0 0 var(--weekly-column-cell-width, 12px);
 }
 
 .planner-item-full-month .mini-month.no-title-row {
      grid-template-rows:
           var(--weekly-row-cell-height, 12px)
-          repeat(6, calc(var(--weekly-row-cell-height, 12px) * 2));
-}
-
-.mini-year {
-     position: relative;
-     display: grid;
-     width: 100%;
-     height: 100%;
-     gap: var(--mini-year-row-gap, 0px) var(--mini-year-column-gap, 0px);
-     grid-template-columns: repeat(3, calc(var(--mini-year-cell-width, 12px) * 8));
-     grid-template-rows: repeat(4, calc(var(--mini-year-cell-height, 12px) * 8));
-     align-content: start;
-     justify-content: start;
-}
-
-.planner-item-mini-year .mini-month {
-     width: calc(var(--mini-year-cell-width, 12px) * 8);
-     height: calc((var(--mini-month-visible-rows, 8) / 8) * var(--mini-year-cell-height, 12px) * 8);
-     grid-template-columns: repeat(8, calc(100% / var(--mini-month-visible-columns, 8)));
-     grid-template-rows: repeat(8, calc(100% / var(--mini-month-visible-rows, 8)));
+          repeat(var(--mini-month-week-row-count, 6), var(--mini-month-week-row-height, var(--weekly-row-cell-height, 12px)));
 }
 
 .mini-month-cell {
@@ -2459,13 +2468,32 @@ body {
      line-height: 1;
 }
 
+.mini-month-draw-top-left {
+     border-top-left-radius: inherit;
+     overflow: hidden;
+}
+
+.mini-month-draw-top-right {
+     border-top-right-radius: inherit;
+     overflow: hidden;
+}
+
+.mini-month-draw-bottom-left {
+     border-bottom-left-radius: inherit;
+     overflow: hidden;
+}
+
+.mini-month-draw-bottom-right {
+     border-bottom-right-radius: inherit;
+     overflow: hidden;
+}
+
 .planner-item-full-month .mini-month-cell {
      place-items: start;
      padding: 3px;
 }
 
-.planner-item-mini-month .dayCell,
-.planner-item-mini-year .dayCell,
+.planner-item-mini-month .dayCell .dayCell,
 .planner-item-full-month .dayCell {
      position: relative;
      grid-template-rows: auto minmax(0, 1fr);
@@ -2482,7 +2510,6 @@ body {
 }
 
 .planner-item-mini-month .weekNumberCell,
-.planner-item-mini-year .weekNumberCell,
 .planner-item-full-month .weekNumberCell {
      place-items: center;
      padding: 0;
@@ -2499,14 +2526,11 @@ body {
      justify-self: center;
 }
 
-.planner-item-mini-year .mini-month-day-number {
-     grid-row: 1 / -1;
-     align-self: center;
-     justify-self: center;
+.planner-item-mini-month .mini-month-shared-weekend .mini-month-day-number {
+     grid-row: auto;
 }
 
 .planner-item-mini-month .dayCell.calendar-current-day,
-.planner-item-mini-year .dayCell.calendar-current-day,
 .planner-item-full-month .dayCell.calendar-current-day,
 .perpetual-calendar-row.calendar-current-day,
 .weekly-vertical-date.calendar-current-day {
@@ -2549,8 +2573,8 @@ body {
      display: none;
 }
 
-.planner-item-full-month .dayCell[data-text-overflow="true"]::after,
-.planner-item-weekly-vertical .dayCell[data-text-overflow="true"]::after {
+.planner-item-full-month.is-editing-day-text .dayCell[data-text-overflow="true"]::after,
+.planner-item-weekly-vertical.is-editing-day-text .dayCell[data-text-overflow="true"]::after {
      content: "⇧";
      position: absolute;
      right: 3px;
@@ -2574,6 +2598,18 @@ body {
      grid-template-columns: auto auto;
      justify-content: center;
      gap: 0.35em;
+}
+
+.mini-month-shared-weekend {
+     grid-template-rows: repeat(2, minmax(0, 1fr));
+     align-items: stretch;
+}
+
+.mini-month-shared-weekend > span {
+     display: grid;
+     place-items: center;
+     min-width: 0;
+     min-height: 0;
 }
 
 .mini-month-hidden {
@@ -2618,13 +2654,11 @@ body {
 }
 
 .planner-item-mini-month .mini-month-weekend,
-.planner-item-mini-year .mini-month-weekend,
 .planner-item-full-month .mini-month-weekend {
      background: var(--calendar-tint-background);
 }
 
 .planner-item-mini-month .mini-month-day-name,
-.planner-item-mini-year .mini-month-day-name,
 .planner-item-full-month .mini-month-day-name {
      background: var(--calendar-weekday-header-background);
 }
@@ -3199,6 +3233,12 @@ body {
      white-space: nowrap;
 }
 
+.item-text-visibility-toggle.is-active {
+     border-color: rgba(17, 17, 17, 0.16);
+     background: rgba(255, 255, 255, 0.22);
+     color: var(--color-gray3);
+}
+
 .item-text-settings-control-no-toggle {
      grid-template-columns: minmax(0, 1fr);
 }
@@ -3405,18 +3445,15 @@ body {
 }
 
 .planner-item-mini-month.is-menu-open .item-widget-control,
-.planner-item-full-month.is-menu-open .item-widget-control,
-.planner-item-mini-year.is-menu-open .item-widget-control,
+.planner-item-full-month.is-menu-open .item-widget-control.is-menu-open .item-widget-control,
 .planner-item-perpetual-calendar.is-menu-open .item-widget-control,
 .planner-item-weekly-vertical.is-menu-open .item-widget-control,
 .item-controls-mini-month.is-floating .item-widget-control,
 .item-controls-full-month.is-floating .item-widget-control,
-.item-controls-mini-year.is-floating .item-widget-control,
 .item-controls-perpetual-calendar.is-floating .item-widget-control,
 .item-controls-weekly-vertical.is-floating .item-widget-control,
 .item-controls-mini-month.is-docked .item-widget-control,
 .item-controls-full-month.is-docked .item-widget-control,
-.item-controls-mini-year.is-docked .item-widget-control,
 .item-controls-perpetual-calendar.is-docked .item-widget-control,
 .item-controls-weekly-vertical.is-docked .item-widget-control {
      display: grid;

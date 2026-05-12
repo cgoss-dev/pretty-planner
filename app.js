@@ -1,460 +1,3 @@
-// NOTE: Page Turns, Page Numbers, And Corner Folds
-const PageControls = (() => {
-     let pageTurnTimer = 0;
-
-     function applyPageNumberLayering(root = document.documentElement) {
-          PlannerRootControls.setRootProperties(PlannerRootControls.controls.pageNumbers.layering, root);
-     }
-
-     function applyCornerFlipControls(root = document.documentElement) {
-          PlannerRootControls.setRootProperties({
-               ...PlannerRootControls.controls.pageCornerFlip.layering,
-               ...PlannerRootControls.controls.pageCornerFlip.debugColors
-          }, root);
-     }
-
-     function applyControls(root = document.documentElement) {
-          applyPageNumberLayering(root);
-          applyCornerFlipControls(root);
-     }
-
-     function updatePageLabels({
-          pages,
-          notebook,
-          currentSpreadIndex,
-          notebookSpreadCount,
-          notebookPageCount,
-          getPageId,
-          getCurrentSpreadPageNumber,
-          isPageNumberAvailable,
-          isFinalRightPlaceholderPage,
-          formatPageNumber
-     }) {
-          pages.forEach((page) => {
-               const side = getPageId(page);
-               const pageNumberValue = getCurrentSpreadPageNumber(side);
-               const pageNumber = String(pageNumberValue);
-               const pageExists = isPageNumberAvailable(pageNumberValue);
-               const isFinalRightPlaceholder = isFinalRightPlaceholderPage(pageNumberValue);
-               const isLeft = side === "left";
-               const canTurn = pageExists && (isLeft ? currentSpreadIndex > 0 : currentSpreadIndex < notebookSpreadCount - 1);
-               const foldNumber = isLeft ? pageNumberValue - 1 : pageNumberValue + 1;
-               const behindNumber = isLeft ? pageNumberValue - 2 : pageNumberValue + 2;
-
-               page.dataset.pageNumber = pageNumber;
-               page.classList.toggle("is-missing-page", !pageExists && !isFinalRightPlaceholder);
-               page.classList.toggle("is-placeholder-page", isFinalRightPlaceholder);
-               page.classList.toggle("can-turn-page", canTurn);
-               page.querySelector("[data-page-number]")?.replaceChildren(pageExists ? pageNumber : "");
-
-               page.querySelectorAll("[data-page-fold-number]").forEach((foldElement) => {
-                    foldElement.textContent = canTurn ? formatPageNumber(foldNumber) : "";
-               });
-               page.querySelectorAll("[data-page-fold-behind-number]").forEach((foldElement) => {
-                    foldElement.textContent = canTurn ? formatPageNumber(behindNumber) : "";
-               });
-
-               page.querySelector("[data-page-behind-number]")?.replaceChildren();
-          });
-
-          notebook.dataset.spreadIndex = String(currentSpreadIndex);
-          notebook.dataset.spreadCount = String(notebookSpreadCount);
-          notebook.dataset.pageCount = String(notebookPageCount);
-     }
-
-     function getCurrentSpreadPageNumber({ currentSpreadIndex, side = "left" }) {
-          return (currentSpreadIndex * 2) + (side === "right" ? 1 : 0);
-     }
-
-     function getSpreadCountForPageCount(pageCount) {
-          return Math.max(1, Math.ceil(pageCount / 2));
-     }
-
-     function normalizeNotebookPageCount({ pageCount, initialNotebookPageCount, minNotebookPageCount, maxNotebookPageCount, clamp }) {
-          const roundedPageCount = Math.round(Number(pageCount)) || initialNotebookPageCount;
-
-          return clamp(roundedPageCount, minNotebookPageCount, maxNotebookPageCount);
-     }
-
-     function getPageSideForPageNumber(pageNumber) {
-          return pageNumber % 2 === 0 ? "left" : "right";
-     }
-
-     function isPageNumberAvailable({ pageNumber, notebookPageCount }) {
-          return pageNumber >= 0 && pageNumber < notebookPageCount;
-     }
-
-     function isFinalRightPlaceholderPage({ pageNumber, notebookPageCount }) {
-          return pageNumber === notebookPageCount && pageNumber % 2 === 1;
-     }
-
-     function isPageSideAvailable({ side, spreadIndex, notebookPageCount }) {
-          return isPageNumberAvailable({
-               pageNumber: (spreadIndex * 2) + (side === "right" ? 1 : 0),
-               notebookPageCount
-          });
-     }
-
-     function formatPageNumber({ pageNumber, notebookPageCount }) {
-          return isPageNumberAvailable({ pageNumber, notebookPageCount }) ? String(pageNumber) : "";
-     }
-
-     function getFocusedPageSide({ viewFocusPoints, viewFocusIndex }) {
-          return viewFocusPoints[viewFocusIndex] || "left";
-     }
-
-     function getFocusedPageNumber({ currentSpreadIndex, viewFocusPoints, viewFocusIndex }) {
-          return getCurrentSpreadPageNumber({
-               currentSpreadIndex,
-               side: getFocusedPageSide({ viewFocusPoints, viewFocusIndex })
-          });
-     }
-
-     function getNotebookPageCountState({
-          pageCount,
-          currentSpreadIndex,
-          viewFocusIndex,
-          viewFocusPoints,
-          initialNotebookPageCount,
-          minNotebookPageCount,
-          maxNotebookPageCount,
-          clamp
-     }) {
-          const notebookPageCount = normalizeNotebookPageCount({
-               pageCount,
-               initialNotebookPageCount,
-               minNotebookPageCount,
-               maxNotebookPageCount,
-               clamp
-          });
-          const notebookSpreadCount = getSpreadCountForPageCount(notebookPageCount);
-          const nextSpreadIndex = clamp(currentSpreadIndex, 0, notebookSpreadCount - 1);
-          const focusedSide = getFocusedPageSide({ viewFocusPoints, viewFocusIndex });
-          const nextFocusIndex = isPageSideAvailable({
-               side: focusedSide,
-               spreadIndex: nextSpreadIndex,
-               notebookPageCount
-          }) ? viewFocusIndex : 0;
-
-          return {
-               currentSpreadIndex: nextSpreadIndex,
-               notebookPageCount,
-               notebookSpreadCount,
-               viewFocusIndex: nextFocusIndex
-          };
-     }
-
-     function getFocusedPageState({ pageNumber, notebookPageCount, notebookSpreadCount, viewFocusPoints, clamp }) {
-          const nextPageNumber = clamp(Math.round(Number(pageNumber)) || 0, 0, notebookPageCount - 1);
-          const nextSide = getPageSideForPageNumber(nextPageNumber);
-          const nextFocusIndex = viewFocusPoints.indexOf(nextSide);
-
-          return {
-               currentSpreadIndex: clamp(Math.floor(nextPageNumber / 2), 0, notebookSpreadCount - 1),
-               viewFocusIndex: nextFocusIndex === -1 ? 0 : nextFocusIndex
-          };
-     }
-
-     function movePageSnap({ direction, moveViewFocus, moveViewVerticalFocus }) {
-          if (direction === "previous" || direction === "next") {
-               moveViewFocus(direction);
-               return;
-          }
-
-          moveViewVerticalFocus(direction === "up" ? "previous" : "next");
-     }
-
-     function updatePageActionButtons({
-          focusedPageNumber,
-          notebookPageCount,
-          minNotebookPageCount,
-          maxNotebookPageCount,
-          insertPageButton,
-          deletePageButton,
-          pageCountStatus
-     }) {
-          const focusedPageExists = isPageNumberAvailable({ pageNumber: focusedPageNumber, notebookPageCount });
-
-          if (insertPageButton) {
-               insertPageButton.disabled = notebookPageCount >= maxNotebookPageCount;
-          }
-
-          if (deletePageButton) {
-               deletePageButton.disabled = notebookPageCount <= minNotebookPageCount || !focusedPageExists;
-          }
-
-          if (pageCountStatus) {
-               pageCountStatus.textContent = `${notebookPageCount} pages`;
-          }
-     }
-
-     function updateSpreadItemVisibility({
-          items,
-          currentSpreadIndex,
-          notebookPageCount,
-          getItemSpreadIndex,
-          getItemPageNumber,
-          closeItemMenu,
-          selectedItems,
-          setSelectedItem,
-          updateObjectControlsState
-     }) {
-          items.forEach((item) => {
-               const isPageItem = Boolean(item.dataset.pageId);
-               const isVisible = !isPageItem || (
-                    getItemSpreadIndex(item) === currentSpreadIndex &&
-                    isPageNumberAvailable({ pageNumber: getItemPageNumber(item), notebookPageCount })
-               );
-
-               item.classList.toggle("is-spread-hidden", !isVisible);
-               if (!isVisible) {
-                    closeItemMenu(item);
-                    selectedItems.delete(item);
-                    item.classList.remove("is-selected");
-               }
-          });
-          setSelectedItem(selectedItems.size ? Array.from(selectedItems).at(-1) : null);
-          updateObjectControlsState();
-     }
-
-     function syncNotebookSpread({ updatePageLabels, updateSpreadItemVisibility, updatePageSnapButtons, refreshPageItemViews }) {
-          updatePageLabels();
-          updateSpreadItemVisibility();
-          updatePageSnapButtons();
-          requestAnimationFrame(refreshPageItemViews);
-     }
-
-     function turnNotebookSpread({
-          step,
-          currentSpreadIndex,
-          notebookSpreadCount,
-          pendingSpreadTurn,
-          notebook,
-          clamp,
-          clearSelection,
-          setPendingSpreadTurn,
-          setCurrentSpreadIndex,
-          resetViewPanOffset,
-          syncNotebookSpread,
-          applyViewControls,
-          notifyTemplateChanged
-     }) {
-          const nextSpreadIndex = clamp(currentSpreadIndex + step, 0, notebookSpreadCount - 1);
-
-          if (nextSpreadIndex === currentSpreadIndex || pendingSpreadTurn) {
-               return;
-          }
-
-          clearSelection();
-          setPendingSpreadTurn({
-               from: currentSpreadIndex,
-               to: nextSpreadIndex,
-               direction: step
-          });
-          animateSpreadTurn({
-               notebook,
-               direction: step,
-               onComplete: () => {
-                    setPendingSpreadTurn(null);
-               }
-          });
-          setCurrentSpreadIndex(nextSpreadIndex);
-          resetViewPanOffset();
-          window.setTimeout(() => {
-               syncNotebookSpread();
-               applyViewControls();
-               notifyTemplateChanged();
-          }, PlannerRootControls.controls.pageCornerFlip.animation.spreadSyncDelayMs);
-     }
-
-     function getClearPageSides({ viewFocusPoints, viewFocusIndex }) {
-          const focus = getFocusedPageSide({ viewFocusPoints, viewFocusIndex });
-
-          if (focus === "left" || focus === "right") {
-               return [focus];
-          }
-
-          return ["left", "right"];
-     }
-
-     function insertFocusedPage({
-          notebookPageCount,
-          maxNotebookPageCount,
-          focusedPageNumber,
-          clamp,
-          clearSelection,
-          closeItemMenus,
-          shiftPageItemsFromPage,
-          setNotebookPageCount,
-          setFocusedPageNumber,
-          syncNotebookSpread,
-          applyViewControls,
-          notifyTemplateChanged
-     }) {
-          if (notebookPageCount >= maxNotebookPageCount) {
-               return;
-          }
-
-          const insertPageNumber = clamp(focusedPageNumber, 0, notebookPageCount);
-
-          clearSelection();
-          closeItemMenus();
-          shiftPageItemsFromPage(insertPageNumber, 1);
-          setNotebookPageCount(notebookPageCount + 1);
-          setFocusedPageNumber(insertPageNumber);
-          syncNotebookSpread();
-          applyViewControls();
-          notifyTemplateChanged();
-     }
-
-     function deleteFocusedPage({
-          notebookPageCount,
-          minNotebookPageCount,
-          focusedPageNumber,
-          clearSelection,
-          closeItemMenus,
-          removeFocusedPageItems,
-          setNotebookPageCount,
-          setFocusedPageNumber,
-          syncNotebookSpread,
-          applyViewControls,
-          notifyTemplateChanged
-     }) {
-          if (
-               notebookPageCount <= minNotebookPageCount ||
-               !isPageNumberAvailable({ pageNumber: focusedPageNumber, notebookPageCount })
-          ) {
-               return;
-          }
-
-          clearSelection();
-          closeItemMenus();
-          removeFocusedPageItems(focusedPageNumber);
-          setNotebookPageCount(notebookPageCount - 1);
-          setFocusedPageNumber(Math.min(focusedPageNumber, notebookPageCount - 1));
-          syncNotebookSpread();
-          applyViewControls();
-          notifyTemplateChanged();
-     }
-
-     function clearFocusedPage({ clearItems, getFocusedPageItems, notifyTemplateChanged }) {
-          clearItems(getFocusedPageItems());
-          notifyTemplateChanged();
-     }
-
-     function clearCurrentBook({ clearCurrentBookItems, notifyTemplateChanged }) {
-          clearCurrentBookItems();
-          notifyTemplateChanged();
-     }
-
-     function isCornerPointer(page, event, { gridColumns, gridRows }) {
-          if (!page.classList.contains("can-turn-page")) {
-               return false;
-          }
-
-          const rect = page.getBoundingClientRect();
-          const cellWidth = rect.width / gridColumns;
-          const cellHeight = rect.height / gridRows;
-          const localX = event.clientX - rect.left;
-          const localY = event.clientY - rect.top;
-          const hitAreaGridCells = PlannerRootControls.controls.pageCornerFlip.hitAreaGridCells;
-          const isBottomCornerArea = localY >= rect.height - (cellHeight * hitAreaGridCells);
-
-          if (page.dataset.turnPage === "next") {
-               return isBottomCornerArea && localX >= rect.width - (cellWidth * hitAreaGridCells);
-          }
-
-          return isBottomCornerArea && localX <= cellWidth * hitAreaGridCells;
-     }
-
-     function bindPageTurnControls({ pages, getGridMetrics, turnNotebookSpread, setCornerOverlay = () => {} }) {
-          pages.forEach((page) => {
-               page.addEventListener("click", (event) => {
-                    if (event.target.closest(".planner-item, .item-controls")) {
-                         return;
-                    }
-
-                    if (!isCornerPointer(page, event, getGridMetrics())) {
-                         return;
-                    }
-
-                    setCornerOverlay(page, false);
-                    turnNotebookSpread(page.dataset.turnPage === "next" ? 1 : -1);
-               });
-
-               page.addEventListener("pointermove", (event) => {
-                    const isHover = isCornerPointer(page, event, getGridMetrics());
-
-                    page.classList.toggle("is-corner-hover", isHover);
-                    setCornerOverlay(page, isHover);
-               });
-
-               page.addEventListener("pointerleave", () => {
-                    page.classList.remove("is-corner-hover");
-                    setCornerOverlay(page, false);
-               });
-          });
-     }
-
-     function animateSpreadTurn({ notebook, direction, onComplete }) {
-          window.clearTimeout(pageTurnTimer);
-          notebook.classList.remove("is-turning-next", "is-turning-previous", "is-turning");
-          notebook.dataset.turnDirection = direction > 0 ? "next" : "previous";
-          notebook.classList.add("is-turning");
-
-          if (direction > 0) {
-               notebook.classList.add("is-turning-next");
-          } else if (direction < 0) {
-               notebook.classList.add("is-turning-previous");
-          }
-
-          pageTurnTimer = window.setTimeout(() => {
-               notebook.classList.remove("is-turning-next", "is-turning-previous", "is-turning");
-               delete notebook.dataset.turnDirection;
-               onComplete?.();
-          }, PlannerRootControls.controls.pageCornerFlip.animation.classResetDelayMs);
-     }
-
-     applyControls();
-
-     return {
-          animateSpreadTurn,
-          applyControls,
-          applyCornerFlipControls,
-          applyPageNumberLayering,
-          bindPageTurnControls,
-          debugColors: PlannerRootControls.controls.pageCornerFlip.debugColors,
-          formatPageNumber,
-          getCurrentSpreadPageNumber,
-          getFocusedPageNumber,
-          getFocusedPageSide,
-          getFocusedPageState,
-          getClearPageSides,
-          getNotebookPageCountState,
-          getPageSideForPageNumber,
-          getSpreadCountForPageCount,
-          isCornerPointer,
-          isFinalRightPlaceholderPage,
-          isPageNumberAvailable,
-          isPageSideAvailable,
-          insertFocusedPage,
-          layering: {
-               ...PlannerRootControls.controls.pageNumbers.layering,
-               ...PlannerRootControls.controls.pageCornerFlip.layering
-          },
-          movePageSnap,
-          normalizeNotebookPageCount,
-          clearCurrentBook,
-          clearFocusedPage,
-          deleteFocusedPage,
-          syncNotebookSpread,
-          turnNotebookSpread,
-          updatePageActionButtons,
-          updateSpreadItemVisibility,
-          updatePageLabels
-     };
-})();
-
 // NOTE: Things The App Grabs From The HTML
 const pages = Array.from(document.querySelectorAll("[data-page]"));
 const plannerDesk = document.querySelector(".planner-desk");
@@ -756,7 +299,7 @@ function getTextLineHeightCellSize(item) {
      }
 
      if (isStickyTextItem(item)) {
-          return item.offsetHeight / (itemGridUnits[item.dataset.itemType]?.height || stickyGridUnits);
+          return item.offsetHeight / (getItemGridUnits(item)?.height || stickyGridUnits);
      }
 
      if (item.dataset.itemType === "mini-month") {
@@ -1237,6 +780,55 @@ function handlePageTurnKey(event) {
      }
 }
 
+function getItemForMenuKeyboardToggle(target) {
+     const targetItem = target?.closest?.(".planner-item");
+
+     if (targetItem && getPlannerItems().includes(targetItem)) {
+          return targetItem;
+     }
+
+     const targetControls = target?.closest?.(".item-controls");
+     const ownerId = targetControls?.dataset.ownerId;
+     const ownerItem = ownerId
+          ? getPlannerItems().find((item) => item.dataset.templateId === ownerId)
+          : null;
+
+     if (ownerItem) {
+          return ownerItem;
+     }
+
+     return selectedItem && getPlannerItems().includes(selectedItem) ? selectedItem : null;
+}
+
+function handleMenuToggleKey(event) {
+     if (event.key !== "Escape" || activeAction || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+          return false;
+     }
+
+     if (event.target.closest("[contenteditable='true']")) {
+          return false;
+     }
+
+     const item = getItemForMenuKeyboardToggle(event.target);
+
+     if (!item) {
+          return false;
+     }
+
+     event.preventDefault();
+     if (!selectedItems.has(item)) {
+          selectItem(item);
+     }
+
+     if (item.classList.contains("is-menu-open")) {
+          closeItemMenu(item);
+     } else {
+          openItemMenu(item);
+     }
+
+     return true;
+}
+
 function setPageCornerOverlay(page, isVisible) {
      if (!isVisible || !page) {
           pageCornerFoldOverlay.classList.remove("is-visible");
@@ -1550,10 +1142,15 @@ document.addEventListener("keydown", (event) => {
      handleClipboardShortcut(event);
      handlePageTurnKey(event);
      if (event.key === "Escape") {
+          const didToggleMenu = handleMenuToggleKey(event);
+
           closeCustomSelects();
           clearSelectFocus();
           setTertiaryMatrixOpen(false);
           closeHexPopover();
+          if (didToggleMenu) {
+               return;
+          }
      }
 });
 document.documentElement.dataset.appReady = "true";
@@ -1562,4 +1159,10 @@ window.addEventListener("pointerup", endActiveItem);
 window.addEventListener("pointercancel", endActiveItem);
 window.addEventListener("resize", handleWindowResize);
 window.addEventListener("scroll", positionTertiaryMatrix, true);
+window.setInterval(refreshRelativeCalendarWidgets, 60 * 60 * 1000);
+document.addEventListener("visibilitychange", () => {
+     if (!document.hidden) {
+          refreshRelativeCalendarWidgets();
+     }
+});
 singlePageViewportQuery.addEventListener("change", applyResponsiveViewMode);

@@ -83,6 +83,10 @@ function serializePlannerItem(item) {
                     weekNumbers: item.dataset.weekNumbers !== "false",
                     weekNumberFormat: item.dataset.weekNumberFormat || (item.dataset.weekNumbers === "false" ? "off" : "no-outlines"),
                     weekStart: item.dataset.weekStart || "monday",
+                    weekdayLabelFormat: item.dataset.weekdayLabelFormat || "d",
+                    dateMode: item.dataset.dateMode || "fixed",
+                    dateOffset: Number(item.dataset.dateOffset) || 0,
+                    titleVisible: item.dataset.calendarTitleVisible !== "false",
                     monthDisplay: item.dataset.monthDisplay || "full",
                     monthVisible: item.dataset.monthDisplay !== "none",
                     month: Number(item.dataset.month) || 0,
@@ -407,12 +411,13 @@ function getStoredItemGrid(itemData) {
      const storedWidth = Number(grid.width);
      const storedHeight = Number(grid.height);
      const shouldUseMiniMonth2DefaultSize = isLegacyMiniMonth2 && storedWidth === 16 && storedHeight === 15;
+     const isMiniMonth = type === "mini-month";
 
      return {
           x: Number.isFinite(Number(grid.x)) ? Number(grid.x) : 0,
           y: Number.isFinite(Number(grid.y)) ? Number(grid.y) : 0,
-          width: shouldUseMiniMonth2DefaultSize ? fallback.width : Math.max(1, Number.isFinite(storedWidth) ? storedWidth : fallback.width),
-          height: shouldUseMiniMonth2DefaultSize ? fallback.height : Math.max(1, Number.isFinite(storedHeight) ? storedHeight : fallback.height)
+          width: isMiniMonth || shouldUseMiniMonth2DefaultSize ? fallback.width : Math.max(1, Number.isFinite(storedWidth) ? storedWidth : fallback.width),
+          height: isMiniMonth || shouldUseMiniMonth2DefaultSize ? fallback.height : Math.max(1, Number.isFinite(storedHeight) ? storedHeight : fallback.height)
      };
 }
 
@@ -462,6 +467,10 @@ function restorePlannerItemSettings(item, itemData) {
                weekNumbers: normalizeStoredBoolean(widget.weekNumbers, "true"),
                weekNumberFormat: widget.weekNumberFormat,
                weekStart: widget.weekStart,
+               weekdayLabelFormat: widget.weekdayLabelFormat,
+               dateMode: widget.dateMode,
+               dateOffset: widget.dateOffset !== undefined && widget.dateOffset !== null ? String(widget.dateOffset) : undefined,
+               titleVisible: normalizeStoredBoolean(widget.titleVisible, "true"),
                monthDisplay: widget.monthDisplay || "full",
                monthVisible: normalizeStoredBoolean(widget.monthVisible, "true"),
                month: widget.month !== undefined && widget.month !== null ? String(widget.month) : undefined,
