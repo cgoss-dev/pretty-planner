@@ -1373,7 +1373,7 @@ window.perfectPlanner = {
      serializeTemplate: serializePlannerTemplate,
      snapViewToPage,
      turnNotebookSpread,
-     version: "planner-storage-141"
+     version: "planner-storage-151"
 };
 
 syncAllSettingChoiceInputs();
