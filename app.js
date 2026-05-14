@@ -61,6 +61,7 @@ const itemGridUnits = itemControls.itemGridUnits;
 
 const templateSchemaVersion = storageControls.templateSchemaVersion;
 const plannerStorageKey = storageControls.plannerStorageKey;
+const legacyPlannerStorageKey = storageControls.legacyPlannerStorageKey;
 const plannerStateSchemaVersion = storageControls.plannerStateSchemaVersion;
 const minNotebookPageCount = notebookControls.minPageCount;
 const maxNotebookPageCount = notebookControls.maxPageCount;
@@ -961,12 +962,13 @@ function applyPlannerConfig() {
 }
 
 // NOTE: Start The App And Connect The Buttons
-window.perfectPlanner = {
+window.prettyPlanner = {
      serializeTemplate: serializePlannerTemplate,
      snapViewToPage,
      turnNotebookSpread,
      version: "planner-storage-151"
 };
+window.perfectPlanner = window.prettyPlanner;
 
 syncAllSettingChoiceInputs();
 initializeCustomSelects();

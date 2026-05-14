@@ -1,6 +1,6 @@
-# Perfect Planner
+# pretty-planner
 
-Perfect Planner is a planner layout template builder. The current page is a fullscreen desk view where users can choose paper settings and arrange sticky-note style layout blocks on a two-page spread.
+pretty-planner is a planner layout template builder. The current page is a fullscreen desk view where users can choose paper settings and arrange sticky-note style layout blocks on a two-page spread.
 
 ## Project Files
 
@@ -17,7 +17,7 @@ Open `index.html` in a browser to view the planner template builder.
 The frontend exposes a backend-ready layout snapshot at:
 
 ```js
-window.perfectPlanner.serializeTemplate()
+window.prettyPlanner.serializeTemplate()
 ```
 
 The returned object uses grid-cell coordinates for notes placed on a page.

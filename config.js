@@ -16,7 +16,8 @@
           },
           storage: {
                templateSchemaVersion: 1,
-               plannerStorageKey: "perfectPlanner:v1",
+               plannerStorageKey: "prettyPlanner:v1",
+               legacyPlannerStorageKey: "perfectPlanner:v1",
                plannerStateSchemaVersion: 1
           },
           notebook: {

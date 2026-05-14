@@ -208,10 +208,17 @@ function getEmptyPlannerState() {
 function readPlannerState() {
      try {
           const storedState = window.localStorage.getItem(plannerStorageKey);
-          const state = storedState ? JSON.parse(storedState) : null;
+          const legacyStoredState = !storedState && legacyPlannerStorageKey
+               ? window.localStorage.getItem(legacyPlannerStorageKey)
+               : null;
+          const state = storedState || legacyStoredState ? JSON.parse(storedState || legacyStoredState) : null;
 
           if (!state || typeof state !== "object") {
                return getEmptyPlannerState();
+          }
+
+          if (!storedState && legacyStoredState) {
+               writePlannerState(state);
           }
 
           return {
