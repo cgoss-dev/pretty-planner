@@ -1,4 +1,4 @@
-# Perfect Planner
+# Pretty Planner
 
 pretty-planner is a planner layout template builder. The current page is a fullscreen desk view where users can choose paper settings and arrange sticky-note style layout blocks on a two-page spread.
 
