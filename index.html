@@ -10,7 +10,12 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee+Shade&family=Dancing+Script:wght@400..700&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-195">
+     <script>
+          (() => {
+               ["prettyPlanner:v1", "prettyPlanner:v2", "perfectPlanner:v1"].forEach((key) => window.localStorage.removeItem(key));
+          })();
+     </script>
+     <link rel="stylesheet" href="style.css?v=planner-storage-196">
 </head>
 <body>
      <main class="planner-desk">
@@ -229,11 +234,11 @@
           </div>
      </main>
 
-     <script src="config.js?v=planner-storage-156"></script>
+     <script src="config.js?v=planner-storage-157"></script>
      <script src="ui.js?v=planner-storage-159"></script>
      <script src="widgets.js?v=planner-storage-197"></script>
-     <script src="storage.js?v=planner-storage-7"></script>
+     <script src="storage.js?v=planner-storage-8"></script>
      <script src="controls.js?v=planner-storage-153"></script>
-     <script src="app.js?v=planner-storage-157"></script>
+     <script src="app.js?v=planner-storage-158"></script>
 </body>
 </html>

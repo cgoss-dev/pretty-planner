@@ -189,6 +189,13 @@ body {
      background: var(--desk);
 }
 
+body {
+     --paper: var(--paper-offwhite) !important;
+     --desk: #8d6243 !important;
+     --desk-image: url("images/desk/desk-wood-brown.png") !important;
+     --desk-size: cover !important;
+}
+
 .planner-desk {
      position: relative;
      min-height: 100vh;
