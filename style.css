@@ -189,13 +189,6 @@ body {
      background: var(--desk);
 }
 
-body {
-     --paper: var(--paper-offwhite) !important;
-     --desk: #8d6243 !important;
-     --desk-image: url("images/desk/desk-wood-brown.png") !important;
-     --desk-size: cover !important;
-}
-
 .planner-desk {
      position: relative;
      min-height: 100vh;
@@ -391,9 +384,9 @@ body {
 }
 
 .settings-tab[aria-selected="true"] {
-     width: 200px;
-     min-width: 200px;
-     grid-template-columns: var(--color-swatch-size) minmax(0, 1fr) var(--color-swatch-size);
+     width: 100px;
+     min-width: 100px;
+     grid-template-columns: 0 minmax(0, 1fr) 0;
      cursor: pointer;
 }
 
@@ -421,12 +414,7 @@ body {
      pointer-events: none;
 }
 
-.settings-tab[aria-selected="true"] .settings-tab-step {
-     width: var(--color-swatch-size);
-     opacity: 1;
-     pointer-events: auto;
-}
-
+.settings-tab[aria-selected="true"] .settings-tab-step,
 .planner-settings:not(.is-open) .settings-tab-step {
      width: 0;
      opacity: 0;
@@ -454,7 +442,7 @@ body {
 }
 
 .settings-tab + .settings-tab {
-     margin-left: -1px;
+     margin-left: 0;
 }
 
 .settings-tab.is-active,
@@ -474,7 +462,8 @@ body {
      max-width: calc(100vw - 32px);
      height: 100%;
      min-height: 0;
-     overflow: auto;
+     overflow-x: hidden;
+     overflow-y: auto;
      padding: 8px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      border-radius: 7px 7px 8px 8px;
@@ -490,6 +479,30 @@ body {
      display: grid;
      gap: 8px;
      min-height: 210px;
+}
+
+.object-inspector {
+     position: absolute;
+     z-index: 210;
+     top: max(16px, calc((100vh - var(--notebook-height)) / 2));
+     right: 16px;
+     width: min(320px, calc(100vw - 32px));
+     max-height: min(var(--notebook-height), calc(100vh - 96px));
+     min-width: 260px;
+     display: grid;
+     overflow: auto;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-radius: 8px;
+     background: var(--menu-fill);
+     filter: drop-shadow(0 12px 14px rgba(17, 17, 17, 0.14));
+}
+
+.object-inspector[hidden] {
+     display: none;
+}
+
+.object-inspector .settings-object-shell {
+     min-height: 0;
 }
 
 .settings-object-shell.is-inactive {
@@ -547,7 +560,7 @@ body {
 }
 
 .setting-choice-group[aria-label="Desk"] {
-     grid-template-columns: repeat(6, minmax(0, 1fr));
+     grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
 }
 
 .setting-choice {
@@ -1924,10 +1937,11 @@ body {
 }
 
 .add-panel {
-     grid-template-columns: repeat(5, 100px);
+     grid-template-columns: repeat(auto-fit, minmax(100px, 100px));
      align-items: start;
      justify-items: center;
      justify-content: center;
+     align-content: start;
      gap: 12px;
      padding-bottom: 18px;
 }
@@ -3038,10 +3052,6 @@ body {
      box-shadow: none;
 }
 
-.settings-object-shell .item-controls > .item-control-tabs {
-     display: none;
-}
-
 .item-controls.is-floating {
      z-index: 45;
      right: auto;
@@ -3089,15 +3099,16 @@ body {
 .item-control-tabs {
      display: flex;
      align-items: end;
-     width: fit-content;
+     width: 100%;
      margin-bottom: -1px;
      overflow: visible;
 }
 
 .item-control-tab {
      position: relative;
-     width: 100px;
-     min-width: 100px;
+     flex: 1 1 0;
+     width: auto;
+     min-width: 0;
      min-height: 34px;
      padding: 4px 5px 5px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
@@ -3133,9 +3144,9 @@ body {
 }
 
 .item-controls.is-docked .item-control-panel {
-     border-color: transparent;
-     border-top-left-radius: 0;
-     background: transparent;
+     max-height: min(54vh, calc(var(--notebook-height) - var(--closed-settings-tabs-height) - 24px));
+     overflow-x: hidden;
+     overflow-y: auto;
 }
 
 .item-control-panel[hidden] {
@@ -3564,6 +3575,15 @@ body.is-single-page-viewport .planner-settings {
      min-height: min(300px, var(--notebook-height));
      min-width: min(500px, calc(100vw - 32px)) !important;
      grid-template-columns: 1fr;
+}
+
+body.is-single-page-viewport .object-inspector {
+     top: 16px;
+     left: 16px;
+     right: 16px;
+     width: auto;
+     min-width: 0;
+     max-height: min(42vh, 360px);
 }
 
 body.is-single-page-viewport .settings-panel {

@@ -10,12 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee+Shade&family=Dancing+Script:wght@400..700&display=swap"
      >
-     <script>
-          (() => {
-               ["prettyPlanner:v1", "prettyPlanner:v2", "perfectPlanner:v1"].forEach((key) => window.localStorage.removeItem(key));
-          })();
-     </script>
-     <link rel="stylesheet" href="style.css?v=planner-storage-196">
+     <link rel="stylesheet" href="style.css?v=planner-storage-197">
 </head>
 <body>
      <main class="planner-desk">
@@ -38,21 +33,6 @@
                     <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-label="Widgets" aria-controls="add-panel" data-settings-tab="add">
                          <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
                          <span class="settings-tab-label">Widgets</span>
-                         <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
-                    </button>
-                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-label="Appearance" aria-controls="appearance-panel" data-settings-tab="appearance">
-                         <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
-                         <span class="settings-tab-label">Appearance</span>
-                         <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
-                    </button>
-                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-label="Text" aria-controls="text-panel" data-settings-tab="text">
-                         <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
-                         <span class="settings-tab-label">Text</span>
-                         <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
-                    </button>
-                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-label="Attributes" aria-controls="attributes-panel" data-settings-tab="attributes">
-                         <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
-                         <span class="settings-tab-label">Attributes</span>
                          <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
                     </button>
                </div>
@@ -113,6 +93,8 @@
                               <option value="white">White</option>
                               <option value="wood-white">White Wood</option>
                               <option value="wood-brown" selected>Brown Wood</option>
+                              <option value="hot-springs-playa">Hot Springs Playa</option>
+                              <option value="valencia">Valencia</option>
                          </select>
                          <div class="setting-choice-group" aria-label="Desk">
                               <label class="setting-choice">
@@ -138,6 +120,14 @@
                               <label class="setting-choice">
                                    <input type="radio" name="desk-choice" data-setting-choice="desk-color" value="wood-brown" checked>
                                    <span>Brown Wood</span>
+                              </label>
+                              <label class="setting-choice">
+                                   <input type="radio" name="desk-choice" data-setting-choice="desk-color" value="hot-springs-playa">
+                                   <span>Hot Springs Playa</span>
+                              </label>
+                              <label class="setting-choice">
+                                   <input type="radio" name="desk-choice" data-setting-choice="desk-color" value="valencia">
+                                   <span>Valencia</span>
                               </label>
                          </div>
                     </div>
@@ -185,14 +175,13 @@
                     </div>
                </div>
 
-               <div class="settings-panel style-panel" id="appearance-panel" role="tabpanel" data-settings-panel="appearance" hidden>
-                    <div class="settings-object-shell is-inactive" data-object-controls-shell>
-                         <div class="settings-object-empty" data-object-controls-empty>Select an object</div>
-                    </div>
-               </div>
-               <div class="settings-panel style-panel" id="text-panel" role="tabpanel" data-settings-panel="text" hidden></div>
-               <div class="settings-panel style-panel" id="attributes-panel" role="tabpanel" data-settings-panel="attributes" hidden></div>
           </form>
+
+          <aside class="object-inspector" aria-label="Selected object inspector" data-object-inspector hidden>
+               <div class="settings-object-shell is-inactive" data-object-controls-shell>
+                    <div class="settings-object-empty" data-object-controls-empty>Select an object</div>
+               </div>
+          </aside>
 
           <div class="tertiary-matrix-popover" data-tertiary-matrix hidden>
                <div class="tertiary-matrix-title">Color Matrix</div>
@@ -234,7 +223,7 @@
           </div>
      </main>
 
-     <script src="config.js?v=planner-storage-157"></script>
+     <script src="config.js?v=planner-storage-159"></script>
      <script src="ui.js?v=planner-storage-159"></script>
      <script src="widgets.js?v=planner-storage-197"></script>
      <script src="storage.js?v=planner-storage-8"></script>

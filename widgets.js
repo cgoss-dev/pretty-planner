@@ -2416,8 +2416,6 @@ function openItemMenu(item) {
      item.classList.add("is-menu-open");
      updateObjectControlsState();
      updateClipboardControls();
-     selectSettingsTab("appearance");
-     openSidebar();
 }
 
 function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedActionItems(item)) {
@@ -2653,6 +2651,7 @@ function applyMiniMonthSettingsToActionItems(item, settings) {
 function setItemControlsTab(controls, tabName) {
      closeCustomSelects(controls);
      clearSelectFocus(controls);
+     controls.dataset.activeItemControlTab = tabName;
 
      controls.querySelectorAll("[data-item-control-tab]").forEach((tab) => {
           const isActive = tab.dataset.itemControlTab === tabName;

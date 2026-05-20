@@ -712,30 +712,15 @@ function initializeCustomSelects() {
      settingSelects.forEach(makeCustomSelect);
 }
 
-// NOTE: Bottom Menu And Object Settings Panel
-const objectSettingsControlTabs = {
-     appearance: "style",
-     text: "text",
-     attributes: "widget"
-};
-
 function syncObjectControlsSettingsTab(tabName) {
-     const controlTabName = objectSettingsControlTabs[tabName];
-
-     if (!controlTabName || !objectControlsShell) {
+     if (!objectControlsShell) {
           return;
-     }
-
-     const targetPanel = settingsPanels.find((panel) => panel.dataset.settingsPanel === tabName);
-
-     if (targetPanel && objectControlsShell.parentElement !== targetPanel) {
-          targetPanel.append(objectControlsShell);
      }
 
      const controls = objectControlsShell.querySelector(".item-controls");
 
      if (controls && typeof setItemControlsTab === "function") {
-          setItemControlsTab(controls, controlTabName);
+          setItemControlsTab(controls, controls.dataset.activeItemControlTab || "style");
      }
 }
 
@@ -805,6 +790,9 @@ function updateObjectControlsState() {
 
      objectControlsShell.classList.toggle("is-inactive", !hasControls);
      objectControlsEmpty.hidden = hasControls;
+     if (objectInspector) {
+          objectInspector.hidden = !hasControls;
+     }
 }
 
 function updateClipboardControls() {

@@ -20,6 +20,7 @@ const guideInputs = Array.from(document.querySelectorAll("[data-guide]"));
 const settingsTabs = Array.from(document.querySelectorAll("[data-settings-tab]"));
 const settingsPanels = Array.from(document.querySelectorAll("[data-settings-panel]"));
 const settingsStepButtons = Array.from(document.querySelectorAll("[data-settings-step]"));
+const objectInspector = document.querySelector("[data-object-inspector]");
 const objectControlsShell = document.querySelector("[data-object-controls-shell]");
 const objectControlsEmpty = document.querySelector("[data-object-controls-empty]");
 const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]"));
@@ -469,7 +470,11 @@ function changeViewZoom(direction, zoomAnchor = null) {
      }
 
      viewZoomIndex = nextZoomIndex;
-     applyViewControls(zoomAnchor);
+     if (direction === "out") {
+          resetViewPanOffset();
+          viewVerticalFocusIndex = 1;
+     }
+     applyViewControls(direction === "in" ? zoomAnchor : null);
      showZoomToast();
 }
 
@@ -547,12 +552,18 @@ function snapViewToPage(pageSide) {
 }
 
 function updatePageSnapButtons() {
-     const canUsePageSnapControls = isSinglePageViewport || viewZoomIndex > 0;
+     const canUseHorizontalSnapControls = isSinglePageViewport || viewZoomIndex > 0;
+     const canUseVerticalSnapControls = viewZoomIndex > 0;
 
      pageSnapButtons.forEach((button) => {
           const direction = button.dataset.pageSnap;
 
-          if (!canUsePageSnapControls) {
+          if ((direction === "previous" || direction === "next") && !canUseHorizontalSnapControls) {
+               button.hidden = true;
+               return;
+          }
+
+          if ((direction === "up" || direction === "down") && !canUseVerticalSnapControls) {
                button.hidden = true;
                return;
           }
