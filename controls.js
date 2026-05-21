@@ -465,10 +465,12 @@ window.KeyboardControls = (() => {
                     { key: "Q / Esc", action: "Cancel, close, or deselect" },
                     { key: "O", action: "Open or close object settings" },
                     { key: "P", action: "Pick up or place selected object" },
-                    { key: "G", action: "Toggle guides on or off" },
+                    { key: "G", action: "Group or ungroup selected objects" },
+                    { key: "V", action: "Toggle guides on or off" },
                     { key: "[", action: "Previous page or spread" },
                     { key: "]", action: "Next page or spread" },
-                    { key: "W / A / S / D", action: "Move page focus" },
+                    { key: "WASD / Arrow keys", action: "Move page cursor" },
+                    { key: "F", action: "Cycle page focus" },
                     { key: "Z / X", action: "Zoom in or out" },
                ]
           },
@@ -490,6 +492,7 @@ window.KeyboardControls = (() => {
                     { key: "Enter / E", action: "Pick up focused widget" },
                     { key: "WASD / Arrow keys", action: "Move one grid cell" },
                     { key: "Enter / E", action: "Place widget" },
+                    { key: "V", action: "Toggle guides" },
                     { key: "Q / Esc", action: "Cancel placement" }
                ]
           },
@@ -498,6 +501,8 @@ window.KeyboardControls = (() => {
                controls: [
                     { key: "O", action: "Open object settings" },
                     { key: "P", action: "Pick up or place object" },
+                    { key: "R", action: "Resize from upper-left anchor" },
+                    { key: "G", action: "Group or ungroup selection" },
                     { key: "E / Enter", action: "Edit text" },
                     { key: "Delete", action: "Delete object" },
                     { key: "Q / Esc", action: "Deselect object" }
@@ -506,9 +511,18 @@ window.KeyboardControls = (() => {
           {
                title: "Move Mode",
                controls: [
-                    { key: "Arrow keys", action: "Move one grid cell" },
+                    { key: "WASD / Arrow keys", action: "Move one grid cell" },
                     { key: "Enter / E", action: "Confirm move" },
                     { key: "Q / Esc", action: "Cancel move" }
+               ]
+          },
+          {
+               title: "Resize Mode",
+               controls: [
+                    { key: "WASD / Arrow keys", action: "Resize from upper-left anchor" },
+                    { key: "Enter / E", action: "Confirm resize" },
+                    { key: "V", action: "Toggle guides" },
+                    { key: "Q / Esc", action: "Cancel resize" }
                ]
           },
           {
