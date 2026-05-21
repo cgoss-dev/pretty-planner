@@ -898,6 +898,7 @@ function startCalendarDayTextEditing(textElement, item) {
      textElement.setAttribute("contenteditable", "true");
      item.classList.add("is-editing-day-text");
      updateTextEditingState();
+     renderKeyHints();
 
      requestAnimationFrame(() => {
           textElement.focus();
@@ -915,6 +916,7 @@ function startCalendarDayTextEditing(textElement, item) {
           textElement.setAttribute("contenteditable", "false");
           item.classList.remove("is-editing-day-text");
           updateTextEditingState();
+          renderKeyHints();
           setCalendarDayNote(item, textElement.dataset.dayKey, textElement.textContent || "");
           updateCalendarDayTextOverflow(textElement);
           notifyTemplateChanged();
@@ -2152,6 +2154,7 @@ function stopStickyTextEditing(item) {
      textElement.setAttribute("contenteditable", "false");
      item.classList.remove("is-editing-text");
      updateTextEditingState();
+     renderKeyHints();
      updateStickyTextOverflow(item);
      notifyTemplateChanged();
 }
@@ -2177,6 +2180,7 @@ function startStickyTextEditing(item) {
      textElement.hidden = false;
      textElement.setAttribute("contenteditable", "true");
      updateTextEditingState();
+     renderKeyHints();
 
      requestAnimationFrame(() => {
           textElement.focus();
@@ -2475,6 +2479,7 @@ function setItemSelected(item, isSelected) {
      if (isSelected) {
           selectedItems.add(item);
           selectedItem = item;
+          renderKeyHints();
           return;
      }
 
@@ -2484,6 +2489,7 @@ function setItemSelected(item, isSelected) {
      if (selectedItem === item) {
           selectedItem = selectedItems.size ? Array.from(selectedItems).at(-1) : null;
      }
+     renderKeyHints();
 }
 
 function selectItems(items) {
@@ -2510,6 +2516,7 @@ function clearSelection() {
      selectedItems.forEach((item) => clearItemSelectionClasses(item));
      selectedItems = new Set();
      selectedItem = null;
+     renderKeyHints();
 }
 
 function closeItemMenus(exceptItem = null) {

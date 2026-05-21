@@ -348,6 +348,52 @@ body {
      transform: translate(-50%, -50%);
 }
 
+.key-hint-panel {
+     position: absolute;
+     z-index: 240;
+     top: 14px;
+     left: 14px;
+     display: grid;
+     gap: 4px;
+     width: min(220px, calc(100vw - 28px));
+     padding: 8px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-radius: 7px;
+     background: rgba(255, 255, 255, 0.82);
+     color: var(--color-gray1);
+     pointer-events: none;
+     filter: drop-shadow(0 8px 12px rgba(17, 17, 17, 0.12));
+     backdrop-filter: blur(8px);
+}
+
+.key-hint-row {
+     display: grid;
+     grid-template-columns: minmax(58px, max-content) minmax(0, 1fr);
+     align-items: center;
+     gap: 7px;
+     min-width: 0;
+}
+
+.key-hint-key {
+     display: inline-grid;
+     place-items: center;
+     min-width: 36px;
+     min-height: 22px;
+     padding: 3px 6px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
+     border-radius: 5px;
+     background: var(--color-white);
+     font: 700 var(--font-size-sm) var(--font-noto);
+     line-height: 1;
+     white-space: nowrap;
+}
+
+.key-hint-action {
+     min-width: 0;
+     font: 400 var(--font-size-sm) var(--font-noto);
+     line-height: 1.15;
+}
+
 /* NOTE: Top Tabs Inside The Bottom Menu */
 .settings-tabs {
      display: flex;
@@ -520,6 +566,61 @@ body {
 
 .settings-panel[hidden] {
      display: none;
+}
+
+.controls-panel {
+     grid-template-columns: 1fr;
+}
+
+.keyboard-control-section {
+     display: grid;
+     gap: 6px;
+     padding: 7px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
+     border-radius: 6px;
+     background: rgba(255, 255, 255, 0.28);
+}
+
+.keyboard-control-title {
+     margin: 0;
+     color: var(--color-gray1);
+     font: 700 var(--font-size-sm) var(--font-noto);
+     line-height: 1.1;
+}
+
+.keyboard-control-list {
+     display: grid;
+     grid-template-columns: max-content minmax(0, 1fr);
+     align-items: center;
+     gap: 4px 8px;
+     margin: 0;
+}
+
+.keyboard-control-list dt,
+.keyboard-control-list dd {
+     margin: 0;
+     min-width: 0;
+}
+
+.keyboard-control-list dd {
+     color: var(--color-gray1);
+     font: 400 var(--font-size-sm) var(--font-noto);
+     line-height: 1.2;
+}
+
+.keyboard-control-key {
+     display: inline-grid;
+     place-items: center;
+     min-width: 32px;
+     min-height: 24px;
+     padding: 3px 6px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-radius: 5px;
+     background: var(--color-white);
+     color: var(--color-gray1);
+     font: 700 var(--font-size-sm) var(--font-noto);
+     line-height: 1;
+     white-space: nowrap;
 }
 
 /* NOTE: Form Fields, Choices, And Drop-Down Menus */

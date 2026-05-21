@@ -10,34 +10,42 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee+Shade&family=Dancing+Script:wght@400..700&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-197">
+     <link rel="stylesheet" href="style.css?v=planner-storage-198">
 </head>
 <body>
      <main class="planner-desk">
           <div class="page-snap-controls" aria-label="Planner page navigation">
-               <button class="page-snap-button page-snap-button-prev" type="button" data-page-snap="previous" aria-label="Previous page">&#8679;</button>
-               <button class="page-snap-button page-snap-button-next" type="button" data-page-snap="next" aria-label="Next page">&#8679;</button>
-               <button class="page-snap-button page-snap-button-up" type="button" data-page-snap="up" aria-label="Page up">&#8679;</button>
-               <button class="page-snap-button page-snap-button-down" type="button" data-page-snap="down" aria-label="Page down">&#8679;</button>
+               <button class="page-snap-button page-snap-button-prev" type="button" data-page-snap="previous" aria-label="Previous page" tabindex="-1">&#8679;</button>
+               <button class="page-snap-button page-snap-button-next" type="button" data-page-snap="next" aria-label="Next page" tabindex="-1">&#8679;</button>
+               <button class="page-snap-button page-snap-button-up" type="button" data-page-snap="up" aria-label="Page up" tabindex="-1">&#8679;</button>
+               <button class="page-snap-button page-snap-button-down" type="button" data-page-snap="down" aria-label="Page down" tabindex="-1">&#8679;</button>
           </div>
 
           <div class="zoom-toast" data-zoom-toast aria-live="polite" aria-atomic="true">100%</div>
+          <aside class="key-hint-panel" data-key-hint-panel aria-label="Available keyboard controls" aria-live="polite"></aside>
 
           <form class="planner-settings" aria-label="Planner page settings">
                <div class="settings-tabs" role="tablist" aria-label="Planner setting tabs">
-                    <button class="settings-tab is-active" type="button" role="tab" aria-selected="true" aria-label="Page" aria-controls="page-panel" data-settings-tab="page">
+                    <button class="settings-tab is-active" type="button" role="tab" aria-selected="true" aria-label="Controls" aria-controls="controls-panel" data-settings-tab="controls">
                          <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
-                         <span class="settings-tab-label">Page</span>
+                         <span class="settings-tab-label">1 Controls</span>
+                         <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
+                    </button>
+                    <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-label="Notebook" aria-controls="page-panel" data-settings-tab="page">
+                         <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
+                         <span class="settings-tab-label">2 Notebook</span>
                          <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
                     </button>
                     <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-label="Widgets" aria-controls="add-panel" data-settings-tab="add">
                          <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
-                         <span class="settings-tab-label">Widgets</span>
+                         <span class="settings-tab-label">3 Widgets</span>
                          <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
                     </button>
                </div>
 
-               <div class="settings-panel" id="page-panel" role="tabpanel" data-settings-panel="page">
+               <div class="settings-panel controls-panel" id="controls-panel" role="tabpanel" data-settings-panel="controls" data-keyboard-controls></div>
+
+               <div class="settings-panel" id="page-panel" role="tabpanel" data-settings-panel="page" hidden>
                     <div class="setting-field">
                          <span>Guides</span>
                          <div class="guide-settings">
@@ -224,10 +232,10 @@
      </main>
 
      <script src="config.js?v=planner-storage-159"></script>
-     <script src="ui.js?v=planner-storage-159"></script>
-     <script src="widgets.js?v=planner-storage-197"></script>
+     <script src="ui.js?v=planner-storage-160"></script>
+     <script src="widgets.js?v=planner-storage-198"></script>
      <script src="storage.js?v=planner-storage-8"></script>
-     <script src="controls.js?v=planner-storage-153"></script>
-     <script src="app.js?v=planner-storage-158"></script>
+     <script src="controls.js?v=planner-storage-173"></script>
+     <script src="app.js?v=planner-storage-183"></script>
 </body>
 </html>

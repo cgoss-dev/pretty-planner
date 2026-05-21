@@ -454,3 +454,123 @@ window.PageControls = (() => {
           updatePageLabels
      };
 })();
+
+// NOTE: Keyboard command labels and rendering helpers for the Controls menu tab
+window.KeyboardControls = (() => {
+     const groups = [
+          {
+               title: "Global",
+               controls: [
+                    { key: "E / Enter", action: "Open menu or activate focused menu control" },
+                    { key: "Q / Esc", action: "Cancel, close, or deselect" },
+                    { key: "O", action: "Open or close object settings" },
+                    { key: "P", action: "Pick up or place selected object" },
+                    { key: "G", action: "Toggle guides on or off" },
+                    { key: "[", action: "Previous page or spread" },
+                    { key: "]", action: "Next page or spread" },
+                    { key: "W / A / S / D", action: "Move page focus" },
+                    { key: "Z / X", action: "Zoom in or out" },
+               ]
+          },
+          {
+               title: "Menu",
+               controls: [
+                    { key: "Tab", action: "Move through tabs and controls" },
+                    { key: "1 / 2 / 3", action: "Move between menu tabs" },
+                    { key: "[ / ]", action: "Move between menu tabs" },
+                    { key: "W / A / S / D", action: "Move spatially through menu controls; W/S scroll at edges" },
+                    { key: "Arrow keys", action: "Move spatially through menu controls; up/down scroll at edges" },
+                    { key: "Enter", action: "Activate selected control" },
+                    { key: "Q / Esc", action: "Close menu" }
+               ]
+          },
+          {
+               title: "Widget Placement",
+               controls: [
+                    { key: "Enter / E", action: "Pick up focused widget" },
+                    { key: "Arrow keys", action: "Move one grid cell" },
+                    { key: "Enter / E", action: "Place widget" },
+                    { key: "Q / Esc", action: "Cancel placement" }
+               ]
+          },
+          {
+               title: "Selected Object",
+               controls: [
+                    { key: "O", action: "Open object settings" },
+                    { key: "P", action: "Pick up or place object" },
+                    { key: "E / Enter", action: "Edit text" },
+                    { key: "Delete", action: "Delete object" },
+                    { key: "Q / Esc", action: "Deselect object" }
+               ]
+          },
+          {
+               title: "Move Mode",
+               controls: [
+                    { key: "Arrow keys", action: "Move one grid cell" },
+                    { key: "Enter / E", action: "Confirm move" },
+                    { key: "Q / Esc", action: "Cancel move" }
+               ]
+          },
+          {
+               title: "Text Edit Mode",
+               controls: [
+                    { key: "Type", action: "Enter text normally" },
+                    { key: "Q / Esc", action: "Finish editing" }
+               ]
+          }
+     ];
+
+     function getGroups() {
+          // NOTE: Returns the keyboard control groups used by the Controls tab
+          return groups.map((group) => ({
+               ...group,
+               controls: group.controls.map((control) => ({ ...control }))
+          }));
+     }
+
+     function makeKeyElement(key) {
+          // NOTE: Builds the visual key label for one keyboard command
+          const element = document.createElement("kbd");
+
+          element.className = "keyboard-control-key";
+          element.textContent = key;
+
+          return element;
+     }
+
+     function renderControlsPanel(container) {
+          // NOTE: Renders the keyboard command reference into the Controls menu panel
+          if (!container) {
+               return;
+          }
+
+          container.replaceChildren();
+          getGroups().forEach((group) => {
+               const section = document.createElement("section");
+               const title = document.createElement("h3");
+               const list = document.createElement("dl");
+
+               section.className = "keyboard-control-section";
+               title.className = "keyboard-control-title";
+               title.textContent = group.title;
+               list.className = "keyboard-control-list";
+
+               group.controls.forEach((control) => {
+                    const keyTerm = document.createElement("dt");
+                    const action = document.createElement("dd");
+
+                    keyTerm.append(makeKeyElement(control.key));
+                    action.textContent = control.action;
+                    list.append(keyTerm, action);
+               });
+
+               section.append(title, list);
+               container.append(section);
+          });
+     }
+
+     return {
+          getGroups,
+          renderControlsPanel
+     };
+})();

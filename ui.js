@@ -804,6 +804,7 @@ function updateClipboardControls() {
 function openSidebar() {
      plannerSettings.classList.add("is-open");
      plannerDesk.classList.add("has-open-main-menu");
+     renderKeyHints();
 }
 
 function closeSidebar() {
@@ -812,6 +813,7 @@ function closeSidebar() {
      setTertiaryMatrixOpen(false);
      plannerSettings.classList.remove("is-open");
      plannerDesk.classList.remove("has-open-main-menu");
+     renderKeyHints();
 }
 
 function isPointerInsideElementBox(event, element) {

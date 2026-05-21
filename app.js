@@ -13,6 +13,7 @@ const paperSelect = document.querySelector("[data-setting='paper']");
 const paperColorSelect = document.querySelector("[data-setting='paper-color']");
 const deskColorSelect = document.querySelector("[data-setting='desk-color']");
 const palettePreviewSwatches = document.querySelector("[data-palette-preview-swatches]");
+const keyboardControlsPanel = document.querySelector("[data-keyboard-controls]");
 const tertiaryMatrixPopover = document.querySelector("[data-tertiary-matrix]");
 const tertiaryMatrixGrid = document.querySelector("[data-tertiary-matrix-grid]");
 const settingSelects = Array.from(document.querySelectorAll("[data-setting]")).filter((select) => !["paper", "grid", "paper-color", "desk-color"].includes(select.dataset.setting));
@@ -25,6 +26,7 @@ const objectControlsShell = document.querySelector("[data-object-controls-shell]
 const objectControlsEmpty = document.querySelector("[data-object-controls-empty]");
 const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]"));
 const zoomToast = document.querySelector("[data-zoom-toast]");
+const keyHintPanel = document.querySelector("[data-key-hint-panel]");
 const pageCornerFoldOverlay = document.createElement("div");
 const pageCornerFoldOverlayNumber = document.createElement("span");
 const settingChoiceInputs = Array.from(document.querySelectorAll("[data-setting-choice]"));
@@ -772,7 +774,40 @@ function turnNotebookSpread(step) {
 }
 
 function handlePageTurnKey(event) {
+     // NOTE: Turns notebook pages with the documented bracket keys and keeps legacy page keys working
      if (
+          event.defaultPrevented ||
+          activeAction ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTypingFieldShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (event.key === "[" || event.key === "PageDown") {
+          event.preventDefault();
+          if (plannerSettings.classList.contains("is-open")) {
+               stepSettingsTab(-1);
+          } else {
+               turnNotebookSpread(-1);
+          }
+     } else if (event.key === "]" || event.key === "PageUp") {
+          event.preventDefault();
+          if (plannerSettings.classList.contains("is-open")) {
+               stepSettingsTab(1);
+          } else {
+               turnNotebookSpread(1);
+          }
+     }
+}
+
+function handleMainMenuToggleKey(event) {
+     // NOTE: Opens the main planner settings menu with E or Enter when the menu is closed
+     if (
+          event.defaultPrevented ||
           activeAction ||
           event.altKey ||
           event.ctrlKey ||
@@ -783,13 +818,786 @@ function handlePageTurnKey(event) {
           return;
      }
 
-     if (event.key === "PageDown") {
-          event.preventDefault();
-          turnNotebookSpread(-1);
-     } else if (event.key === "PageUp") {
-          event.preventDefault();
-          turnNotebookSpread(1);
+     const key = event.key.toLowerCase();
+
+     if (key !== "e" && event.key !== "Enter") {
+          return;
      }
+
+     event.preventDefault();
+     if (!plannerSettings.classList.contains("is-open")) {
+          openSidebar();
+     }
+}
+
+function isTypingFieldShortcutTarget(target) {
+     // NOTE: Detects fields where letter or arrow shortcuts should not interrupt text entry
+     const input = target?.closest?.("textarea, [contenteditable='true'], input");
+
+     if (!input) {
+          return false;
+     }
+
+     if (input.matches("textarea, [contenteditable='true']")) {
+          return true;
+     }
+
+     const type = (input.getAttribute("type") || "text").toLowerCase();
+
+     return !["button", "checkbox", "radio", "range", "color", "submit", "reset"].includes(type);
+}
+
+function handleMenuEnterKey(event) {
+     // NOTE: Activates the focused menu control with E or Enter while the main menu is open
+     if (
+          event.defaultPrevented ||
+          activeAction ||
+          !plannerSettings.classList.contains("is-open") ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTypingFieldShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (event.key !== "Enter" && event.key.toLowerCase() !== "e") {
+          return;
+     }
+
+     const activeElement = document.activeElement;
+
+     if (!activeElement || !plannerSettings.contains(activeElement) || typeof activeElement.click !== "function") {
+          return;
+     }
+
+     event.preventDefault();
+     if (activeElement.matches("[data-create-item]")) {
+          startKeyboardSourcePlacement(activeElement);
+          return;
+     }
+
+     activeElement.click();
+}
+
+function getKeyboardPlacementPage() {
+     // NOTE: Finds the visible page that should receive a keyboard-placed widget
+     const focusedSide = getFocusedPageSide();
+     const focusedPage = pages.find((page) => getPageId(page) === focusedSide);
+
+     if (focusedPage && !focusedPage.classList.contains("is-missing-page")) {
+          return focusedPage;
+     }
+
+     return pages.find((page) => !page.classList.contains("is-missing-page")) || pages[0] || null;
+}
+
+function centerKeyboardPlacementItem(item, page) {
+     // NOTE: Centers a newly keyboard-created widget on the active page grid
+     if (!page || isFullPageCalendarType(item.dataset.itemType)) {
+          return;
+     }
+
+     const box = getItemBox(item);
+     const pageRect = page.getBoundingClientRect();
+     const viewZoom = getViewZoom();
+     const pageWidth = pageRect.width / viewZoom;
+     const pageHeight = pageRect.height / viewZoom;
+     const grid = getGridSize(page);
+     const origin = getGridSnapOrigin(page);
+     const centeredX = snapToGridOrigin((pageWidth - box.width) / 2, origin.x, grid.x);
+     const centeredY = snapToGridOrigin((pageHeight - box.height) / 2, origin.y, grid.y);
+
+     setItemBox(item, {
+          ...box,
+          x: clamp(centeredX, 0, Math.max(0, pageWidth - box.width)),
+          y: clamp(centeredY, 0, Math.max(0, pageHeight - box.height))
+     });
+}
+
+function startKeyboardSourcePlacement(source) {
+     // NOTE: Creates a widget from the menu and enters keyboard placement mode
+     if (activeAction || !source?.matches?.("[data-create-item]")) {
+          return false;
+     }
+
+     const page = getKeyboardPlacementPage();
+
+     if (!page) {
+          return false;
+     }
+
+     const item = makePlannerItem(source.dataset.createType || "sticky");
+     const sourceRect = source.getBoundingClientRect();
+     const pageRect = page.getBoundingClientRect();
+     const offsetX = sourceRect.width / 2;
+     const offsetY = sourceRect.height / 2;
+     const fakeEvent = {
+          clientX: pageRect.left + (pageRect.width / 2),
+          clientY: pageRect.top + (pageRect.height / 2)
+     };
+
+     closeItemMenus();
+     document.body.append(item);
+     item.classList.add("is-floating-source", "is-dragging");
+     item.style.width = `${sourceRect.width}px`;
+     item.style.height = `${sourceRect.height}px`;
+
+     activeAction = {
+          type: "source",
+          item,
+          page,
+          didMove: true,
+          offsetX,
+          offsetY
+     };
+
+     if (!snapItemToPage(item, page, fakeEvent)) {
+          removeRejectedSourceItem();
+          activeAction = null;
+          renderKeyHints();
+          return false;
+     }
+
+     centerKeyboardPlacementItem(item, page);
+     markSnapReady(item, true);
+     selectItem(item);
+     activeAction = {
+          type: "keyboard-source",
+          item,
+          page
+     };
+     closeSidebar();
+     renderKeyHints();
+     return true;
+}
+
+function moveKeyboardPlacementItem(direction) {
+     // NOTE: Moves the keyboard-held widget by one grid cell in the requested direction
+     const item = activeAction?.item;
+     const page = activeAction?.page;
+
+     if (!item || !page) {
+          return;
+     }
+
+     const box = getItemBox(item);
+     const grid = getGridSize(page);
+     const pageRect = page.getBoundingClientRect();
+     const viewZoom = getViewZoom();
+     const pageWidth = pageRect.width / viewZoom;
+     const pageHeight = pageRect.height / viewZoom;
+     const delta = {
+          left: { x: -grid.x, y: 0 },
+          right: { x: grid.x, y: 0 },
+          up: { x: 0, y: -grid.y },
+          down: { x: 0, y: grid.y }
+     }[direction];
+
+     if (!delta) {
+          return;
+     }
+
+     setItemBox(item, {
+          ...box,
+          x: clamp(box.x + delta.x, 0, Math.max(0, pageWidth - box.width)),
+          y: clamp(box.y + delta.y, 0, Math.max(0, pageHeight - box.height))
+     });
+}
+
+function finishKeyboardPlacement() {
+     // NOTE: Places the keyboard-held widget and saves the planner state
+     if (activeAction?.type !== "keyboard-source") {
+          return;
+     }
+
+     const item = activeAction.item;
+
+     item.classList.remove("is-dragging");
+     markSnapReady(item, false);
+     selectItem(item);
+     notifyTemplateChanged();
+     activeAction = null;
+     clearDragOver();
+     renderKeyHints();
+}
+
+function cancelKeyboardPlacement() {
+     // NOTE: Removes a keyboard-created widget when placement is cancelled
+     if (activeAction?.type !== "keyboard-source") {
+          return;
+     }
+
+     const item = activeAction.item;
+
+     selectedItems.delete(item);
+     if (selectedItem === item) {
+          selectedItem = null;
+     }
+     item.remove();
+     activeAction = null;
+     clearDragOver();
+     updateObjectControlsState();
+     renderKeyHints();
+}
+
+function handleKeyboardPlacementKey(event) {
+     // NOTE: Handles arrow movement, E/Enter placement, and Q/Escape cancel while placing a widget
+     if (activeAction?.type !== "keyboard-source" || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+          return;
+     }
+
+     const directions = {
+          ArrowLeft: "left",
+          ArrowRight: "right",
+          ArrowUp: "up",
+          ArrowDown: "down"
+     };
+     const direction = directions[event.key];
+
+     if (direction) {
+          event.preventDefault();
+          moveKeyboardPlacementItem(direction);
+          return;
+     }
+
+     if (event.key === "Enter" || event.key.toLowerCase() === "e") {
+          event.preventDefault();
+          finishKeyboardPlacement();
+          return;
+     }
+
+     if (event.key === "Escape" || event.key.toLowerCase() === "q") {
+          event.preventDefault();
+          cancelKeyboardPlacement();
+     }
+}
+
+function getSelectedTextEditItem() {
+     // NOTE: Returns the single selected planner item that can enter text editing
+     if (selectedItems.size !== 1 || !selectedItem || !getPlannerItems().includes(selectedItem)) {
+          return null;
+     }
+
+     return selectedItem.querySelector(".sticky-text, .calendar-day-text") ? selectedItem : null;
+}
+
+function startSelectedItemTextEditing(item) {
+     // NOTE: Starts text editing for the selected planner item using its primary editable text area
+     const stickyText = item.querySelector(".sticky-text");
+
+     if (stickyText) {
+          startStickyTextEditing(item);
+          return true;
+     }
+
+     const calendarText = item.querySelector(".calendar-day-text");
+
+     if (calendarText) {
+          startCalendarDayTextEditing(calendarText, item);
+          return true;
+     }
+
+     return false;
+}
+
+function handleSelectedTextEditKey(event) {
+     // NOTE: Uses E and Enter to edit text on the selected object before falling back to menu opening
+     if (
+          event.defaultPrevented ||
+          activeAction ||
+          plannerSettings.classList.contains("is-open") ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTypingFieldShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (event.key.toLowerCase() !== "e" && event.key !== "Enter") {
+          return;
+     }
+
+     const item = getSelectedTextEditItem();
+
+     if (!item) {
+          return;
+     }
+
+     event.preventDefault();
+     startSelectedItemTextEditing(item);
+}
+
+function handleNumberedMenuTabKey(event) {
+     // NOTE: Switches numbered menu tabs while the main menu is already open
+     if (
+          event.defaultPrevented ||
+          activeAction ||
+          !plannerSettings.classList.contains("is-open") ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTypingFieldShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (!/^[1-9]$/.test(event.key)) {
+          return;
+     }
+
+     const tab = settingsTabs[Number(event.key) - 1];
+
+     if (!tab) {
+          return;
+     }
+
+     event.preventDefault();
+     selectSettingsTab(tab.dataset.settingsTab);
+}
+
+function handleCancelKey(event) {
+     // NOTE: Uses Q and Escape as the same keyboard cancel key for open planner UI
+     if (
+          event.defaultPrevented ||
+          activeAction ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTypingFieldShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (event.key.toLowerCase() !== "q" && event.key !== "Escape") {
+          return;
+     }
+
+     event.preventDefault();
+     if (plannerSettings.classList.contains("is-open")) {
+          closeSidebar();
+          return;
+     }
+
+     closeCustomSelects();
+     clearSelectFocus();
+     setTertiaryMatrixOpen(false);
+     closeHexPopover();
+     clearSelection();
+}
+
+function handleTextEditFinishKey(event) {
+     // NOTE: Uses Q and Escape to finish active text editing by leaving the editable text field
+     if (
+          event.defaultPrevented ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey
+     ) {
+          return;
+     }
+
+     if (event.key.toLowerCase() !== "q" && event.key !== "Escape") {
+          return;
+     }
+
+     const editingTarget = event.target?.closest?.("[contenteditable='true']");
+
+     if (!editingTarget) {
+          return;
+     }
+
+     event.preventDefault();
+     editingTarget.blur();
+}
+
+function blockSpacebarShortcut(event) {
+     // NOTE: Prevents Space from acting as a custom planner keyboard control outside typing fields
+     if (
+          event.defaultPrevented ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTextInputShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (event.key !== " ") {
+          return;
+     }
+
+     event.preventDefault();
+}
+
+function getActiveSettingsPanel() {
+     // NOTE: Finds the currently visible main menu panel for keyboard scrolling
+     const activeTabName = settingsTabs.find((tab) => tab.getAttribute("aria-selected") === "true")?.dataset.settingsTab;
+
+     return settingsPanels.find((panel) => panel.dataset.settingsPanel === activeTabName) || null;
+}
+
+function getMenuFocusableElements() {
+     // NOTE: Gets visible controls in the active menu panel for arrow-key menu navigation
+     const activePanel = getActiveSettingsPanel();
+
+     if (!activePanel) {
+          return [];
+     }
+
+     return Array.from(activePanel.querySelectorAll("button, input, select, textarea, [tabindex]:not([tabindex='-1'])"))
+          .filter((element) => {
+               const isDisabled = element.disabled || element.getAttribute("aria-disabled") === "true";
+               const isHidden = element.hidden || element.closest("[hidden]");
+               const rect = element.getBoundingClientRect();
+
+               return !isDisabled && !isHidden && element.offsetParent !== null && rect.width > 0 && rect.height > 0;
+          });
+}
+
+function getElementGeometry(element) {
+     // NOTE: Calculates the screen center point used for spatial keyboard focus movement
+     const rect = element.getBoundingClientRect();
+
+     return {
+          height: rect.height,
+          width: rect.width,
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2
+     };
+}
+
+function getMenuFocusCandidateScore(fromGeometry, candidateGeometry, direction) {
+     // NOTE: Scores possible menu focus targets by direction first, then nearest visual distance
+     const deltaX = candidateGeometry.x - fromGeometry.x;
+     const deltaY = candidateGeometry.y - fromGeometry.y;
+     const absX = Math.abs(deltaX);
+     const absY = Math.abs(deltaY);
+     const horizontalLaneSize = Math.max(fromGeometry.height, candidateGeometry.height, 24);
+     const verticalLaneSize = Math.max(fromGeometry.width, candidateGeometry.width, 48);
+
+     if (direction === "up" && deltaY >= -1) {
+          return null;
+     }
+
+     if (direction === "down" && deltaY <= 1) {
+          return null;
+     }
+
+     if (direction === "left" && deltaX >= -1) {
+          return null;
+     }
+
+     if (direction === "right" && deltaX <= 1) {
+          return null;
+     }
+
+     if (direction === "up" || direction === "down") {
+          return absX <= verticalLaneSize ? absY : 1000000 + absX * 1000 + absY;
+     }
+
+     return absY <= horizontalLaneSize ? absX : 1000000 + absY * 1000 + absX;
+}
+
+function moveMenuFocus(direction) {
+     // NOTE: Moves focus spatially to the closest visible control in the requested menu direction
+     const focusableElements = getMenuFocusableElements();
+
+     if (!focusableElements.length) {
+          return false;
+     }
+
+     const activeElement = focusableElements.includes(document.activeElement) ? document.activeElement : null;
+     const currentElement = activeElement || focusableElements[0];
+     const currentGeometry = getElementGeometry(currentElement);
+     const nextElement = activeElement
+          ? focusableElements.reduce((best, element) => {
+               if (element === activeElement) {
+                    return best;
+               }
+
+               const score = getMenuFocusCandidateScore(currentGeometry, getElementGeometry(element), direction);
+
+               if (score === null || (best && score >= best.score)) {
+                    return best;
+               }
+
+               return {
+                    element,
+                    score
+               };
+          }, null)?.element
+          : currentElement;
+
+     if (!nextElement) {
+          return false;
+     }
+
+     nextElement.focus();
+     nextElement.scrollIntoView({
+          block: "nearest",
+          inline: "nearest"
+     });
+
+     return true;
+}
+
+function scrollActiveMenuPanel(direction, distance = 64) {
+     // NOTE: Scrolls the active menu panel when spatial focus cannot move farther vertically
+     const activePanel = getActiveSettingsPanel();
+
+     if (!activePanel) {
+          return false;
+     }
+
+     activePanel.scrollBy({
+          top: direction === "down" ? distance : -distance,
+          behavior: "smooth"
+     });
+
+     return true;
+}
+
+function handleMainMenuArrowKey(event) {
+     // NOTE: Uses arrow keys to move through visible controls in the open menu
+     if (
+          activeAction ||
+          !plannerSettings.classList.contains("is-open") ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTypingFieldShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          moveMenuFocus("left");
+     } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          moveMenuFocus("right");
+     } else if (event.key === "ArrowUp") {
+          event.preventDefault();
+          if (!moveMenuFocus("up")) {
+               scrollActiveMenuPanel("up");
+          }
+     } else if (event.key === "ArrowDown") {
+          event.preventDefault();
+          if (!moveMenuFocus("down")) {
+               scrollActiveMenuPanel("down");
+          }
+     } else if (event.key === "PageUp" || event.key === "PageDown") {
+          const activePanel = getActiveSettingsPanel();
+
+          if (!activePanel) {
+               return;
+          }
+
+          event.preventDefault();
+          activePanel.scrollBy({
+               top: event.key === "PageDown" ? activePanel.clientHeight * 0.8 : activePanel.clientHeight * -0.8,
+               behavior: "smooth"
+          });
+     }
+}
+
+function handleMainMenuWasdKey(event) {
+     // NOTE: Uses WASD to move through visible controls in the open menu
+     if (
+          event.defaultPrevented ||
+          activeAction ||
+          !plannerSettings.classList.contains("is-open") ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTypingFieldShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     const key = event.key.toLowerCase();
+
+     if (key === "a") {
+          event.preventDefault();
+          moveMenuFocus("left");
+     } else if (key === "d") {
+          event.preventDefault();
+          moveMenuFocus("right");
+     } else if (key === "w") {
+          event.preventDefault();
+          if (!moveMenuFocus("up")) {
+               scrollActiveMenuPanel("up");
+          }
+     } else if (key === "s") {
+          event.preventDefault();
+          if (!moveMenuFocus("down")) {
+               scrollActiveMenuPanel("down");
+          }
+     }
+}
+
+function handleViewZoomKey(event) {
+     // NOTE: Handles one-key zoom in and zoom out controls when the user is not typing or moving an object
+     if (
+          event.defaultPrevented ||
+          activeAction ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTextInputShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     const key = event.key.toLowerCase();
+
+     if (key === "z") {
+          event.preventDefault();
+          changeViewZoom("in");
+     } else if (key === "x") {
+          event.preventDefault();
+          changeViewZoom("out");
+     }
+}
+
+function handlePageFocusNavigationKey(event) {
+     // NOTE: Moves the page focus target with WASD when the user is viewing the planner
+     if (
+          event.defaultPrevented ||
+          activeAction ||
+          plannerSettings.classList.contains("is-open") ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTextInputShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     const key = event.key.toLowerCase();
+     const directions = {
+          a: "previous",
+          d: "next",
+          w: "up",
+          s: "down"
+     };
+     const direction = directions[key];
+
+     if (!direction) {
+          return;
+     }
+
+     event.preventDefault();
+     movePageSnap(direction);
+}
+
+function toggleGuidesFromKeyboard(event) {
+     // NOTE: Toggles every page guide checkbox on or off as one keyboard command
+     if (
+          event.defaultPrevented ||
+          activeAction ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTextInputShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (event.key.toLowerCase() !== "g") {
+          return;
+     }
+
+     event.preventDefault();
+     const hasActiveGuide = guideInputs.some((input) => input.checked);
+     const shouldShowAllGuides = !hasActiveGuide;
+
+     guideInputs.forEach((input) => {
+          input.checked = shouldShowAllGuides;
+     });
+
+     changePlannerSetting();
+}
+
+function getKeyHintEntries() {
+     // NOTE: Chooses the visible keyboard hint set for the current planner state
+     if (activeAction?.type === "keyboard-source") {
+          return [
+               ["Arrows", "Move widget"],
+               ["E / Enter", "Place"],
+               ["Q / Esc", "Cancel"]
+          ];
+     }
+
+     if (document.querySelector("[contenteditable='true']")) {
+          return [
+               ["Type", "Enter text"],
+               ["Q / Esc", "Finish editing"]
+          ];
+     }
+
+     if (plannerSettings.classList.contains("is-open")) {
+          return [
+               ["[ / ]", "Tabs"],
+               ["WASD", "Move selection"],
+               ["Arrows", "Move selection"],
+               ["Enter", "Select"],
+               ["Q / Esc", "Close"]
+          ];
+     }
+
+     if (selectedItems.size === 1 && selectedItem) {
+          return [
+               ["E / Enter", "Edit text"],
+               ["O", "Settings"],
+               ["P", "Pick up"],
+               ["Delete", "Delete"],
+               ["Q / Esc", "Deselect"]
+          ];
+     }
+
+     return [
+          ["E / Enter", "Open menu"],
+          ["[ / ]", "Turn page"],
+          ["W A S D", "Move focus"],
+          ["Z / X", "Zoom"],
+          ["G", "Guides"]
+     ];
+}
+
+function renderKeyHints() {
+     // NOTE: Renders the upper-left keyboard shortcut popup for the current app state
+     if (!keyHintPanel) {
+          return;
+     }
+
+     keyHintPanel.replaceChildren();
+     getKeyHintEntries().forEach(([key, action]) => {
+          const row = document.createElement("div");
+          const keyElement = document.createElement("kbd");
+          const actionElement = document.createElement("span");
+
+          row.className = "key-hint-row";
+          keyElement.className = "key-hint-key";
+          keyElement.textContent = key;
+          actionElement.className = "key-hint-action";
+          actionElement.textContent = action;
+          row.append(keyElement, actionElement);
+          keyHintPanel.append(row);
+     });
 }
 
 function getItemForMenuKeyboardToggle(target) {
@@ -982,6 +1790,7 @@ window.prettyPlanner = {
 window.perfectPlanner = window.prettyPlanner;
 
 syncAllSettingChoiceInputs();
+KeyboardControls.renderControlsPanel(keyboardControlsPanel);
 initializeCustomSelects();
 initializePalettePreview();
 updateSettingsPanelSteps();
@@ -994,6 +1803,7 @@ if (isSinglePageViewport) {
      viewFocusIndex = 0;
 }
 applyViewControls();
+renderKeyHints();
 syncSidebarSnap();
 paperSelect.addEventListener("change", () => {
      syncSettingChoiceInputs("paper");
@@ -1153,8 +1963,21 @@ document.addEventListener("click", (event) => {
 document.addEventListener("pointerdown", closeHexPopoverFromOutsidePointer, true);
 document.addEventListener("keydown", (event) => {
      handleClipboardShortcut(event);
+     handleTextEditFinishKey(event);
+     blockSpacebarShortcut(event);
+     handleKeyboardPlacementKey(event);
+     handleMainMenuArrowKey(event);
+     handleMainMenuWasdKey(event);
      handlePageTurnKey(event);
-     if (event.key === "Escape") {
+     handleMenuEnterKey(event);
+     handleSelectedTextEditKey(event);
+     handleNumberedMenuTabKey(event);
+     handleMainMenuToggleKey(event);
+     handleCancelKey(event);
+     handleViewZoomKey(event);
+     handlePageFocusNavigationKey(event);
+     toggleGuidesFromKeyboard(event);
+     if (!event.defaultPrevented && event.key === "Escape") {
           const didToggleMenu = handleMenuToggleKey(event);
 
           closeCustomSelects();
