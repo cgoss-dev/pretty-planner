@@ -488,7 +488,7 @@ window.KeyboardControls = (() => {
                title: "Widget Placement",
                controls: [
                     { key: "Enter / E", action: "Pick up focused widget" },
-                    { key: "Arrow keys", action: "Move one grid cell" },
+                    { key: "WASD / Arrow keys", action: "Move one grid cell" },
                     { key: "Enter / E", action: "Place widget" },
                     { key: "Q / Esc", action: "Cancel placement" }
                ]

@@ -1043,7 +1043,7 @@ function cancelKeyboardPlacement() {
 }
 
 function handleKeyboardPlacementKey(event) {
-     // NOTE: Handles arrow movement, E/Enter placement, and Q/Escape cancel while placing a widget
+     // NOTE: Handles WASD/arrow movement, E/Enter placement, and Q/Escape cancel while placing a widget
      if (activeAction?.type !== "keyboard-source" || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
           return;
      }
@@ -1052,9 +1052,13 @@ function handleKeyboardPlacementKey(event) {
           ArrowLeft: "left",
           ArrowRight: "right",
           ArrowUp: "up",
-          ArrowDown: "down"
+          ArrowDown: "down",
+          a: "left",
+          d: "right",
+          w: "up",
+          s: "down"
      };
-     const direction = directions[event.key];
+     const direction = directions[event.key] || directions[event.key.toLowerCase()];
 
      if (direction) {
           event.preventDefault();
@@ -1536,7 +1540,7 @@ function getKeyHintEntries() {
      // NOTE: Chooses the visible keyboard hint set for the current planner state
      if (activeAction?.type === "keyboard-source") {
           return [
-               ["Arrows", "Move widget"],
+               ["WASD / Arrows", "Move widget"],
                ["E / Enter", "Place"],
                ["Q / Esc", "Cancel"]
           ];
