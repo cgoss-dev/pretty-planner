@@ -165,6 +165,9 @@ function serializePlannerTemplate() {
                color: plannerConfig.paperColorKey,
                colorLabel: plannerConfig.paperColor.label,
                colorValue: plannerConfig.paperColor.color,
+               accentColor: plannerConfig.accentColorKey,
+               accentColorLabel: plannerConfig.accentColor.label,
+               accentColorValue: plannerConfig.accentColor.color,
                deskColor: plannerConfig.deskColorKey,
                deskColorLabel: plannerConfig.deskColor.label,
                deskColorValue: plannerConfig.deskColor.color,
@@ -278,6 +281,8 @@ function serializePlannerSettings() {
           paper: paperSelect?.value || "letter",
           paperColor: paperColorSelect?.value || "Offwhite",
           customPaperColor: paperColors.Custom?.color || "#ffffee",
+          accentColor: accentColorSelect?.value || "Red",
+          customAccentColor: accentColors.Custom?.color || "#ff0000",
           deskColor: deskColorSelect?.value || "wood-brown",
           guides: Object.fromEntries(guideInputs.map((input) => [input.dataset.guide, input.checked])),
           view: {
@@ -300,7 +305,11 @@ function restoreSavedSettings() {
      if (settings.customPaperColor && paperColors.Custom) {
           paperColors.Custom.color = settings.customPaperColor;
      }
+     if (settings.customAccentColor && accentColors.Custom) {
+          accentColors.Custom.color = settings.customAccentColor;
+     }
      setSelectValue(paperColorSelect, settings.paperColor);
+     setSelectValue(accentColorSelect, settings.accentColor);
      setSelectValue(deskColorSelect, settings.deskColor);
      if (settings.guides && typeof settings.guides === "object") {
           guideInputs.forEach((input) => {

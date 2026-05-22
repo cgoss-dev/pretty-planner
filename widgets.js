@@ -2500,16 +2500,21 @@ function selectItems(items) {
 function selectItem(item, shouldAdd = false) {
      if (shouldAdd) {
           setItemSelected(item, !selectedItems.has(item));
+          if (selectedItem && selectedItems.has(selectedItem)) {
+               openItemMenu(selectedItem);
+          }
           return;
      }
 
      if (item.dataset.groupId) {
           selectItems(getPlannerItems().filter((plannerItem) => plannerItem.dataset.groupId === item.dataset.groupId));
           selectedItem = item;
+          openItemMenu(item);
           return;
      }
 
      selectItems([item]);
+     openItemMenu(item);
 }
 
 function clearSelection() {
@@ -3186,7 +3191,7 @@ function makePlannerItem(type = "sticky") {
      textTab.setAttribute("role", "tab");
      widgetTab.className = "item-control-tab";
      widgetTab.type = "button";
-     widgetTab.textContent = "Attributes";
+     widgetTab.textContent = "Options";
      widgetTab.dataset.itemControlTab = "widget";
      widgetTab.setAttribute("role", "tab");
      actionsPanel.className = "item-control-panel";

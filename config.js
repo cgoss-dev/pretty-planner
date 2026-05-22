@@ -237,7 +237,7 @@
                          size: "cover"
                     },
                     "hot-springs-playa": {
-                         label: "Hot Springs Playa",
+                         label: "Playa",
                          color: "#e8d8d5",
                          image: "url('images/desk/desk-hot-springs-playa.jpg')",
                          size: "cover"

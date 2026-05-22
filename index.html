@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee+Shade&family=Dancing+Script:wght@400..700&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-204">
+     <link rel="stylesheet" href="style.css?v=planner-storage-216">
 </head>
 <body>
      <main class="planner-desk">
@@ -23,9 +23,7 @@
 
           <div class="zoom-toast" data-zoom-toast aria-live="polite" aria-atomic="true">100%</div>
           <aside class="key-hint-panel" data-key-hint-panel aria-label="Available keyboard controls" aria-live="polite"></aside>
-          <div class="page-grid-cursor" data-page-grid-cursor aria-hidden="true">
-               <span data-page-grid-cursor-label></span>
-          </div>
+          <div class="page-grid-cursor" data-page-grid-cursor aria-hidden="true"></div>
 
           <form class="planner-settings" aria-label="Planner page settings">
                <div class="settings-tabs" role="tablist" aria-label="Planner setting tabs">
@@ -42,6 +40,21 @@
                     <button class="settings-tab" type="button" role="tab" aria-selected="false" aria-label="Widgets" aria-controls="add-panel" data-settings-tab="add">
                          <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
                          <span class="settings-tab-label">3 Widgets</span>
+                         <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
+                    </button>
+                    <button class="settings-tab settings-tab-object" type="button" role="tab" aria-selected="false" aria-label="Appearance" aria-controls="object-panel" data-settings-tab="object-style" disabled>
+                         <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
+                         <span class="settings-tab-label">4 Appearance</span>
+                         <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
+                    </button>
+                    <button class="settings-tab settings-tab-object" type="button" role="tab" aria-selected="false" aria-label="Text" aria-controls="object-panel" data-settings-tab="object-text" disabled>
+                         <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
+                         <span class="settings-tab-label">5 Text</span>
+                         <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
+                    </button>
+                    <button class="settings-tab settings-tab-object" type="button" role="tab" aria-selected="false" aria-label="Options" aria-controls="object-panel" data-settings-tab="object-widget" disabled>
+                         <span class="settings-tab-step settings-tab-step-prev" data-settings-step="-1" aria-label="Previous tab">⇧</span>
+                         <span class="settings-tab-label">6 Options</span>
                          <span class="settings-tab-step settings-tab-step-next" data-settings-step="1" aria-label="Next tab">⇧</span>
                     </button>
                </div>
@@ -104,7 +117,7 @@
                               <option value="white">White</option>
                               <option value="wood-white">White Wood</option>
                               <option value="wood-brown" selected>Brown Wood</option>
-                              <option value="hot-springs-playa">Hot Springs Playa</option>
+                              <option value="hot-springs-playa">Playa</option>
                               <option value="valencia">Valencia</option>
                          </select>
                          <div class="setting-choice-group" aria-label="Desk">
@@ -134,7 +147,7 @@
                               </label>
                               <label class="setting-choice">
                                    <input type="radio" name="desk-choice" data-setting-choice="desk-color" value="hot-springs-playa">
-                                   <span>Hot Springs Playa</span>
+                                   <span>Playa</span>
                               </label>
                               <label class="setting-choice">
                                    <input type="radio" name="desk-choice" data-setting-choice="desk-color" value="valencia">
@@ -152,6 +165,26 @@
                               <option value="Custom">Custom</option>
                          </select>
                          <div class="palette-swatches" data-palette-preview-swatches></div>
+                    </div>
+
+                    <div class="palette-preview" aria-label="Accent color preview">
+                         <span class="palette-preview-label">Accent Color</span>
+                         <select class="accent-color-select" data-setting="accent-color" aria-label="Accent color">
+                              <option value="Red" selected>Red</option>
+                              <option value="Orange">Orange</option>
+                              <option value="Amber">Amber</option>
+                              <option value="Gold">Gold</option>
+                              <option value="Yellow">Yellow</option>
+                              <option value="Lime">Lime</option>
+                              <option value="Green">Green</option>
+                              <option value="Sky">Sky</option>
+                              <option value="Blue">Blue</option>
+                              <option value="Violet">Violet</option>
+                              <option value="Purple">Purple</option>
+                              <option value="Magenta">Magenta</option>
+                              <option value="Custom">Custom</option>
+                         </select>
+                         <div class="palette-swatches" data-accent-palette-swatches></div>
                     </div>
 
                     <div class="page-panel-actions">
@@ -186,13 +219,13 @@
                     </div>
                </div>
 
-          </form>
-
-          <aside class="object-inspector" aria-label="Selected object inspector" data-object-inspector hidden>
-               <div class="settings-object-shell is-inactive" data-object-controls-shell>
-                    <div class="settings-object-empty" data-object-controls-empty>Select an object</div>
+               <div class="settings-panel object-settings-panel" id="object-panel" role="tabpanel" data-settings-panel="object" hidden>
+                    <div class="settings-object-shell is-inactive" data-object-controls-shell>
+                         <div class="settings-object-empty" data-object-controls-empty>Select an object</div>
+                    </div>
                </div>
-          </aside>
+
+          </form>
 
           <div class="tertiary-matrix-popover" data-tertiary-matrix hidden>
                <div class="tertiary-matrix-title">Color Matrix</div>
@@ -235,10 +268,10 @@
      </main>
 
      <script src="config.js?v=planner-storage-159"></script>
-     <script src="ui.js?v=planner-storage-160"></script>
-     <script src="widgets.js?v=planner-storage-198"></script>
+     <script src="ui.js?v=planner-storage-172"></script>
+     <script src="widgets.js?v=planner-storage-199"></script>
      <script src="storage.js?v=planner-storage-8"></script>
-     <script src="controls.js?v=planner-storage-175"></script>
-     <script src="app.js?v=planner-storage-186"></script>
+     <script src="controls.js?v=planner-storage-177"></script>
+     <script src="app.js?v=planner-storage-194"></script>
 </body>
 </html>

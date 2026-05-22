@@ -11,24 +11,24 @@ const clearPageButton = document.querySelector("[data-clear-page]");
 const clearBookButton = document.querySelector("[data-clear-book]");
 const paperSelect = document.querySelector("[data-setting='paper']");
 const paperColorSelect = document.querySelector("[data-setting='paper-color']");
+const accentColorSelect = document.querySelector("[data-setting='accent-color']");
 const deskColorSelect = document.querySelector("[data-setting='desk-color']");
 const palettePreviewSwatches = document.querySelector("[data-palette-preview-swatches]");
+const accentPaletteSwatches = document.querySelector("[data-accent-palette-swatches]");
 const keyboardControlsPanel = document.querySelector("[data-keyboard-controls]");
 const tertiaryMatrixPopover = document.querySelector("[data-tertiary-matrix]");
 const tertiaryMatrixGrid = document.querySelector("[data-tertiary-matrix-grid]");
-const settingSelects = Array.from(document.querySelectorAll("[data-setting]")).filter((select) => !["paper", "grid", "paper-color", "desk-color"].includes(select.dataset.setting));
+const settingSelects = Array.from(document.querySelectorAll("[data-setting]")).filter((select) => !["paper", "grid", "paper-color", "accent-color", "desk-color"].includes(select.dataset.setting));
 const guideInputs = Array.from(document.querySelectorAll("[data-guide]"));
 const settingsTabs = Array.from(document.querySelectorAll("[data-settings-tab]"));
 const settingsPanels = Array.from(document.querySelectorAll("[data-settings-panel]"));
 const settingsStepButtons = Array.from(document.querySelectorAll("[data-settings-step]"));
-const objectInspector = document.querySelector("[data-object-inspector]");
 const objectControlsShell = document.querySelector("[data-object-controls-shell]");
 const objectControlsEmpty = document.querySelector("[data-object-controls-empty]");
 const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]"));
 const zoomToast = document.querySelector("[data-zoom-toast]");
 const keyHintPanel = document.querySelector("[data-key-hint-panel]");
 const pageGridCursor = document.querySelector("[data-page-grid-cursor]");
-const pageGridCursorLabel = document.querySelector("[data-page-grid-cursor-label]");
 const pageCornerFoldOverlay = document.createElement("div");
 const pageCornerFoldOverlayNumber = document.createElement("span");
 const settingChoiceInputs = Array.from(document.querySelectorAll("[data-setting-choice]"));
@@ -106,6 +106,30 @@ const paperColors = {
           color: "#ffffee"
      }
 };
+const accentColorPalette = [
+     { key: "Red", label: "Red", display: "F00", color: "var(--tertiary-01)", ink: "var(--color-white)" },
+     { key: "Orange", label: "Orange", display: "F40", color: "var(--tertiary-02)", ink: "var(--color-white)" },
+     { key: "Amber", label: "Amber", display: "F80", color: "var(--tertiary-03)" },
+     { key: "Gold", label: "Gold", display: "FC0", color: "var(--tertiary-04)" },
+     { key: "Yellow", label: "Yellow", display: "FF0", color: "var(--tertiary-05)" },
+     { key: "Lime", label: "Lime", display: "8F0", color: "var(--tertiary-06)" },
+     { key: "Green", label: "Green", display: "0F0", color: "var(--tertiary-07)" },
+     { key: "Sky", label: "Sky", display: "08F", color: "var(--tertiary-08)", ink: "var(--color-white)" },
+     { key: "Blue", label: "Blue", display: "00F", color: "var(--tertiary-09)", ink: "var(--color-white)" },
+     { key: "Violet", label: "Violet", display: "40F", color: "var(--tertiary-10)", ink: "var(--color-white)" },
+     { key: "Purple", label: "Purple", display: "80F", color: "var(--tertiary-11)", ink: "var(--color-white)" },
+     { key: "Magenta", label: "Magenta", display: "F0F", color: "var(--tertiary-12)" }
+];
+const accentColors = {
+     ...Object.fromEntries(accentColorPalette.map((color) => [color.key, color])),
+     Custom: {
+          key: "Custom",
+          label: "Custom",
+          display: "Hex",
+          color: "#ff0000",
+          ink: "var(--color-white)"
+     }
+};
 const deskColors = colorControls.deskColors;
 const textLineHeightCellOptions = textControls.lineHeightCellOptions;
 
@@ -124,6 +148,9 @@ let keyboardCursor = {
      pageSide: "left",
      isInitialized: false
 };
+let keyboardCursorIdleTimer = 0;
+let isKeyboardCursorActive = false;
+let hasUsedKeyboardCursor = false;
 
 pageCornerFoldOverlay.className = "page-corner-fold-overlay";
 pageCornerFoldOverlayNumber.className = "page-corner-fold-overlay-number";
@@ -149,6 +176,7 @@ function buildPlannerConfig() {
      const paperKey = paperSelect ? paperSelect.value : "letter";
      const gridKey = getGridKeyForPaper(paperKey);
      const paperColorKey = paperColorSelect ? paperColorSelect.value : "Offwhite";
+     const accentColorKey = accentColorSelect ? accentColorSelect.value : "Red";
      const deskColorKey = deskColorSelect ? deskColorSelect.value : "pink";
      const guides = {
           halves: true,
@@ -182,10 +210,12 @@ function buildPlannerConfig() {
           paperKey,
           gridKey,
           paperColorKey,
+          accentColorKey,
           deskColorKey,
           guides,
           paper,
           paperColor: paperColors[paperColorKey] || paperColors.Offwhite,
+          accentColor: accentColors[accentColorKey] || accentColors.Red,
           deskColor: deskColors[deskColorKey],
           grid,
           pageWidth,
@@ -821,7 +851,7 @@ function handlePageTurnKey(event) {
 }
 
 function handleMainMenuToggleKey(event) {
-     // NOTE: Opens the main planner settings menu with E or Enter when the menu is closed
+     // NOTE: Opens or closes the main planner settings menu with E or Enter
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -841,7 +871,9 @@ function handleMainMenuToggleKey(event) {
      }
 
      event.preventDefault();
-     if (!plannerSettings.classList.contains("is-open")) {
+     if (plannerSettings.classList.contains("is-open")) {
+          closeSidebar();
+     } else {
           openSidebar();
      }
 }
@@ -1021,9 +1053,37 @@ function shouldShowKeyboardCursor() {
      // NOTE: Shows the cursor only when keyboard page actions are relevant
      return Boolean(
           pageGridCursor &&
+          hasUsedKeyboardCursor &&
           !plannerSettings.classList.contains("is-open") &&
           !document.querySelector("[contenteditable='true']")
      );
+}
+
+function wakeKeyboardCursor() {
+     // NOTE: Reveals the keyboard cursor after directional-key use, then dims it after three idle seconds
+     hasUsedKeyboardCursor = true;
+     isKeyboardCursorActive = true;
+     window.clearTimeout(keyboardCursorIdleTimer);
+     keyboardCursorIdleTimer = window.setTimeout(() => {
+          hasUsedKeyboardCursor = false;
+          isKeyboardCursorActive = false;
+          updateKeyboardCursor();
+          renderKeyHints();
+     }, 3000);
+     updateKeyboardCursor();
+}
+
+function hideKeyboardCursorForPointer() {
+     // NOTE: Leaves keyboard navigation mode when the user goes back to pointer navigation
+     if (!hasUsedKeyboardCursor) {
+          return;
+     }
+
+     hasUsedKeyboardCursor = false;
+     isKeyboardCursorActive = false;
+     window.clearTimeout(keyboardCursorIdleTimer);
+     updateKeyboardCursor();
+     renderKeyHints();
 }
 
 function scheduleKeyboardCursorUpdate() {
@@ -1042,7 +1102,7 @@ function updateKeyboardCursor() {
      const page = getKeyboardCursorPage();
 
      if (!page || !keyboardCursor.isInitialized || !shouldShowKeyboardCursor()) {
-          pageGridCursor.classList.remove("is-visible");
+          pageGridCursor.classList.remove("is-visible", "is-idle");
           return;
      }
 
@@ -1056,9 +1116,7 @@ function updateKeyboardCursor() {
      pageGridCursor.style.width = `${anchor.grid.x * viewZoom}px`;
      pageGridCursor.style.height = `${anchor.grid.y * viewZoom}px`;
      pageGridCursor.classList.add("is-visible");
-     if (pageGridCursorLabel) {
-          pageGridCursorLabel.textContent = getKeyboardCursorLabel();
-     }
+     pageGridCursor.classList.toggle("is-idle", !isKeyboardCursorActive);
 }
 
 function moveKeyboardCursor(direction) {
@@ -1082,6 +1140,7 @@ function moveKeyboardCursor(direction) {
      }
 
      setKeyboardCursor(page, keyboardCursor.column + delta.column, keyboardCursor.row + delta.row);
+     wakeKeyboardCursor();
      renderKeyHints();
 }
 
@@ -1308,6 +1367,7 @@ function moveKeyboardPlacementItem(direction) {
           y: clamp(box.y + delta.y, 0, Math.max(0, pageHeight - box.height))
      });
      setKeyboardCursorFromBox(item, page);
+     wakeKeyboardCursor();
      renderKeyHints();
 }
 
@@ -1371,6 +1431,191 @@ function handleKeyboardPlacementKey(event) {
      if (event.key === "Escape" || event.key.toLowerCase() === "q") {
           event.preventDefault();
           cancelKeyboardPlacement();
+     }
+}
+
+function getKeyboardMovableItems() {
+     // NOTE: Gets selected page items that can be moved as one keyboard pickup
+     return Array.from(selectedItems).filter((item) => getPlannerItems().includes(item) && getItemPage(item));
+}
+
+function startKeyboardMove() {
+     // NOTE: Picks up the current selection for one-grid-cell keyboard movement
+     if (activeAction || !selectedItems.size || !selectedItem) {
+          return false;
+     }
+
+     const movingItems = getKeyboardMovableItems();
+
+     if (!movingItems.length || !movingItems.includes(selectedItem)) {
+          return false;
+     }
+
+     closeItemMenus();
+     setKeyboardCursorFromBox(selectedItem);
+     activeAction = {
+          type: "keyboard-move",
+          item: selectedItem,
+          items: movingItems.map((item) => ({
+               item,
+               page: getItemPage(item),
+               box: getItemBox(item)
+          }))
+     };
+     activeAction.items.forEach(({ item }) => item.classList.add("is-dragging"));
+     markSnapReady(selectedItem, true);
+     renderKeyHints();
+     return true;
+}
+
+function getKeyboardMoveDelta(direction) {
+     // NOTE: Calculates a clamped one-cell delta for the keyboard-held selection
+     const primary = activeAction?.items?.find(({ item }) => item === activeAction.item) || activeAction?.items?.[0];
+
+     if (!primary?.page) {
+          return null;
+     }
+
+     const grid = getGridSize(primary.page);
+     const rawDelta = {
+          left: { x: -grid.x, y: 0 },
+          right: { x: grid.x, y: 0 },
+          up: { x: 0, y: -grid.y },
+          down: { x: 0, y: grid.y }
+     }[direction];
+
+     if (!rawDelta) {
+          return null;
+     }
+
+     return activeAction.items.reduce((delta, { page, box }) => {
+          if (!page) {
+               return delta;
+          }
+
+          const pageRect = page.getBoundingClientRect();
+          const viewZoom = getViewZoom();
+          const pageWidth = pageRect.width / viewZoom;
+          const pageHeight = pageRect.height / viewZoom;
+
+          return {
+               x: clamp(delta.x, -box.x, Math.max(0, pageWidth - box.width) - box.x),
+               y: clamp(delta.y, -box.y, Math.max(0, pageHeight - box.height) - box.y)
+          };
+     }, rawDelta);
+}
+
+function moveKeyboardMoveItems(direction) {
+     // NOTE: Moves every keyboard-held selected item by the same clamped grid delta
+     if (activeAction?.type !== "keyboard-move") {
+          return;
+     }
+
+     const delta = getKeyboardMoveDelta(direction);
+
+     if (!delta) {
+          return;
+     }
+
+     activeAction.items.forEach(({ item }) => {
+          const box = getItemBox(item);
+
+          setItemBox(item, {
+               ...box,
+               x: box.x + delta.x,
+               y: box.y + delta.y
+          });
+     });
+     setKeyboardCursorFromBox(activeAction.item);
+     wakeKeyboardCursor();
+     renderKeyHints();
+}
+
+function finishKeyboardMove() {
+     // NOTE: Places the keyboard-held selection and saves the planner state
+     if (activeAction?.type !== "keyboard-move") {
+          return;
+     }
+
+     const item = activeAction.item;
+
+     activeAction.items.forEach(({ item: movedItem }) => movedItem.classList.remove("is-dragging"));
+     markSnapReady(item, false);
+     selectItem(item);
+     notifyTemplateChanged();
+     activeAction = null;
+     clearDragOver();
+     setKeyboardCursorFromBox(item);
+     renderKeyHints();
+}
+
+function cancelKeyboardMove() {
+     // NOTE: Restores the original positions when keyboard pickup is cancelled
+     if (activeAction?.type !== "keyboard-move") {
+          return;
+     }
+
+     const item = activeAction.item;
+
+     activeAction.items.forEach(({ item: movedItem, box }) => {
+          setItemBox(movedItem, box);
+          movedItem.classList.remove("is-dragging");
+     });
+     markSnapReady(item, false);
+     selectItem(item);
+     activeAction = null;
+     clearDragOver();
+     setKeyboardCursorFromBox(item);
+     renderKeyHints();
+}
+
+function handleKeyboardMoveKey(event) {
+     // NOTE: Handles WASD/arrow movement, P/E/Enter place, and Q/Escape cancel while moving selected items
+     if (activeAction?.type !== "keyboard-move" || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+          return;
+     }
+
+     const direction = getKeyboardDirection(event);
+
+     if (direction) {
+          event.preventDefault();
+          moveKeyboardMoveItems(direction);
+          return;
+     }
+
+     if (event.key === "Enter" || event.key.toLowerCase() === "e" || event.key.toLowerCase() === "p") {
+          event.preventDefault();
+          finishKeyboardMove();
+          return;
+     }
+
+     if (event.key === "Escape" || event.key.toLowerCase() === "q") {
+          event.preventDefault();
+          cancelKeyboardMove();
+     }
+}
+
+function handleStartKeyboardMoveKey(event) {
+     // NOTE: Starts keyboard pickup mode for selected page items with P
+     if (
+          event.defaultPrevented ||
+          activeAction ||
+          plannerSettings.classList.contains("is-open") ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTypingFieldShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (event.key.toLowerCase() !== "p") {
+          return;
+     }
+
+     if (startKeyboardMove()) {
+          event.preventDefault();
      }
 }
 
@@ -1439,6 +1684,7 @@ function moveKeyboardResizeItem(direction) {
 
      setItemBox(item, getResizedBox(item, page, pointer.clientX, pointer.clientY, mode));
      setKeyboardCursorFromBox(item, page);
+     wakeKeyboardCursor();
      renderKeyHints();
 }
 
@@ -1523,6 +1769,43 @@ function handleStartKeyboardResizeKey(event) {
      startKeyboardResize();
 }
 
+function handleObjectSettingsKey(event) {
+     // NOTE: Opens or closes the selected object's main-menu settings tabs with O
+     if (
+          event.defaultPrevented ||
+          activeAction ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTypingFieldShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (event.key.toLowerCase() !== "o") {
+          return;
+     }
+
+     const isMenuOpen = plannerSettings.classList.contains("is-open");
+     const isObjectTabActive = isObjectSettingsTab(getActiveSettingsTabName());
+
+     if (isMenuOpen && isObjectTabActive) {
+          event.preventDefault();
+          closeSidebar();
+          return;
+     }
+
+     if (!selectedItem || !selectedItems.size) {
+          return;
+     }
+
+     event.preventDefault();
+     openItemMenu(selectedItem);
+     selectSettingsTab("object-style");
+     openSidebar();
+}
+
 function getSelectedTextEditItem() {
      // NOTE: Returns the single selected planner item that can enter text editing
      if (selectedItems.size !== 1 || !selectedItem || !getPlannerItems().includes(selectedItem)) {
@@ -1581,11 +1864,10 @@ function handleSelectedTextEditKey(event) {
 }
 
 function handleNumberedMenuTabKey(event) {
-     // NOTE: Switches numbered menu tabs while the main menu is already open
+     // NOTE: Opens or switches to an available numbered menu tab
      if (
           event.defaultPrevented ||
           activeAction ||
-          !plannerSettings.classList.contains("is-open") ||
           event.altKey ||
           event.ctrlKey ||
           event.metaKey ||
@@ -1601,12 +1883,13 @@ function handleNumberedMenuTabKey(event) {
 
      const tab = settingsTabs[Number(event.key) - 1];
 
-     if (!tab) {
+     if (!tab || tab.disabled) {
           return;
      }
 
      event.preventDefault();
      selectSettingsTab(tab.dataset.settingsTab);
+     openSidebar();
 }
 
 function handleCancelKey(event) {
@@ -1796,6 +2079,10 @@ function moveMenuFocus(direction) {
      if (nextElement.matches(".setting-choice") && !nextElement.hasAttribute("tabindex")) {
           nextElement.tabIndex = -1;
      }
+     plannerSettings.querySelectorAll(".is-menu-keyboard-focus").forEach((element) => {
+          element.classList.remove("is-menu-keyboard-focus");
+     });
+     nextElement.classList.add("is-menu-keyboard-focus");
      nextElement.focus();
      nextElement.scrollIntoView({
           block: "nearest",
@@ -2078,6 +2365,15 @@ function getKeyHintEntries() {
           ];
      }
 
+     if (activeAction?.type === "keyboard-move") {
+          return [
+               ["WASD / Arrows", "Move selection"],
+               ["P / E / Enter", "Place"],
+               ["V", "Guides"],
+               ["Q / Esc", "Cancel"]
+          ];
+     }
+
      if (activeAction?.type === "keyboard-resize") {
           return [
                ["WASD / Arrows", "Resize"],
@@ -2134,6 +2430,14 @@ function renderKeyHints() {
      }
 
      keyHintPanel.replaceChildren();
+     if (hasUsedKeyboardCursor && !plannerSettings.classList.contains("is-open")) {
+          const coordinateRow = document.createElement("div");
+
+          coordinateRow.className = "key-hint-coordinates";
+          coordinateRow.classList.toggle("is-idle", !isKeyboardCursorActive);
+          coordinateRow.textContent = getKeyboardCursorLabel();
+          keyHintPanel.append(coordinateRow);
+     }
      getKeyHintEntries().forEach(([key, action]) => {
           const row = document.createElement("div");
           const keyElement = document.createElement("kbd");
@@ -2281,6 +2585,7 @@ function applyPlannerConfig() {
      setRootNumber("--print-page-height", `${pageHeightInches}in`);
      setRootNumber("--print-spread-width", `${pageWidthInches * 2}in`);
      setRootNumber("--paper", plannerConfig.paperColor.color);
+     setRootNumber("--color-rainbow", plannerConfig.accentColor.color);
      setRootNumber("--desk", plannerConfig.deskColor.color);
      setRootNumber("--desk-image", plannerConfig.deskColor.image || "none");
      setRootNumber("--desk-size", plannerConfig.deskColor.size || "auto");
@@ -2323,6 +2628,7 @@ function applyPlannerConfig() {
 
      document.documentElement.dataset.paper = plannerConfig.paperKey;
      document.documentElement.dataset.paperColor = plannerConfig.paperColorKey;
+     document.documentElement.dataset.accentColor = plannerConfig.accentColorKey;
      document.documentElement.dataset.deskColor = plannerConfig.deskColorKey;
      document.documentElement.dataset.grid = plannerConfig.gridKey;
      document.documentElement.dataset.guideHalves = String(plannerConfig.guides.halves);
@@ -2345,6 +2651,7 @@ initializeCustomSelects();
 initializePalettePreview();
 updateSettingsPanelSteps();
 updateObjectControlsState();
+updateSidebarPanelFocusState();
 syncResponsiveViewportClass();
 applyPlannerConfig();
 restorePlannerBook(plannerConfig.paperKey);
@@ -2362,6 +2669,10 @@ paperSelect.addEventListener("change", () => {
 paperColorSelect.addEventListener("change", () => {
      changePlannerSetting();
      updatePalettePreview();
+});
+accentColorSelect?.addEventListener("change", () => {
+     changePlannerSetting();
+     updateAccentPalettePreview();
 });
 deskColorSelect.addEventListener("change", () => {
      syncSettingChoiceInputs("desk-color");
@@ -2473,6 +2784,7 @@ sourceItems.forEach((sourceItem) => {
      sourceItem.addEventListener("pointerdown", startSourceMove, true);
      sourceItem.addEventListener("mousedown", startSourceMove, true);
 });
+document.addEventListener("pointerdown", hideKeyboardCursorForPointer, true);
 plannerDesk.addEventListener("pointerdown", startMarquee);
 plannerDesk.addEventListener("pointermove", updateDeskResizeCursor);
 plannerDesk.addEventListener("pointerleave", () => {
@@ -2516,6 +2828,7 @@ document.addEventListener("keydown", (event) => {
      handleTextEditFinishKey(event);
      blockSpacebarShortcut(event);
      handleKeyboardPlacementKey(event);
+     handleKeyboardMoveKey(event);
      handleKeyboardResizeKey(event);
      handleMainMenuArrowKey(event);
      handleMainMenuWasdKey(event);
@@ -2523,6 +2836,8 @@ document.addEventListener("keydown", (event) => {
      handleMenuEnterKey(event);
      handleKeyboardCursorActivateKey(event);
      handleSelectedTextEditKey(event);
+     handleObjectSettingsKey(event);
+     handleStartKeyboardMoveKey(event);
      handleStartKeyboardResizeKey(event);
      handleNumberedMenuTabKey(event);
      handleMainMenuToggleKey(event);

@@ -36,6 +36,15 @@ function getPaperPaletteColors() {
      }));
 }
 
+function getAccentPaletteColors() {
+     return accentColorPalette.map((accentColor) => ({
+          key: accentColor.key,
+          label: accentColor.display || accentColor.label,
+          value: accentColor.color,
+          ink: accentColor.ink || "var(--color-gray1)"
+     }));
+}
+
 function getClearPaletteColor() {
      return {
           label: "CLR",
@@ -62,6 +71,36 @@ function hexToAlphaColor(hexValue, alphaValue) {
      const alphaHex = Math.round(alpha / 100 * 255).toString(16).padStart(2, "0");
 
      return `${hexValue}${alphaHex}`;
+}
+
+function clampHexChannel(value, fallback = 0) {
+     const numberValue = Number(value);
+
+     if (!Number.isFinite(numberValue)) {
+          return fallback;
+     }
+
+     return Math.max(0, Math.min(255, Math.round(numberValue)));
+}
+
+function clampAlphaChannel(value, fallback = 100) {
+     const numberValue = Number(value);
+
+     if (!Number.isFinite(numberValue)) {
+          return fallback;
+     }
+
+     return Math.max(0, Math.min(100, Math.round(numberValue)));
+}
+
+function getRgbaColor(red, green, blue, alpha) {
+     const alphaDecimal = clampAlphaChannel(alpha) / 100;
+
+     if (alphaDecimal >= 1) {
+          return `rgb(${clampHexChannel(red)} ${clampHexChannel(green)} ${clampHexChannel(blue)})`;
+     }
+
+     return `rgb(${clampHexChannel(red)} ${clampHexChannel(green)} ${clampHexChannel(blue)} / ${alphaDecimal})`;
 }
 
 function appendColorSwatches(swatches, colors, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
@@ -162,6 +201,17 @@ function renderPaletteControl(swatches, selectedColor = "", onSelect = null, swa
      appendPaletteUtilityControls(swatches, onSelect, swatchClass);
 }
 
+function renderAccentPaletteControl(swatches, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
+     if (!swatches) {
+          return;
+     }
+
+     swatches.replaceChildren();
+     appendColorSwatches(swatches, getAccentPaletteColors(), selectedColor, onSelect, swatchClass);
+     appendColorSwatches(swatches, getGrayPaletteColors(), selectedColor, onSelect, swatchClass);
+     appendPaletteUtilityControls(swatches, onSelect, swatchClass);
+}
+
 
 function getHexPopover() {
      let popover = document.querySelector("[data-hex-popover]");
@@ -175,34 +225,179 @@ function getHexPopover() {
      popover.dataset.hexPopover = "";
      popover.hidden = true;
      popover.innerHTML = `
-          <label>
-               <span>HEX</span>
-               <input type="color" value="#ffffee" data-hex-popover-color>
+          <div class="hex-popover-swatch-cell">
+               <span class="hex-popover-preview" data-hex-popover-preview aria-hidden="true"></span>
+          </div>
+          <label data-hex-popover-cell tabindex="0">
+               <span>R</span>
+               <input type="text" inputmode="numeric" maxlength="3" value="255" aria-label="Red" data-hex-popover-channel="red" tabindex="-1" readonly>
           </label>
-          <label>
-               <span>Alpha</span>
-               <select data-hex-popover-alpha>
-                    <option value="100" selected>100</option>
-                    <option value="75">75</option>
-                    <option value="50">50</option>
-                    <option value="25">25</option>
-                    <option value="0">0</option>
-               </select>
+          <label data-hex-popover-cell tabindex="0">
+               <span>G</span>
+               <input type="text" inputmode="numeric" maxlength="3" value="255" aria-label="Green" data-hex-popover-channel="green" tabindex="-1" readonly>
+          </label>
+          <label data-hex-popover-cell tabindex="0">
+               <span>B</span>
+               <input type="text" inputmode="numeric" maxlength="3" value="238" aria-label="Blue" data-hex-popover-channel="blue" tabindex="-1" readonly>
+          </label>
+          <label data-hex-popover-cell tabindex="0">
+               <span>A</span>
+               <input type="text" inputmode="numeric" maxlength="3" value="100" aria-label="Alpha" data-hex-popover-channel="alpha" tabindex="-1" readonly>
           </label>
      `;
      document.body.append(popover);
 
-     const colorInput = popover.querySelector("[data-hex-popover-color]");
-     const alphaSelect = popover.querySelector("[data-hex-popover-alpha]");
+     const cells = Array.from(popover.querySelectorAll("[data-hex-popover-cell]"));
+     const redInput = popover.querySelector("[data-hex-popover-channel='red']");
+     const greenInput = popover.querySelector("[data-hex-popover-channel='green']");
+     const blueInput = popover.querySelector("[data-hex-popover-channel='blue']");
+     const alphaInput = popover.querySelector("[data-hex-popover-channel='alpha']");
+     const preview = popover.querySelector("[data-hex-popover-preview]");
+     const inputs = [redInput, greenInput, blueInput, alphaInput];
      const applyHex = () => {
+          redInput.value = String(clampHexChannel(redInput.value));
+          greenInput.value = String(clampHexChannel(greenInput.value));
+          blueInput.value = String(clampHexChannel(blueInput.value));
+          alphaInput.value = String(clampAlphaChannel(alphaInput.value));
+          const nextColor = getRgbaColor(redInput.value, greenInput.value, blueInput.value, alphaInput.value);
+
+          if (preview) {
+               preview.style.setProperty("--swatch", nextColor);
+          }
           if (typeof activeHexTarget === "function") {
-               activeHexTarget(hexToAlphaColor(colorInput.value, alphaSelect.value));
+               activeHexTarget(nextColor);
           }
      };
+     const setSelectedCell = (index, shouldFocus = true) => {
+          const nextIndex = Math.max(0, Math.min(cells.length - 1, index));
 
-     colorInput.addEventListener("input", applyHex);
-     colorInput.addEventListener("change", applyHex);
-     alphaSelect.addEventListener("change", applyHex);
+          popover.dataset.activeHexCell = String(nextIndex);
+          cells.forEach((cell, cellIndex) => {
+               cell.classList.toggle("is-hex-cell-active", cellIndex === nextIndex);
+               cell.querySelector("input")?.classList.toggle("is-hex-cell-active", cellIndex === nextIndex);
+          });
+          if (shouldFocus) {
+               cells[nextIndex].focus();
+          }
+     };
+     const exitActiveInput = (input) => {
+          const cell = input.closest("[data-hex-popover-cell]");
+
+          input.readOnly = true;
+          input.tabIndex = -1;
+          applyHex();
+          if (cell) {
+               setSelectedCell(cells.indexOf(cell));
+          }
+     };
+     const enterSelectedInput = () => {
+          const activeCell = cells[Number(popover.dataset.activeHexCell) || 0];
+          const input = activeCell?.querySelector("input");
+
+          if (!input) {
+               return false;
+          }
+
+          input.readOnly = false;
+          input.tabIndex = 0;
+          input.focus();
+          input.select();
+          return true;
+     };
+     const getActiveInput = () => {
+          const activeCell = cells[Number(popover.dataset.activeHexCell) || 0];
+
+          return activeCell?.querySelector("input") || null;
+     };
+     const stepInputValue = (input, direction) => {
+          if (!input) {
+               return;
+          }
+
+          const maxValue = input === alphaInput ? 100 : 255;
+          const currentValue = input === alphaInput ? clampAlphaChannel(input.value) : clampHexChannel(input.value);
+          const snappedValue = direction > 0
+               ? Math.ceil(currentValue / 5) * 5
+               : Math.floor(currentValue / 5) * 5;
+          const nextValue = snappedValue === currentValue ? currentValue + (direction * 5) : snappedValue;
+
+          input.value = String(Math.max(0, Math.min(maxValue, nextValue)));
+          applyHex();
+     };
+
+     inputs.forEach((input) => {
+          input.addEventListener("input", () => {
+               const cleanValue = input.value.replace(/\D/g, "").slice(0, 3);
+
+               if (input.value !== cleanValue) {
+                    input.value = cleanValue;
+               }
+          });
+          input.addEventListener("change", applyHex);
+          input.addEventListener("keydown", (event) => {
+               if (event.key === "Enter" || event.key.toLowerCase() === "e" || event.key === "Escape" || event.key.toLowerCase() === "q") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    exitActiveInput(input);
+               }
+          });
+     });
+     cells.forEach((cell, index) => {
+          cell.addEventListener("pointerdown", () => setSelectedCell(index, false));
+          cell.addEventListener("focus", () => setSelectedCell(index, false));
+      });
+     popover.addEventListener("keydown", (event) => {
+          const activeElement = document.activeElement;
+
+          if (activeElement?.matches?.("[data-hex-popover-channel]") && !activeElement.readOnly) {
+               return;
+          }
+
+          const activeIndex = Number(popover.dataset.activeHexCell) || 0;
+
+          if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
+               event.preventDefault();
+               event.stopPropagation();
+               setSelectedCell(activeIndex - 1);
+               return;
+          }
+
+          if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
+               event.preventDefault();
+               event.stopPropagation();
+               setSelectedCell(activeIndex + 1);
+               return;
+          }
+
+          if (event.key === "ArrowUp" || event.key.toLowerCase() === "w") {
+               event.preventDefault();
+               event.stopPropagation();
+               stepInputValue(getActiveInput(), 1);
+               return;
+          }
+
+          if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") {
+               event.preventDefault();
+               event.stopPropagation();
+               stepInputValue(getActiveInput(), -1);
+               return;
+          }
+
+          if (event.key === "Enter" || event.key.toLowerCase() === "e") {
+               event.preventDefault();
+               event.stopPropagation();
+               enterSelectedInput();
+               return;
+          }
+
+          if (event.key === "Escape" || event.key.toLowerCase() === "q") {
+               event.preventDefault();
+               event.stopPropagation();
+               closeHexPopover();
+          }
+     });
+     popover.setHexSelection = setSelectedCell;
+     applyHex();
 
      return popover;
 }
@@ -214,13 +409,18 @@ function openHexPopover(button, onSelect) {
      activeHexTarget = onSelect;
      popover.hidden = false;
      popover.style.left = `${Math.min(rect.left, window.innerWidth - popover.offsetWidth - 8)}px`;
-     popover.style.top = `${Math.min(rect.bottom + 3, window.innerHeight - popover.offsetHeight - 8)}px`;
+     popover.style.top = `${Math.max(8, rect.top - popover.offsetHeight - 4)}px`;
+     popover.setHexSelection?.(0);
 }
 
 function closeHexPopover() {
      const popover = document.querySelector("[data-hex-popover]");
 
      if (popover) {
+          popover.querySelectorAll("[data-hex-popover-channel]").forEach((input) => {
+               input.readOnly = true;
+               input.tabIndex = -1;
+          });
           popover.hidden = true;
      }
      activeHexTarget = null;
@@ -236,7 +436,7 @@ function closeHexPopoverFromOutsidePointer(event) {
 
 function getTertiaryMatrixRows() {
      return [
-          ...tertiaryMatrixSteps.map((step) => ({
+          ...[70, 30].map((step) => ({
                label: `Tint${step}`,
                mode: "tint",
                step
@@ -246,7 +446,7 @@ function getTertiaryMatrixRows() {
                mode: "base",
                step: 0
           },
-          ...tertiaryMatrixSteps.slice().reverse().map((step) => ({
+          ...[30, 70].map((step) => ({
                label: `Shade${step}`,
                mode: "shade",
                step
@@ -341,15 +541,15 @@ function positionTertiaryMatrix() {
      const toggleRect = activeTertiaryMatrixToggle.getBoundingClientRect();
      const controlsRect = activeTertiaryMatrixToggle.closest(".item-controls")?.getBoundingClientRect();
      const anchorRect = controlsRect || settingsRect;
-     const anchorRight = anchorRect?.right || toggleRect.right;
-     if (anchorRect) {
-          tertiaryMatrixPopover.style.setProperty("--matrix-slide-distance", `${Math.round(anchorRect.width)}px`);
-     }
-     const left = anchorRight;
-     const availableWidth = Math.max(180, window.innerWidth - left - 8);
+     const panelLeft = Math.max(8, anchorRect?.left || settingsRect?.left || 8);
+     const panelRight = Math.min(window.innerWidth - 8, anchorRect?.right || settingsRect?.right || window.innerWidth - 8);
+     const panelTop = Math.max(8, anchorRect?.top || settingsRect?.top || 8);
+     const panelBottom = Math.min(window.innerHeight - 8, anchorRect?.bottom || settingsRect?.bottom || window.innerHeight - 8);
+     const availableWidth = Math.max(180, panelRight - panelLeft);
+     const left = clamp(toggleRect.left, panelLeft, Math.max(panelLeft, panelRight - popoverRect.width));
      const top = Math.min(
-          Math.max(0, anchorRect?.top || toggleRect.top),
-          Math.max(0, window.innerHeight - popoverRect.height)
+          Math.max(panelTop, toggleRect.top - popoverRect.height - 8),
+          Math.max(panelTop, panelBottom - popoverRect.height)
      );
 
      tertiaryMatrixPopover.style.left = `${left}px`;
@@ -394,12 +594,21 @@ function updatePalettePreview() {
      );
 }
 
-function initializePalettePreview() {
-     if (!palettePreviewSwatches) {
+function updateAccentPalettePreview() {
+     if (!accentPaletteSwatches) {
           return;
      }
 
+     renderAccentPaletteControl(
+          accentPaletteSwatches,
+          plannerConfig.accentColor.color,
+          selectAccentPaletteColor
+     );
+}
+
+function initializePalettePreview() {
      updatePalettePreview();
+     updateAccentPalettePreview();
 }
 
 function selectPaperPaletteColor(nextColor) {
@@ -427,6 +636,33 @@ function updateCustomPaperColor(nextColor) {
      }
 
      updatePalettePreview();
+}
+
+function selectAccentPaletteColor(nextColor) {
+     const accentColor = accentColorPalette.find((color) => color.color === nextColor);
+
+     if (accentColor && accentColorSelect) {
+          accentColorSelect.value = accentColor.key;
+          accentColorSelect.dispatchEvent(new Event("change", { bubbles: true }));
+          return;
+     }
+
+     updateCustomAccentColor(nextColor);
+}
+
+function updateCustomAccentColor(nextColor) {
+     if (!nextColor || !accentColors.Custom) {
+          return;
+     }
+
+     accentColors.Custom.color = nextColor;
+
+     if (accentColorSelect) {
+          accentColorSelect.value = "Custom";
+          accentColorSelect.dispatchEvent(new Event("change", { bubbles: true }));
+     }
+
+     updateAccentPalettePreview();
 }
 
 function setPaletteControlValue(select, swatches, colorValue) {
@@ -718,10 +954,23 @@ function syncObjectControlsSettingsTab(tabName) {
      }
 
      const controls = objectControlsShell.querySelector(".item-controls");
+     const itemTabName = getObjectSettingsItemPanelName(tabName);
 
-     if (controls && typeof setItemControlsTab === "function") {
-          setItemControlsTab(controls, controls.dataset.activeItemControlTab || "style");
+     if (controls && itemTabName && typeof setItemControlsTab === "function") {
+          setItemControlsTab(controls, itemTabName);
      }
+}
+
+function getObjectSettingsItemPanelName(tabName) {
+     return {
+          "object-style": "style",
+          "object-text": "text",
+          "object-widget": "widget"
+     }[tabName] || "";
+}
+
+function isObjectSettingsTab(tabName) {
+     return tabName.startsWith("object-");
 }
 
 function selectSettingsTab(tabName) {
@@ -736,8 +985,11 @@ function selectSettingsTab(tabName) {
      });
 
      settingsPanels.forEach((panel) => {
-          panel.hidden = panel.dataset.settingsPanel !== tabName;
+          const isObjectPanel = isObjectSettingsTab(tabName) && panel.dataset.settingsPanel === "object";
+
+          panel.hidden = !isObjectPanel && panel.dataset.settingsPanel !== tabName;
      });
+     updateSidebarPanelFocusState();
 
      syncObjectControlsSettingsTab(tabName);
 
@@ -760,7 +1012,8 @@ function updateSettingsPanelSteps(tabName = getActiveSettingsTabName()) {
 
      settingsStepButtons.forEach((button) => {
           const step = Number(button.dataset.settingsStep) || 0;
-          const isDisabled = activeIndex + step < 0 || activeIndex + step >= settingsTabs.length;
+          const nextIndex = getNextEnabledSettingsTabIndex(activeIndex, step);
+          const isDisabled = nextIndex === activeIndex;
 
           if ("disabled" in button) {
                button.disabled = isDisabled;
@@ -769,11 +1022,29 @@ function updateSettingsPanelSteps(tabName = getActiveSettingsTabName()) {
      });
 }
 
+function getNextEnabledSettingsTabIndex(activeIndex, step) {
+     let nextIndex = activeIndex;
+
+     while (true) {
+          const candidateIndex = nextIndex + step;
+
+          if (candidateIndex < 0 || candidateIndex >= settingsTabs.length) {
+               return activeIndex;
+          }
+
+          nextIndex = candidateIndex;
+          if (!settingsTabs[nextIndex].disabled) {
+               return nextIndex;
+          }
+     }
+}
+
 function stepSettingsTab(step) {
      const activeIndex = settingsTabs.findIndex((tab) => tab.getAttribute("aria-selected") === "true");
-     const nextTab = settingsTabs[clamp(activeIndex + step, 0, settingsTabs.length - 1)];
+     const nextIndex = getNextEnabledSettingsTabIndex(activeIndex, step);
+     const nextTab = settingsTabs[nextIndex];
 
-     if (!nextTab) {
+     if (nextIndex === activeIndex || !nextTab || nextTab.disabled) {
           return;
      }
 
@@ -786,12 +1057,32 @@ function updateObjectControlsState() {
           return;
      }
 
-     const hasControls = Boolean(objectControlsShell.querySelector(".item-controls"));
+     const hasSelection = typeof selectedItems !== "undefined" && selectedItems.size > 0 && selectedItem;
+     const controls = objectControlsShell.querySelector(".item-controls");
+     const hasControls = Boolean(hasSelection && controls);
 
      objectControlsShell.classList.toggle("is-inactive", !hasControls);
      objectControlsEmpty.hidden = hasControls;
-     if (objectInspector) {
-          objectInspector.hidden = !hasControls;
+     settingsTabs
+          .filter((tab) => isObjectSettingsTab(tab.dataset.settingsTab || ""))
+          .forEach((tab) => {
+               const itemPanelName = getObjectSettingsItemPanelName(tab.dataset.settingsTab || "");
+               const hasItemPanel = Boolean(controls?.querySelector(`[data-item-control-panel="${itemPanelName}"]`));
+               const isDisabled = !hasControls || !hasItemPanel;
+
+               tab.disabled = isDisabled;
+               tab.setAttribute("aria-disabled", String(isDisabled));
+          });
+
+     const activeTab = settingsTabs.find((tab) => tab.getAttribute("aria-selected") === "true");
+
+     if (activeTab && isObjectSettingsTab(activeTab.dataset.settingsTab || "") && activeTab.disabled) {
+          const fallbackObjectTab = settingsTabs.find((tab) => isObjectSettingsTab(tab.dataset.settingsTab || "") && !tab.disabled);
+          const fallbackTab = fallbackObjectTab || settingsTabs.find((tab) => tab.dataset.settingsTab === "controls");
+
+          if (fallbackTab) {
+               selectSettingsTab(fallbackTab.dataset.settingsTab);
+          }
      }
 }
 
@@ -801,9 +1092,19 @@ function updateClipboardControls() {
      });
 }
 
+function updateSidebarPanelFocusState() {
+     const isOpen = plannerSettings.classList.contains("is-open");
+
+     settingsPanels.forEach((panel) => {
+          panel.inert = !isOpen;
+          panel.setAttribute("aria-hidden", String(!isOpen || panel.hidden));
+     });
+}
+
 function openSidebar() {
      plannerSettings.classList.add("is-open");
      plannerDesk.classList.add("has-open-main-menu");
+     updateSidebarPanelFocusState();
      renderKeyHints();
 }
 
@@ -813,6 +1114,7 @@ function closeSidebar() {
      setTertiaryMatrixOpen(false);
      plannerSettings.classList.remove("is-open");
      plannerDesk.classList.remove("has-open-main-menu");
+     updateSidebarPanelFocusState();
      renderKeyHints();
 }
 
