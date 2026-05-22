@@ -2648,6 +2648,8 @@ window.perfectPlanner = window.prettyPlanner;
 syncAllSettingChoiceInputs();
 KeyboardControls.renderControlsPanel(keyboardControlsPanel);
 initializeCustomSelects();
+initializeNotebookSettingsSections();
+initializeSettingsSections(plannerSettings);
 initializePalettePreview();
 updateSettingsPanelSteps();
 updateObjectControlsState();

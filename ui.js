@@ -788,6 +788,172 @@ function syncCustomSelect(select) {
      updateCustomSelectDisplay(select);
 }
 
+let settingsSectionId = 0;
+
+// NOTE: Creates a collapsible settings section button and places the provided controls under it.
+function createSettingsSection(title, elements = [], isOpen = false) {
+     const section = document.createElement("section");
+     const toggle = document.createElement("button");
+     const body = document.createElement("div");
+     const bodyId = `settings-section-${settingsSectionId}`;
+
+     settingsSectionId += 1;
+     section.className = "settings-section";
+     section.dataset.settingsSection = "true";
+     section.classList.toggle("is-open", isOpen);
+     toggle.className = "settings-section-toggle";
+     toggle.type = "button";
+     toggle.dataset.settingsSectionToggle = "true";
+     toggle.textContent = title;
+     toggle.setAttribute("aria-expanded", String(isOpen));
+     toggle.setAttribute("aria-controls", bodyId);
+     body.className = "settings-section-body";
+     body.dataset.settingsSectionBody = "true";
+     body.id = bodyId;
+     body.hidden = !isOpen;
+     elements.forEach((element) => {
+          if (element) {
+               body.append(element);
+          }
+     });
+     section.append(toggle, body);
+
+     return section;
+}
+
+// NOTE: Opens one settings section and closes its sibling sections in the same panel.
+function openSettingsSection(section) {
+     const panel = section?.closest(".settings-panel, .item-control-panel");
+
+     if (!section || !panel) {
+          return;
+     }
+
+     panel.querySelectorAll(":scope > .settings-section").forEach((sibling) => {
+          const isOpen = sibling === section;
+          const toggle = sibling.querySelector(":scope > [data-settings-section-toggle]");
+          const body = sibling.querySelector(":scope > [data-settings-section-body]");
+
+          sibling.classList.toggle("is-open", isOpen);
+          toggle?.setAttribute("aria-expanded", String(isOpen));
+          if (body) {
+               body.hidden = !isOpen;
+          }
+     });
+}
+
+// NOTE: Attaches click behavior to settings section buttons and opens the first section by default.
+function initializeSettingsSections(root = document) {
+     root.querySelectorAll("[data-settings-section]").forEach((section) => {
+          const toggle = section.querySelector(":scope > [data-settings-section-toggle]");
+          const body = section.querySelector(":scope > [data-settings-section-body]");
+          const isOpen = section.classList.contains("is-open");
+
+          if (!toggle || !body) {
+               return;
+          }
+
+          toggle.setAttribute("aria-expanded", String(isOpen));
+          body.hidden = !isOpen;
+          if (section.dataset.settingsSectionReady === "true") {
+               return;
+          }
+
+          section.dataset.settingsSectionReady = "true";
+          toggle.addEventListener("click", () => openSettingsSection(section));
+     });
+
+     const panels = [];
+
+     if (root.matches?.(".settings-panel, .item-control-panel")) {
+          panels.push(root);
+     }
+     panels.push(...root.querySelectorAll(".settings-panel, .item-control-panel"));
+     panels.forEach((panel) => {
+          const sections = Array.from(panel.querySelectorAll(":scope > [data-settings-section]"));
+
+          panel.classList.toggle("is-sectioned-panel", sections.length > 0);
+          if (sections.length) {
+               panel.style.setProperty("--settings-section-count", String(sections.length));
+          }
+          if (sections.length && !sections.some((section) => section.classList.contains("is-open"))) {
+               openSettingsSection(sections[0]);
+          }
+     });
+}
+
+// NOTE: Converts the Notebook tab's current controls into one-open-at-a-time section buttons.
+function initializeNotebookSettingsSections() {
+     const pagePanel = document.querySelector("[data-settings-panel='page']");
+
+     if (!pagePanel || pagePanel.dataset.settingsSectionsWrapped === "true") {
+          return;
+     }
+
+     const children = Array.from(pagePanel.children);
+     const guideField = children.find((child) => child.querySelector?.("[data-guide]"));
+     const paperField = children.find((child) => child.querySelector?.("[data-setting='paper']"));
+     const deskField = children.find((child) => child.querySelector?.("[data-setting='desk-color']"));
+     const paperColorField = children.find((child) => child.querySelector?.("[data-palette-preview-swatches]"));
+     const accentColorField = children.find((child) => child.querySelector?.("[data-accent-palette-swatches]"));
+     const sections = [
+          ["Guides", guideField],
+          ["Desk", deskField],
+          ["Notebook", paperField],
+          ["Paper", paperColorField],
+          ["Accent", accentColorField]
+     ];
+     const anchor = children.find((child) => child.classList?.contains("page-panel-actions")) || null;
+
+     sections.forEach(([title, element], index) => {
+          if (!element) {
+               return;
+          }
+
+          pagePanel.insertBefore(createSettingsSection(title, [element], index === 0), anchor);
+     });
+
+     pagePanel.dataset.settingsSectionsWrapped = "true";
+     initializeSettingsSections(pagePanel);
+}
+
+function getItemControlSectionTitle(element) {
+     const directTitle = element.querySelector?.(":scope > .item-control-title, :scope > .item-widget-group-title");
+
+     if (directTitle?.textContent.trim()) {
+          return directTitle.textContent.trim();
+     }
+
+     const nestedTitle = element.querySelector?.(".item-control-title, .item-widget-group-title");
+
+     if (nestedTitle?.textContent.trim()) {
+          return nestedTitle.textContent.trim();
+     }
+
+     const text = Array.from(element.childNodes)
+          .filter((node) => node.nodeType === Node.TEXT_NODE)
+          .map((node) => node.textContent.trim())
+          .find(Boolean);
+
+     return text || "Options";
+}
+
+// NOTE: Converts object Appearance/Text/Options panels into section buttons that reveal their controls.
+function initializeItemControlPanelSections(panel) {
+     if (!panel || panel.dataset.settingsSectionsWrapped === "true" || panel.dataset.itemControlPanel === "actions") {
+          return;
+     }
+
+     const controls = Array.from(panel.children).filter((child) => !child.matches("[data-settings-section]"));
+
+     controls.forEach((control, index) => {
+          panel.append(createSettingsSection(getItemControlSectionTitle(control), [control], index === 0));
+     });
+
+     panel.dataset.settingsSectionsWrapped = "true";
+     initializeSettingsSections(panel);
+}
+
 function getSelectFocusMenu(dropdown) {
      return dropdown.closest(".planner-settings, .item-controls");
 }
@@ -797,7 +963,7 @@ function getSelectFocusPanel(dropdown) {
 }
 
 function getSelectFocusRow(dropdown) {
-     return dropdown.closest("label, .setting-field, .palette-preview, .item-control-row");
+     return dropdown.closest(".settings-section") || dropdown.closest("label, .setting-field, .palette-preview, .item-control-row");
 }
 
 function animateSelectFocusRow(row, fromRect) {

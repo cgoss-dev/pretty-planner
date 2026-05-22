@@ -627,6 +627,7 @@ function setCalendarDayTextSettings(item, settings = {}) {
      item.dataset.dayTextBold = settings.bold ?? item.dataset.dayTextBold ?? "false";
      item.dataset.dayTextItalic = settings.italic ?? item.dataset.dayTextItalic ?? "false";
      item.dataset.dayTextUnderline = settings.underline ?? item.dataset.dayTextUnderline ?? "false";
+     item.dataset.dayTextStrike = settings.strike ?? item.dataset.dayTextStrike ?? "false";
      item.dataset.dayTextAlign = settings.align || item.dataset.dayTextAlign || "left";
      item.dataset.dayTextYAlign = settings.yAlign || item.dataset.dayTextYAlign || "top";
      item.dataset.dayTextLineHeight = settings.lineHeight || item.dataset.dayTextLineHeight || "1";
@@ -642,6 +643,7 @@ function setCalendarDayTextSettings(item, settings = {}) {
      const boldInput = controls.querySelector("[data-text-control='bold']");
      const italicInput = controls.querySelector("[data-text-control='italic']");
      const underlineInput = controls.querySelector("[data-text-control='underline']");
+     const strikeInput = controls.querySelector("[data-text-control='strike']");
      const alignSelect = controls.querySelector("[data-text-control='align']");
      const yAlignSelect = controls.querySelector("[data-text-control='y-align']");
      const lineHeightSelect = controls.querySelector("[data-text-control='line-height']");
@@ -668,6 +670,10 @@ function setCalendarDayTextSettings(item, settings = {}) {
           updateTextToggleControl(underlineInput, item.dataset.dayTextUnderline === "true");
      }
 
+     if (strikeInput) {
+          updateTextToggleControl(strikeInput, item.dataset.dayTextStrike === "true");
+     }
+
      if (alignSelect) {
           alignSelect.value = item.dataset.dayTextAlign;
      }
@@ -691,7 +697,7 @@ function applyCalendarDayTextStyle(item, textElement) {
      textElement.style.fontFamily = getStickyTextFont(item.dataset.dayTextFont || "noto");
      textElement.style.fontWeight = item.dataset.dayTextBold === "true" ? "700" : "400";
      textElement.style.fontStyle = item.dataset.dayTextItalic === "true" ? "italic" : "normal";
-     textElement.style.textDecoration = item.dataset.dayTextUnderline === "true" ? "underline" : "none";
+     textElement.style.textDecoration = getTextDecorationValue(item.dataset.dayTextUnderline, item.dataset.dayTextStrike);
      textElement.style.textAlign = item.dataset.dayTextAlign || "left";
      textElement.style.alignContent = getTextYAlignValue(item.dataset.dayTextYAlign);
      textElement.style.lineHeight = getTextLineHeightPixels(item, item.dataset.dayTextLineHeight);
@@ -2036,6 +2042,7 @@ function setStickyTextSettings(item, settings = {}) {
      item.dataset.textBold = settings.bold ?? item.dataset.textBold ?? "false";
      item.dataset.textItalic = settings.italic ?? item.dataset.textItalic ?? "false";
      item.dataset.textUnderline = settings.underline ?? item.dataset.textUnderline ?? "false";
+     item.dataset.textStrike = settings.strike ?? item.dataset.textStrike ?? "false";
      item.dataset.textAlign = settings.align || item.dataset.textAlign || "left";
      item.dataset.textYAlign = settings.yAlign || item.dataset.textYAlign || "top";
      item.dataset.textLineHeight = settings.lineHeight || item.dataset.textLineHeight || "1";
@@ -2051,7 +2058,7 @@ function setStickyTextSettings(item, settings = {}) {
           textElement.style.fontFamily = getStickyTextFont(item.dataset.textFont);
           textElement.style.fontWeight = item.dataset.textBold === "true" ? "700" : "400";
           textElement.style.fontStyle = item.dataset.textItalic === "true" ? "italic" : "normal";
-          textElement.style.textDecoration = item.dataset.textUnderline === "true" ? "underline" : "none";
+          textElement.style.textDecoration = getTextDecorationValue(item.dataset.textUnderline, item.dataset.textStrike);
           textElement.style.textAlign = item.dataset.textAlign;
           textElement.style.alignContent = getTextYAlignValue(item.dataset.textYAlign);
           textElement.style.lineHeight = getTextLineHeightPixels(item, item.dataset.textLineHeight);
@@ -2064,6 +2071,7 @@ function setStickyTextSettings(item, settings = {}) {
      const boldInput = controls.querySelector("[data-text-control='bold']");
      const italicInput = controls.querySelector("[data-text-control='italic']");
      const underlineInput = controls.querySelector("[data-text-control='underline']");
+     const strikeInput = controls.querySelector("[data-text-control='strike']");
      const alignSelect = controls.querySelector("[data-text-control='align']");
      const yAlignSelect = controls.querySelector("[data-text-control='y-align']");
      const lineHeightSelect = controls.querySelector("[data-text-control='line-height']");
@@ -2094,6 +2102,10 @@ function setStickyTextSettings(item, settings = {}) {
           updateTextToggleControl(underlineInput, item.dataset.textUnderline === "true");
      }
 
+     if (strikeInput) {
+          updateTextToggleControl(strikeInput, item.dataset.textStrike === "true");
+     }
+
      if (alignSelect) {
           alignSelect.value = item.dataset.textAlign;
      }
@@ -2121,6 +2133,20 @@ function getStickyTextFont(fontKey) {
      };
 
      return fonts[fontKey] || fonts.noto;
+}
+
+function getTextDecorationValue(underline, strike) {
+     const decorations = [];
+
+     if (underline === "true") {
+          decorations.push("underline");
+     }
+
+     if (strike === "true") {
+          decorations.push("line-through");
+     }
+
+     return decorations.length ? decorations.join(" ") : "none";
 }
 
 function updateStickyTextOverflow(item) {
@@ -2413,6 +2439,7 @@ function openItemMenu(item) {
      closeItemMenu(item);
      closeItemMenus();
      objectControlsShell.append(controls);
+     controls.querySelectorAll("[data-item-control-panel]").forEach((panel) => initializeItemControlPanelSections(panel));
      setControlsActionItems(controls, actionItems);
      controls.classList.remove("is-floating", "is-actions-popup");
      controls.classList.add("is-docked");
@@ -3116,6 +3143,7 @@ function makePlannerItem(type = "sticky") {
      const textBoldInput = document.createElement("button");
      const textItalicInput = document.createElement("button");
      const textUnderlineInput = document.createElement("button");
+     const textStrikeInput = document.createElement("button");
      const textAlignLabel = document.createElement("label");
      const textAlignTitle = document.createElement("span");
      const textAlignmentGrid = document.createElement("div");
@@ -3338,7 +3366,7 @@ function makePlannerItem(type = "sticky") {
      textControlsRow.className = "item-text-control-row";
      textFormatGroup.className = "item-text-format item-text-control";
      textFormatTitle.className = "item-control-title";
-     textFormatTitle.textContent = "BIU";
+     textFormatTitle.textContent = "BIUS";
      textBoldInput.className = "item-text-toggle item-text-toggle-bold";
      textBoldInput.type = "button";
      textBoldInput.textContent = "Bold";
@@ -3357,6 +3385,12 @@ function makePlannerItem(type = "sticky") {
      textUnderlineInput.dataset.textControl = "underline";
      textUnderlineInput.setAttribute("aria-label", "Underline sticky note text");
      textUnderlineInput.setAttribute("aria-pressed", "false");
+     textStrikeInput.className = "item-text-toggle item-text-toggle-strike";
+     textStrikeInput.type = "button";
+     textStrikeInput.textContent = "Strike";
+     textStrikeInput.dataset.textControl = "strike";
+     textStrikeInput.setAttribute("aria-label", "Strikethrough sticky note text");
+     textStrikeInput.setAttribute("aria-pressed", "false");
      textAlignLabel.className = "item-control-row item-text-control item-text-align-control";
      textAlignTitle.className = "item-control-title";
      textAlignTitle.textContent = "Alignment";
@@ -3623,7 +3657,7 @@ function makePlannerItem(type = "sticky") {
           textToggleLabel.append(textTitle, textSizeGroup, textFontSelect);
      }
      textColorLabel.append(textColorTitle, textColorInput, textColorSwatches);
-     textFormatGroup.append(textFormatTitle, textBoldInput, textItalicInput, textUnderlineInput);
+     textFormatGroup.append(textFormatTitle, textBoldInput, textItalicInput, textUnderlineInput, textStrikeInput);
      textAlignLabel.append(textAlignTitle, textAlignmentGrid);
      textLineHeightLabel.append(textLineHeightSelect);
      textControlsRow.append(textToggleLabel, textFormatGroup, textAlignLabel);
@@ -3686,6 +3720,9 @@ function makePlannerItem(type = "sticky") {
      if (hasWidgetControls) {
           controlTabs.append(widgetTab);
      }
+     initializeItemControlPanelSections(stylePanel);
+     initializeItemControlPanelSections(textPanel);
+     initializeItemControlPanelSections(widgetPanel);
      controls.append(controlTabs, actionsPanel, stylePanel);
      if (isStickyTextItemType(type) || isCalendarTextItemType(type)) {
           controls.append(textPanel);
@@ -3733,6 +3770,7 @@ function makePlannerItem(type = "sticky") {
           font: "dancing",
           color: "var(--color-gray1)",
           bold: "false",
+          strike: "false",
           align: "center",
           yAlign: "center"
      } : {});
@@ -3905,6 +3943,13 @@ function makePlannerItem(type = "sticky") {
                underline: isActive ? "false" : "true"
           });
      });
+     textStrikeInput.addEventListener("click", () => {
+          const isActive = textStrikeInput.getAttribute("aria-pressed") === "true";
+
+          applyTextSettingsToActionItems(item, {
+               strike: isActive ? "false" : "true"
+          });
+     });
      textAlignmentGrid.querySelectorAll("[data-text-align-value][data-text-y-align-value]").forEach((button) => {
           button.addEventListener("click", () => {
                applyTextSettingsToActionItems(item, {
@@ -4045,6 +4090,7 @@ function copyItemConfiguration(source, target) {
           bold: source.dataset.textBold,
           italic: source.dataset.textItalic,
           underline: source.dataset.textUnderline,
+          strike: source.dataset.textStrike,
           align: source.dataset.textAlign,
           yAlign: source.dataset.textYAlign,
           lineHeight: source.dataset.textLineHeight
@@ -4081,6 +4127,7 @@ function copyItemConfiguration(source, target) {
                     bold: source.dataset.dayTextBold,
                     italic: source.dataset.dayTextItalic,
                     underline: source.dataset.dayTextUnderline,
+                    strike: source.dataset.dayTextStrike,
                     align: source.dataset.dayTextAlign,
                     yAlign: source.dataset.dayTextYAlign,
                     lineHeight: source.dataset.dayTextLineHeight

@@ -110,6 +110,7 @@ function serializePlannerItem(item) {
                               bold: item.dataset.dayTextBold === "true",
                               italic: item.dataset.dayTextItalic === "true",
                               underline: item.dataset.dayTextUnderline === "true",
+                              strike: item.dataset.dayTextStrike === "true",
                               align: item.dataset.dayTextAlign || "left",
                               yAlign: item.dataset.dayTextYAlign || "top",
                               lineHeight: Number(item.dataset.dayTextLineHeight) || 1
@@ -127,6 +128,7 @@ function serializePlannerItem(item) {
                    bold: item.dataset.textBold === "true",
                     italic: item.dataset.textItalic === "true",
                     underline: item.dataset.textUnderline === "true",
+                    strike: item.dataset.textStrike === "true",
                     align: item.dataset.textAlign || "left",
                     yAlign: item.dataset.textYAlign || "top",
                     lineHeight: Number(item.dataset.textLineHeight) || 1
@@ -459,6 +461,7 @@ function restorePlannerItemSettings(item, itemData) {
                bold: normalizeStoredBoolean(text.bold),
                italic: normalizeStoredBoolean(text.italic),
                underline: normalizeStoredBoolean(text.underline),
+               strike: normalizeStoredBoolean(text.strike),
                align: text.align,
                yAlign: text.yAlign,
                lineHeight: text.lineHeight
@@ -474,6 +477,7 @@ function restorePlannerItemSettings(item, itemData) {
                     bold: normalizeStoredBoolean(widget.dayText?.bold),
                     italic: normalizeStoredBoolean(widget.dayText?.italic),
                     underline: normalizeStoredBoolean(widget.dayText?.underline),
+                    strike: normalizeStoredBoolean(widget.dayText?.strike),
                     align: widget.dayText?.align,
                     yAlign: widget.dayText?.yAlign,
                     lineHeight: widget.dayText?.lineHeight
