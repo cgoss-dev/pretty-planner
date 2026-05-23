@@ -534,15 +534,16 @@ function setItemStyle(item, style) {
      item.dataset.hasClearBorder = String(hasClearBorder);
      delete item.dataset.fillAlpha;
      delete item.dataset.borderAlpha;
-     item.style.setProperty("--sticky-fill", item.dataset.fillColor);
-     item.style.setProperty("--sticky-fill-opaque", item.dataset.fillColor);
+     item.style.setProperty("--sticker-fill", item.dataset.fillColor);
+     item.style.setProperty("--sticker-fill-opaque", item.dataset.fillColor);
+     item.style.setProperty("--widget-box-fill", item.dataset.fillColor);
      if (hasClearFill) {
           item.style.setProperty("--calendar-tint-alpha", "0");
      } else {
           item.style.removeProperty("--calendar-tint-alpha");
      }
-     item.style.setProperty("--sticky-border-color", item.dataset.borderColor);
-     item.style.setProperty("--sticky-border-size", `${item.dataset.borderWidth}px`);
+     item.style.setProperty("--sticker-border-color", item.dataset.borderColor);
+     item.style.setProperty("--sticker-border-size", `${item.dataset.borderWidth}px`);
 
      const controls = getItemControls(item) || item;
      const fillInput = controls.querySelector("[data-style-control='fill']");
@@ -694,7 +695,7 @@ function setCalendarDayTextSettings(item, settings = {}) {
 function applyCalendarDayTextStyle(item, textElement) {
      textElement.style.fontSize = `${item.dataset.dayTextSize || "10"}px`;
      textElement.style.color = item.dataset.dayTextColor || "var(--color-gray1)";
-     textElement.style.fontFamily = getStickyTextFont(item.dataset.dayTextFont || "noto");
+     textElement.style.fontFamily = getStickerTextFont(item.dataset.dayTextFont || "noto");
      textElement.style.fontWeight = item.dataset.dayTextBold === "true" ? "700" : "400";
      textElement.style.fontStyle = item.dataset.dayTextItalic === "true" ? "italic" : "normal";
      textElement.style.textDecoration = getTextDecorationValue(item.dataset.dayTextUnderline, item.dataset.dayTextStrike);
@@ -1606,12 +1607,12 @@ function isPageTitleItem(item) {
      return isPageTitleItemType(item?.dataset?.itemType);
 }
 
-function isStickyTextItemType(type) {
-     return type === "sticky" || type === "page-title";
+function isStickerTextItemType(type) {
+     return type === "sticker" || type === "page-title";
 }
 
-function isStickyTextItem(item) {
-     return isStickyTextItemType(item?.dataset?.itemType);
+function isStickerTextItem(item) {
+     return isStickerTextItemType(item?.dataset?.itemType);
 }
 
 function getPageNumberForPage(page) {
@@ -1619,7 +1620,7 @@ function getPageNumberForPage(page) {
 }
 
 function getPageTitleText(item) {
-     const text = getStickyTextElement(item)?.textContent?.trim() || "";
+     const text = getStickerTextElement(item)?.textContent?.trim() || "";
 
      return text || "Page Title";
 }
@@ -1912,7 +1913,7 @@ function setItemBox(item, box) {
      }
      item.style.width = `${box.width}px`;
      item.style.height = `${box.height}px`;
-     updateStickyDotGrid(item, page, box);
+     updateStickerDotGrid(item, page, box);
      updateItemSizeLabel(item);
      if (item.dataset.itemType === "full-month" || item.dataset.itemType === "weekly-vertical") {
           updateCalendarGridMetrics(item, page, box);
@@ -1920,7 +1921,7 @@ function setItemBox(item, box) {
      updateTocGridMetrics(item, page, box);
      updatePerpetualCalendarGridMetrics(item, page, box);
      updateItemTextLineHeight(item);
-     updateStickyTextOverflow(item);
+     updateStickerTextOverflow(item);
      renderToc(item, getPageTitleEntries());
      if (item.dataset.itemType === "weekly-vertical") {
           renderWeeklyVertical(item);
@@ -1928,16 +1929,16 @@ function setItemBox(item, box) {
      updateCalendarTextOverflow(item);
 }
 
-function updateStickyDotGrid(item, page, box) {
-     if (item.dataset.itemType !== "sticky") {
+function updateStickerDotGrid(item, page, box) {
+     if (item.dataset.itemType !== "sticker") {
           return;
      }
 
      if (!page) {
-          item.style.setProperty("--sticky-dot-grid-size-x", `${box.width / stickyGridUnits}px`);
-          item.style.setProperty("--sticky-dot-grid-size-y", `${box.height / stickyGridUnits}px`);
-          item.style.setProperty("--sticky-dot-grid-offset-x", "0px");
-          item.style.setProperty("--sticky-dot-grid-offset-y", "0px");
+          item.style.setProperty("--sticker-dot-grid-size-x", `${box.width / stickerGridUnits}px`);
+          item.style.setProperty("--sticker-dot-grid-size-y", `${box.height / stickerGridUnits}px`);
+          item.style.setProperty("--sticker-dot-grid-offset-x", "0px");
+          item.style.setProperty("--sticker-dot-grid-offset-y", "0px");
           return;
      }
 
@@ -1946,15 +1947,15 @@ function updateStickyDotGrid(item, page, box) {
      const offsetX = (((box.x - origin.x) % grid.x) + grid.x) % grid.x;
      const offsetY = (((box.y - origin.y) % grid.y) + grid.y) % grid.y;
 
-     item.style.setProperty("--sticky-dot-grid-size-x", `${grid.x}px`);
-     item.style.setProperty("--sticky-dot-grid-size-y", `${grid.y}px`);
-     item.style.setProperty("--sticky-dot-grid-offset-x", `${-offsetX}px`);
-     item.style.setProperty("--sticky-dot-grid-offset-y", `${-offsetY}px`);
+     item.style.setProperty("--sticker-dot-grid-size-x", `${grid.x}px`);
+     item.style.setProperty("--sticker-dot-grid-size-y", `${grid.y}px`);
+     item.style.setProperty("--sticker-dot-grid-offset-x", `${-offsetX}px`);
+     item.style.setProperty("--sticker-dot-grid-offset-y", `${-offsetY}px`);
 }
 
 // NOTE: Text Inside Notes, Titles, And Calendars
-function getStickyTextElement(item) {
-     return item.querySelector(".sticky-text");
+function getStickerTextElement(item) {
+     return item.querySelector(".sticker-text");
 }
 
 function getTextYAlignValue(value = "top") {
@@ -2010,8 +2011,8 @@ function updateItemTextLineHeight(item) {
           return;
      }
 
-     if (isStickyTextItem(item)) {
-          const textElement = getStickyTextElement(item);
+     if (isStickerTextItem(item)) {
+          const textElement = getStickerTextElement(item);
 
           if (textElement) {
                textElement.style.lineHeight = getTextLineHeightPixels(item, item.dataset.textLineHeight);
@@ -2025,12 +2026,12 @@ function updateItemTextLineHeight(item) {
      }
 }
 
-function setStickyTextSettings(item, settings = {}) {
-     if (!isStickyTextItem(item)) {
+function setStickerTextSettings(item, settings = {}) {
+     if (!isStickerTextItem(item)) {
           return;
      }
 
-     const textElement = getStickyTextElement(item);
+     const textElement = getStickerTextElement(item);
      const controls = getItemControls(item) || item;
      const isEnabled = isPageTitleItem(item) ? "true" : settings.enabled ?? item.dataset.textEnabled ?? "false";
 
@@ -2055,7 +2056,7 @@ function setStickyTextSettings(item, settings = {}) {
           textElement.hidden = item.dataset.textEnabled !== "true";
           textElement.style.fontSize = `${item.dataset.textSize}px`;
           textElement.style.color = item.dataset.textColor;
-          textElement.style.fontFamily = getStickyTextFont(item.dataset.textFont);
+          textElement.style.fontFamily = getStickerTextFont(item.dataset.textFont);
           textElement.style.fontWeight = item.dataset.textBold === "true" ? "700" : "400";
           textElement.style.fontStyle = item.dataset.textItalic === "true" ? "italic" : "normal";
           textElement.style.textDecoration = getTextDecorationValue(item.dataset.textUnderline, item.dataset.textStrike);
@@ -2121,10 +2122,10 @@ function setStickyTextSettings(item, settings = {}) {
      }
 
      controls.querySelectorAll("select").forEach(updateCustomSelectDisplay);
-     updateStickyTextOverflow(item);
+     updateStickerTextOverflow(item);
 }
 
-function getStickyTextFont(fontKey) {
+function getStickerTextFont(fontKey) {
      const fonts = {
           noto: "var(--font-noto)",
           dancing: "var(--font-dancing)",
@@ -2149,12 +2150,12 @@ function getTextDecorationValue(underline, strike) {
      return decorations.length ? decorations.join(" ") : "none";
 }
 
-function updateStickyTextOverflow(item) {
-     if (!item || !isStickyTextItem(item)) {
+function updateStickerTextOverflow(item) {
+     if (!item || !isStickerTextItem(item)) {
           return;
      }
 
-     const textElement = getStickyTextElement(item);
+     const textElement = getStickerTextElement(item);
 
      if (!textElement || item.dataset.textEnabled !== "true") {
           item.dataset.textOverflow = "false";
@@ -2170,8 +2171,8 @@ function updateTextEditingState() {
      plannerDesk.classList.toggle("is-editing-text", Boolean(document.querySelector(".planner-item.is-editing-text, .planner-item.is-editing-day-text")));
 }
 
-function stopStickyTextEditing(item) {
-     const textElement = getStickyTextElement(item);
+function stopStickerTextEditing(item) {
+     const textElement = getStickerTextElement(item);
 
      if (!textElement) {
           return;
@@ -2181,23 +2182,23 @@ function stopStickyTextEditing(item) {
      item.classList.remove("is-editing-text");
      updateTextEditingState();
      renderKeyHints();
-     updateStickyTextOverflow(item);
+     updateStickerTextOverflow(item);
      notifyTemplateChanged();
 }
 
-function startStickyTextEditing(item) {
-     if (!isStickyTextItem(item)) {
+function startStickerTextEditing(item) {
+     if (!isStickerTextItem(item)) {
           return;
      }
 
-     const textElement = getStickyTextElement(item);
+     const textElement = getStickerTextElement(item);
 
      if (!textElement) {
           return;
      }
 
      if (item.dataset.textEnabled !== "true") {
-          setStickyTextSettings(item, {
+          setStickerTextSettings(item, {
                enabled: "true"
           });
      }
@@ -2298,7 +2299,7 @@ function getItemGridUnits(item) {
           };
      }
 
-     return itemGridUnits[item.dataset.itemType] || itemGridUnits.sticky;
+     return itemGridUnits[item.dataset.itemType] || itemGridUnits.sticker;
 }
 
 // NOTE: Click Items, Select Items, And Open Item Menus
@@ -2312,7 +2313,7 @@ function getItemControls(item) {
 
 function getItemTypeLabel(type) {
      return {
-          sticky: "Sticky Note",
+          sticker: "Sticker",
           "page-title": "Page Title",
           toc: "Table of Contents",
           "mini-month": "Mini Month",
@@ -2331,7 +2332,7 @@ function getActionItemsTypeLabel(items) {
           return "Widget";
      }
 
-     const type = items[0]?.dataset.itemType || "sticky";
+     const type = items[0]?.dataset.itemType || "sticker";
 
      return items.every((item) => item.dataset.itemType === type) ? getItemTypeLabel(type) : "Multiple";
 }
@@ -2614,7 +2615,7 @@ function updateGroupButton(button, items = Array.from(selectedItems)) {
 
      button.classList.toggle("is-grouped", isGrouped);
      button.textContent = isGrouped ? "Ungroup" : "Group";
-     button.setAttribute("aria-label", isGrouped ? "Ungroup selected sticky notes" : "Group selected sticky notes");
+     button.setAttribute("aria-label", isGrouped ? "Ungroup selected stickers" : "Group selected stickers");
 }
 
 // NOTE: Bring Forward, Send Back, Group, And Shared Actions
@@ -2672,7 +2673,7 @@ function applyTextSettingsToActionItems(item, settings) {
           if (isCalendarTextItem(targetItem)) {
                setCalendarDayTextSettings(targetItem, settings);
           } else {
-               setStickyTextSettings(targetItem, settings);
+               setStickerTextSettings(targetItem, settings);
           }
      });
      notifyTemplateChanged();
@@ -3085,8 +3086,8 @@ function updateItemSizeLabel(item) {
 }
 
 // NOTE: Build New Items And Their Settings Controls
-function makePlannerItem(type = "sticky") {
-     const hasWidgetControls = type === "sticky" || isCalendarItemType(type);
+function makePlannerItem(type = "sticker") {
+     const hasWidgetControls = type === "sticker" || isCalendarItemType(type);
      const item = document.createElement("div");
      const sizeLabel = document.createElement("span");
      const controls = document.createElement("div");
@@ -3247,7 +3248,7 @@ function makePlannerItem(type = "sticky") {
      duplicateButton.className = "item-control";
      duplicateButton.type = "button";
      duplicateButton.textContent = "Duplicate";
-     duplicateButton.setAttribute("aria-label", "Duplicate sticky note");
+     duplicateButton.setAttribute("aria-label", "Duplicate sticker");
      duplicateGroupActions.className = "item-action-row";
      copyButton.className = "item-control";
      copyButton.type = "button";
@@ -3264,7 +3265,7 @@ function makePlannerItem(type = "sticky") {
      groupButton.className = "item-control";
      groupButton.type = "button";
      groupButton.textContent = "Group";
-     groupButton.setAttribute("aria-label", "Group selected sticky notes");
+     groupButton.setAttribute("aria-label", "Group selected stickers");
      layerButtonGroup.className = "item-layer-actions";
      bringForwardButton.className = "item-control";
      bringForwardButton.type = "button";
@@ -3279,7 +3280,7 @@ function makePlannerItem(type = "sticky") {
      fillTitle.textContent = "Fill";
      fillInput.className = "native-select";
      fillInput.dataset.styleControl = "fill";
-     fillInput.setAttribute("aria-label", "Sticky note fill palette");
+     fillInput.setAttribute("aria-label", "Sticker fill palette");
      fillSwatches.className = "item-color-swatches";
      fillSwatches.dataset.styleSwatches = "fill";
      borderColorLabel.className = "item-control-row item-color-control";
@@ -3289,10 +3290,10 @@ function makePlannerItem(type = "sticky") {
      borderSizeField.textContent = "Border Style";
      borderColorInput.className = "native-select";
      borderColorInput.dataset.styleControl = "border-color";
-     borderColorInput.setAttribute("aria-label", "Sticky note border palette");
+     borderColorInput.setAttribute("aria-label", "Sticker border palette");
      borderColorSwatches.className = "item-color-swatches";
      borderColorSwatches.dataset.styleSwatches = "border-color";
-     borderWidthSelect.setAttribute("aria-label", "Sticky note border thickness");
+     borderWidthSelect.setAttribute("aria-label", "Sticker border thickness");
      borderWidthSelect.dataset.styleControl = "border-width";
      ["1", "2", "3", "4", "5"].forEach((value) => {
           const option = document.createElement("option");
@@ -3302,15 +3303,15 @@ function makePlannerItem(type = "sticky") {
           borderWidthSelect.append(option);
      });
      dotGridLabel.className = "item-control-row";
-     dotGridLabel.textContent = "Dot grid";
+     dotGridLabel.textContent = "Dot Grid";
      dotGridInput.type = "checkbox";
      dotGridInput.dataset.styleControl = "dot-grid";
-     dotGridInput.setAttribute("aria-label", "Show sticky note dot grid");
-     textElement.className = "sticky-text";
+     dotGridInput.setAttribute("aria-label", "Show sticker dot grid");
+     textElement.className = "sticker-text";
      textElement.hidden = true;
      textElement.spellcheck = true;
      textElement.setAttribute("contenteditable", "false");
-     textElement.setAttribute("aria-label", "Sticky note text");
+     textElement.setAttribute("aria-label", "Sticker text");
      tocElement.className = "toc-widget";
      textToggleLabel.className = "item-control-row item-text-control item-text-settings-control";
      textTitle.className = "item-control-title";
@@ -3323,7 +3324,7 @@ function makePlannerItem(type = "sticky") {
      textToggleInput.setAttribute("aria-pressed", "false");
      textSizeGroup.className = "item-text-size-options";
      textSizeGroup.setAttribute("role", "group");
-     textSizeGroup.setAttribute("aria-label", "Sticky note text size");
+     textSizeGroup.setAttribute("aria-label", "Sticker text size");
      [
           ["10", "SM"],
           ["20", "MD"],
@@ -3342,7 +3343,7 @@ function makePlannerItem(type = "sticky") {
           textSizeGroup.append(button);
      });
      textFontSelect.dataset.textControl = "font";
-     textFontSelect.setAttribute("aria-label", "Sticky note text font");
+     textFontSelect.setAttribute("aria-label", "Sticker text font");
      [
           ["noto", "Noto"],
           ["dancing", "Script"],
@@ -3360,7 +3361,7 @@ function makePlannerItem(type = "sticky") {
      textColorTitle.textContent = "Font Palette";
      textColorInput.className = "native-select";
      textColorInput.dataset.textControl = "color";
-     textColorInput.setAttribute("aria-label", "Sticky note text palette");
+     textColorInput.setAttribute("aria-label", "Sticker text palette");
      textColorSwatches.className = "item-color-swatches";
      textColorSwatches.dataset.textSwatches = "color";
      textControlsRow.className = "item-text-control-row";
@@ -3371,25 +3372,25 @@ function makePlannerItem(type = "sticky") {
      textBoldInput.type = "button";
      textBoldInput.textContent = "Bold";
      textBoldInput.dataset.textControl = "bold";
-     textBoldInput.setAttribute("aria-label", "Bold sticky note text");
+     textBoldInput.setAttribute("aria-label", "Bold sticker text");
      textBoldInput.setAttribute("aria-pressed", "false");
      textItalicInput.className = "item-text-toggle item-text-toggle-italic";
      textItalicInput.type = "button";
      textItalicInput.textContent = "Italic";
      textItalicInput.dataset.textControl = "italic";
-     textItalicInput.setAttribute("aria-label", "Italic sticky note text");
+     textItalicInput.setAttribute("aria-label", "Italic sticker text");
      textItalicInput.setAttribute("aria-pressed", "false");
      textUnderlineInput.className = "item-text-toggle item-text-toggle-underline";
      textUnderlineInput.type = "button";
      textUnderlineInput.textContent = "Underline";
      textUnderlineInput.dataset.textControl = "underline";
-     textUnderlineInput.setAttribute("aria-label", "Underline sticky note text");
+     textUnderlineInput.setAttribute("aria-label", "Underline sticker text");
      textUnderlineInput.setAttribute("aria-pressed", "false");
      textStrikeInput.className = "item-text-toggle item-text-toggle-strike";
      textStrikeInput.type = "button";
      textStrikeInput.textContent = "Strike";
      textStrikeInput.dataset.textControl = "strike";
-     textStrikeInput.setAttribute("aria-label", "Strikethrough sticky note text");
+     textStrikeInput.setAttribute("aria-label", "Strikethrough sticker text");
      textStrikeInput.setAttribute("aria-pressed", "false");
      textAlignLabel.className = "item-control-row item-text-control item-text-align-control";
      textAlignTitle.className = "item-control-title";
@@ -3398,7 +3399,7 @@ function makePlannerItem(type = "sticky") {
      textAlignmentGrid.setAttribute("role", "group");
      textAlignmentGrid.setAttribute("aria-label", "Text placement");
      textAlignSelect.dataset.textControl = "align";
-     textAlignSelect.setAttribute("aria-label", "Sticky note horizontal alignment");
+     textAlignSelect.setAttribute("aria-label", "Sticker horizontal alignment");
      ["left", "center", "right"].forEach((value) => {
           const option = document.createElement("option");
 
@@ -3407,7 +3408,7 @@ function makePlannerItem(type = "sticky") {
           textAlignSelect.append(option);
      });
      textYAlignSelect.dataset.textControl = "y-align";
-     textYAlignSelect.setAttribute("aria-label", "Sticky note vertical alignment");
+     textYAlignSelect.setAttribute("aria-label", "Sticker vertical alignment");
      [
           ["top", "Top"],
           ["center", "Center"],
@@ -3650,7 +3651,7 @@ function makePlannerItem(type = "sticky") {
      fillLabel.append(fillTitle, fillInput, fillSwatches);
      borderColorLabel.append(borderTitle, borderColorInput, borderColorSwatches);
      dotGridLabel.append(dotGridInput);
-     if (type === "sticky") {
+     if (type === "sticker") {
           textToggleLabel.append(textTitle, textToggleInput, textSizeGroup, textFontSelect);
      } else {
           textToggleLabel.classList.add("item-text-settings-control-no-toggle");
@@ -3691,7 +3692,7 @@ function makePlannerItem(type = "sticky") {
      layerButtonGroup.append(sendBackwardButton, bringForwardButton);
      actionsPanel.append(actionsWidgetType, duplicateGroupActions, clipboardActions, layerButtonGroup, deleteButton);
      stylePanel.append(fillLabel, borderColorLabel, borderSizeField);
-     if (isStickyTextItemType(type)) {
+     if (isStickerTextItemType(type)) {
           textPanel.append(
                textControlsRow,
                textColorLabel
@@ -3703,10 +3704,10 @@ function makePlannerItem(type = "sticky") {
                textColorLabel
           );
      }
-     if (isStickyTextItemType(type) || isCalendarTextItemType(type)) {
+     if (isStickerTextItemType(type) || isCalendarTextItemType(type)) {
           controlTabs.append(textTab);
      }
-     if (type === "sticky") {
+     if (type === "sticker") {
           widgetPanel.append(dotGridLabel);
      }
      if (isCalendarItemType(type) && type !== "weekly-vertical") {
@@ -3724,7 +3725,7 @@ function makePlannerItem(type = "sticky") {
      initializeItemControlPanelSections(textPanel);
      initializeItemControlPanelSections(widgetPanel);
      controls.append(controlTabs, actionsPanel, stylePanel);
-     if (isStickyTextItemType(type) || isCalendarTextItemType(type)) {
+     if (isStickerTextItemType(type) || isCalendarTextItemType(type)) {
           controls.append(textPanel);
      }
      if (hasWidgetControls) {
@@ -3751,7 +3752,7 @@ function makePlannerItem(type = "sticky") {
      });
      setItemControlsTab(controls, "style");
      item.append(sizeLabel);
-     if (isStickyTextItemType(type)) {
+     if (isStickerTextItemType(type)) {
           item.append(textElement);
      }
      if (isTocItemType(type)) {
@@ -3764,7 +3765,7 @@ function makePlannerItem(type = "sticky") {
           borderWidth: borderWidthSelect.value,
           dotGrid: "false"
      });
-     setStickyTextSettings(item, isPageTitleItemType(type) ? {
+     setStickerTextSettings(item, isPageTitleItemType(type) ? {
           enabled: "true",
           size: "80",
           font: "dancing",
@@ -3789,7 +3790,7 @@ function makePlannerItem(type = "sticky") {
                return;
           }
 
-          if (isStickyTextItem(item) && event.detail > 1) {
+          if (isStickerTextItem(item) && event.detail > 1) {
                event.preventDefault();
                selectItem(item);
                return;
@@ -3838,7 +3839,7 @@ function makePlannerItem(type = "sticky") {
           }
 
           event.preventDefault();
-          startStickyTextEditing(item);
+          startStickerTextEditing(item);
      });
      item.addEventListener("focus", () => {
           if (!item.classList.contains("is-menu-open") && !selectedItems.has(item)) {
@@ -3964,12 +3965,12 @@ function makePlannerItem(type = "sticky") {
           });
      });
      textElement.addEventListener("input", () => {
-          updateStickyTextOverflow(item);
+          updateStickerTextOverflow(item);
           if (isPageTitleItem(item)) {
                renderTocWidgets();
           }
      });
-     textElement.addEventListener("blur", () => stopStickyTextEditing(item));
+     textElement.addEventListener("blur", () => stopStickerTextEditing(item));
      textElement.addEventListener("pointerdown", (event) => {
           if (textElement.isContentEditable) {
                event.stopPropagation();
@@ -4081,9 +4082,9 @@ function copyItemConfiguration(source, target) {
           borderWidth: source.dataset.borderWidth,
           dotGrid: source.dataset.dotGrid
      });
-     setStickyTextSettings(target, {
+     setStickerTextSettings(target, {
           enabled: source.dataset.textEnabled,
-          content: getStickyTextElement(source) ? getStickyTextElement(source).textContent : "",
+          content: getStickerTextElement(source) ? getStickerTextElement(source).textContent : "",
           size: source.dataset.textSize,
           font: source.dataset.textFont,
           color: source.dataset.textColor,
@@ -4251,7 +4252,7 @@ function getClipboardPasteBox(entry, page) {
 }
 
 function pasteClipboardItem(entry, copiedGroupIds) {
-     const type = normalizePlannerItemType(entry.data.type || "sticky");
+     const type = normalizePlannerItemType(entry.data.type || "sticker");
 
      if (!itemGridUnits[type]) {
           return null;
@@ -4359,7 +4360,7 @@ function duplicateItem(item) {
      }
 
      const box = getItemBox(item);
-     const duplicate = makePlannerItem(item.dataset.itemType || "sticky");
+     const duplicate = makePlannerItem(item.dataset.itemType || "sticker");
      const parent = plannerDesk;
      const nextBox = page
           ? {
@@ -4394,7 +4395,7 @@ function duplicateSelectedItems() {
           }
 
           const box = getItemBox(item);
-          const duplicate = makePlannerItem(item.dataset.itemType || "sticky");
+          const duplicate = makePlannerItem(item.dataset.itemType || "sticker");
           const parent = plannerDesk;
           const offset = page ? getGridSize(page).x : 16;
           const nextBox = page
@@ -4610,16 +4611,16 @@ function startMarquee(event) {
           return;
      }
 
+     if (event.target.closest(".planner-item, .sticker-source, .planner-settings, .page-snap-controls, [data-tertiary-matrix], [data-hex-popover]")) {
+          return;
+     }
+
      const resizeMode = selectedItem && !event.target.closest(".planner-settings, .item-controls, .page-snap-controls")
           ? getResizeMode(selectedItem, event)
           : "";
 
      if (resizeMode) {
           startResize(selectedItem, event, resizeMode);
-          return;
-     }
-
-     if (event.target.closest(".planner-item, .sticky-note, .planner-settings, .page-snap-controls")) {
           return;
      }
 
@@ -4687,7 +4688,7 @@ function startSourceMove(event) {
      event.stopPropagation();
 
      const source = event.currentTarget;
-     const item = makePlannerItem(source.dataset.createType || "sticky");
+     const item = makePlannerItem(source.dataset.createType || "sticker");
      const sourceRect = source.getBoundingClientRect();
      const offsetX = event.clientX - sourceRect.left;
      const offsetY = event.clientY - sourceRect.top;

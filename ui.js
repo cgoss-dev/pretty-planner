@@ -126,6 +126,7 @@ function appendColorSwatches(swatches, colors, selectedColor = "", onSelect = nu
                     event.preventDefault();
                     event.stopPropagation();
                     onSelect(color.value);
+                    closeSettingsSection(swatch.closest("[data-settings-section]"));
                });
           }
 
@@ -436,7 +437,7 @@ function closeHexPopoverFromOutsidePointer(event) {
 
 function getTertiaryMatrixRows() {
      return [
-          ...[70, 30].map((step) => ({
+          ...[80, 60, 40, 20].map((step) => ({
                label: `Tint${step}`,
                mode: "tint",
                step
@@ -446,7 +447,7 @@ function getTertiaryMatrixRows() {
                mode: "base",
                step: 0
           },
-          ...[30, 70].map((step) => ({
+          ...[20, 40, 60, 80].map((step) => ({
                label: `Shade${step}`,
                mode: "shade",
                step
@@ -474,6 +475,7 @@ function renderTertiaryMatrix() {
      const colors = getPalette("tertiary").colors;
      const activeSwatches = activeTertiaryMatrixToggle?.closest(".palette-swatches, .item-color-swatches");
      const onSelect = activeTertiaryMatrixToggle?.onPaletteColorSelect || activeSwatches?.onPaletteColorSelect;
+     const activeSection = activeTertiaryMatrixToggle?.closest("[data-settings-section]");
 
      tertiaryMatrixGrid.replaceChildren();
      getTertiaryMatrixRows().forEach((row) => {
@@ -501,6 +503,7 @@ function renderTertiaryMatrix() {
                          event.stopPropagation();
                          onSelect(swatchValue);
                          setTertiaryMatrixOpen(false);
+                         closeSettingsSection(activeSection);
                     });
                }
 
@@ -530,31 +533,7 @@ function syncTertiaryMatrixSwatchSize() {
 }
 
 function positionTertiaryMatrix() {
-     if (!tertiaryMatrixPopover || !activeTertiaryMatrixToggle || tertiaryMatrixPopover.hidden) {
-          return;
-     }
-
      syncTertiaryMatrixSwatchSize();
-
-     const settingsRect = plannerSettings?.getBoundingClientRect();
-     const popoverRect = tertiaryMatrixPopover.getBoundingClientRect();
-     const toggleRect = activeTertiaryMatrixToggle.getBoundingClientRect();
-     const controlsRect = activeTertiaryMatrixToggle.closest(".item-controls")?.getBoundingClientRect();
-     const anchorRect = controlsRect || settingsRect;
-     const panelLeft = Math.max(8, anchorRect?.left || settingsRect?.left || 8);
-     const panelRight = Math.min(window.innerWidth - 8, anchorRect?.right || settingsRect?.right || window.innerWidth - 8);
-     const panelTop = Math.max(8, anchorRect?.top || settingsRect?.top || 8);
-     const panelBottom = Math.min(window.innerHeight - 8, anchorRect?.bottom || settingsRect?.bottom || window.innerHeight - 8);
-     const availableWidth = Math.max(180, panelRight - panelLeft);
-     const left = clamp(toggleRect.left, panelLeft, Math.max(panelLeft, panelRight - popoverRect.width));
-     const top = Math.min(
-          Math.max(panelTop, toggleRect.top - popoverRect.height - 8),
-          Math.max(panelTop, panelBottom - popoverRect.height)
-     );
-
-     tertiaryMatrixPopover.style.left = `${left}px`;
-     tertiaryMatrixPopover.style.top = `${top}px`;
-     tertiaryMatrixPopover.style.maxWidth = `${Math.round(availableWidth)}px`;
 }
 
 function setTertiaryMatrixOpen(isOpen) {
@@ -568,17 +547,17 @@ function setTertiaryMatrixOpen(isOpen) {
      });
 
      if (isOpen) {
+          const body = activeTertiaryMatrixToggle.closest("[data-settings-section]")?.querySelector(":scope > [data-settings-section-body]");
+
+          if (body && tertiaryMatrixPopover.parentElement !== body) {
+               body.append(tertiaryMatrixPopover);
+          }
           tertiaryMatrixPopover.hidden = false;
           renderTertiaryMatrix();
-          positionTertiaryMatrix();
           requestAnimationFrame(() => tertiaryMatrixPopover.classList.add("is-open"));
      } else {
           tertiaryMatrixPopover.classList.remove("is-open");
-          window.setTimeout(() => {
-               if (!activeTertiaryMatrixToggle || activeTertiaryMatrixToggle.getAttribute("aria-expanded") !== "true") {
-                    tertiaryMatrixPopover.hidden = true;
-               }
-          }, 150);
+          tertiaryMatrixPopover.hidden = true;
      }
 }
 
@@ -790,6 +769,12 @@ function syncCustomSelect(select) {
 
 let settingsSectionId = 0;
 
+function getSettingsSectionButtonUnits(title) {
+     const estimatedTextWidth = title.length * 9.6 + 12;
+
+     return Math.max(1, Math.ceil(estimatedTextWidth / 36));
+}
+
 // NOTE: Creates a collapsible settings section button and places the provided controls under it.
 function createSettingsSection(title, elements = [], isOpen = false) {
      const section = document.createElement("section");
@@ -807,6 +792,7 @@ function createSettingsSection(title, elements = [], isOpen = false) {
      toggle.textContent = title;
      toggle.setAttribute("aria-expanded", String(isOpen));
      toggle.setAttribute("aria-controls", bodyId);
+     toggle.style.setProperty("--section-button-units", String(getSettingsSectionButtonUnits(title)));
      body.className = "settings-section-body";
      body.dataset.settingsSectionBody = "true";
      body.id = bodyId;
@@ -821,6 +807,35 @@ function createSettingsSection(title, elements = [], isOpen = false) {
      return section;
 }
 
+function setSettingsSectionOpen(section, isOpen) {
+     const toggle = section?.querySelector(":scope > [data-settings-section-toggle]");
+     const body = section?.querySelector(":scope > [data-settings-section-body]");
+
+     if (!section || !toggle || !body) {
+          return;
+     }
+
+     section.classList.toggle("is-open", isOpen);
+     toggle.setAttribute("aria-expanded", String(isOpen));
+     body.hidden = !isOpen;
+}
+
+// NOTE: Closes a settings section and any inline color matrix it contains.
+function closeSettingsSection(section) {
+     if (!section) {
+          return;
+     }
+
+     if (section.contains(tertiaryMatrixPopover)) {
+          setTertiaryMatrixOpen(false);
+     }
+     setSettingsSectionOpen(section, false);
+}
+
+function closeSettingsSections(root = document) {
+     root.querySelectorAll("[data-settings-section].is-open").forEach(closeSettingsSection);
+}
+
 // NOTE: Opens one settings section and closes its sibling sections in the same panel.
 function openSettingsSection(section) {
      const panel = section?.closest(".settings-panel, .item-control-panel");
@@ -830,19 +845,20 @@ function openSettingsSection(section) {
      }
 
      panel.querySelectorAll(":scope > .settings-section").forEach((sibling) => {
-          const isOpen = sibling === section;
-          const toggle = sibling.querySelector(":scope > [data-settings-section-toggle]");
-          const body = sibling.querySelector(":scope > [data-settings-section-body]");
-
-          sibling.classList.toggle("is-open", isOpen);
-          toggle?.setAttribute("aria-expanded", String(isOpen));
-          if (body) {
-               body.hidden = !isOpen;
-          }
+          setSettingsSectionOpen(sibling, sibling === section);
      });
 }
 
-// NOTE: Attaches click behavior to settings section buttons and opens the first section by default.
+function toggleSettingsSection(section) {
+     if (section?.classList.contains("is-open")) {
+          closeSettingsSection(section);
+          return;
+     }
+
+     openSettingsSection(section);
+}
+
+// NOTE: Attaches click behavior to settings section buttons and keeps all sections closed by default.
 function initializeSettingsSections(root = document) {
      root.querySelectorAll("[data-settings-section]").forEach((section) => {
           const toggle = section.querySelector(":scope > [data-settings-section-toggle]");
@@ -860,7 +876,7 @@ function initializeSettingsSections(root = document) {
           }
 
           section.dataset.settingsSectionReady = "true";
-          toggle.addEventListener("click", () => openSettingsSection(section));
+          toggle.addEventListener("click", () => toggleSettingsSection(section));
      });
 
      const panels = [];
@@ -875,9 +891,6 @@ function initializeSettingsSections(root = document) {
           panel.classList.toggle("is-sectioned-panel", sections.length > 0);
           if (sections.length) {
                panel.style.setProperty("--settings-section-count", String(sections.length));
-          }
-          if (sections.length && !sections.some((section) => section.classList.contains("is-open"))) {
-               openSettingsSection(sections[0]);
           }
      });
 }
@@ -905,12 +918,12 @@ function initializeNotebookSettingsSections() {
      ];
      const anchor = children.find((child) => child.classList?.contains("page-panel-actions")) || null;
 
-     sections.forEach(([title, element], index) => {
+     sections.forEach(([title, element]) => {
           if (!element) {
                return;
           }
 
-          pagePanel.insertBefore(createSettingsSection(title, [element], index === 0), anchor);
+          pagePanel.insertBefore(createSettingsSection(title, [element], false), anchor);
      });
 
      pagePanel.dataset.settingsSectionsWrapped = "true";
@@ -946,8 +959,8 @@ function initializeItemControlPanelSections(panel) {
 
      const controls = Array.from(panel.children).filter((child) => !child.matches("[data-settings-section]"));
 
-     controls.forEach((control, index) => {
-          panel.append(createSettingsSection(getItemControlSectionTitle(control), [control], index === 0));
+     controls.forEach((control) => {
+          panel.append(createSettingsSection(getItemControlSectionTitle(control), [control], false));
      });
 
      panel.dataset.settingsSectionsWrapped = "true";
@@ -1120,19 +1133,34 @@ function syncObjectControlsSettingsTab(tabName) {
      }
 
      const controls = objectControlsShell.querySelector(".item-controls");
-     const itemTabName = getObjectSettingsItemPanelName(tabName);
+     const itemPanelNames = getObjectSettingsItemPanelNames(tabName);
 
-     if (controls && itemTabName && typeof setItemControlsTab === "function") {
-          setItemControlsTab(controls, itemTabName);
+     if (controls && itemPanelNames.length) {
+          setItemControlsVisiblePanels(controls, itemPanelNames);
      }
 }
 
-function getObjectSettingsItemPanelName(tabName) {
+function getObjectSettingsItemPanelNames(tabName) {
      return {
-          "object-style": "style",
-          "object-text": "text",
-          "object-widget": "widget"
-     }[tabName] || "";
+          "object-options": ["style", "widget"],
+          "object-text": ["text"]
+     }[tabName] || [];
+}
+
+function setItemControlsVisiblePanels(controls, panelNames) {
+     closeCustomSelects(controls);
+     clearSelectFocus(controls);
+     controls.dataset.activeItemControlTab = panelNames.join("-");
+
+     controls.querySelectorAll("[data-item-control-tab]").forEach((tab) => {
+          const isActive = panelNames.includes(tab.dataset.itemControlTab);
+
+          tab.classList.toggle("is-active", isActive);
+          tab.setAttribute("aria-selected", String(isActive));
+     });
+     controls.querySelectorAll("[data-item-control-panel]").forEach((panel) => {
+          panel.hidden = !panelNames.includes(panel.dataset.itemControlPanel);
+     });
 }
 
 function isObjectSettingsTab(tabName) {
@@ -1142,6 +1170,7 @@ function isObjectSettingsTab(tabName) {
 function selectSettingsTab(tabName) {
      closeCustomSelects(plannerSettings);
      clearSelectFocus(plannerSettings);
+     closeSettingsSections(plannerSettings);
 
      settingsTabs.forEach((tab) => {
           const isActive = tab.dataset.settingsTab === tabName;
@@ -1232,8 +1261,8 @@ function updateObjectControlsState() {
      settingsTabs
           .filter((tab) => isObjectSettingsTab(tab.dataset.settingsTab || ""))
           .forEach((tab) => {
-               const itemPanelName = getObjectSettingsItemPanelName(tab.dataset.settingsTab || "");
-               const hasItemPanel = Boolean(controls?.querySelector(`[data-item-control-panel="${itemPanelName}"]`));
+               const itemPanelNames = getObjectSettingsItemPanelNames(tab.dataset.settingsTab || "");
+               const hasItemPanel = itemPanelNames.some((panelName) => Boolean(controls?.querySelector(`[data-item-control-panel="${panelName}"]`)));
                const isDisabled = !hasControls || !hasItemPanel;
 
                tab.disabled = isDisabled;
@@ -1249,6 +1278,8 @@ function updateObjectControlsState() {
           if (fallbackTab) {
                selectSettingsTab(fallbackTab.dataset.settingsTab);
           }
+     } else if (activeTab && hasControls && isObjectSettingsTab(activeTab.dataset.settingsTab || "")) {
+          syncObjectControlsSettingsTab(activeTab.dataset.settingsTab);
      }
 }
 
@@ -1295,6 +1326,10 @@ function isPointerInsideElementBox(event, element) {
 
 function collapseMenusFromOutsidePointer(event) {
      if (event.target.closest("[data-create-item]")) {
+          return;
+     }
+
+     if (event.target.closest("[data-tertiary-matrix], [data-hex-popover]")) {
           return;
      }
 

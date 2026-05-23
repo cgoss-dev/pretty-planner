@@ -478,7 +478,7 @@ window.KeyboardControls = (() => {
                title: "Menu",
                controls: [
                     { key: "Tab", action: "Move through tabs and controls" },
-                    { key: "1-6", action: "Move between menu tabs" },
+                    { key: "1-5", action: "Move between menu tabs" },
                     { key: "[ / ]", action: "Move between menu tabs" },
                     { key: "W / A / S / D", action: "Move spatially through menu controls; W/S scroll at edges" },
                     { key: "Arrow keys", action: "Move spatially through menu controls; up/down scroll at edges" },

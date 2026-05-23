@@ -38,6 +38,7 @@
      --tertiary-10: #40f;
      --tertiary-11: #80f;
      --tertiary-12: #f0f;
+     
 
      /* NOTE: Paper Colors */
      --paper-offwhite: #ffe;
@@ -71,7 +72,7 @@
      --arrow-control-fill: var(--tint-50);
      --arrow-active-fill: var(--color-gray3);
      --arrow-border: var(--border-sm) solid rgba(17, 17, 17, 0.25);
-     --widget-box-fill: var(--sticky-fill, var(--paper-offwhite));
+     --widget-box-fill: var(--sticker-fill, var(--paper-offwhite));
      --calendar-tint-alpha: 0.1;
      --calendar-tint: rgba(0, 0, 0, var(--calendar-tint-alpha));
      --calendar-weekday-header-tint: rgba(0, 0, 0, calc(var(--calendar-tint-alpha) * 2));
@@ -80,7 +81,7 @@
           var(--widget-box-fill);
      --calendar-weekday-header-background:
           linear-gradient(var(--calendar-weekday-header-tint), var(--calendar-weekday-header-tint)),
-          var(--sticky-fill-opaque, var(--widget-box-fill));
+          var(--sticker-fill-opaque, var(--widget-box-fill));
 
      --desk: var(--paper-linen);
      --desk-image: none;
@@ -123,8 +124,8 @@
      --half-guide-opacity: 0.5;
      --third-guide-opacity: 0.5;
      --fourth-guide-opacity: 0.5;
-     --source-sticky-size: calc(var(--notebook-width) * 0.1764705882);
-     --sticky-grid-units: 12;
+     --source-sticker-size: calc(var(--notebook-width) * 0.1764705882);
+     --sticker-grid-units: 12;
      --ink: var(--color-gray1);
      --page-aspect: 8.5 / 11;
      --spread-aspect: 17 / 11;
@@ -638,7 +639,8 @@ body {
 
 .settings-panel.is-sectioned-panel,
 .item-control-panel.is-sectioned-panel {
-     grid-template-columns: repeat(var(--settings-section-count, 1), minmax(0, 1fr));
+     grid-template-columns: repeat(var(--settings-section-count, 1), max-content);
+     justify-content: center;
 }
 
 .settings-panel.is-sectioned-panel > .settings-section,
@@ -651,9 +653,11 @@ body {
      display: flex;
      align-items: center;
      justify-content: center;
-     min-height: 34px;
-     width: 100%;
-     padding: 7px 10px;
+     width: calc(var(--color-swatch-size) * var(--section-button-units, 1));
+     min-width: var(--color-swatch-size);
+     height: var(--color-swatch-size);
+     min-height: 0;
+     padding: 0 4px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
      border-radius: 6px;
      background: rgba(255, 255, 255, 0.42);
@@ -662,6 +666,7 @@ body {
      font: 400 var(--font-size-sm) var(--font-noto);
      line-height: 1.1;
      text-align: center;
+     overflow: hidden;
 }
 
 .settings-panel.is-sectioned-panel > .settings-section > .settings-section-toggle,
@@ -676,10 +681,15 @@ body {
 
 .settings-section-body {
      display: grid;
-     gap: 8px;
+     align-content: start;
+     gap: 6px;
      grid-column: 1 / -1;
      grid-row: 2;
      min-width: 0;
+     padding: 7px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
+     border-radius: 6px;
+     background: rgba(255, 255, 255, 0.28);
 }
 
 .settings-section-body > .setting-field > span:first-child,
@@ -1216,21 +1226,21 @@ body {
 }
 
 .tertiary-matrix-popover {
-     position: fixed;
-     z-index: 260;
+     position: static;
+     z-index: 1;
      display: grid;
      gap: 6px;
-     width: max-content;
-     max-width: calc(100vw - 24px);
-     max-height: 100vh;
+     width: 100%;
+     max-width: 100%;
+     max-height: none;
      padding: 8px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-     border-radius: 8px;
-     background: var(--menu-fill);
-     filter: drop-shadow(0 12px 12px rgba(17, 17, 17, 0.14));
+     border-radius: 6px;
+     background: rgba(255, 255, 255, 0.3);
+     filter: none;
      opacity: 0;
      overflow: auto;
-     transform: translateY(8px);
+     transform: translateY(-4px);
      transition:
           opacity 180ms ease,
           transform 220ms ease;
@@ -1257,6 +1267,8 @@ body {
      grid-template-columns: max-content repeat(12, var(--matrix-swatch-size));
      grid-auto-rows: var(--matrix-swatch-size);
      gap: 3px;
+     width: max-content;
+     max-width: 100%;
 }
 
 .tertiary-matrix-label,
@@ -2188,12 +2200,12 @@ body {
 }
 
 /* NOTE: Widget Tray Buttons */
-.sticky-note {
+.sticker-source {
      position: absolute;
      z-index: 1;
      top: calc(50% - (var(--notebook-height) / 2));
      left: var(--tool-rail-left);
-     width: var(--source-sticky-size);
+     width: var(--source-sticker-size);
      aspect-ratio: 1;
      border-radius: 5px;
      background: var(--widget-box-fill);
@@ -2207,7 +2219,7 @@ body {
 .toc-source {
      display: grid;
      place-items: center;
-     width: var(--source-sticky-size);
+     width: var(--source-sticker-size);
      aspect-ratio: 6 / 1.6;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      border-radius: 5px;
@@ -2296,7 +2308,7 @@ body {
      cursor: not-allowed;
 }
 
-.add-panel .sticky-note,
+.add-panel .sticker-source,
 .add-panel .page-title-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
@@ -2314,7 +2326,7 @@ body {
           transform 150ms ease;
 }
 
-.add-panel .sticky-note,
+.add-panel .sticker-source,
 .add-panel .page-title-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
@@ -2324,8 +2336,8 @@ body {
      width: 100px;
 }
 
-.add-panel .sticky-note:hover,
-.add-panel .sticky-note:focus-visible,
+.add-panel .sticker-source:hover,
+.add-panel .sticker-source:focus-visible,
 .add-panel .page-title-source:hover,
 .add-panel .page-title-source:focus-visible,
 .add-panel .toc-source:hover,
@@ -2374,7 +2386,7 @@ body {
 
 /* NOTE: Planner Items Sitting On The Desk Or Page */
 .planner-item {
-     border: var(--sticky-border-size, var(--border-sm)) solid var(--sticky-border-color, rgba(17, 17, 17, 0.18));
+     border: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
      border-radius: 5px;
      background: var(--widget-box-fill);
      color: var(--color-gray1);
@@ -2391,20 +2403,20 @@ body {
 .planner-item {
      position: absolute;
      z-index: 4;
-     width: calc(var(--dot-grid-size-x) * var(--sticky-grid-units));
+     width: calc(var(--dot-grid-size-x) * var(--sticker-grid-units));
 }
 
-.planner-item-sticky {
+.planner-item-sticker {
      aspect-ratio: 1;
      overflow: visible;
 }
 
-.planner-item-sticky[data-has-clear-fill="true"],
-.planner-item-sticky[data-has-clear-fill="true"][data-dot-grid="true"] {
+.planner-item-sticker[data-has-clear-fill="true"],
+.planner-item-sticker[data-has-clear-fill="true"][data-dot-grid="true"] {
      background: transparent;
 }
 
-.planner-item-sticky[data-has-clear-border="true"] {
+.planner-item-sticker[data-has-clear-border="true"] {
      border-color: transparent;
 }
 
@@ -2414,7 +2426,7 @@ body {
 }
 
 .planner-item-page-title[data-has-clear-fill="true"],
-.planner-item-page-title[data-has-clear-fill="true"] .sticky-text {
+.planner-item-page-title[data-has-clear-fill="true"] .sticker-text {
      background: transparent;
 }
 
@@ -2425,17 +2437,17 @@ body {
      background: transparent;
 }
 
-.planner-item-sticky[data-dot-grid="true"] {
+.planner-item-sticker[data-dot-grid="true"] {
      background:
           radial-gradient(circle at 1px 1px, rgba(17, 17, 17, 0.24) 0 1px, transparent 1.35px),
           var(--widget-box-fill);
      background-position:
-          calc(var(--sticky-dot-grid-offset-x, 0px) + var(--sticky-dot-grid-size-x, calc(100% / var(--sticky-grid-units))) - 1px) calc(var(--sticky-dot-grid-offset-y, 0px) + var(--sticky-dot-grid-size-y, calc(100% / var(--sticky-grid-units))) - 1px),
+          calc(var(--sticker-dot-grid-offset-x, 0px) + var(--sticker-dot-grid-size-x, calc(100% / var(--sticker-grid-units))) - 1px) calc(var(--sticker-dot-grid-offset-y, 0px) + var(--sticker-dot-grid-size-y, calc(100% / var(--sticker-grid-units))) - 1px),
           0 0;
-     background-size: var(--sticky-dot-grid-size-x, calc(100% / var(--sticky-grid-units))) var(--sticky-dot-grid-size-y, calc(100% / var(--sticky-grid-units))), auto;
+     background-size: var(--sticker-dot-grid-size-x, calc(100% / var(--sticker-grid-units))) var(--sticker-dot-grid-size-y, calc(100% / var(--sticker-grid-units))), auto;
 }
 
-.sticky-text {
+.sticker-text {
      position: absolute;
      inset: 8px;
      z-index: 1;
@@ -2450,34 +2462,34 @@ body {
      scrollbar-width: none;
 }
 
-.planner-item-sticky.is-editing-text .sticky-text {
+.planner-item-sticker.is-editing-text .sticker-text {
      overflow-y: visible;
      pointer-events: auto;
 }
 
-.planner-item-sticky .sticky-text {
+.planner-item-sticker .sticker-text {
      overflow: visible;
 }
 
-.planner-item-page-title .sticky-text {
+.planner-item-page-title .sticker-text {
      inset: -3px 6px -5px;
      display: grid;
      align-items: center;
      overflow: visible;
 }
 
-.planner-item-page-title .sticky-text:empty::before {
+.planner-item-page-title .sticker-text:empty::before {
      content: "Page Title";
      color: var(--color-gray4);
 }
 
-.planner-item-page-title.is-editing-text .sticky-text {
+.planner-item-page-title.is-editing-text .sticker-text {
      overflow-y: visible;
      pointer-events: auto;
 }
 
 .toc-widget {
-     --toc-grid-line-color: var(--sticky-border-color, rgba(17, 17, 17, 0.18));
+     --toc-grid-line-color: var(--sticker-border-color, rgba(17, 17, 17, 0.18));
      position: absolute;
      inset: 0;
      z-index: 1;
@@ -2498,8 +2510,8 @@ body {
      inset: 0;
      z-index: 2;
      border-radius: inherit;
-     outline: var(--sticky-border-size, var(--border-sm)) solid var(--sticky-border-color, rgba(17, 17, 17, 0.18));
-     outline-offset: calc(var(--sticky-border-size, var(--border-sm)) * -1);
+     outline: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
+     outline-offset: calc(var(--sticker-border-size, var(--border-sm)) * -1);
      pointer-events: none;
 }
 
@@ -2610,11 +2622,11 @@ body {
      background: var(--calendar-tint-background);
 }
 
-.sticky-text::-webkit-scrollbar {
+.sticker-text::-webkit-scrollbar {
      display: none;
 }
 
-.planner-item-sticky.is-editing-text[data-text-overflow="true"]::after {
+.planner-item-sticker.is-editing-text[data-text-overflow="true"]::after {
      content: "⇧";
      position: absolute;
      right: 5px;
@@ -2634,7 +2646,7 @@ body {
 .weekly-vertical-source {
      display: grid;
      place-items: center;
-     width: min(calc(var(--source-sticky-size) * 0.95), 100%);
+     width: min(calc(var(--source-sticker-size) * 0.95), 100%);
      aspect-ratio: 1;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
      border-radius: 5px;
@@ -2780,8 +2792,8 @@ body {
      inset: 0 0 0 calc(100% / 8);
      z-index: 2;
      border-radius: inherit;
-     outline: var(--sticky-border-size, var(--border-sm)) solid var(--sticky-border-color, rgba(17, 17, 17, 0.18));
-     outline-offset: calc(var(--sticky-border-size, var(--border-sm)) * -1);
+     outline: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
+     outline-offset: calc(var(--sticker-border-size, var(--border-sm)) * -1);
      pointer-events: none;
 }
 
@@ -3059,8 +3071,8 @@ body {
      inset: 0;
      z-index: 2;
      border-radius: inherit;
-     outline: var(--sticky-border-size, var(--border-sm)) solid var(--sticky-border-color, rgba(17, 17, 17, 0.18));
-     outline-offset: calc(var(--sticky-border-size, var(--border-sm)) * -1);
+     outline: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
+     outline-offset: calc(var(--sticker-border-size, var(--border-sm)) * -1);
      pointer-events: none;
 }
 
@@ -3139,7 +3151,7 @@ body {
      inset: 0;
      z-index: 2;
      border-radius: inherit;
-     border: var(--sticky-border-size, var(--border-sm)) solid var(--sticky-border-color, rgba(17, 17, 17, 0.18));
+     border: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
      pointer-events: none;
 }
 
@@ -3356,6 +3368,18 @@ body {
      box-shadow: none;
 }
 
+.settings-object-shell .item-controls[data-active-item-control-tab="style-widget"] {
+     justify-content: center;
+     align-content: start;
+     gap: 8px;
+}
+
+.settings-object-shell .item-controls[data-active-item-control-tab="style-widget"] > .item-control-panel.is-sectioned-panel:not([hidden]) {
+     display: contents;
+     max-height: none;
+     overflow: visible;
+}
+
 .settings-object-shell .item-control-tabs {
      display: none;
 }
@@ -3449,6 +3473,13 @@ body {
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      border-radius: 7px 7px 8px 8px;
      background: var(--menu-fill);
+}
+
+.item-control-panel.is-sectioned-panel {
+     padding: 0;
+     border: 0;
+     border-radius: 0;
+     background: transparent;
 }
 
 .item-controls.is-docked .item-control-panel {
@@ -3930,7 +3961,7 @@ body.is-single-page-viewport .notebook {
      grid-template-columns: 1fr 1fr;
 }
 
-body.is-single-page-viewport .planner-desk > .sticky-note {
+body.is-single-page-viewport .planner-desk > .sticker-source {
      display: none;
 }
 
@@ -3976,7 +4007,7 @@ body.is-single-page-viewport .planner-desk > .sticky-note {
      }
 
      .planner-settings,
-     .sticky-note {
+     .sticker-source {
           display: none;
      }
 

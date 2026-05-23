@@ -32,7 +32,7 @@
                height: 11
           },
           items: {
-               stickyGridUnits: 12,
+               stickerGridUnits: 12,
                tocLeftColumnGridUnits: 2,
                tocRightColumnMinGridUnits: 8,
                perpetualCalendarMaxDayRows: 31,
@@ -40,7 +40,7 @@
                perpetualCalendarLeftColumnGridUnits,
                perpetualCalendarRightColumnMinGridUnits,
                itemGridUnits: {
-                    sticky: {
+                    sticker: {
                          width: 12,
                          height: 12
                     },
@@ -206,7 +206,7 @@
                     }
                },
                paletteOrder: ["gray", "tertiary"],
-               tertiaryMatrixSteps: [90, 70, 50, 30, 10],
+               tertiaryMatrixSteps: [80, 60, 40, 20],
                deskColors: {
                     "pink": {
                          label: "Pink",
@@ -218,7 +218,7 @@
                     },
                     "black": {
                          label: "Black",
-                         color: "var(--color-black)"
+                         color: "#333"
                     },
                     "white": {
                          label: "White",

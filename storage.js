@@ -66,11 +66,11 @@ function resizePageTemplateItems(items) {
 function serializePlannerItem(item) {
      const pageId = item.dataset.pageId || "";
      const page = pageId ? pages.find((plannerPage) => getPageId(plannerPage) === pageId) || null : null;
-     const textElement = getStickyTextElement(item);
-     const isTextItem = isStickyTextItem(item);
+     const textElement = getStickerTextElement(item);
+     const isTextItem = isStickerTextItem(item);
      const baseItem = {
           id: item.dataset.templateId,
-          type: item.dataset.itemType || "sticky",
+          type: item.dataset.itemType || "sticker",
           groupId: item.dataset.groupId || null,
           style: {
                fillColor: item.dataset.fillColor,
@@ -405,7 +405,11 @@ function getWeekNumberFormatFromSettings(settings = {}, item = null) {
      return current;
 }
 
-function normalizePlannerItemType(type = "sticky") {
+function normalizePlannerItemType(type = "sticker") {
+     if (type === "sticky") {
+          return "sticker";
+     }
+
      if (type === "mini-cal" || type === "mini-cal2" || type === "mini-month2") {
           return "mini-month";
      }
@@ -422,9 +426,9 @@ function isLegacyMiniMonth2Type(type) {
 }
 
 function getStoredItemGrid(itemData) {
-     const type = normalizePlannerItemType(itemData.type || "sticky");
+     const type = normalizePlannerItemType(itemData.type || "sticker");
      const isLegacyMiniMonth2 = isLegacyMiniMonth2Type(itemData.type);
-     const fallback = isLegacyMiniMonth2 ? getMiniMonthGridUnits() : itemGridUnits[type] || itemGridUnits.sticky;
+     const fallback = isLegacyMiniMonth2 ? getMiniMonthGridUnits() : itemGridUnits[type] || itemGridUnits.sticker;
      const grid = itemData.grid || {};
      const storedWidth = Number(grid.width);
      const storedHeight = Number(grid.height);
@@ -451,8 +455,8 @@ function restorePlannerItemSettings(item, itemData) {
           borderWidth: style.borderWidth,
           dotGrid: normalizeStoredBoolean(style.dotGrid)
      });
-     if (isStickyTextItem(item)) {
-          setStickyTextSettings(item, {
+     if (isStickerTextItem(item)) {
+          setStickerTextSettings(item, {
                enabled: normalizeStoredBoolean(text.enabled),
                content: text.content || "",
                size: text.size,
@@ -512,7 +516,7 @@ function restorePlannerItemSettings(item, itemData) {
 }
 
 function restorePlannerItem(itemData) {
-     const type = normalizePlannerItemType(itemData.type || "sticky");
+     const type = normalizePlannerItemType(itemData.type || "sticker");
      const isPagePlacement = itemData.placement === "page" || itemData.page;
 
      if (!itemGridUnits[type]) {
@@ -550,7 +554,7 @@ function restorePlannerItem(itemData) {
      } else {
           const deskRect = plannerDesk.getBoundingClientRect();
           const frame = itemData.frame || {};
-          const fallback = isLegacyMiniMonth2Type(itemData.type) ? getMiniMonthGridUnits(item) : itemGridUnits[type] || itemGridUnits.sticky;
+          const fallback = isLegacyMiniMonth2Type(itemData.type) ? getMiniMonthGridUnits(item) : itemGridUnits[type] || itemGridUnits.sticker;
           const frameX = Number(frame.x);
           const frameY = Number(frame.y);
           const frameWidth = Number(frame.width);

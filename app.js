@@ -55,7 +55,7 @@ const resizeEdgeSize = appControls.resizeEdgeSize;
 const moveStartThreshold = appControls.moveStartThreshold;
 const pageStickDepth = appControls.pageStickDepth;
 const inchToCentimeters = appControls.inchToCentimeters;
-const stickyGridUnits = itemControls.stickyGridUnits;
+const stickerGridUnits = itemControls.stickerGridUnits;
 const tocLeftColumnGridUnits = itemControls.tocLeftColumnGridUnits;
 const tocRightColumnMinGridUnits = itemControls.tocRightColumnMinGridUnits;
 const perpetualCalendarMaxDayRows = itemControls.perpetualCalendarMaxDayRows;
@@ -340,8 +340,8 @@ function getTextLineHeightCellSize(item) {
           return 0;
      }
 
-     if (isStickyTextItem(item)) {
-          return item.offsetHeight / (getItemGridUnits(item)?.height || stickyGridUnits);
+     if (isStickerTextItem(item)) {
+          return item.offsetHeight / (getItemGridUnits(item)?.height || stickerGridUnits);
      }
 
      if (item.dataset.itemType === "mini-month") {
@@ -540,7 +540,7 @@ function showZoomToast() {
 }
 
 function zoomViewFromWheel(event) {
-     if (event.target.closest(".sticky-text[contenteditable='true'], .calendar-day-text[contenteditable='true']")) {
+     if (event.target.closest(".sticker-text[contenteditable='true'], .calendar-day-text[contenteditable='true']")) {
           return;
      }
 
@@ -1290,7 +1290,7 @@ function startKeyboardSourcePlacement(source) {
           return false;
      }
 
-     const item = makePlannerItem(source.dataset.createType || "sticky");
+     const item = makePlannerItem(source.dataset.createType || "sticker");
      const sourceRect = source.getBoundingClientRect();
      const pageRect = page.getBoundingClientRect();
      const offsetX = sourceRect.width / 2;
@@ -1802,7 +1802,7 @@ function handleObjectSettingsKey(event) {
 
      event.preventDefault();
      openItemMenu(selectedItem);
-     selectSettingsTab("object-style");
+     selectSettingsTab("object-options");
      openSidebar();
 }
 
@@ -1812,15 +1812,15 @@ function getSelectedTextEditItem() {
           return null;
      }
 
-     return selectedItem.querySelector(".sticky-text, .calendar-day-text") ? selectedItem : null;
+     return selectedItem.querySelector(".sticker-text, .calendar-day-text") ? selectedItem : null;
 }
 
 function startSelectedItemTextEditing(item) {
      // NOTE: Starts text editing for the selected planner item using its primary editable text area
-     const stickyText = item.querySelector(".sticky-text");
+     const stickerText = item.querySelector(".sticker-text");
 
-     if (stickyText) {
-          startStickyTextEditing(item);
+     if (stickerText) {
+          startStickerTextEditing(item);
           return true;
      }
 
@@ -1946,6 +1946,23 @@ function handleTextEditFinishKey(event) {
      }
 
      event.preventDefault();
+     editingTarget.blur();
+}
+
+function finishTextEditingFromOutsidePointer(event) {
+     // NOTE: Leaves text editing when pointer input starts outside the widget being edited
+     const editingTarget = document.querySelector("[contenteditable='true']");
+
+     if (!editingTarget) {
+          return;
+     }
+
+     const editingItem = editingTarget.closest(".planner-item");
+
+     if (!editingItem || editingItem.contains(event.target)) {
+          return;
+     }
+
      editingTarget.blur();
 }
 
@@ -2542,7 +2559,7 @@ function applyPlannerConfig() {
      const referencePaper = getReferencePaperSizeInches();
      const referenceSpreadRatio = referencePaper.width * 2 / referencePaper.height;
      const notebookHeightRatio = Math.min(50.47, 78 / referenceSpreadRatio);
-     const sourceStickyRatio = 50 / plannerConfig.gridColumns * stickyGridUnits;
+     const sourceStickerRatio = 50 / plannerConfig.gridColumns * stickerGridUnits;
      const pageViewScale = paperViewScales[plannerConfig.paperKey] || 1;
      const screenPageWidthInches = pageWidthInches * pageViewScale;
      const screenPageHeightInches = pageHeightInches * pageViewScale;
@@ -2580,7 +2597,7 @@ function applyPlannerConfig() {
      syncGridSnapOrigins();
      setRootNumber("--notebook-width", getNotebookWidthFormula());
      setRootNumber("--notebook-height", `min(${notebookHeightRatio}vw, 724px, calc(100vh - ${notebookViewportHeightReserve}px))`);
-     setRootNumber("--source-sticky-size", `calc(var(--notebook-width) * ${sourceStickyRatio / 100})`);
+     setRootNumber("--source-sticker-size", `calc(var(--notebook-width) * ${sourceStickerRatio / 100})`);
      setRootNumber("--print-page-width", `${pageWidthInches}in`);
      setRootNumber("--print-page-height", `${pageHeightInches}in`);
      setRootNumber("--print-spread-width", `${pageWidthInches * 2}in`);
@@ -2688,6 +2705,13 @@ settingChoiceInputs.forEach((input) => {
 });
 guideInputs.forEach((input) => {
      input.addEventListener("change", changePlannerSetting);
+});
+plannerSettings.addEventListener("change", (event) => {
+     const section = event.target.closest("[data-settings-section]");
+
+     if (section) {
+          window.setTimeout(() => closeSettingsSection(section), 0);
+     }
 });
 insertPageButton?.addEventListener("click", insertFocusedPage);
 deletePageButton?.addEventListener("click", deleteFocusedPage);
@@ -2798,6 +2822,7 @@ plannerDesk.addEventListener("pointerleave", () => {
 plannerDesk.addEventListener("wheel", zoomViewFromWheel, {
      passive: false
 });
+document.addEventListener("pointerdown", finishTextEditingFromOutsidePointer, true);
 document.addEventListener("pointerdown", collapseMenusFromOutsidePointer, true);
 document.addEventListener("click", (event) => {
      if (shouldSkipNextClear) {
@@ -2820,7 +2845,21 @@ document.addEventListener("click", (event) => {
           setTertiaryMatrixOpen(false);
      }
 
-     if (!event.target.closest(".planner-item") && !event.target.closest(".planner-settings") && !event.target.closest(".page-snap-controls")) {
+     document.querySelectorAll("[data-settings-section].is-open").forEach((section) => {
+          if (
+               !section.contains(event.target) &&
+               !event.target.closest("[data-tertiary-matrix], [data-hex-popover]")
+          ) {
+               closeSettingsSection(section);
+          }
+     });
+
+     if (
+          !event.target.closest(".planner-item") &&
+          !event.target.closest(".planner-settings") &&
+          !event.target.closest(".page-snap-controls") &&
+          !event.target.closest("[data-tertiary-matrix], [data-hex-popover]")
+     ) {
           clearSelection();
      }
 });
