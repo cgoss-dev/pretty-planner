@@ -193,7 +193,6 @@ function serializePlannerTemplate() {
                spineLeewayGridColumns: 1
           },
           guides: {
-               halves: plannerConfig.guides.halves,
                thirds: plannerConfig.guides.thirds,
                fourths: plannerConfig.guides.fourths
           },
@@ -314,6 +313,9 @@ function restoreSavedSettings() {
      setSelectValue(accentColorSelect, settings.accentColor);
      setSelectValue(deskColorSelect, settings.deskColor);
      if (settings.guides && typeof settings.guides === "object") {
+          if (settings.guides.halves === true) {
+               settings.guides.fourths = true;
+          }
           guideInputs.forEach((input) => {
                if (settings.guides[input.dataset.guide] !== undefined) {
                     input.checked = Boolean(settings.guides[input.dataset.guide]);

@@ -134,7 +134,6 @@
      --fourth-y-1: 25%;
      --fourth-y-2: 50%;
      --fourth-y-3: 75%;
-     --half-guide-opacity: 0.5;
      --third-guide-opacity: 0.5;
      --fourth-guide-opacity: 0.5;
      --source-sticker-size: calc(var(--notebook-width) * 0.1764705882);
@@ -814,7 +813,7 @@ body {
 
 .guide-settings {
      display: grid;
-     grid-template-columns: repeat(3, minmax(0, 1fr));
+     grid-template-columns: repeat(2, minmax(0, 1fr));
      gap: 6px;
 }
 
@@ -1410,10 +1409,6 @@ body {
      }
 }
 
-[data-guide-option="halves"] input {
-     accent-color: var(--tertiary-12);
-}
-
 [data-guide-option="thirds"] input {
      accent-color: var(--tertiary-07);
 }
@@ -1613,10 +1608,10 @@ body {
           linear-gradient(var(--paper), var(--paper)),
           linear-gradient(var(--paper), var(--paper)),
           radial-gradient(circle at 1px 1px, var(--dot-grid-color) 0 1px, transparent 1.35px),
-          linear-gradient(90deg, transparent calc(var(--half-page-x) - 4px), rgba(245, 194, 231, var(--half-guide-opacity)) var(--half-page-x), transparent calc(var(--half-page-x) + 4px)),
-          linear-gradient(180deg, transparent calc(var(--half-y) - 4px), rgba(245, 194, 231, var(--half-guide-opacity)) var(--half-y), transparent calc(var(--half-y) + 4px)),
-          linear-gradient(90deg, transparent calc(var(--third-x-start) - 4px), rgba(166, 227, 161, var(--third-guide-opacity)) var(--third-x-start), transparent calc(var(--third-x-start) + 4px), transparent calc(var(--third-x-end) - 4px), rgba(166, 227, 161, var(--third-guide-opacity)) var(--third-x-end), transparent calc(var(--third-x-end) + 4px)),
-          linear-gradient(180deg, transparent calc(var(--third-y-1) - 4px), rgba(166, 227, 161, var(--third-guide-opacity)) var(--third-y-1), transparent calc(var(--third-y-1) + 4px), transparent calc(var(--third-y-2) - 4px), rgba(166, 227, 161, var(--third-guide-opacity)) var(--third-y-2), transparent calc(var(--third-y-2) + 4px)),
+          repeating-linear-gradient(180deg, rgba(166, 227, 161, var(--third-guide-opacity)) 0 8px, transparent 8px 14px),
+          repeating-linear-gradient(180deg, rgba(166, 227, 161, var(--third-guide-opacity)) 0 8px, transparent 8px 14px),
+          repeating-linear-gradient(90deg, rgba(166, 227, 161, var(--third-guide-opacity)) 0 8px, transparent 8px 14px),
+          repeating-linear-gradient(90deg, rgba(166, 227, 161, var(--third-guide-opacity)) 0 8px, transparent 8px 14px),
           linear-gradient(90deg, transparent calc(var(--fourth-x-start) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-x-start), transparent calc(var(--fourth-x-start) + 4px), transparent calc(var(--fourth-x-mid) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-x-mid), transparent calc(var(--fourth-x-mid) + 4px), transparent calc(var(--fourth-x-end) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-x-end), transparent calc(var(--fourth-x-end) + 4px)),
           linear-gradient(180deg, transparent calc(var(--fourth-y-1) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-y-1), transparent calc(var(--fourth-y-1) + 4px), transparent calc(var(--fourth-y-2) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-y-2), transparent calc(var(--fourth-y-2) + 4px), transparent calc(var(--fourth-y-3) - 4px), rgba(116, 199, 236, var(--fourth-guide-opacity)) var(--fourth-y-3), transparent calc(var(--fourth-y-3) + 4px)),
           var(--paper);
@@ -1627,10 +1622,10 @@ body {
           var(--outside-edge-dot-mask-width) 100%,
           var(--dot-grid-size-x) var(--dot-grid-size-y),
           var(--dot-grid-size-x) var(--dot-grid-size-y),
-          100% calc(100% - var(--dot-grid-size-y)),
-          calc(100% - var(--dot-grid-size-x)) 100%,
-          100% calc(100% - var(--dot-grid-size-y)),
-          calc(100% - var(--dot-grid-size-x)) 100%,
+          4px calc(100% - var(--dot-grid-size-y)),
+          4px calc(100% - var(--dot-grid-size-y)),
+          calc(100% - var(--dot-grid-size-x)) 4px,
+          calc(100% - var(--dot-grid-size-x)) 4px,
           100% calc(100% - var(--dot-grid-size-y)),
           calc(100% - var(--dot-grid-size-x)) 100%,
           auto;
@@ -1641,10 +1636,10 @@ body {
           var(--outside-edge-dot-mask-position),
           var(--page-number-dot-mask-position),
           var(--dot-repeat-position),
-          0 var(--dot-grid-size-y),
-          var(--dot-grid-size-x) 0,
-          0 var(--dot-grid-size-y),
-          var(--dot-grid-size-x) 0,
+          calc(var(--third-x-start) - 2px) var(--dot-grid-size-y),
+          calc(var(--third-x-end) - 2px) var(--dot-grid-size-y),
+          var(--dot-grid-size-x) calc(var(--third-y-1) - 2px),
+          var(--dot-grid-size-x) calc(var(--third-y-2) - 2px),
           0 var(--dot-grid-size-y),
           var(--dot-grid-size-x) 0,
           0 0;

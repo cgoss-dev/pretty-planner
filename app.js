@@ -181,9 +181,8 @@ function buildPlannerConfig() {
      const accentColorKey = accentColorSelect ? accentColorSelect.value : "Red";
      const deskColorKey = deskColorSelect ? deskColorSelect.value : "pink";
      const guides = {
-          halves: true,
           thirds: false,
-          fourths: false
+          fourths: true
      };
      const paper = paperSizes[paperKey];
      const grid = gridSizes[gridKey];
@@ -2678,7 +2677,7 @@ function getKeyHintState() {
           ["Q / E", "Last / Next Page"],
           ["Z", "Zoom"],
           ["X", "Gridlines"],
-          ["C", "Cycle center"]
+          ["C", "Center"]
           ]
      };
 }
@@ -2880,7 +2879,6 @@ function applyPlannerConfig() {
      setRootLength("--fourth-y-1", plannerConfig.fourthRowOne / plannerConfig.gridRows * 100);
      setRootLength("--fourth-y-2", plannerConfig.fourthRowTwo / plannerConfig.gridRows * 100);
      setRootLength("--fourth-y-3", plannerConfig.fourthRowThree / plannerConfig.gridRows * 100);
-     setRootNumber("--half-guide-opacity", plannerConfig.guides.halves ? "0.25" : "0");
      setRootNumber("--third-guide-opacity", plannerConfig.guides.thirds ? "0.25" : "0");
      setRootNumber("--fourth-guide-opacity", plannerConfig.guides.fourths ? "0.25" : "0");
 
@@ -2898,7 +2896,6 @@ function applyPlannerConfig() {
      document.documentElement.dataset.accentColor = plannerConfig.accentColorKey;
      document.documentElement.dataset.deskColor = plannerConfig.deskColorKey;
      document.documentElement.dataset.grid = plannerConfig.gridKey;
-     document.documentElement.dataset.guideHalves = String(plannerConfig.guides.halves);
      document.documentElement.dataset.guideThirds = String(plannerConfig.guides.thirds);
      document.documentElement.dataset.guideFourths = String(plannerConfig.guides.fourths);
 }

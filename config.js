@@ -252,11 +252,10 @@
           },
           guides: {
                labels: {
-                    halves: "1/2",
                     thirds: "1/3",
                     fourths: "1/4"
                },
-               order: ["halves", "thirds", "fourths"]
+               order: ["thirds", "fourths"]
           },
           text: {
                lineHeightCellOptions: ["1", "1.5", "2", "2.5", "3"]

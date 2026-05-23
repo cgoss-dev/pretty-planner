@@ -467,8 +467,8 @@ window.KeyboardControls = (() => {
                     { key: "1-5", action: "Choose the current mode option" },
                     { key: "X", action: "Toggle gridlines on or off" },
                     { key: "Q / E", action: "Last or next page, spread, or tab" },
-                    { key: "WASD / Arrow keys", action: "Move page cursor" },
-                    { key: "C", action: "Cycle page center" },
+                    { key: "WASD / Arrows", action: "Move page cursor" },
+                    { key: "C", action: "Center" },
                     { key: "Z", action: "Cycle zoom" },
                ]
           },
@@ -479,7 +479,7 @@ window.KeyboardControls = (() => {
                     { key: "1-5", action: "Move between menu tabs" },
                     { key: "Q / E", action: "Last or next menu tab" },
                     { key: "W / A / S / D", action: "Move spatially through menu controls; W/S scroll at edges" },
-                    { key: "Arrow keys", action: "Move spatially through menu controls; up/down scroll at edges" },
+                    { key: "Arrows", action: "Move spatially through menu controls; up/down scroll at edges" },
                     { key: "Enter", action: "Activate selected control" },
                     { key: "Delete / Esc", action: "Close menu" }
                ]
@@ -488,7 +488,7 @@ window.KeyboardControls = (() => {
                title: "Widget Placement",
                controls: [
                     { key: "Enter", action: "Pick up focused widget" },
-                    { key: "WASD / Arrow keys", action: "Move one grid cell" },
+                    { key: "WASD / Arrows", action: "Move one grid cell" },
                     { key: "Enter", action: "Place widget" },
                     { key: "X", action: "Toggle gridlines" },
                     { key: "Delete / Esc", action: "Cancel placement" }
@@ -507,7 +507,7 @@ window.KeyboardControls = (() => {
           {
                title: "Move Mode",
                controls: [
-                    { key: "WASD / Arrow keys", action: "Move one grid cell" },
+                    { key: "WASD / Arrows", action: "Move one grid cell" },
                     { key: "1 / Enter", action: "Place selection" },
                     { key: "2", action: "Switch to resize" },
                     { key: "X", action: "Toggle gridlines" },
@@ -517,7 +517,7 @@ window.KeyboardControls = (() => {
           {
                title: "Resize Mode",
                controls: [
-                    { key: "WASD / Arrow keys", action: "Resize from upper-left anchor" },
+                    { key: "WASD / Arrows", action: "Resize from upper-left anchor" },
                     { key: "1", action: "Switch to reposition" },
                     { key: "2 / Enter", action: "Confirm resize" },
                     { key: "X", action: "Toggle gridlines" },
