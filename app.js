@@ -139,6 +139,8 @@ let selectedItems = new Set();
 let nextTemplateItemId = 1;
 let nextGroupId = 1;
 let plannerClipboard = null;
+let keyboardMode = "interact";
+let designBranch = "root";
 let shouldSkipNextClear = false;
 let shouldSkipNextItemClick = false;
 let shouldSkipNextTabClick = false;
@@ -526,6 +528,26 @@ function changeViewZoom(direction, zoomAnchor = null) {
      showZoomToast();
 }
 
+function cycleViewZoom() {
+     // NOTE: Cycles through zoom levels with one key, wrapping back to 100% after the closest zoom
+     const nextZoomIndex = viewZoomIndex >= viewZoomLevels.length - 1 ? 0 : viewZoomIndex + 1;
+
+     if (nextZoomIndex === viewZoomIndex) {
+          return;
+     }
+
+     viewZoomIndex = nextZoomIndex;
+     if (viewZoomIndex === 0) {
+          resetViewPanOffset();
+          viewVerticalFocusIndex = viewVerticalFocusPoints.indexOf("mid");
+          if (viewVerticalFocusIndex === -1) {
+               viewVerticalFocusIndex = 0;
+          }
+     }
+     applyViewControls();
+     showZoomToast();
+}
+
 function showZoomToast() {
      if (!zoomToast) {
           return;
@@ -820,7 +842,7 @@ function turnNotebookSpread(step) {
 }
 
 function handlePageTurnKey(event) {
-     // NOTE: Turns notebook pages with the documented bracket keys and keeps legacy page keys working
+     // NOTE: Uses Q/E for previous/next page or menu tab, with bracket and page keys kept as legacy aliases
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -833,14 +855,16 @@ function handlePageTurnKey(event) {
           return;
      }
 
-     if (event.key === "[" || event.key === "PageDown") {
+     const key = event.key.toLowerCase();
+
+     if (key === "q" || event.key === "[" || event.key === "PageDown") {
           event.preventDefault();
           if (plannerSettings.classList.contains("is-open")) {
                stepSettingsTab(-1);
           } else {
                turnNotebookSpread(-1);
           }
-     } else if (event.key === "]" || event.key === "PageUp") {
+     } else if (key === "e" || event.key === "]" || event.key === "PageUp") {
           event.preventDefault();
           if (plannerSettings.classList.contains("is-open")) {
                stepSettingsTab(1);
@@ -851,7 +875,7 @@ function handlePageTurnKey(event) {
 }
 
 function handleMainMenuToggleKey(event) {
-     // NOTE: Opens or closes the main planner settings menu with E or Enter
+     // NOTE: Legacy no-op; numeric keyboard mode handling owns Design/Interact transitions
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -862,19 +886,6 @@ function handleMainMenuToggleKey(event) {
           isTextInputShortcutTarget(event.target)
      ) {
           return;
-     }
-
-     const key = event.key.toLowerCase();
-
-     if (key !== "e" && event.key !== "Enter") {
-          return;
-     }
-
-     event.preventDefault();
-     if (plannerSettings.classList.contains("is-open")) {
-          closeSidebar();
-     } else {
-          openSidebar();
      }
 }
 
@@ -943,6 +954,11 @@ function getKeyboardDirection(event) {
      };
 
      return directions[event.key] || directions[event.key.toLowerCase()];
+}
+
+function isCancelKey(event) {
+     // NOTE: Treats Delete as the right-hand companion to Escape for backing out of modes
+     return event.key === "Escape" || event.key === "Delete";
 }
 
 function getKeyboardCursorPage() {
@@ -1409,7 +1425,7 @@ function cancelKeyboardPlacement() {
 }
 
 function handleKeyboardPlacementKey(event) {
-     // NOTE: Handles WASD/arrow movement, E/Enter placement, and Q/Escape cancel while placing a widget
+     // NOTE: Handles WASD/arrow movement, E/Enter placement, and Delete/Escape cancel while placing a widget
      if (activeAction?.type !== "keyboard-source" || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
           return;
      }
@@ -1428,7 +1444,7 @@ function handleKeyboardPlacementKey(event) {
           return;
      }
 
-     if (event.key === "Escape" || event.key.toLowerCase() === "q") {
+     if (isCancelKey(event)) {
           event.preventDefault();
           cancelKeyboardPlacement();
      }
@@ -1570,7 +1586,7 @@ function cancelKeyboardMove() {
 }
 
 function handleKeyboardMoveKey(event) {
-     // NOTE: Handles WASD/arrow movement, P/E/Enter place, and Q/Escape cancel while moving selected items
+     // NOTE: Handles WASD/arrow movement, numeric resize toggle, Enter place, and Delete/Escape cancel while moving selected items
      if (activeAction?.type !== "keyboard-move" || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
           return;
      }
@@ -1583,40 +1599,55 @@ function handleKeyboardMoveKey(event) {
           return;
      }
 
-     if (event.key === "Enter" || event.key.toLowerCase() === "e" || event.key.toLowerCase() === "p") {
+     if (event.key === "2") {
+          event.preventDefault();
+          switchKeyboardMoveToResize();
+          return;
+     }
+
+     if (event.key === "Enter" || event.key === "1") {
           event.preventDefault();
           finishKeyboardMove();
           return;
      }
 
-     if (event.key === "Escape" || event.key.toLowerCase() === "q") {
+     if (isCancelKey(event)) {
           event.preventDefault();
           cancelKeyboardMove();
      }
 }
 
+function switchKeyboardMoveToResize() {
+     // NOTE: Changes keyboard reposition mode into anchored resize mode for the same selected object
+     if (activeAction?.type !== "keyboard-move") {
+          return false;
+     }
+
+     const item = activeAction.item;
+     const primary = activeAction.items.find(({ item: movingItem }) => movingItem === item) || activeAction.items[0];
+     const page = primary?.page || getItemPage(item);
+
+     if (!item || !page) {
+          return false;
+     }
+
+     activeAction.items.forEach(({ item: movedItem }) => movedItem.classList.remove("is-dragging"));
+     markSnapReady(item, false);
+     selectItem(item);
+     activeAction = {
+          type: "keyboard-resize",
+          item,
+          page,
+          startBox: getItemBox(item)
+     };
+     item.classList.add("is-dragging", "is-resizing", "is-resize-nwse");
+     markSnapReady(item, true);
+     renderKeyHints();
+     return true;
+}
+
 function handleStartKeyboardMoveKey(event) {
-     // NOTE: Starts keyboard pickup mode for selected page items with P
-     if (
-          event.defaultPrevented ||
-          activeAction ||
-          plannerSettings.classList.contains("is-open") ||
-          event.altKey ||
-          event.ctrlKey ||
-          event.metaKey ||
-          event.shiftKey ||
-          isTypingFieldShortcutTarget(event.target)
-     ) {
-          return;
-     }
-
-     if (event.key.toLowerCase() !== "p") {
-          return;
-     }
-
-     if (startKeyboardMove()) {
-          event.preventDefault();
-     }
+     // NOTE: Numeric transform controls own keyboard move starts now
 }
 
 function canKeyboardResizeItem(item = selectedItem) {
@@ -1721,8 +1752,8 @@ function cancelKeyboardResize() {
 }
 
 function handleKeyboardResizeKey(event) {
-     // NOTE: Handles WASD/arrow resize, E/Enter confirm, and Q/Escape cancel in resize mode
-     if (activeAction?.type !== "keyboard-resize" || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+     // NOTE: Handles WASD/arrow resize, numeric reposition toggle, Enter confirm, and Delete/Escape cancel in resize mode
+     if (event.defaultPrevented || activeAction?.type !== "keyboard-resize" || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
           return;
      }
 
@@ -1734,76 +1765,44 @@ function handleKeyboardResizeKey(event) {
           return;
      }
 
-     if (event.key === "Enter" || event.key.toLowerCase() === "e") {
+     if (event.key === "1") {
+          event.preventDefault();
+          switchKeyboardResizeToMove();
+          return;
+     }
+
+     if (event.key === "Enter" || event.key === "2") {
           event.preventDefault();
           finishKeyboardResize();
           return;
      }
 
-     if (event.key === "Escape" || event.key.toLowerCase() === "q") {
+     if (isCancelKey(event)) {
           event.preventDefault();
           cancelKeyboardResize();
      }
 }
 
+function switchKeyboardResizeToMove() {
+     // NOTE: Changes anchored keyboard resize mode back into keyboard reposition mode
+     if (activeAction?.type !== "keyboard-resize") {
+          return false;
+     }
+
+     const item = activeAction.item;
+
+     item.classList.remove("is-dragging", "is-resizing", "is-resize-nwse");
+     markSnapReady(item, false);
+     activeAction = null;
+     return startKeyboardMove();
+}
+
 function handleStartKeyboardResizeKey(event) {
-     // NOTE: Starts anchored resize for the selected object with R
-     if (
-          event.defaultPrevented ||
-          activeAction ||
-          plannerSettings.classList.contains("is-open") ||
-          event.altKey ||
-          event.ctrlKey ||
-          event.metaKey ||
-          event.shiftKey ||
-          isTypingFieldShortcutTarget(event.target)
-     ) {
-          return;
-     }
-
-     if (event.key.toLowerCase() !== "r" || !canKeyboardResizeItem()) {
-          return;
-     }
-
-     event.preventDefault();
-     startKeyboardResize();
+     // NOTE: Numeric transform controls own keyboard move/resize starts now
 }
 
 function handleObjectSettingsKey(event) {
-     // NOTE: Opens or closes the selected object's main-menu settings tabs with O
-     if (
-          event.defaultPrevented ||
-          activeAction ||
-          event.altKey ||
-          event.ctrlKey ||
-          event.metaKey ||
-          event.shiftKey ||
-          isTypingFieldShortcutTarget(event.target)
-     ) {
-          return;
-     }
-
-     if (event.key.toLowerCase() !== "o") {
-          return;
-     }
-
-     const isMenuOpen = plannerSettings.classList.contains("is-open");
-     const isObjectTabActive = isObjectSettingsTab(getActiveSettingsTabName());
-
-     if (isMenuOpen && isObjectTabActive) {
-          event.preventDefault();
-          closeSidebar();
-          return;
-     }
-
-     if (!selectedItem || !selectedItems.size) {
-          return;
-     }
-
-     event.preventDefault();
-     openItemMenu(selectedItem);
-     selectSettingsTab("object-options");
-     openSidebar();
+     // NOTE: Numeric object controls own keyboard object settings now
 }
 
 function getSelectedTextEditItem() {
@@ -1835,7 +1834,7 @@ function startSelectedItemTextEditing(item) {
 }
 
 function handleSelectedTextEditKey(event) {
-     // NOTE: Uses E and Enter to edit text on the selected object before falling back to menu opening
+     // NOTE: Uses Enter to edit text on the selected object when directly activating it
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -1849,7 +1848,7 @@ function handleSelectedTextEditKey(event) {
           return;
      }
 
-     if (event.key.toLowerCase() !== "e" && event.key !== "Enter") {
+     if (event.key !== "Enter") {
           return;
      }
 
@@ -1863,8 +1862,84 @@ function handleSelectedTextEditKey(event) {
      startSelectedItemTextEditing(item);
 }
 
-function handleNumberedMenuTabKey(event) {
-     // NOTE: Opens or switches to an available numbered menu tab
+function enterKeyboardDesignMode() {
+     // NOTE: Enters the top-level keyboard Design Mode without opening a specific panel
+     keyboardMode = "design";
+     designBranch = "root";
+     closeSidebar();
+     renderKeyHints();
+}
+
+function exitKeyboardDesignMode() {
+     // NOTE: Returns keyboard mode to Interact and closes any design panel
+     keyboardMode = "interact";
+     designBranch = "root";
+     closeSidebar();
+     renderKeyHints();
+}
+
+function enterKeyboardMenuBranch(branch, tabName) {
+     // NOTE: Opens a numbered Design branch backed by a main menu tab
+     keyboardMode = "design";
+     designBranch = branch;
+     selectSettingsTab(tabName);
+     openSidebar();
+     renderKeyHints();
+}
+
+function returnToKeyboardDesignRoot() {
+     // NOTE: Goes one level up from a Design branch to the top-level Design choices
+     designBranch = "root";
+     closeSidebar();
+     renderKeyHints();
+}
+
+function openSelectedObjectSettingsFromKeyboard() {
+     // NOTE: Opens selected object settings from Design > Object via number key
+     if (!selectedItem || !selectedItems.size) {
+          return false;
+     }
+
+     keyboardMode = "design";
+     designBranch = "object-settings";
+     openItemMenu(selectedItem);
+     selectSettingsTab("object-options");
+     openSidebar();
+     renderKeyHints();
+     return true;
+}
+
+function toggleSelectedGroupFromKeyboard() {
+     // NOTE: Groups or ungroups selected objects from Design > Object via number key
+     const items = getKeyboardGroupItems();
+
+     if (!items.length) {
+          return false;
+     }
+
+     if (itemsHaveGroup(items)) {
+          ungroupItems(items);
+     } else {
+          groupItems(items, selectedItem);
+     }
+     renderKeyHints();
+     return true;
+}
+
+function deleteSelectedItemsFromKeyboard() {
+     // NOTE: Deletes selected objects from Design > Object via number key
+     if (!selectedItem || !selectedItems.size) {
+          return false;
+     }
+
+     deleteItem(selectedItem);
+     designBranch = "root";
+     renderKeyHints();
+     return true;
+}
+
+function handleKeyboardModeNumberKey(event) {
+     // NOTE: Uses number keys for the keyboard mode stack and mode-specific choices
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -1881,19 +1956,103 @@ function handleNumberedMenuTabKey(event) {
           return;
      }
 
-     const tab = settingsTabs[Number(event.key) - 1];
+     if (keyboardMode !== "design") {
+          if (event.key !== "1") {
+               return;
+          }
 
-     if (!tab || tab.disabled) {
+          event.preventDefault();
+          enterKeyboardDesignMode();
           return;
      }
 
-     event.preventDefault();
-     selectSettingsTab(tab.dataset.settingsTab);
-     openSidebar();
+     if (designBranch === "root") {
+          event.preventDefault();
+          if (event.key === "1") {
+               exitKeyboardDesignMode();
+          } else if (event.key === "2") {
+               enterKeyboardMenuBranch("notebook", "page");
+          } else if (event.key === "3") {
+               enterKeyboardMenuBranch("menu", "add");
+          } else if (event.key === "4") {
+               designBranch = "object";
+               closeSidebar();
+               renderKeyHints();
+          } else if (event.key === "5") {
+               designBranch = "transform";
+               closeSidebar();
+               renderKeyHints();
+          }
+          return;
+     }
+
+     if (designBranch === "notebook" && event.key === "2") {
+          event.preventDefault();
+          returnToKeyboardDesignRoot();
+          return;
+     }
+
+     if (designBranch === "menu" && event.key === "3") {
+          event.preventDefault();
+          returnToKeyboardDesignRoot();
+          return;
+     }
+
+     if (designBranch === "object-settings" && event.key === "1") {
+          event.preventDefault();
+          designBranch = "object";
+          closeSidebar();
+          renderKeyHints();
+          return;
+     }
+
+     if (designBranch === "notebook" || designBranch === "menu" || designBranch === "object-settings") {
+          const tab = settingsTabs[Number(event.key) - 1];
+
+          if (!tab || tab.disabled) {
+               return;
+          }
+
+          event.preventDefault();
+          selectSettingsTab(tab.dataset.settingsTab);
+          openSidebar();
+          renderKeyHints();
+          return;
+     }
+
+     if (designBranch === "object") {
+          event.preventDefault();
+          if (event.key === "4") {
+               returnToKeyboardDesignRoot();
+          } else if (event.key === "1") {
+               openSelectedObjectSettingsFromKeyboard();
+          } else if (event.key === "2") {
+               toggleSelectedGroupFromKeyboard();
+          } else if (event.key === "3") {
+               deleteSelectedItemsFromKeyboard();
+          }
+          return;
+     }
+
+     if (designBranch === "transform") {
+          event.preventDefault();
+          if (event.key === "5") {
+               returnToKeyboardDesignRoot();
+          } else if (event.key === "1") {
+               startKeyboardMove();
+          } else if (event.key === "2") {
+               startKeyboardResize();
+          }
+     }
+}
+
+function handleNumberedMenuTabKey(event) {
+     // NOTE: Backward wrapper for the numeric keyboard mode stack
+     handleKeyboardModeNumberKey(event);
 }
 
 function handleCancelKey(event) {
-     // NOTE: Uses Q and Escape as the same keyboard cancel key for open planner UI
+     // NOTE: Uses Delete/Escape as the same keyboard cancel key for open planner UI
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -1906,11 +2065,21 @@ function handleCancelKey(event) {
           return;
      }
 
-     if (event.key.toLowerCase() !== "q" && event.key !== "Escape") {
+     if (!isCancelKey(event)) {
           return;
      }
 
      event.preventDefault();
+     if (keyboardMode === "design" && designBranch !== "root") {
+          returnToKeyboardDesignRoot();
+          return;
+     }
+
+     if (keyboardMode === "design" && designBranch === "root") {
+          exitKeyboardDesignMode();
+          return;
+     }
+
      if (plannerSettings.classList.contains("is-open")) {
           closeSidebar();
           return;
@@ -1924,7 +2093,7 @@ function handleCancelKey(event) {
 }
 
 function handleTextEditFinishKey(event) {
-     // NOTE: Uses Q and Escape to finish active text editing by leaving the editable text field
+     // NOTE: Uses Enter/Delete/Escape to finish active text editing by leaving the editable text field
      if (
           event.defaultPrevented ||
           event.altKey ||
@@ -1935,7 +2104,7 @@ function handleTextEditFinishKey(event) {
           return;
      }
 
-     if (event.key.toLowerCase() !== "q" && event.key !== "Escape") {
+     if (event.key !== "Escape" && event.key !== "Delete" && event.key !== "Enter") {
           return;
      }
 
@@ -2226,7 +2395,7 @@ function handleMainMenuWasdKey(event) {
 }
 
 function handleViewZoomKey(event) {
-     // NOTE: Handles one-key zoom in and zoom out controls when the user is not typing or moving an object
+     // NOTE: Cycles zoom levels with Z when the user is not typing or moving an object
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -2239,14 +2408,9 @@ function handleViewZoomKey(event) {
           return;
      }
 
-     const key = event.key.toLowerCase();
-
-     if (key === "z") {
+     if (event.key.toLowerCase() === "z") {
           event.preventDefault();
-          changeViewZoom("in");
-     } else if (key === "x") {
-          event.preventDefault();
-          changeViewZoom("out");
+          cycleViewZoom();
      }
 }
 
@@ -2275,8 +2439,47 @@ function handlePageFocusNavigationKey(event) {
      moveKeyboardCursor(direction);
 }
 
+function cycleViewCenter() {
+     // NOTE: Cycles center targets: 100% swaps pages; zoomed views cycle page halves
+     if (viewZoomIndex === 0) {
+          snapViewToPage(getFocusedPageSide() === "left" ? "right" : "left");
+          syncKeyboardCursorWithFocusedPage();
+          return;
+     }
+
+     const verticalCycle = ["top", "bottom"];
+     const availableTargets = viewFocusPoints.flatMap((pageSide) => (
+          isPageSideAvailable(pageSide)
+               ? verticalCycle.map((vertical) => ({ pageSide, vertical }))
+               : []
+     ));
+     const currentTargetIndex = availableTargets.findIndex(({ pageSide, vertical }) => (
+          pageSide === getFocusedPageSide() &&
+          vertical === viewVerticalFocusPoints[viewVerticalFocusIndex]
+     ));
+     const nextTarget = currentTargetIndex === -1
+          ? availableTargets.find(({ pageSide, vertical }) => pageSide === getFocusedPageSide() && vertical === "top")
+          : availableTargets[(currentTargetIndex + 1) % availableTargets.length];
+
+     if (!nextTarget) {
+          return;
+     }
+
+     resetViewPanOffset();
+     viewFocusIndex = viewFocusPoints.indexOf(nextTarget.pageSide);
+     viewVerticalFocusIndex = viewVerticalFocusPoints.indexOf(nextTarget.vertical);
+     if (viewFocusIndex === -1) {
+          viewFocusIndex = 0;
+     }
+     if (viewVerticalFocusIndex === -1) {
+          viewVerticalFocusIndex = 1;
+     }
+     applyViewControls();
+     syncKeyboardCursorWithFocusedPage();
+}
+
 function handleViewFocusToggleKey(event) {
-     // NOTE: Toggles left/right page focus with F without stealing WASD from cursor movement
+     // NOTE: Cycles page centering with C without stealing WASD from cursor movement
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -2290,13 +2493,12 @@ function handleViewFocusToggleKey(event) {
           return;
      }
 
-     if (event.key.toLowerCase() !== "f") {
+     if (event.key.toLowerCase() !== "c") {
           return;
      }
 
      event.preventDefault();
-     snapViewToPage(getFocusedPageSide() === "left" ? "right" : "left");
-     syncKeyboardCursorWithFocusedPage();
+     cycleViewCenter();
      renderKeyHints();
 }
 
@@ -2310,37 +2512,7 @@ function getKeyboardGroupItems() {
 }
 
 function toggleGroupFromKeyboard(event) {
-     // NOTE: Uses G to group selected items or ungroup an existing selected group
-     if (
-          event.defaultPrevented ||
-          activeAction ||
-          plannerSettings.classList.contains("is-open") ||
-          event.altKey ||
-          event.ctrlKey ||
-          event.metaKey ||
-          event.shiftKey ||
-          isTextInputShortcutTarget(event.target)
-     ) {
-          return;
-     }
-
-     if (event.key.toLowerCase() !== "g") {
-          return;
-     }
-
-     const items = getKeyboardGroupItems();
-
-     if (!items.length) {
-          return;
-     }
-
-     event.preventDefault();
-     if (itemsHaveGroup(items)) {
-          ungroupItems(items);
-     } else {
-          groupItems(items, selectedItem);
-     }
-     renderKeyHints();
+     // NOTE: Numeric object controls own keyboard group/ungroup now
 }
 
 function toggleGuidesFromKeyboard(event) {
@@ -2356,7 +2528,7 @@ function toggleGuidesFromKeyboard(event) {
           return;
      }
 
-     if (event.key.toLowerCase() !== "v") {
+     if (event.key.toLowerCase() !== "x") {
           return;
      }
 
@@ -2371,73 +2543,144 @@ function toggleGuidesFromKeyboard(event) {
      changePlannerSetting();
 }
 
-function getKeyHintEntries() {
-     // NOTE: Chooses the visible keyboard hint set for the current planner state
+function getKeyHintState() {
+     // NOTE: Chooses the visible keyboard hint mode label and actions for the current planner state
      if (activeAction?.type === "keyboard-source") {
-          return [
-               ["WASD / Arrows", "Move widget"],
-               ["E / Enter", "Place"],
-               ["V", "Guides"],
-               ["Q / Esc", "Cancel"]
-          ];
+          return {
+               mode: "Design Mode > Place Widget",
+               entries: [
+               ["Enter", "Place"],
+               ["X", "Gridlines"],
+               ["Delete / Esc", "Cancel"]
+               ]
+          };
      }
 
      if (activeAction?.type === "keyboard-move") {
-          return [
-               ["WASD / Arrows", "Move selection"],
-               ["P / E / Enter", "Place"],
-               ["V", "Guides"],
-               ["Q / Esc", "Cancel"]
-          ];
+          return {
+               mode: "Design Mode > Transform > Move",
+               entries: [
+               ["1", "Place"],
+               ["2", "Resize"],
+               ["X", "Gridlines"],
+               ["Delete / Esc", "Cancel"]
+               ]
+          };
      }
 
      if (activeAction?.type === "keyboard-resize") {
-          return [
-               ["WASD / Arrows", "Resize"],
-               ["E / Enter", "Confirm"],
-               ["V", "Guides"],
-               ["Q / Esc", "Cancel"]
-          ];
+          return {
+               mode: "Design Mode > Transform > Resize",
+               entries: [
+               ["1", "Reposition"],
+               ["2", "Confirm"],
+               ["X", "Gridlines"],
+               ["Delete / Esc", "Cancel"]
+               ]
+          };
      }
 
      if (document.querySelector("[contenteditable='true']")) {
-          return [
+          return {
+               mode: "Interact Mode > Text Edit",
+               entries: [
                ["Type", "Enter text"],
-               ["Q / Esc", "Finish editing"]
-          ];
+               ["Enter / Delete", "Finish editing"]
+               ]
+          };
      }
 
-     if (plannerSettings.classList.contains("is-open")) {
-          return [
-               ["[ / ]", "Tabs"],
-               ["WASD", "Move selection"],
-               ["Arrows", "Move selection"],
+     if (keyboardMode === "design" && designBranch === "notebook") {
+          return {
+               mode: "Design Mode > Notebook",
+               entries: [
+               ["2", "Back"],
+               ["1-5", "Tabs"],
+               ["Q / E", "Last / Next Tab"],
                ["Enter", "Select"],
-               ["Q / Esc", "Close"]
-          ];
+               ["Delete / Esc", "Back"]
+               ]
+          };
      }
 
-     if (selectedItems.size === 1 && selectedItem) {
-          return [
-               ["E / Enter", "Edit text"],
-               ["O", "Settings"],
-               ["P", "Pick up"],
-               ["R", "Resize"],
-               ["G", "Group"],
-               ["V", "Guides"],
-               ["Delete", "Delete"],
-               ["Q / Esc", "Deselect"]
-          ];
+     if (keyboardMode === "design" && designBranch === "menu") {
+          return {
+               mode: "Design Mode > Menu",
+               entries: [
+               ["3", "Back"],
+               ["1-5", "Tabs"],
+               ["Q / E", "Last / Next Tab"],
+               ["Enter", "Select"],
+               ["Delete / Esc", "Back"]
+               ]
+          };
      }
 
-     return [
-          ["E / Enter", "Open menu"],
-          ["[ / ]", "Turn page"],
-          ["WASD / Arrows", "Move cursor"],
-          ["F", "Focus page"],
-          ["Z / X", "Zoom"],
-          ["V", "Guides"]
-     ];
+     if (keyboardMode === "design" && designBranch === "object-settings") {
+          return {
+               mode: "Design Mode > Object > Settings",
+               entries: [
+               ["1", "Back"],
+               ["1-5", "Tabs"],
+               ["Q / E", "Last / Next Tab"],
+               ["Enter", "Select"],
+               ["Delete / Esc", "Back"]
+               ]
+          };
+     }
+
+     if (keyboardMode === "design" && designBranch === "object") {
+          return {
+               mode: "Design Mode > Object",
+               entries: [
+               ["4", "Back"],
+               ["1", "Settings"],
+               ["2", "Group / Ungroup"],
+               ["3", "Delete selected"],
+               ["X", "Gridlines"],
+               ["Delete / Esc", "Back"]
+               ]
+          };
+     }
+
+     if (keyboardMode === "design" && designBranch === "transform") {
+          return {
+               mode: "Design Mode > Transform",
+               entries: [
+               ["5", "Back"],
+               ["1", "Move"],
+               ["2", "Resize"],
+               ["X", "Gridlines"],
+               ["Delete / Esc", "Back"]
+               ]
+          };
+     }
+
+     if (keyboardMode === "design") {
+          return {
+               mode: "Design Mode",
+               entries: [
+               ["1", "Interact Mode"],
+               ["2", "Notebook"],
+               ["3", "Menu"],
+               ["4", "Object"],
+               ["5", "Transform"],
+               ["X", "Gridlines"],
+               ["Delete / Esc", "Interact Mode"]
+               ]
+          };
+     }
+
+     return {
+          mode: "Interact Mode",
+          entries: [
+          ["1", "Design Mode"],
+          ["Q / E", "Last / Next Page"],
+          ["Z", "Zoom"],
+          ["X", "Gridlines"],
+          ["C", "Cycle center"]
+          ]
+     };
 }
 
 function renderKeyHints() {
@@ -2447,6 +2690,13 @@ function renderKeyHints() {
      }
 
      keyHintPanel.replaceChildren();
+     const hintState = getKeyHintState();
+     const modeRow = document.createElement("div");
+
+     modeRow.className = "key-hint-mode";
+     modeRow.textContent = hintState.mode;
+     keyHintPanel.append(modeRow);
+
      if (hasUsedKeyboardCursor && !plannerSettings.classList.contains("is-open")) {
           const coordinateRow = document.createElement("div");
 
@@ -2455,7 +2705,7 @@ function renderKeyHints() {
           coordinateRow.textContent = getKeyboardCursorLabel();
           keyHintPanel.append(coordinateRow);
      }
-     getKeyHintEntries().forEach(([key, action]) => {
+     hintState.entries.forEach(([key, action]) => {
           const row = document.createElement("div");
           const keyElement = document.createElement("kbd");
           const actionElement = document.createElement("span");
@@ -2492,7 +2742,7 @@ function getItemForMenuKeyboardToggle(target) {
 }
 
 function handleMenuToggleKey(event) {
-     if (event.key !== "Escape" || activeAction || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+     if (!isCancelKey(event) || activeAction || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
           return false;
      }
 
@@ -2888,7 +3138,7 @@ document.addEventListener("keydown", (event) => {
      handleViewFocusToggleKey(event);
      toggleGroupFromKeyboard(event);
      toggleGuidesFromKeyboard(event);
-     if (!event.defaultPrevented && event.key === "Escape") {
+     if (!event.defaultPrevented && isCancelKey(event)) {
           const didToggleMenu = handleMenuToggleKey(event);
 
           closeCustomSelects();

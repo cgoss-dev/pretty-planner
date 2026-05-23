@@ -54,6 +54,19 @@
      --font-noto: "Noto Sans Mono", monospace;
      --font-bungee: "Bungee Shade", monospace;
      --font-dancing: "Dancing Script", cursive;
+     --font-caveat: "Caveat", cursive;
+     --font-homemade-apple: "Homemade Apple", cursive;
+     --font-miltonian: "Miltonian", cursive;
+     --font-mr-bedfort: "Mr Bedfort", cursive;
+     --font-mr-dafoe: "Mr Dafoe", cursive;
+     --font-mr-de-haviland: "Mr De Haviland", cursive;
+     --font-mrs-saint-delafield: "Mrs Saint Delafield", cursive;
+     --font-mrs-sheppards: "Mrs Sheppards", cursive;
+     --font-permanent-marker: "Permanent Marker", cursive;
+     --font-playwrite: "Playwrite GB J", cursive;
+     --font-reenie-beanie: "Reenie Beanie", cursive;
+     --font-rock-salt: "Rock Salt", cursive;
+     --font-sedgwick-ave-display: "Sedgwick Ave Display", cursive;
      --font-symbol: "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", sans-serif;
      --font-size-lg: clamp(2rem, 2rem, 2rem);
      --font-size-md: clamp(1.5rem, 1.5rem, 1.5rem);
@@ -359,7 +372,8 @@ body {
      left: 14px;
      display: grid;
      gap: 4px;
-     width: min(220px, calc(100vw - 28px));
+     width: max-content;
+     max-width: calc(100vw - 28px);
      padding: 8px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      border-radius: 7px;
@@ -368,6 +382,16 @@ body {
      pointer-events: none;
      filter: drop-shadow(0 8px 12px rgba(17, 17, 17, 0.12));
      backdrop-filter: blur(8px);
+}
+
+.key-hint-mode {
+     padding: 4px 6px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-radius: 5px;
+     background: var(--color-white);
+     color: var(--color-gray1);
+     font: 700 var(--font-size-sm) var(--font-noto);
+     line-height: 1.1;
 }
 
 .key-hint-coordinates {
@@ -387,7 +411,7 @@ body {
 
 .key-hint-row {
      display: grid;
-     grid-template-columns: minmax(58px, max-content) minmax(0, 1fr);
+     grid-template-columns: max-content max-content;
      align-items: center;
      gap: 7px;
      min-width: 0;
@@ -411,6 +435,7 @@ body {
      min-width: 0;
      font: 400 var(--font-size-sm) var(--font-noto);
      line-height: 1.15;
+     white-space: nowrap;
 }
 
 .page-grid-cursor {

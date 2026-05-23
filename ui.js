@@ -336,7 +336,7 @@ function getHexPopover() {
           });
           input.addEventListener("change", applyHex);
           input.addEventListener("keydown", (event) => {
-               if (event.key === "Enter" || event.key.toLowerCase() === "e" || event.key === "Escape" || event.key.toLowerCase() === "q") {
+               if (event.key === "Enter" || event.key.toLowerCase() === "e" || event.key === "Escape" || event.key === "Delete" || event.key.toLowerCase() === "q") {
                     event.preventDefault();
                     event.stopPropagation();
                     exitActiveInput(input);
@@ -391,7 +391,7 @@ function getHexPopover() {
                return;
           }
 
-          if (event.key === "Escape" || event.key.toLowerCase() === "q") {
+          if (event.key === "Escape" || event.key === "Delete" || event.key.toLowerCase() === "q") {
                event.preventDefault();
                event.stopPropagation();
                closeHexPopover();
@@ -743,6 +743,32 @@ function getCustomSelectOptionFont(select, value) {
 
      if (value === "dancing") {
           return "var(--font-dancing)";
+     }
+
+     if (value === "caveat") {
+          return "var(--font-caveat)";
+     }
+
+     if (value === "playwrite") {
+          return "var(--font-playwrite)";
+     }
+
+     const handwritingFonts = new Set([
+          "homemade-apple",
+          "miltonian",
+          "mr-bedfort",
+          "mr-dafoe",
+          "mr-de-haviland",
+          "mrs-saint-delafield",
+          "mrs-sheppards",
+          "permanent-marker",
+          "reenie-beanie",
+          "rock-salt",
+          "sedgwick-ave-display"
+     ]);
+
+     if (handwritingFonts.has(value)) {
+          return `var(--font-${value})`;
      }
 
      if (value === "sans") {

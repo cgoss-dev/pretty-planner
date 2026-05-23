@@ -461,17 +461,15 @@ window.KeyboardControls = (() => {
           {
                title: "Global",
                controls: [
-                    { key: "E / Enter", action: "Open menu or activate focused menu control" },
-                    { key: "Q / Esc", action: "Cancel, close, or deselect" },
-                    { key: "O", action: "Open or close object settings" },
-                    { key: "P", action: "Pick up or place selected object" },
-                    { key: "G", action: "Group or ungroup selected objects" },
-                    { key: "V", action: "Toggle guides on or off" },
-                    { key: "[", action: "Previous page or spread" },
-                    { key: "]", action: "Next page or spread" },
+                    { key: "1", action: "Enter Design Mode from Interact" },
+                    { key: "Enter", action: "Activate focused menu control" },
+                    { key: "Delete / Esc", action: "Cancel, close, or deselect" },
+                    { key: "1-5", action: "Choose the current mode option" },
+                    { key: "X", action: "Toggle gridlines on or off" },
+                    { key: "Q / E", action: "Last or next page, spread, or tab" },
                     { key: "WASD / Arrow keys", action: "Move page cursor" },
-                    { key: "F", action: "Cycle page focus" },
-                    { key: "Z / X", action: "Zoom in or out" },
+                    { key: "C", action: "Cycle page center" },
+                    { key: "Z", action: "Cycle zoom" },
                ]
           },
           {
@@ -479,57 +477,58 @@ window.KeyboardControls = (() => {
                controls: [
                     { key: "Tab", action: "Move through tabs and controls" },
                     { key: "1-5", action: "Move between menu tabs" },
-                    { key: "[ / ]", action: "Move between menu tabs" },
+                    { key: "Q / E", action: "Last or next menu tab" },
                     { key: "W / A / S / D", action: "Move spatially through menu controls; W/S scroll at edges" },
                     { key: "Arrow keys", action: "Move spatially through menu controls; up/down scroll at edges" },
                     { key: "Enter", action: "Activate selected control" },
-                    { key: "Q / Esc", action: "Close menu" }
+                    { key: "Delete / Esc", action: "Close menu" }
                ]
           },
           {
                title: "Widget Placement",
                controls: [
-                    { key: "Enter / E", action: "Pick up focused widget" },
+                    { key: "Enter", action: "Pick up focused widget" },
                     { key: "WASD / Arrow keys", action: "Move one grid cell" },
-                    { key: "Enter / E", action: "Place widget" },
-                    { key: "V", action: "Toggle guides" },
-                    { key: "Q / Esc", action: "Cancel placement" }
+                    { key: "Enter", action: "Place widget" },
+                    { key: "X", action: "Toggle gridlines" },
+                    { key: "Delete / Esc", action: "Cancel placement" }
                ]
           },
           {
                title: "Selected Object",
                controls: [
-                    { key: "O", action: "Open object settings" },
-                    { key: "P", action: "Pick up or place object" },
-                    { key: "R", action: "Resize from upper-left anchor" },
-                    { key: "G", action: "Group or ungroup selection" },
-                    { key: "E / Enter", action: "Edit text" },
-                    { key: "Delete", action: "Delete object" },
-                    { key: "Q / Esc", action: "Deselect object" }
+                    { key: "1", action: "Open object settings" },
+                    { key: "2", action: "Group or ungroup selection" },
+                    { key: "3", action: "Delete selected object" },
+                    { key: "Enter", action: "Edit text" },
+                    { key: "Delete / Esc", action: "Deselect object" }
                ]
           },
           {
                title: "Move Mode",
                controls: [
                     { key: "WASD / Arrow keys", action: "Move one grid cell" },
-                    { key: "P / Enter / E", action: "Place selection" },
-                    { key: "Q / Esc", action: "Cancel move" }
+                    { key: "1 / Enter", action: "Place selection" },
+                    { key: "2", action: "Switch to resize" },
+                    { key: "X", action: "Toggle gridlines" },
+                    { key: "Delete / Esc", action: "Cancel move" }
                ]
           },
           {
                title: "Resize Mode",
                controls: [
                     { key: "WASD / Arrow keys", action: "Resize from upper-left anchor" },
-                    { key: "Enter / E", action: "Confirm resize" },
-                    { key: "V", action: "Toggle guides" },
-                    { key: "Q / Esc", action: "Cancel resize" }
+                    { key: "1", action: "Switch to reposition" },
+                    { key: "2 / Enter", action: "Confirm resize" },
+                    { key: "X", action: "Toggle gridlines" },
+                    { key: "Delete / Esc", action: "Cancel resize" }
                ]
           },
           {
                title: "Text Edit Mode",
                controls: [
                     { key: "Type", action: "Enter text normally" },
-                    { key: "Q / Esc", action: "Finish editing" }
+                    { key: "Enter / Delete", action: "Finish editing" }
                ]
           }
      ];

@@ -2129,6 +2129,19 @@ function getStickerTextFont(fontKey) {
      const fonts = {
           noto: "var(--font-noto)",
           dancing: "var(--font-dancing)",
+          caveat: "var(--font-caveat)",
+          "homemade-apple": "var(--font-homemade-apple)",
+          miltonian: "var(--font-miltonian)",
+          "mr-bedfort": "var(--font-mr-bedfort)",
+          "mr-dafoe": "var(--font-mr-dafoe)",
+          "mr-de-haviland": "var(--font-mr-de-haviland)",
+          "mrs-saint-delafield": "var(--font-mrs-saint-delafield)",
+          "mrs-sheppards": "var(--font-mrs-sheppards)",
+          "permanent-marker": "var(--font-permanent-marker)",
+          playwrite: "var(--font-playwrite)",
+          "reenie-beanie": "var(--font-reenie-beanie)",
+          "rock-salt": "var(--font-rock-salt)",
+          "sedgwick-ave-display": "var(--font-sedgwick-ave-display)",
           sans: "Arial, Verdana, sans-serif",
           serif: "Georgia, serif"
      };
@@ -3347,8 +3360,21 @@ function makePlannerItem(type = "sticker") {
      [
           ["noto", "Noto"],
           ["dancing", "Script"],
-          ["sans", "Sans"],
-          ["serif", "Serif"]
+          ["caveat", "Caveat"],
+          ["homemade-apple", "Homemade Apple"],
+          ["miltonian", "Miltonian"],
+          ["mr-bedfort", "Mr Bedfort"],
+          ["mr-dafoe", "Mr Dafoe"],
+          ["mr-de-haviland", "Mr De Haviland"],
+          ["mrs-saint-delafield", "Mrs Saint Delafield"],
+          ["mrs-sheppards", "Mrs Sheppards"],
+          ["permanent-marker", "Permanent Marker"],
+          ["playwrite", "Playwrite"],
+          ["reenie-beanie", "Reenie Beanie"],
+          ["rock-salt", "Rock Salt"],
+          ["sedgwick-ave-display", "Sedgwick Ave Display"],
+          ["sans", "Standard Sans"],
+          ["serif", "Standard Serif"]
      ].forEach(([value, label]) => {
           const option = document.createElement("option");
 
