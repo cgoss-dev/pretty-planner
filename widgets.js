@@ -103,12 +103,14 @@ async function loadPlannerThemeData() {
      try {
           const [themesResponse, slotsResponse] = await Promise.all([
                fetch("data/themes.json?v=planner-storage-7"),
-               fetch("data/widget-theme-slots.json?v=planner-storage-3")
+               fetch("data/widget-theme-slots.json?v=planner-storage-4")
           ]);
 
           plannerThemesData = await themesResponse.json();
           plannerWidgetThemeSlots = await slotsResponse.json();
-          getPlannerItems().filter((item) => item.dataset.itemType === "mini-month").forEach(applyThemeToWidget);
+          getPlannerItems()
+               .filter((item) => Boolean(plannerWidgetThemeSlots?.widgets?.[item.dataset.itemType]))
+               .forEach(applyThemeToWidget);
      } catch (error) {
           console.warn("Theme data could not be loaded.", error);
      }
@@ -847,7 +849,12 @@ function updateCalendarTextOverflow(item) {
 
 function getWeeklyViewStartDate(item) {
      if (item.dataset.dateMode === "relative") {
-          return getCalendarEffectiveDate(item);
+          const date = getCalendarEffectiveDate(item);
+          const firstDayIndex = item.dataset.weekStart === "sunday" ? 0 : 1;
+          const dayOffset = (date.getDay() - firstDayIndex + 7) % 7;
+
+          date.setDate(date.getDate() - dayOffset);
+          return date;
      }
 
      const { month, year } = getCalendarEffectiveMonthYear(item);
@@ -1352,6 +1359,7 @@ function renderPerpetualCalendar(item) {
      const titleCell = document.createElement("span");
 
      titleCell.className = "perpetual-calendar-title";
+     titleCell.dataset.themePart = "monthTitle";
      titleCell.textContent = titleMonthText;
      calendar.append(titleCell);
 
@@ -1363,9 +1371,11 @@ function renderPerpetualCalendar(item) {
           const lineCell = document.createElement("span");
 
           row.className = "perpetual-calendar-row";
+          row.dataset.themePart = "dayRow";
           row.dataset.dayKey = dayKey;
           if (date.getDay() === 0 || date.getDay() === 6) {
                row.classList.add("perpetual-calendar-weekend");
+               row.dataset.themePart = "weekendDayRow";
           }
           if (day === daysInMonth) {
                row.classList.add("perpetual-calendar-edge-bottom");
@@ -1373,12 +1383,14 @@ function renderPerpetualCalendar(item) {
           markCurrentCalendarDay(row, dayKey, todayKey);
 
           numberCell.className = "perpetual-calendar-day-number dayNumber";
+          numberCell.dataset.themePart = "dayNumber";
           numberCell.textContent = String(day);
           markCurrentCalendarDayNumber(numberCell, dayKey, todayKey);
           lineCell.className = "perpetual-calendar-line";
           row.append(numberCell, lineCell);
           calendar.append(row);
      }
+     applyThemeToWidget(item);
 }
 
 function renderWeeklyVertical(item) {
@@ -1430,20 +1442,25 @@ function renderWeeklyVertical(item) {
                const displayColumn = column + 1;
 
                cell.className = "weekly-vertical-cell";
+               cell.dataset.themePart = "timeSlot";
                cell.style.gridRow = String(row + 1);
                cell.style.gridColumn = String(displayColumn);
 
                if (calendarRow === 0 && column === timeColumn) {
                     cell.classList.add("weekly-vertical-time-heading");
+                    cell.dataset.themePart = "timeLabel";
                } else if (calendarRow === 0) {
                     const displayColumn = displayColumns[dayIndex];
 
                     cell.classList.add("weekly-vertical-date", "dayCell", "dayName");
+                    cell.dataset.themePart = "dayHeader";
                     if (displayColumn.type === "shared-weekend") {
                          cell.classList.add("weekly-vertical-shared-weekend");
+                         cell.dataset.themePart = "weekendDayHeader";
                     }
                     if (displayColumn.dates.some((date) => date.getDay() === 0 || date.getDay() === 6)) {
                          cell.classList.add("weekly-vertical-weekend");
+                         cell.dataset.themePart = "weekendDayHeader";
                     }
                     cell.dataset.dayKey = displayColumn.dates.map((date) => getCalendarDayKey(date.getFullYear(), date.getMonth(), date.getDate())).join(",");
                     markCurrentCalendarDay(cell, displayColumn.dates.map((date) => getCalendarDayKey(date.getFullYear(), date.getMonth(), date.getDate())), todayKey);
@@ -1468,6 +1485,7 @@ function renderWeeklyVertical(item) {
                     const timeMinutes = startMinutes + ((calendarRow - 1) * timeIncrement);
 
                     cell.classList.add("weekly-vertical-time");
+                    cell.dataset.themePart = "timeLabel";
                     cell.textContent = shouldShowWeeklyTimeLabel(timeMinutes, timeIncrement) ? formatWeeklyTimeLabel(timeMinutes, timeFormat) : "";
                } else {
                     const displayColumn = displayColumns[dayIndex];
@@ -1480,11 +1498,14 @@ function renderWeeklyVertical(item) {
                     const isSharedWeekendLabelRow = displayColumn.type === "shared-weekend" && calendarRow === 1 + Math.floor(slotCount / 2);
 
                     cell.classList.add("weekly-vertical-slot");
+                    cell.dataset.themePart = "timeSlot";
                     if (displayColumn.type === "shared-weekend") {
                          cell.classList.add("weekly-vertical-shared-weekend");
+                         cell.dataset.themePart = "weekendTimeSlot";
                     }
                     if (displayColumn.dates.some((date) => date.getDay() === 0 || date.getDay() === 6)) {
                          cell.classList.add("weekly-vertical-weekend");
+                         cell.dataset.themePart = "weekendTimeSlot";
                     }
                     cell.classList.add("dayCell");
                     cell.dataset.dayKey = slotKey;
@@ -1497,6 +1518,7 @@ function renderWeeklyVertical(item) {
                          const sundayMonth = document.createElement("span");
 
                          sundayMarker.className = "weekly-vertical-date-label weekly-vertical-sunday-mid-marker";
+                         sundayMarker.dataset.themePart = "weekendDayHeader";
                          sundayName.className = "weekly-vertical-day-name";
                          sundayName.textContent = getWeekdayLabel(sundayDate.getDay(), weekdayLabelFormat);
                          sundayNumber.className = "dayNumber";
@@ -1508,6 +1530,7 @@ function renderWeeklyVertical(item) {
                          cell.append(sundayMarker);
                     } else {
                          slotText.className = "calendar-day-text weekly-vertical-slot-text";
+                         slotText.dataset.themePart = "dayNotes";
                          slotText.dataset.dayKey = slotKey;
                          slotText.setAttribute("contenteditable", "false");
                          slotText.textContent = dayNotes[slotKey] || dayNotes[getWeeklySlotKey(primaryDate, slotMinutes)] || "";
@@ -1543,6 +1566,7 @@ function renderWeeklyVertical(item) {
                calendar.append(cell);
           }
      }
+     applyThemeToWidget(item);
 }
 
 function refreshRelativeCalendarWidgets() {
@@ -3918,7 +3942,7 @@ function makePlannerItem(type = "sticker") {
           if (type === "mini-month" || type === "full-month") {
                displayDateRow.append(displayWeekNumberLabel, displayWeekStartLabel);
           } else if (type === "weekly-vertical") {
-               displayDateRow.append(displayDayLabel);
+               displayDateRow.append(displayDayLabel, displayWeekStartLabel);
           }
      }
      weekStartLabel.append(weekStartSelect);

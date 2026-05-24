@@ -100,11 +100,17 @@
           "gridSlot": "interiorGridColor"
         },
         "monthTitle": {
-          "textSlot": "title"
+          "textSlot": "title",
+          "sizeMultiplier": 1,
+          "fillSlot": "fillColor2"
         },
         "weekdayHeader": {
           "textSlot": "subtitle",
+          "sizeMultiplier": 1,
           "fillSlot": "fillColor3"
+        },
+        "weekNumber": {
+          "textSlot": "body"
         },
         "dayNumber": {
           "textSlot": "body"
@@ -112,6 +118,9 @@
         "dayCell": {
           "fillSlot": "fillColor1",
           "gridSlot": "interiorGridColor"
+        },
+        "weekendDayCell": {
+          "fillSlot": "fillColor2"
         }
       }
     },
@@ -124,15 +133,17 @@
           "gridSlot": "interiorGridColor"
         },
         "monthTitle": {
-          "textSlot": "title"
-        },
-        "weekNumber": {
-          "textSlot": "subtitle"
+          "textSlot": "title",
+          "sizeMultiplier": 1,
+          "fillSlot": "fillColor2"
         },
         "dayNumber": {
           "textSlot": "body"
         },
-        "rowFill": {
+        "dayRow": {
+          "fillSlot": "fillColor1"
+        },
+        "weekendDayRow": {
           "fillSlot": "fillColor2"
         }
       }
@@ -145,20 +156,29 @@
           "borderSlot": "borderColor",
           "gridSlot": "interiorGridColor"
         },
-        "weekTitle": {
-          "textSlot": "title"
-        },
         "dayHeader": {
           "textSlot": "subtitle",
+          "sizeMultiplier": 1,
           "fillSlot": "fillColor3"
         },
+        "weekendDayHeader": {
+          "textSlot": "subtitle",
+          "sizeMultiplier": 1,
+          "fillSlot": "fillColor2"
+        },
         "timeLabel": {
-          "textSlot": "subtitle"
+          "textSlot": "body",
+          "fillSlot": "fillColor2"
         },
         "dayNotes": {
           "textSlot": "body"
         },
-        "timeGrid": {
+        "timeSlot": {
+          "fillSlot": "fillColor1",
+          "gridSlot": "interiorGridColor"
+        },
+        "weekendTimeSlot": {
+          "fillSlot": "fillColor2",
           "gridSlot": "interiorGridColor"
         }
       }
