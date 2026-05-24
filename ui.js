@@ -103,6 +103,24 @@ function getRgbaColor(red, green, blue, alpha) {
      return `rgb(${clampHexChannel(red)} ${clampHexChannel(green)} ${clampHexChannel(blue)} / ${alphaDecimal})`;
 }
 
+function getHexColor(red, green, blue) {
+     return `#${[red, green, blue].map((value) => clampHexChannel(value).toString(16).padStart(2, "0")).join("").toUpperCase()}`;
+}
+
+function normalizeHexInput(value, fallback = "#FFFFFF") {
+     const cleanValue = String(value || "").replace(/[^0-9a-f]/gi, "").slice(0, 6);
+
+     if (cleanValue.length === 3) {
+          return `#${cleanValue.split("").map((character) => character + character).join("").toUpperCase()}`;
+     }
+
+     if (cleanValue.length === 6) {
+          return `#${cleanValue.toUpperCase()}`;
+     }
+
+     return fallback;
+}
+
 function appendColorSwatches(swatches, colors, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
      if (!swatches) {
           return;
@@ -229,6 +247,10 @@ function getHexPopover() {
           <div class="hex-popover-swatch-cell">
                <span class="hex-popover-preview" data-hex-popover-preview aria-hidden="true"></span>
           </div>
+          <label class="hex-popover-hex-cell" data-hex-popover-cell tabindex="0">
+               <span>HEX</span>
+               <input type="text" inputmode="text" maxlength="7" value="#FFFFEE" aria-label="Hex color" data-hex-popover-hex tabindex="-1" readonly>
+          </label>
           <label data-hex-popover-cell tabindex="0">
                <span>R</span>
                <input type="text" inputmode="numeric" maxlength="3" value="255" aria-label="Red" data-hex-popover-channel="red" tabindex="-1" readonly>
@@ -253,13 +275,32 @@ function getHexPopover() {
      const greenInput = popover.querySelector("[data-hex-popover-channel='green']");
      const blueInput = popover.querySelector("[data-hex-popover-channel='blue']");
      const alphaInput = popover.querySelector("[data-hex-popover-channel='alpha']");
+     const hexInput = popover.querySelector("[data-hex-popover-hex]");
      const preview = popover.querySelector("[data-hex-popover-preview]");
-     const inputs = [redInput, greenInput, blueInput, alphaInput];
-     const applyHex = () => {
+     const inputs = [hexInput, redInput, greenInput, blueInput, alphaInput];
+     const syncHexFromRgb = () => {
+          hexInput.value = getHexColor(redInput.value, greenInput.value, blueInput.value);
+     };
+     const syncRgbFromHex = () => {
+          const fallback = getHexColor(redInput.value, greenInput.value, blueInput.value);
+          const normalizedHex = normalizeHexInput(hexInput.value, fallback);
+
+          hexInput.value = normalizedHex;
+          redInput.value = String(Number.parseInt(normalizedHex.slice(1, 3), 16));
+          greenInput.value = String(Number.parseInt(normalizedHex.slice(3, 5), 16));
+          blueInput.value = String(Number.parseInt(normalizedHex.slice(5, 7), 16));
+     };
+     const applyHex = (source = "rgb") => {
+          if (source === "hex") {
+               syncRgbFromHex();
+          }
           redInput.value = String(clampHexChannel(redInput.value));
           greenInput.value = String(clampHexChannel(greenInput.value));
           blueInput.value = String(clampHexChannel(blueInput.value));
           alphaInput.value = String(clampAlphaChannel(alphaInput.value));
+          if (source !== "hex") {
+               syncHexFromRgb();
+          }
           const nextColor = getRgbaColor(redInput.value, greenInput.value, blueInput.value, alphaInput.value);
 
           if (preview) {
@@ -286,7 +327,7 @@ function getHexPopover() {
 
           input.readOnly = true;
           input.tabIndex = -1;
-          applyHex();
+          applyHex(input === hexInput ? "hex" : "rgb");
           if (cell) {
                setSelectedCell(cells.indexOf(cell));
           }
@@ -311,7 +352,7 @@ function getHexPopover() {
           return activeCell?.querySelector("input") || null;
      };
      const stepInputValue = (input, direction) => {
-          if (!input) {
+          if (!input || input === hexInput) {
                return;
           }
 
@@ -328,13 +369,15 @@ function getHexPopover() {
 
      inputs.forEach((input) => {
           input.addEventListener("input", () => {
-               const cleanValue = input.value.replace(/\D/g, "").slice(0, 3);
+               const cleanValue = input === hexInput
+                    ? `#${input.value.replace(/[^0-9a-f]/gi, "").slice(0, 6).toUpperCase()}`
+                    : input.value.replace(/\D/g, "").slice(0, 3);
 
                if (input.value !== cleanValue) {
                     input.value = cleanValue;
                }
           });
-          input.addEventListener("change", applyHex);
+          input.addEventListener("change", () => applyHex(input === hexInput ? "hex" : "rgb"));
           input.addEventListener("keydown", (event) => {
                if (event.key === "Enter" || event.key.toLowerCase() === "e" || event.key === "Escape" || event.key === "Delete" || event.key.toLowerCase() === "q") {
                     event.preventDefault();
@@ -811,6 +854,7 @@ function createSettingsSection(title, elements = [], isOpen = false) {
      settingsSectionId += 1;
      section.className = "settings-section";
      section.dataset.settingsSection = "true";
+     section.dataset.settingsSectionTitle = title;
      section.classList.toggle("is-open", isOpen);
      toggle.className = "settings-section-toggle";
      toggle.type = "button";
@@ -1167,10 +1211,7 @@ function syncObjectControlsSettingsTab(tabName) {
 }
 
 function getObjectSettingsItemPanelNames(tabName) {
-     return {
-          "object-options": ["style", "widget"],
-          "object-text": ["text"]
-     }[tabName] || [];
+     return [];
 }
 
 function setItemControlsVisiblePanels(controls, panelNames) {

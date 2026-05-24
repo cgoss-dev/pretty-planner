@@ -1861,10 +1861,33 @@ function handleSelectedTextEditKey(event) {
      startSelectedItemTextEditing(item);
 }
 
+function enterDesignModeFromEmptyContextMenu(event) {
+     // NOTE: Lets a mouse user right-click outside widgets to enter Design Mode
+     if (
+          event.defaultPrevented ||
+          keyboardMode !== "interact" ||
+          event.target.closest(".planner-item, .item-controls, .planner-settings")
+     ) {
+          return;
+     }
+
+     event.preventDefault();
+     clearSelection();
+     enterKeyboardDesignMode();
+}
+
+function syncKeyboardModeUi() {
+     // NOTE: Reflects Interact/Design mode on the menu so unavailable tabs look unavailable
+     plannerSettings.classList.toggle("is-interact-mode", keyboardMode === "interact");
+     plannerSettings.classList.toggle("is-design-mode", keyboardMode === "design");
+     document.documentElement.dataset.keyboardMode = keyboardMode;
+}
+
 function enterKeyboardDesignMode() {
      // NOTE: Enters the top-level keyboard Design Mode without opening a specific panel
      keyboardMode = "design";
      designBranch = "root";
+     syncKeyboardModeUi();
      closeSidebar();
      renderKeyHints();
 }
@@ -1873,6 +1896,7 @@ function exitKeyboardDesignMode() {
      // NOTE: Returns keyboard mode to Interact and closes any design panel
      keyboardMode = "interact";
      designBranch = "root";
+     syncKeyboardModeUi();
      closeSidebar();
      renderKeyHints();
 }
@@ -1881,6 +1905,7 @@ function enterKeyboardMenuBranch(branch, tabName) {
      // NOTE: Opens a numbered Design branch backed by a main menu tab
      keyboardMode = "design";
      designBranch = branch;
+     syncKeyboardModeUi();
      selectSettingsTab(tabName);
      openSidebar();
      renderKeyHints();
@@ -1901,8 +1926,8 @@ function openSelectedObjectSettingsFromKeyboard() {
 
      keyboardMode = "design";
      designBranch = "object-settings";
+     syncKeyboardModeUi();
      openItemMenu(selectedItem);
-     selectSettingsTab("object-options");
      openSidebar();
      renderKeyHints();
      return true;
@@ -1975,10 +2000,12 @@ function handleKeyboardModeNumberKey(event) {
                enterKeyboardMenuBranch("menu", "add");
           } else if (event.key === "4") {
                designBranch = "object";
+               syncKeyboardModeUi();
                closeSidebar();
                renderKeyHints();
           } else if (event.key === "5") {
                designBranch = "transform";
+               syncKeyboardModeUi();
                closeSidebar();
                renderKeyHints();
           }
@@ -2000,6 +2027,7 @@ function handleKeyboardModeNumberKey(event) {
      if (designBranch === "object-settings" && event.key === "1") {
           event.preventDefault();
           designBranch = "object";
+          syncKeyboardModeUi();
           closeSidebar();
           renderKeyHints();
           return;
@@ -2919,6 +2947,7 @@ updateSettingsPanelSteps();
 updateObjectControlsState();
 updateSidebarPanelFocusState();
 syncResponsiveViewportClass();
+syncKeyboardModeUi();
 applyPlannerConfig();
 restorePlannerBook(plannerConfig.paperKey);
 syncNotebookSpread();
@@ -2992,6 +3021,11 @@ PageControls.bindPageTurnControls({
 });
 settingsTabs.forEach((tab) => {
      tab.addEventListener("click", (event) => {
+          if (keyboardMode === "interact") {
+               event.preventDefault();
+               return;
+          }
+
           if (shouldSkipNextTabClick) {
                shouldSkipNextTabClick = false;
                return;
@@ -3012,6 +3046,11 @@ plannerSettings.addEventListener("pointerdown", (event) => {
      const tab = event.target.closest("[data-settings-tab]");
 
      if (!tab || plannerSettings.classList.contains("is-open")) {
+          return;
+     }
+
+     if (keyboardMode === "interact") {
+          event.preventDefault();
           return;
      }
 
@@ -3053,6 +3092,7 @@ plannerSettings.addEventListener("pointerleave", () => {
      }
 });
 initializeCalendarSourcePreviews(sourceItems);
+loadPlannerThemeData();
 sourceItems.forEach((sourceItem) => {
      sourceItem.addEventListener("pointerdown", startSourceMove, true);
      sourceItem.addEventListener("mousedown", startSourceMove, true);
@@ -3069,6 +3109,7 @@ plannerDesk.addEventListener("pointerleave", () => {
 plannerDesk.addEventListener("wheel", zoomViewFromWheel, {
      passive: false
 });
+plannerDesk.addEventListener("contextmenu", enterDesignModeFromEmptyContextMenu);
 document.addEventListener("pointerdown", finishTextEditingFromOutsidePointer, true);
 document.addEventListener("pointerdown", collapseMenusFromOutsidePointer, true);
 document.addEventListener("click", (event) => {

@@ -1,0 +1,35 @@
+{
+  "themes": [
+    {
+      "id": "default",
+      "name": "Default",
+      "text": {
+        "title": {
+          "typeface": "noto",
+          "size": 10,
+          "style": [],
+          "color": "gray2"
+        },
+        "subtitle": {
+          "typeface": "noto",
+          "size": 10,
+          "style": [],
+          "color": "gray2"
+        },
+        "body": {
+          "typeface": "noto",
+          "size": 10,
+          "style": [],
+          "color": "gray2"
+        }
+      },
+      "widget": {
+        "borderColor": "gray3",
+        "interiorGridColor": "gray3",
+        "fillColor1": "paper",
+        "fillColor2": "shade10",
+        "fillColor3": "shade30"
+      }
+    }
+  ]
+}
