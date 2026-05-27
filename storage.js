@@ -489,7 +489,7 @@ function restorePlannerItemSettings(item, itemData) {
                     lineHeight: widget.dayText?.lineHeight
                });
           }
-          setMiniMonthSettings(item, {
+          setCalendarWidgetSettings(item, {
                weekNumbers: normalizeStoredBoolean(widget.weekNumbers, "true"),
                weekNumberFormat: widget.weekNumberFormat,
                weekStart: widget.weekStart,

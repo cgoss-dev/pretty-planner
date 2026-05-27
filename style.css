@@ -3381,6 +3381,19 @@ body {
      outline-offset: 3px;
 }
 
+.planner-item.is-interact-focus {
+     outline: var(--border-md) solid var(--accent-ring-strong);
+     outline-offset: 3px;
+}
+
+.planner-item .is-interact-target {
+     position: relative;
+     z-index: 3;
+     outline: var(--border-md) solid var(--accent-ring-strong);
+     outline-offset: -2px;
+     box-shadow: inset 0 0 0 var(--border-sm) var(--color-rainbow);
+}
+
 .planner-item.is-menu-open {
      z-index: 40;
 }

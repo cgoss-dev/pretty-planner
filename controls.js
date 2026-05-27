@@ -461,13 +461,13 @@ window.KeyboardControls = (() => {
           {
                title: "Global",
                controls: [
-                    { key: "1", action: "Enter Design Mode from Interact" },
+                    { key: "Tab", action: "Swap Interact and Design modes" },
                     { key: "Enter", action: "Activate focused menu control" },
                     { key: "Delete / Esc", action: "Cancel, close, or deselect" },
                     { key: "1-5", action: "Choose the current mode option" },
                     { key: "X", action: "Toggle gridlines on or off" },
                     { key: "Q / E", action: "Last or next page, spread, or tab" },
-                    { key: "WASD / Arrows", action: "Move page cursor" },
+                    { key: "WASD / Arrows", action: "Move Interact focus or Design cursor" },
                     { key: "C", action: "Center" },
                     { key: "Z", action: "Cycle zoom" },
                ]

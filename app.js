@@ -153,6 +153,8 @@ let keyboardCursor = {
 let keyboardCursorIdleTimer = 0;
 let isKeyboardCursorActive = false;
 let hasUsedKeyboardCursor = false;
+let interactFocusItem = null;
+let interactFocusTarget = null;
 
 pageCornerFoldOverlay.className = "page-corner-fold-overlay";
 pageCornerFoldOverlayNumber.className = "page-corner-fold-overlay-number";
@@ -1201,6 +1203,242 @@ function activateKeyboardCursor() {
      return true;
 }
 
+function getElementCenter(element) {
+     const rect = element.getBoundingClientRect();
+
+     return {
+          rect,
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2
+     };
+}
+
+function isElementVisibleForFocus(element) {
+     const rect = element.getBoundingClientRect();
+
+     return rect.width > 0 && rect.height > 0 && !element.closest(".is-spread-hidden, [hidden]");
+}
+
+function chooseSpatialElement(elements, currentElement, direction) {
+     const visibleElements = elements.filter(isElementVisibleForFocus);
+
+     if (!visibleElements.length) {
+          return null;
+     }
+
+     const orderedElements = [...visibleElements].sort((first, second) => {
+          const firstRect = first.getBoundingClientRect();
+          const secondRect = second.getBoundingClientRect();
+
+          return firstRect.top - secondRect.top || firstRect.left - secondRect.left;
+     });
+
+     if (!currentElement || !visibleElements.includes(currentElement)) {
+          return orderedElements[0];
+     }
+
+     const current = getElementCenter(currentElement);
+     const directionalCandidates = visibleElements
+          .filter((element) => element !== currentElement)
+          .map((element) => {
+               const candidate = getElementCenter(element);
+               const deltaX = candidate.x - current.x;
+               const deltaY = candidate.y - current.y;
+               const isDirectional = (
+                    (direction === "left" && deltaX < -1) ||
+                    (direction === "right" && deltaX > 1) ||
+                    (direction === "up" && deltaY < -1) ||
+                    (direction === "down" && deltaY > 1)
+               );
+
+               if (!isDirectional) {
+                    return null;
+               }
+
+               const primary = direction === "left" || direction === "right" ? Math.abs(deltaX) : Math.abs(deltaY);
+               const cross = direction === "left" || direction === "right" ? Math.abs(deltaY) : Math.abs(deltaX);
+
+               return {
+                    element,
+                    score: primary + cross * 0.65
+               };
+          })
+          .filter(Boolean)
+          .sort((first, second) => first.score - second.score);
+
+     if (directionalCandidates[0]) {
+          return directionalCandidates[0].element;
+     }
+
+     const currentIndex = orderedElements.indexOf(currentElement);
+
+     if (currentIndex === -1) {
+          return orderedElements[0];
+     }
+
+     return direction === "left" || direction === "up"
+          ? orderedElements[(currentIndex - 1 + orderedElements.length) % orderedElements.length]
+          : orderedElements[(currentIndex + 1) % orderedElements.length];
+}
+
+function getInteractFocusItems() {
+     return getPlannerItems().filter((item) => getItemPage(item) && isElementVisibleForFocus(item));
+}
+
+function clearInteractFocusTarget() {
+     document.querySelectorAll(".is-interact-target").forEach((element) => element.classList.remove("is-interact-target"));
+     interactFocusTarget = null;
+}
+
+function clearInteractFocus() {
+     clearInteractFocusTarget();
+     document.querySelectorAll(".is-interact-focus").forEach((element) => element.classList.remove("is-interact-focus"));
+     interactFocusItem = null;
+}
+
+function setInteractFocusItem(item) {
+     clearInteractFocus();
+
+     if (!item) {
+          renderKeyHints();
+          return false;
+     }
+
+     interactFocusItem = item;
+     item.classList.add("is-interact-focus");
+     item.scrollIntoView({
+          block: "nearest",
+          inline: "nearest"
+     });
+     renderKeyHints();
+     return true;
+}
+
+function setInteractFocusTarget(item, target) {
+     clearInteractFocusTarget();
+
+     if (!item || !target) {
+          renderKeyHints();
+          return false;
+     }
+
+     interactFocusItem = item;
+     item.classList.add("is-interact-focus");
+     interactFocusTarget = target;
+     target.classList.add("is-interact-target");
+     target.scrollIntoView({
+          block: "nearest",
+          inline: "nearest"
+     });
+     renderKeyHints();
+     return true;
+}
+
+function getInteractWidgetTargets(item) {
+     if (!item) {
+          return [];
+     }
+
+     if (item.dataset.itemType === "mini-month") {
+          return Array.from(item.querySelectorAll(".mini-month .dayCell[data-day-key]"));
+     }
+
+     if (item.dataset.itemType === "full-month") {
+          return Array.from(item.querySelectorAll(".mini-month .dayCell[data-day-key]"));
+     }
+
+     if (item.dataset.itemType === "perpetual-calendar") {
+          return Array.from(item.querySelectorAll(".perpetual-calendar-row[data-day-key]"));
+     }
+
+     if (item.dataset.itemType === "weekly-vertical") {
+          return Array.from(item.querySelectorAll(".weekly-vertical-slot.dayCell[data-day-key]"));
+     }
+
+     const stickerText = item.querySelector(".sticker-text");
+
+     return stickerText ? [stickerText] : [];
+}
+
+function moveInteractFocus(direction) {
+     if (keyboardMode !== "interact") {
+          return false;
+     }
+
+     if (interactFocusTarget && interactFocusItem) {
+          const targets = getInteractWidgetTargets(interactFocusItem);
+          const nextTarget = chooseSpatialElement(targets, interactFocusTarget, direction);
+
+          if (nextTarget) {
+               return setInteractFocusTarget(interactFocusItem, nextTarget);
+          }
+     }
+
+     const nextItem = chooseSpatialElement(getInteractFocusItems(), interactFocusItem, direction);
+
+     return setInteractFocusItem(nextItem);
+}
+
+function enterInteractWidgetFocus(item = interactFocusItem) {
+     if (!item) {
+          return false;
+     }
+
+     const targets = getInteractWidgetTargets(item);
+
+     if (!targets.length) {
+          return false;
+     }
+
+     if (isStickerTextItem(item) || isPageTitleItem(item)) {
+          startStickerTextEditing(item);
+          return true;
+     }
+
+     return setInteractFocusTarget(item, targets[0]);
+}
+
+function activateInteractFocus() {
+     if (keyboardMode !== "interact") {
+          return false;
+     }
+
+     if (!interactFocusItem) {
+          return setInteractFocusItem(selectedItem || getInteractFocusItems()[0]);
+     }
+
+     if (!interactFocusTarget) {
+          return enterInteractWidgetFocus(interactFocusItem);
+     }
+
+     const textElement = interactFocusTarget.matches(".calendar-day-text")
+          ? interactFocusTarget
+          : interactFocusTarget.querySelector(".calendar-day-text");
+
+     if (textElement) {
+          startCalendarDayTextEditing(textElement, interactFocusItem);
+          return true;
+     }
+
+     return false;
+}
+
+function stepBackInteractFocus() {
+     if (interactFocusTarget) {
+          clearInteractFocusTarget();
+          renderKeyHints();
+          return true;
+     }
+
+     if (interactFocusItem) {
+          clearInteractFocus();
+          renderKeyHints();
+          return true;
+     }
+
+     return false;
+}
+
 function handleKeyboardCursorActivateKey(event) {
      // NOTE: Uses E or Enter as the page cursor activate key when the menu is closed
      if (
@@ -1216,7 +1454,16 @@ function handleKeyboardCursorActivateKey(event) {
           return;
      }
 
-     if (event.key !== "Enter" && event.key.toLowerCase() !== "e") {
+     if (event.key !== "Enter") {
+          return;
+     }
+
+     if (keyboardMode === "interact") {
+          const hadInteractFocus = Boolean(interactFocusItem);
+
+          if (activateInteractFocus() || hadInteractFocus) {
+               event.preventDefault();
+          }
           return;
      }
 
@@ -1887,6 +2134,7 @@ function enterKeyboardDesignMode() {
      // NOTE: Enters the top-level keyboard Design Mode without opening a specific panel
      keyboardMode = "design";
      designBranch = "root";
+     clearInteractFocus();
      syncKeyboardModeUi();
      closeSidebar();
      renderKeyHints();
@@ -1899,6 +2147,28 @@ function exitKeyboardDesignMode() {
      syncKeyboardModeUi();
      closeSidebar();
      renderKeyHints();
+}
+
+function handleModeToggleKey(event) {
+     // NOTE: Uses Tab as the single-key switch between Interact and Design modes
+     if (
+          event.defaultPrevented ||
+          activeAction ||
+          event.key !== "Tab" ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          isTypingFieldShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     event.preventDefault();
+     if (keyboardMode === "design") {
+          exitKeyboardDesignMode();
+     } else {
+          enterKeyboardDesignMode();
+     }
 }
 
 function enterKeyboardMenuBranch(branch, tabName) {
@@ -2104,6 +2374,10 @@ function handleCancelKey(event) {
 
      if (keyboardMode === "design" && designBranch === "root") {
           exitKeyboardDesignMode();
+          return;
+     }
+
+     if (keyboardMode === "interact" && stepBackInteractFocus()) {
           return;
      }
 
@@ -2442,7 +2716,7 @@ function handleViewZoomKey(event) {
 }
 
 function handlePageFocusNavigationKey(event) {
-     // NOTE: Moves the page grid cursor with WASD or arrows when viewing the planner
+     // NOTE: Moves Interact focus between real widgets/targets, falling back to the legacy grid cursor outside Interact
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -2463,6 +2737,11 @@ function handlePageFocusNavigationKey(event) {
      }
 
      event.preventDefault();
+     if (keyboardMode === "interact") {
+          moveInteractFocus(direction);
+          return;
+     }
+
      moveKeyboardCursor(direction);
 }
 
@@ -2687,7 +2966,7 @@ function getKeyHintState() {
           return {
                mode: "Design Mode",
                entries: [
-               ["1", "Interact Mode"],
+               ["Tab", "Interact Mode"],
                ["2", "Notebook"],
                ["3", "Menu"],
                ["4", "Object"],
@@ -2698,10 +2977,39 @@ function getKeyHintState() {
           };
      }
 
+     if (interactFocusTarget) {
+          return {
+               mode: "Interact Mode > Widget Navigate",
+               entries: [
+               ["Arrows", "Move focus"],
+               ["WASD", "Move focus"],
+               ["Enter", "Edit focused text"],
+               ["Delete / Esc", "Back"],
+               ["Tab", "Design Mode"]
+               ]
+          };
+     }
+
+     if (interactFocusItem) {
+          return {
+               mode: "Interact Mode > Widget Focus",
+               entries: [
+               ["Arrows", "Move between widgets"],
+               ["WASD", "Move between widgets"],
+               ["Enter", "Open widget"],
+               ["Delete / Esc", "Clear focus"],
+               ["Tab", "Design Mode"]
+               ]
+          };
+     }
+
      return {
           mode: "Interact Mode",
           entries: [
-          ["1", "Design Mode"],
+          ["Tab", "Design Mode"],
+          ["Arrows", "Move focus"],
+          ["WASD", "Move focus"],
+          ["Enter", "Open focused widget"],
           ["Q / E", "Last / Next Page"],
           ["Z", "Zoom"],
           ["X", "Gridlines"],
@@ -3156,6 +3464,7 @@ document.addEventListener("keydown", (event) => {
      handleClipboardShortcut(event);
      handleTextEditFinishKey(event);
      blockSpacebarShortcut(event);
+     handleModeToggleKey(event);
      handleKeyboardPlacementKey(event);
      handleKeyboardMoveKey(event);
      handleKeyboardResizeKey(event);
