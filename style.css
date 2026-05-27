@@ -109,7 +109,7 @@
      --view-zoom: 1;
      --view-pan-x: 0px;
      --view-pan-y: 0px;
-     --dot-grid-color: rgba(204, 204, 204, 0.5);
+     --dot-grid-color: color-mix(in srgb, var(--color-gray4) 25%, transparent);
      --dot-grid-size-x: calc(100% / 34);
      --dot-grid-size-y: calc(100% / 44);
      --dot-grid-half-size-x: calc(50% / 34);
@@ -2566,7 +2566,7 @@ body {
 
 .planner-item-sticker[data-dot-grid="true"] {
      background:
-          radial-gradient(circle at 1px 1px, rgba(17, 17, 17, 0.24) 0 1px, transparent 1.35px),
+          radial-gradient(circle at 1px 1px, var(--dot-grid-color) 0 1px, transparent 1.35px),
           var(--widget-box-fill);
      background-position:
           calc(var(--sticker-dot-grid-offset-x, 0px) + var(--sticker-dot-grid-size-x, calc(100% / var(--sticker-grid-units))) - 1px) calc(var(--sticker-dot-grid-offset-y, 0px) + var(--sticker-dot-grid-size-y, calc(100% / var(--sticker-grid-units))) - 1px),
@@ -4444,9 +4444,9 @@ body {
      inline-size: min(620px, calc(100vw - 28px)) !important;
      min-width: 0 !important;
      max-width: calc(100vw - 28px) !important;
-     height: min(68vh, calc(100vh - 128px));
+     height: min(68vh, calc(100vh - var(--control-panel-anchor-top) - 14px));
      min-height: 0;
-     max-height: calc(100vh - 128px);
+     max-height: calc(100vh - var(--control-panel-anchor-top) - 14px);
      grid-template-columns: max-content minmax(0, 1fr);
      grid-template-rows: auto minmax(0, 1fr);
      align-content: start;
@@ -4575,8 +4575,8 @@ body.is-single-page-viewport .control-panel {
      width: min(620px, calc(100vw - 28px)) !important;
      inline-size: min(620px, calc(100vw - 28px)) !important;
      max-width: calc(100vw - 28px) !important;
-     height: min(68vh, calc(100vh - 128px));
-     max-height: calc(100vh - 128px);
+     height: min(68vh, calc(100vh - var(--control-panel-anchor-top) - 14px));
+     max-height: calc(100vh - var(--control-panel-anchor-top) - 14px);
      min-height: 0;
      min-width: 0 !important;
      grid-template-columns: max-content minmax(0, 1fr);

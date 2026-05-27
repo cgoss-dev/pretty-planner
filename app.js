@@ -2068,11 +2068,10 @@ function handleSelectedTextEditKey(event) {
      startSelectedItemTextEditing(item);
 }
 
-function enterDesignModeFromEmptyContextMenu(event) {
-     // NOTE: Lets a mouse user right-click outside widgets to enter Design Mode
+function toggleKeyboardModeFromEmptyContextMenu(event) {
+     // NOTE: Lets a mouse user right-click empty space to swap Interact and Design modes.
      if (
           event.defaultPrevented ||
-          keyboardMode !== "interact" ||
           event.target.closest(".planner-item, .widget-panel, .control-panel")
      ) {
           return;
@@ -2080,7 +2079,11 @@ function enterDesignModeFromEmptyContextMenu(event) {
 
      event.preventDefault();
      clearSelection();
-     enterKeyboardDesignMode();
+     if (keyboardMode === "design") {
+          exitKeyboardDesignMode();
+     } else {
+          enterKeyboardDesignMode();
+     }
 }
 
 function syncKeyboardModeUi() {
@@ -2987,9 +2990,11 @@ function syncControlPanelHintAnchor() {
      const anchorTop = clamp(hintRect.bottom - deskRect.top + 8, 8, Math.max(8, deskRect.height - 80));
 
      delete controlPanel.dataset.centerX;
+     delete controlPanel.dataset.height;
      delete controlPanel.dataset.userPositioned;
      controlPanel.style.left = "";
      controlPanel.style.top = "";
+     controlPanel.style.height = "";
      controlPanel.style.setProperty("--control-panel-anchor-left", `${anchorLeft}px`);
      controlPanel.style.setProperty("--control-panel-anchor-top", `${anchorTop}px`);
 }
@@ -3358,7 +3363,7 @@ plannerDesk.addEventListener("pointerleave", () => {
 plannerDesk.addEventListener("wheel", zoomViewFromWheel, {
      passive: false
 });
-plannerDesk.addEventListener("contextmenu", enterDesignModeFromEmptyContextMenu);
+plannerDesk.addEventListener("contextmenu", toggleKeyboardModeFromEmptyContextMenu);
 document.addEventListener("pointerdown", finishTextEditingFromOutsidePointer, true);
 document.addEventListener("pointerdown", collapseMenusFromOutsidePointer, true);
 document.addEventListener("click", (event) => {

@@ -329,7 +329,7 @@ function isPageTitleItem(item) {
 }
 
 function isStickerTextItemType(type) {
-     return type === "sticker" || type === "page-title";
+     return type === "sticker" || type === "page-title" || type === "toc";
 }
 
 function isStickerTextItem(item) {
@@ -676,6 +676,10 @@ function updateStickerDotGrid(item, page, box) {
 
 // NOTE: Text Inside Notes, Titles, And Calendars
 function getStickerTextElement(item) {
+     if (isTocItem(item)) {
+          return item.querySelector(".toc-widget");
+     }
+
      return item.querySelector(".sticker-text");
 }
 
@@ -754,7 +758,8 @@ function setStickerTextSettings(item, settings = {}) {
 
      const textElement = getStickerTextElement(item);
      const controls = getWidgetPanel(item) || item;
-     const isEnabled = isPageTitleItem(item) ? "true" : settings.enabled ?? item.dataset.textEnabled ?? "false";
+     const isGeneratedTextItem = isPageTitleItem(item) || isTocItem(item);
+     const isEnabled = isGeneratedTextItem ? "true" : settings.enabled ?? item.dataset.textEnabled ?? "false";
 
      item.dataset.textEnabled = String(isEnabled);
      item.dataset.textSize = settings.size || item.dataset.textSize || "10";
@@ -771,7 +776,7 @@ function setStickerTextSettings(item, settings = {}) {
      item.dataset.textRole = settings.role || item.dataset.textRole || (isPageTitleItem(item) ? "title" : "body");
 
      if (textElement) {
-          if (settings.content !== undefined) {
+          if (!isTocItem(item) && settings.content !== undefined) {
                textElement.textContent = settings.content;
           }
 
@@ -929,7 +934,7 @@ function startStickerTextEditing(item) {
           return;
      }
 
-     if (!isStickerTextItem(item)) {
+     if (!isStickerTextItem(item) || isTocItem(item)) {
           return;
      }
 
@@ -1097,7 +1102,7 @@ function enterItemDesignPopup(controls, item, scope = "unique") {
 
      setControlsActionItems(controls, actionItems.length ? actionItems : [item]);
      controls.dataset.designScope = scope;
-     controls.dataset.designScopeLabel = `${scopeLabel}: ${getItemTypeLabel(item.dataset.itemType)}`;
+     controls.dataset.designScopeLabel = scopeLabel;
      controls.querySelector(".item-design-popup-title")?.replaceChildren(controls.dataset.designScopeLabel);
      controls.classList.remove("is-actions-popup");
      controls.classList.add("is-design-popup");
@@ -3536,7 +3541,7 @@ function copyItemConfiguration(source, target) {
      });
      setStickerTextSettings(target, {
           enabled: source.dataset.textEnabled,
-          content: getStickerTextElement(source) ? getStickerTextElement(source).textContent : "",
+          content: isTocItem(source) ? undefined : getStickerTextElement(source) ? getStickerTextElement(source).textContent : "",
           size: source.dataset.textSize,
           font: source.dataset.textFont,
           color: source.dataset.textColor,

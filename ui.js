@@ -595,7 +595,13 @@ function setColorMatrixOpen(isOpen) {
           }
           colorMatrixPopover.hidden = false;
           renderColorMatrix();
-          requestAnimationFrame(() => colorMatrixPopover.classList.add("is-open"));
+          requestAnimationFrame(() => {
+               colorMatrixPopover.classList.add("is-open");
+               colorMatrixPopover.scrollIntoView({
+                    block: "nearest",
+                    inline: "nearest"
+               });
+          });
      } else {
           colorMatrixPopover.classList.remove("is-open");
           colorMatrixPopover.hidden = true;
@@ -1423,19 +1429,11 @@ function collapseMenusFromOutsidePointer(event) {
 function syncControlPanelSnap() {
      delete controlPanel.dataset.width;
      controlPanel.style.width = "";
-
-     const box = getControlPanelBox();
-     const bounds = getControlPanelHeightBounds();
-     const nextHeight = clamp(box.height, bounds.min, bounds.max);
-
-     setControlPanelBox({
-          ...box,
-          y: plannerDesk.getBoundingClientRect().height - nextHeight,
-          centerX: getControlPanelCenter(box.width),
-          height: nextHeight
-     });
+     delete controlPanel.dataset.height;
+     controlPanel.style.height = "";
      delete controlPanel.dataset.centerX;
      controlPanel.style.left = "";
+     controlPanel.style.top = "";
      if (typeof syncControlPanelHintAnchor === "function") {
           syncControlPanelHintAnchor();
      }

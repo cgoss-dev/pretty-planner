@@ -123,7 +123,7 @@ function serializePlannerItem(item) {
           text: isTextItem
                ? {
                     enabled: item.dataset.textEnabled === "true",
-                    content: textElement ? textElement.textContent : "",
+                    content: isTocItem(item) ? "" : textElement ? textElement.textContent : "",
                    size: Number(item.dataset.textSize) || 10,
                    font: item.dataset.textFont || "annotation-mono",
                    color: item.dataset.textColor || "var(--color-gray1)",
@@ -463,7 +463,7 @@ function restorePlannerItemSettings(item, itemData) {
      if (isStickerTextItem(item)) {
           setStickerTextSettings(item, {
                enabled: normalizeStoredBoolean(text.enabled),
-               content: text.content || "",
+               content: isTocItem(item) ? undefined : text.content || "",
                size: text.size,
                font: "annotation-mono",
                color: text.color,
