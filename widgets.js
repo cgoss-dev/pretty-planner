@@ -1345,6 +1345,7 @@ function getPlannerItems() {
 
 function clearItemSelectionClasses(item) {
      closeItemMenu(item);
+     clearCalendarStyleTarget(item);
      item.classList.remove("is-selected", "is-resizing", "is-resize-ew", "is-resize-ns", "is-resize-nwse", "is-resize-nesw");
 }
 
@@ -1515,11 +1516,25 @@ function moveActionItemsLayer(item, direction) {
 }
 
 function applyStyleToActionItems(item, style) {
+     const selectedCalendarStyleItem = getSelectedCalendarStyleItem(item);
+
+     if (selectedCalendarStyleItem && applyStyleToCalendarStyleTarget(selectedCalendarStyleItem, style)) {
+          notifyTemplateChanged();
+          return;
+     }
+
      getActionItems(item).forEach((targetItem) => setItemStyle(targetItem, style));
      notifyTemplateChanged();
 }
 
 function applyTextSettingsToActionItems(item, settings) {
+     const selectedCalendarStyleItem = getSelectedCalendarStyleItem(item);
+
+     if (selectedCalendarStyleItem && applyTextSettingsToCalendarStyleTarget(selectedCalendarStyleItem, settings)) {
+          notifyTemplateChanged();
+          return;
+     }
+
      getActionItems(item).forEach((targetItem) => {
           if (isCalendarTextItem(targetItem)) {
                setCalendarDayTextSettings(targetItem, settings);
@@ -1576,6 +1591,249 @@ function handleWidgetPanelButtonKey(event) {
      event.preventDefault();
      event.stopPropagation();
      button.click();
+}
+
+function getCalendarPartStyles(item) {
+     try {
+          return JSON.parse(item.dataset.calendarPartStyles || "{}");
+     } catch {
+          return {};
+     }
+}
+
+function setCalendarPartStyles(item, styles) {
+     const keys = Object.keys(styles).filter((key) => styles[key] && Object.keys(styles[key]).length);
+
+     if (!keys.length) {
+          delete item.dataset.calendarPartStyles;
+          return;
+     }
+
+     item.dataset.calendarPartStyles = JSON.stringify(keys.reduce((nextStyles, key) => {
+          nextStyles[key] = styles[key];
+          return nextStyles;
+     }, {}));
+}
+
+function getCalendarStyleTarget(item) {
+     try {
+          const target = JSON.parse(item.dataset.calendarStyleTarget || "null");
+
+          return target && target.type && target.key ? target : null;
+     } catch {
+          return null;
+     }
+}
+
+function setCalendarStyleTarget(item, target) {
+     if (!item || !target?.type || !target?.key) {
+          return;
+     }
+
+     item.dataset.calendarStyleTarget = JSON.stringify(target);
+     syncCalendarStyleTarget(item);
+}
+
+function clearCalendarStyleTarget(item) {
+     if (!item) {
+          return;
+     }
+
+     delete item.dataset.calendarStyleTarget;
+     syncCalendarStyleTarget(item);
+}
+
+function syncCalendarStyleTarget(item) {
+     const target = getCalendarStyleTarget(item);
+
+     item.querySelectorAll(".is-calendar-style-target").forEach((element) => {
+          element.classList.remove("is-calendar-style-target");
+     });
+     item.classList.toggle("is-calendar-border-target", target?.type === "border");
+     if (target?.type !== "cell") {
+          return;
+     }
+
+     const escapedKey = typeof CSS !== "undefined" && typeof CSS.escape === "function"
+          ? CSS.escape(target.key)
+          : String(target.key).replaceAll('"', '\\"');
+
+     item.querySelectorAll(`[data-calendar-style-key="${escapedKey}"]`).forEach((element) => {
+          element.classList.add("is-calendar-style-target");
+     });
+}
+
+function getSelectedCalendarStyleItem(item) {
+     if (!item || !isCalendarItem(item)) {
+          return null;
+     }
+
+     return getCalendarStyleTarget(item) ? item : null;
+}
+
+function getCalendarStyleScopeItems(item) {
+     const controls = getWidgetPanel(item);
+     const target = getCalendarStyleTarget(item);
+
+     if (!target) {
+          return [];
+     }
+
+     if (controls?.dataset.designScope === "universal") {
+          return getWidgetTypeItems(item.dataset.itemType);
+     }
+
+     return [item];
+}
+
+function applyCalendarPartStyles(item) {
+     const styles = getCalendarPartStyles(item);
+
+     item.querySelectorAll("[data-calendar-style-key]").forEach((cell) => {
+          const style = styles[cell.dataset.calendarStyleKey] || {};
+
+          cell.style.background = style.fillColor || "";
+          cell.style.color = style.textColor || "";
+          cell.style.fontFamily = style.textFont ? getStickerTextFont(style.textFont) : "";
+          cell.style.fontWeight = style.textBold === "true" ? "700" : "";
+          cell.style.fontStyle = style.textItalic === "true" ? "italic" : "";
+          cell.style.textDecoration = getTextDecorationValue(style.textUnderline, style.textStrike);
+          cell.style.borderRightColor = style.borderColor || "";
+          cell.style.borderBottomColor = style.borderColor || "";
+          cell.style.borderRightWidth = style.borderWidth ? `${style.borderWidth}px` : "";
+          cell.style.borderBottomWidth = style.borderWidth ? `${style.borderWidth}px` : "";
+     });
+     syncCalendarStyleTarget(item);
+}
+
+function applyStyleToCalendarStyleTarget(item, style) {
+     const target = getCalendarStyleTarget(item);
+
+     if (!target) {
+          return false;
+     }
+
+     if (target.type === "border") {
+          getCalendarStyleScopeItems(item).forEach((targetItem) => {
+               setItemStyle(targetItem, {
+                    borderColor: style.borderColor,
+                    borderWidth: style.borderWidth
+               });
+          });
+          return true;
+     }
+
+     if (target.type !== "cell") {
+          return false;
+     }
+
+     getCalendarStyleScopeItems(item).forEach((targetItem) => {
+          const styles = getCalendarPartStyles(targetItem);
+          const nextStyle = {
+               ...(styles[target.key] || {})
+          };
+
+          if (style.fillColor !== undefined) {
+               nextStyle.fillColor = style.fillColor;
+          }
+          if (style.borderColor !== undefined) {
+               nextStyle.borderColor = style.borderColor;
+          }
+          if (style.borderWidth !== undefined) {
+               nextStyle.borderWidth = style.borderWidth;
+          }
+          styles[target.key] = nextStyle;
+          setCalendarPartStyles(targetItem, styles);
+          applyCalendarPartStyles(targetItem);
+     });
+     return true;
+}
+
+function applyTextSettingsToCalendarStyleTarget(item, settings) {
+     const target = getCalendarStyleTarget(item);
+
+     if (!target || target.type !== "cell") {
+          return false;
+     }
+
+     getCalendarStyleScopeItems(item).forEach((targetItem) => {
+          const styles = getCalendarPartStyles(targetItem);
+          const nextStyle = {
+               ...(styles[target.key] || {})
+          };
+
+          if (settings.color !== undefined) {
+               nextStyle.textColor = settings.color;
+          }
+          if (settings.font !== undefined) {
+               nextStyle.textFont = settings.font;
+          }
+          if (settings.bold !== undefined) {
+               nextStyle.textBold = settings.bold;
+          }
+          if (settings.italic !== undefined) {
+               nextStyle.textItalic = settings.italic;
+          }
+          if (settings.underline !== undefined) {
+               nextStyle.textUnderline = settings.underline;
+          }
+          if (settings.strike !== undefined) {
+               nextStyle.textStrike = settings.strike;
+          }
+          styles[target.key] = nextStyle;
+          setCalendarPartStyles(targetItem, styles);
+          applyCalendarPartStyles(targetItem);
+     });
+     return true;
+}
+
+function selectCalendarCellStyleTarget(item, cell, event) {
+     if (keyboardMode !== "design" || !cell?.dataset.calendarStyleKey) {
+          return;
+     }
+
+     event.preventDefault();
+     event.stopPropagation();
+     selectItem(item);
+     setCalendarStyleTarget(item, {
+          type: "cell",
+          key: cell.dataset.calendarStyleKey
+     });
+     openItemActionsPopup(item, event, [item]);
+}
+
+function isCalendarBorderStylePointer(item, event) {
+     const calendar = item.querySelector(".mini-month");
+
+     if (!calendar) {
+          return false;
+     }
+
+     const rect = calendar.getBoundingClientRect();
+     const edgeSize = Math.max(8, Number(item.dataset.borderWidth || 1) + 6);
+     const isInside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+
+     if (!isInside) {
+          return false;
+     }
+
+     return (
+          event.clientX - rect.left <= edgeSize ||
+          rect.right - event.clientX <= edgeSize ||
+          event.clientY - rect.top <= edgeSize ||
+          rect.bottom - event.clientY <= edgeSize
+     );
+}
+
+function selectCalendarBorderStyleTarget(item, event) {
+     event.preventDefault();
+     event.stopPropagation();
+     selectItem(item);
+     setCalendarStyleTarget(item, {
+          type: "border",
+          key: "widget-border"
+     });
+     openItemActionsPopup(item, event, [item]);
 }
 
 // NOTE: Drag Items, Resize Items, And Move The Control Panel
@@ -1850,12 +2108,12 @@ function getControlPanelBox() {
      const rect = controlPanel.getBoundingClientRect();
      const width = rect.width;
      const height = Number(controlPanel.dataset.height) || rect.height;
-     const centerX = Number(controlPanel.dataset.centerX) || getControlPanelCenter(width);
+     const x = rect.left - deskRect.left;
+     const y = rect.top - deskRect.top;
 
      return {
-          x: centerX - width / 2,
-          y: deskRect.height - height,
-          centerX,
+          x,
+          y,
           width,
           height
      };
@@ -1863,8 +2121,9 @@ function getControlPanelBox() {
 
 function setControlPanelBox(box) {
      controlPanel.dataset.height = String(box.height);
-     controlPanel.dataset.centerX = String(box.centerX);
-     controlPanel.style.left = `${box.centerX}px`;
+     controlPanel.dataset.userPositioned = "true";
+     controlPanel.style.left = `${box.x}px`;
+     controlPanel.style.top = `${box.y}px`;
      controlPanel.style.height = `${box.height}px`;
 }
 
@@ -1879,8 +2138,38 @@ function getMovedControlPanelBox(clientX, clientY) {
      return {
           ...current,
           x,
-          centerX: x + current.width / 2
+          y: clamp(clientY - deskRect.top - activeAction.offsetY, 8, Math.max(8, deskRect.height - current.height - 8))
      };
+}
+
+function startControlPanelMove(event) {
+     if (
+          keyboardMode !== "design" ||
+          activeAction ||
+          event.button !== 0 ||
+          event.target.closest("button, input, select, textarea, [contenteditable='true'], .custom-select")
+     ) {
+          return;
+     }
+
+     const box = getControlPanelBox();
+
+     event.preventDefault();
+     activeAction = {
+          type: "control-panel-move",
+          box,
+          offsetX: event.clientX - controlPanel.getBoundingClientRect().left,
+          offsetY: event.clientY - controlPanel.getBoundingClientRect().top,
+          hasMoved: false
+     };
+     controlPanel.classList.add("is-dragging");
+     try {
+          controlPanel.setPointerCapture(event.pointerId);
+     } catch {
+     }
+     document.addEventListener("pointermove", moveActiveItem, true);
+     document.addEventListener("pointerup", endActiveItem, true);
+     document.addEventListener("pointercancel", endActiveItem, true);
 }
 
 function getControlPanelVerticalResizeMode(event) {
@@ -2716,14 +3005,14 @@ function makePlannerItem(type = "sticker") {
                textRoleLabel
           );
      }
-     if (isCalendarTextItemType(type)) {
+     if (isCalendarTextItemType(type) || type === "mini-month") {
           textPanel.append(
                textControlsRow,
                textColorLabel,
                textRoleLabel
           );
      }
-     if (isStickerTextItemType(type) || isCalendarTextItemType(type)) {
+     if (isStickerTextItemType(type) || isCalendarTextItemType(type) || type === "mini-month") {
           controlTabs.append(textTab);
      }
      if (type === "sticker") {
@@ -2744,7 +3033,7 @@ function makePlannerItem(type = "sticker") {
      initializeWidgetPanelPageSections(textPanel);
      initializeWidgetPanelPageSections(widgetPanel);
      controls.append(widgetPanelTitle, designPopupHeader, controlTabs, actionsPanel, stylePanel);
-     if (isStickerTextItemType(type) || isCalendarTextItemType(type)) {
+     if (isStickerTextItemType(type) || isCalendarTextItemType(type) || type === "mini-month") {
           controls.append(textPanel);
      }
      if (hasWidgetControls) {
@@ -2833,6 +3122,11 @@ function makePlannerItem(type = "sticker") {
                return;
           }
 
+          if (isCalendarItem(item) && isCalendarBorderStylePointer(item, event)) {
+               selectCalendarBorderStyleTarget(item, event);
+               return;
+          }
+
           startMove(item, event);
      });
      item.addEventListener("pointermove", (event) => {
@@ -2853,6 +3147,10 @@ function makePlannerItem(type = "sticker") {
                return;
           }
 
+          if (event.target.closest("[data-calendar-style-key], .calendar-border-hit-target")) {
+               return;
+          }
+
           if (shouldSkipNextItemClick) {
                shouldSkipNextItemClick = false;
                return;
@@ -2863,6 +3161,12 @@ function makePlannerItem(type = "sticker") {
           } else if (!activeAction) {
                if (!selectedItems.has(item) || selectedItems.size < 2) {
                     selectItem(item);
+               }
+               if (isCalendarItem(item) && isCalendarBorderStylePointer(item, event)) {
+                    setCalendarStyleTarget(item, {
+                         type: "border",
+                         key: "widget-border"
+                    });
                }
                openItemActionsPopup(item, event, getSelectedOrGroupedActionItems(item));
           }

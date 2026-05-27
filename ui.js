@@ -893,7 +893,7 @@ function createControlSection(title, elements = [], isOpen = false) {
 }
 
 function setControlSectionOpen(section, isOpen) {
-     const toggle = section?.querySelector(":scope > [data-control-section-button]");
+     const toggle = section?.querySelector(":scope > [data-control-section-toggle]");
      const body = section?.querySelector(":scope > [data-control-section-body]");
 
      if (!section || !toggle || !body) {
@@ -946,7 +946,7 @@ function toggleControlSection(section) {
 // NOTE: Attaches click behavior to control section buttons and keeps all sections closed by default.
 function initializeControlSections(root = document) {
      root.querySelectorAll("[data-control-section]").forEach((section) => {
-          const toggle = section.querySelector(":scope > [data-control-section-button]");
+          const toggle = section.querySelector(":scope > [data-control-section-toggle]");
           const body = section.querySelector(":scope > [data-control-section-body]");
           const isOpen = section.classList.contains("is-open");
 

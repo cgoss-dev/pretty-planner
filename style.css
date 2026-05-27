@@ -2917,6 +2917,43 @@ body {
      pointer-events: none;
 }
 
+.calendar-border-hit-target {
+     position: absolute;
+     z-index: 5;
+     display: block;
+     pointer-events: auto;
+}
+
+.calendar-border-hit-target.is-top,
+.calendar-border-hit-target.is-bottom {
+     left: calc(100% / 8);
+     right: 0;
+     height: 8px;
+}
+
+.calendar-border-hit-target.is-top {
+     top: 0;
+}
+
+.calendar-border-hit-target.is-bottom {
+     bottom: 0;
+}
+
+.calendar-border-hit-target.is-left,
+.calendar-border-hit-target.is-right {
+     top: 0;
+     bottom: 0;
+     width: 8px;
+}
+
+.calendar-border-hit-target.is-left {
+     left: calc(100% / 8);
+}
+
+.calendar-border-hit-target.is-right {
+     right: 0;
+}
+
 .planner-item-full-month .mini-month {
      width: 100%;
      height: calc(var(--mini-month-visible-row-units, 16) * var(--weekly-row-cell-height, 12px));
@@ -3445,6 +3482,19 @@ body {
      outline: var(--border-md) solid var(--accent-ring-strong);
      outline-offset: -2px;
      box-shadow: inset 0 0 0 var(--border-sm) var(--color-rainbow);
+}
+
+.planner-item .is-calendar-style-target {
+     position: relative;
+     z-index: 3;
+     outline: var(--border-md) solid var(--accent-ring-strong);
+     outline-offset: calc(var(--border-md) * -1);
+     box-shadow: inset 0 0 0 var(--border-sm) var(--color-rainbow);
+}
+
+.planner-item.is-calendar-border-target .mini-month::before {
+     outline-color: var(--color-rainbow);
+     box-shadow: inset 0 0 8px var(--accent-ring-soft);
 }
 
 .planner-item.is-widget-panel-open {

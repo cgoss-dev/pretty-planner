@@ -2978,11 +2978,17 @@ function syncControlPanelHintAnchor() {
 
      const deskRect = plannerDesk.getBoundingClientRect();
      const hintRect = hintPanel.getBoundingClientRect();
+     const panelWidth = controlPanel.offsetWidth || 135;
+     const anchorLeft = clamp(hintRect.left - deskRect.left, 8, Math.max(8, deskRect.width - panelWidth - 8));
+     const anchorTop = clamp(hintRect.bottom - deskRect.top + 8, 8, Math.max(8, deskRect.height - 80));
 
      delete controlPanel.dataset.centerX;
-     controlPanel.style.left = "";
-     controlPanel.style.setProperty("--control-panel-anchor-left", `${hintRect.left - deskRect.left}px`);
-     controlPanel.style.setProperty("--control-panel-anchor-top", `${hintRect.bottom - deskRect.top + 8}px`);
+     if (!controlPanel.dataset.userPositioned) {
+          controlPanel.style.left = "";
+          controlPanel.style.top = "";
+          controlPanel.style.setProperty("--control-panel-anchor-left", `${anchorLeft}px`);
+          controlPanel.style.setProperty("--control-panel-anchor-top", `${anchorTop}px`);
+     }
 }
 
 function getItemForMenuKeyboardToggle(target) {
@@ -3314,7 +3320,10 @@ controlPanel.addEventListener("pointerdown", (event) => {
 
      if (resizeMode) {
           startControlPanelResize(event, resizeMode);
+          return;
      }
+
+     startControlPanelMove(event);
 });
 controlPanel.addEventListener("pointermove", (event) => {
      if (activeAction) {

@@ -101,6 +101,7 @@ function serializePlannerItem(item) {
                     timeFormat: item.dataset.timeFormat || "24",
                     timeVisible: item.dataset.timeVisible !== "false",
                     shareWeekends: item.dataset.shareWeekends === "true",
+                    partStyles: getCalendarPartStyles(item),
                     dayNotes: isCalendarTextItem(item) ? getCalendarDayNotes(item) : null,
                     dayText: isCalendarTextItem(item)
                          ? {
@@ -515,6 +516,10 @@ function restorePlannerItemSettings(item, itemData) {
                timeVisible: normalizeStoredBoolean(widget.timeVisible, "true"),
                shareWeekends: normalizeStoredBoolean(widget.shareWeekends)
           });
+          if (widget.partStyles && typeof widget.partStyles === "object") {
+               setCalendarPartStyles(item, widget.partStyles);
+               applyCalendarPartStyles(item);
+          }
      }
      if (itemData.groupId) {
           item.dataset.groupId = itemData.groupId;

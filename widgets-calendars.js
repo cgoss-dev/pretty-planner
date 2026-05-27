@@ -895,6 +895,8 @@ function renderMiniMonth(item) {
 
                          cell.classList.add("mini-month-month", (month + 1) % 2 === 1 ? "monthOdd" : "monthEven");
                          cell.dataset.themePart = "monthTitle";
+                         cell.dataset.calendarStyleKey = "month-title";
+                         cell.dataset.calendarStyleRole = "cell";
                          titleYear.textContent = titleYearText;
                          titleMonth.textContent = titleMonthText;
                          titleYear.hidden = !yearVisible;
@@ -906,6 +908,8 @@ function renderMiniMonth(item) {
                     }
                } else if (column === 0) {
                     cell.classList.add("mini-month-week");
+                    cell.dataset.calendarStyleKey = calendarRow === 1 ? "week-number-header" : `week-${calendarRow - 1}`;
+                    cell.dataset.calendarStyleRole = "cell";
                     if (calendarRow === 1) {
                          if (weekNumberOutlines) {
                               cell.classList.add("weekNumberCell", "week-number-header");
@@ -927,6 +931,8 @@ function renderMiniMonth(item) {
                } else if (calendarRow === 1) {
                     cell.classList.add("mini-month-day-name", "dayName");
                     cell.dataset.themePart = "weekdayHeader";
+                    cell.dataset.calendarStyleKey = `weekday-${displayColumn}`;
+                    cell.dataset.calendarStyleRole = "cell";
                     if (displayColumnInfo?.type === "shared-weekend") {
                          cell.classList.add("mini-month-shared-weekend");
                          cell.textContent = "Wkd";
@@ -969,14 +975,6 @@ function renderMiniMonth(item) {
                          dayNumberLabel.dataset.themePart = "dayNumber";
                          markCurrentCalendarDayNumber(dayNumberLabel, dayKey, todayKey);
                          dayNumberLabel.textContent = String(dayNumber);
-                         cell.addEventListener("pointerdown", (event) => {
-                              if (getResizeMode(item, event)) {
-                                   return;
-                              }
-
-                              event.stopPropagation();
-                              selectItem(item);
-                         });
                          dayContent.append(dayNumberLabel);
                          if (hasDayText) {
                               const dayText = document.createElement("div");
@@ -1016,6 +1014,8 @@ function renderMiniMonth(item) {
                     });
                     if (renderedDayKeys.length) {
                          cell.dataset.dayKey = renderedDayKeys.join(",");
+                         cell.dataset.calendarStyleKey = `cell-r${displayRow}-c${displayColumn}`;
+                         cell.dataset.calendarStyleRole = "cell";
                          markCurrentCalendarDay(cell, renderedDayKeys, todayKey);
                     }
                }
@@ -1047,10 +1047,34 @@ function renderMiniMonth(item) {
                     }
                }
 
+               if (cell.dataset.calendarStyleKey) {
+                    cell.addEventListener("pointerdown", (event) => {
+                         if (getResizeMode(item, event)) {
+                              return;
+                         }
+
+                         if (isCalendarBorderStylePointer(item, event)) {
+                              selectCalendarBorderStyleTarget(item, event);
+                              return;
+                         }
+
+                         selectCalendarCellStyleTarget(item, cell, event);
+                    });
+               }
+
                calendar.append(cell);
           }
      }
+     ["top", "right", "bottom", "left"].forEach((edge) => {
+          const borderTarget = document.createElement("span");
+
+          borderTarget.className = `calendar-border-hit-target is-${edge}`;
+          borderTarget.setAttribute("aria-hidden", "true");
+          borderTarget.addEventListener("pointerdown", (event) => selectCalendarBorderStyleTarget(item, event));
+          calendar.append(borderTarget);
+     });
      applyThemeToWidget(item);
+     applyCalendarPartStyles(item);
 }
 
 function renderPerpetualCalendar(item) {
