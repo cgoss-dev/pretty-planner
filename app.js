@@ -2927,11 +2927,14 @@ function renderKeyHints() {
 
      hintPanel.replaceChildren();
      const hintState = getKeyHintState();
+     const panelTitle = document.createElement("div");
      const modeRow = document.createElement("div");
 
+     panelTitle.className = "panel-title hint-panel-title";
+     panelTitle.textContent = "Hint Panel";
      modeRow.className = "hint-mode";
      modeRow.textContent = hintState.mode;
-     hintPanel.append(modeRow);
+     hintPanel.append(panelTitle, modeRow);
 
      if (hasUsedKeyboardCursor && !controlPanel.classList.contains("is-open")) {
           const coordinateRow = document.createElement("div");

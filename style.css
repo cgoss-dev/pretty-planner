@@ -388,11 +388,18 @@ body {
      backdrop-filter: blur(8px);
 }
 
+.panel-title {
+     color: var(--color-gray1);
+     font: 700 var(--font-size-md) var(--font-noto);
+     line-height: 1.1;
+     text-align: center;
+}
+
 .hint-mode {
      padding: 0 0 6px;
      border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      color: var(--color-gray1);
-     font: 700 var(--font-size-md) var(--font-noto);
+     font: 400 var(--font-size-sm) var(--font-noto);
      line-height: 1.1;
 }
 
@@ -3602,9 +3609,10 @@ body {
 
 .item-actions-widget-type {
      display: none;
-     padding: 3px 4px 5px;
+     padding: 0 0 6px;
+     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      color: var(--color-gray2);
-     font: 700 var(--font-size-sm) var(--font-noto);
+     font: 400 var(--font-size-sm) var(--font-noto);
      line-height: 1;
      text-align: center;
 }
@@ -4235,7 +4243,7 @@ body {
      border-radius: 0;
      background: transparent;
      color: var(--color-gray1);
-     font: 700 var(--font-size-md) var(--font-noto);
+     font: 400 var(--font-size-sm) var(--font-noto);
      line-height: 1.1;
      text-align: center;
 }

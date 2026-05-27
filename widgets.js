@@ -1938,6 +1938,7 @@ function makePlannerItem(type = "sticker") {
      const item = document.createElement("div");
      const sizeLabel = document.createElement("span");
      const controls = document.createElement("div");
+     const widgetPanelTitle = document.createElement("div");
      const designPopupHeader = document.createElement("div");
      const designBackButton = document.createElement("button");
      const designScopeTitle = document.createElement("div");
@@ -2070,6 +2071,8 @@ function makePlannerItem(type = "sticker") {
      controls.className = `widget-panel widget-panel-${type}`;
      controls.dataset.ownerId = item.dataset.templateId;
      controls.setAttribute("role", "menu");
+     widgetPanelTitle.className = "panel-title widget-panel-name";
+     widgetPanelTitle.textContent = "Widget Panel";
      designPopupHeader.className = "item-design-popup-header";
      designBackButton.className = "item-design-popup-back";
      designBackButton.type = "button";
@@ -2722,7 +2725,7 @@ function makePlannerItem(type = "sticker") {
      initializeWidgetPanelPageSections(stylePanel);
      initializeWidgetPanelPageSections(textPanel);
      initializeWidgetPanelPageSections(widgetPanel);
-     controls.append(designPopupHeader, controlTabs, actionsPanel, stylePanel);
+     controls.append(widgetPanelTitle, designPopupHeader, controlTabs, actionsPanel, stylePanel);
      if (isStickerTextItemType(type) || isCalendarTextItemType(type)) {
           controls.append(textPanel);
      }
