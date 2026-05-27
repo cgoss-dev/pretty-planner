@@ -105,7 +105,7 @@ function serializePlannerItem(item) {
                     dayText: isCalendarTextItem(item)
                          ? {
                               size: Number(item.dataset.dayTextSize) || 10,
-                              font: item.dataset.dayTextFont || "noto",
+                              font: item.dataset.dayTextFont || "annotation-mono",
                               color: item.dataset.dayTextColor || "var(--color-gray1)",
                               bold: item.dataset.dayTextBold === "true",
                               italic: item.dataset.dayTextItalic === "true",
@@ -124,7 +124,7 @@ function serializePlannerItem(item) {
                     enabled: item.dataset.textEnabled === "true",
                     content: textElement ? textElement.textContent : "",
                    size: Number(item.dataset.textSize) || 10,
-                   font: item.dataset.textFont || "noto",
+                   font: item.dataset.textFont || "annotation-mono",
                    color: item.dataset.textColor || "var(--color-gray1)",
                    bold: item.dataset.textBold === "true",
                     italic: item.dataset.textItalic === "true",
@@ -464,7 +464,7 @@ function restorePlannerItemSettings(item, itemData) {
                enabled: normalizeStoredBoolean(text.enabled),
                content: text.content || "",
                size: text.size,
-               font: text.font,
+               font: "annotation-mono",
                color: text.color,
                bold: normalizeStoredBoolean(text.bold),
                italic: normalizeStoredBoolean(text.italic),
@@ -481,7 +481,7 @@ function restorePlannerItemSettings(item, itemData) {
                item.dataset.dayNotes = JSON.stringify(widget.dayNotes || {});
                setCalendarDayTextSettings(item, {
                     size: widget.dayText?.size,
-                    font: widget.dayText?.font,
+                    font: "annotation-mono",
                     color: widget.dayText?.color,
                     bold: normalizeStoredBoolean(widget.dayText?.bold),
                     italic: normalizeStoredBoolean(widget.dayText?.italic),

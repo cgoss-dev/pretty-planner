@@ -47,7 +47,7 @@ function applyTextThemeToElement(element, textTheme = {}, theme = null, override
           ...overrides
      };
 
-     element.style.fontFamily = getStickerTextFont(nextTextTheme.typeface || "noto");
+     element.style.fontFamily = getStickerTextFont(nextTextTheme.typeface || "annotation-mono");
      element.style.fontSize = `${getThemeTextSize(theme, nextTextTheme)}px`;
      element.style.color = getThemeColorValue(nextTextTheme.color || "gray1");
      element.style.fontWeight = nextTextTheme.style?.includes("bold") ? "700" : "400";
@@ -102,7 +102,7 @@ function applyThemeToWidget(item) {
 async function loadPlannerThemeData() {
      try {
           const [themesResponse, slotsResponse] = await Promise.all([
-               fetch("data/themes.json?v=planner-storage-7"),
+               fetch("data/themes.json?v=planner-storage-8"),
                fetch("data/widget-theme-slots.json?v=planner-storage-4")
           ]);
 
@@ -758,7 +758,7 @@ function setStickerTextSettings(item, settings = {}) {
 
      item.dataset.textEnabled = String(isEnabled);
      item.dataset.textSize = settings.size || item.dataset.textSize || "10";
-     item.dataset.textFont = settings.font || item.dataset.textFont || "noto";
+     item.dataset.textFont = settings.font || item.dataset.textFont || "annotation-mono";
      item.dataset.textColor = settings.color || item.dataset.textColor || "var(--color-gray1)";
      delete item.dataset.textAlpha;
      item.dataset.textBold = settings.bold ?? item.dataset.textBold ?? "false";
@@ -853,17 +853,14 @@ function setStickerTextSettings(item, settings = {}) {
 }
 
 function getStickerTextFont(fontKey) {
+     const normalizedFontKey = fontKey === "noto" ? "noto-sans-mono" : fontKey;
      const fonts = {
-          noto: "var(--font-noto)",
+          "annotation-mono": "var(--font-annotation-mono)",
+          "noto-sans-mono": "var(--font-noto-sans-mono)",
           dancing: "var(--font-dancing)",
           caveat: "var(--font-caveat)",
-          "homemade-apple": "var(--font-homemade-apple)",
           miltonian: "var(--font-miltonian)",
           "mr-bedfort": "var(--font-mr-bedfort)",
-          "mr-dafoe": "var(--font-mr-dafoe)",
-          "mr-de-haviland": "var(--font-mr-de-haviland)",
-          "mrs-saint-delafield": "var(--font-mrs-saint-delafield)",
-          "mrs-sheppards": "var(--font-mrs-sheppards)",
           "permanent-marker": "var(--font-permanent-marker)",
           playwrite: "var(--font-playwrite)",
           "reenie-beanie": "var(--font-reenie-beanie)",
@@ -873,7 +870,7 @@ function getStickerTextFont(fontKey) {
           serif: "Georgia, serif"
      };
 
-     return fonts[fontKey] || fonts.noto;
+     return fonts[normalizedFontKey] || fonts["annotation-mono"];
 }
 
 function getTextDecorationValue(underline, strike) {
@@ -2071,7 +2068,7 @@ function makePlannerItem(type = "sticker") {
      controls.className = `widget-panel widget-panel-${type}`;
      controls.dataset.ownerId = item.dataset.templateId;
      controls.setAttribute("role", "menu");
-     widgetPanelTitle.className = "panel-title widget-panel-name";
+     widgetPanelTitle.className = "panel-title title widget-panel-name";
      widgetPanelTitle.textContent = "Widget Panel";
      designPopupHeader.className = "item-design-popup-header";
      designBackButton.className = "item-design-popup-back";
@@ -2106,12 +2103,12 @@ function makePlannerItem(type = "sticker") {
      actionsPanel.className = "widget-panel-page";
      actionsPanel.dataset.widgetPanelPage = "actions";
      actionsPanel.setAttribute("role", "tabpanel");
-     actionsWidgetType.className = "item-actions-widget-type";
+     actionsWidgetType.className = "item-actions-widget-type subtitle";
      actionsWidgetType.dataset.actionsWidgetType = "true";
      actionsWidgetType.textContent = getItemTypeLabel(type);
      designActionGroup.className = "item-design-action-group";
      designActionGroup.setAttribute("aria-label", "Design scope");
-     designActionTitle.className = "item-actions-section-title";
+     designActionTitle.className = "item-actions-section-title section-title";
      designActionTitle.textContent = "Design";
      designUniversalButton.className = "widget-panel-button";
      designUniversalButton.type = "button";
@@ -2131,7 +2128,7 @@ function makePlannerItem(type = "sticker") {
      designResizeButton.setAttribute("aria-label", "Resize this widget with keys");
      layoutActionGroup.className = "item-layout-action-group";
      layoutActionGroup.setAttribute("aria-label", "Layout actions");
-     layoutActionTitle.className = "item-actions-section-title";
+     layoutActionTitle.className = "item-actions-section-title section-title";
      layoutActionTitle.textContent = "Layout";
      displayDateRow.className = "item-calendar-display-row";
      displayYearLabel.className = "item-calendar-display-control";
@@ -2295,16 +2292,12 @@ function makePlannerItem(type = "sticker") {
      textFontSelect.dataset.textControl = "font";
      textFontSelect.setAttribute("aria-label", "Sticker text font");
      [
-          ["noto", "Noto"],
+          ["annotation-mono", "Annotation Mono"],
+          ["noto-sans-mono", "Noto Sans Mono"],
           ["dancing", "Script"],
           ["caveat", "Caveat"],
-          ["homemade-apple", "Homemade Apple"],
           ["miltonian", "Miltonian"],
           ["mr-bedfort", "Mr Bedfort"],
-          ["mr-dafoe", "Mr Dafoe"],
-          ["mr-de-haviland", "Mr De Haviland"],
-          ["mrs-saint-delafield", "Mrs Saint Delafield"],
-          ["mrs-sheppards", "Mrs Sheppards"],
           ["permanent-marker", "Permanent Marker"],
           ["playwrite", "Playwrite"],
           ["reenie-beanie", "Reenie Beanie"],
@@ -2769,7 +2762,7 @@ function makePlannerItem(type = "sticker") {
      setStickerTextSettings(item, isPageTitleItemType(type) ? {
           enabled: "true",
           size: "80",
-          font: "dancing",
+          font: "annotation-mono",
           color: "var(--color-gray1)",
           bold: "false",
           strike: "false",

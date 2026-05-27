@@ -450,7 +450,7 @@ function setCalendarDayTextSettings(item, settings = {}) {
      const controls = getWidgetPanel(item) || item;
 
      item.dataset.dayTextSize = settings.size || item.dataset.dayTextSize || "10";
-     item.dataset.dayTextFont = settings.font || item.dataset.dayTextFont || "noto";
+     item.dataset.dayTextFont = settings.font || item.dataset.dayTextFont || "annotation-mono";
      item.dataset.dayTextColor = settings.color || item.dataset.dayTextColor || "var(--color-gray1)";
      delete item.dataset.dayTextAlpha;
      item.dataset.dayTextBold = settings.bold ?? item.dataset.dayTextBold ?? "false";
@@ -529,7 +529,7 @@ function setCalendarDayTextSettings(item, settings = {}) {
 function applyCalendarDayTextStyle(item, textElement) {
      textElement.style.fontSize = `${item.dataset.dayTextSize || "10"}px`;
      textElement.style.color = item.dataset.dayTextColor || "var(--color-gray1)";
-     textElement.style.fontFamily = getStickerTextFont(item.dataset.dayTextFont || "noto");
+     textElement.style.fontFamily = getStickerTextFont(item.dataset.dayTextFont || "annotation-mono");
      textElement.style.fontWeight = item.dataset.dayTextBold === "true" ? "700" : "400";
      textElement.style.fontStyle = item.dataset.dayTextItalic === "true" ? "italic" : "normal";
      textElement.style.textDecoration = getTextDecorationValue(item.dataset.dayTextUnderline, item.dataset.dayTextStrike);

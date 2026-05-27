@@ -5,19 +5,19 @@
       "name": "Default",
       "text": {
         "title": {
-          "typeface": "noto",
+          "typeface": "annotation-mono",
           "size": 10,
           "style": [],
           "color": "gray2"
         },
         "subtitle": {
-          "typeface": "noto",
+          "typeface": "annotation-mono",
           "size": 10,
           "style": [],
           "color": "gray2"
         },
         "body": {
-          "typeface": "noto",
+          "typeface": "annotation-mono",
           "size": 10,
           "style": [],
           "color": "gray2"

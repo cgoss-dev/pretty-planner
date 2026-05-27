@@ -2930,9 +2930,9 @@ function renderKeyHints() {
      const panelTitle = document.createElement("div");
      const modeRow = document.createElement("div");
 
-     panelTitle.className = "panel-title hint-panel-title";
+     panelTitle.className = "panel-title title hint-panel-title";
      panelTitle.textContent = "Hint Panel";
-     modeRow.className = "hint-mode";
+     modeRow.className = "hint-mode subtitle";
      modeRow.textContent = hintState.mode;
      hintPanel.append(panelTitle, modeRow);
 

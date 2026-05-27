@@ -780,49 +780,54 @@ function buildCustomSelectOptions(select, dropdown) {
 }
 
 function getCustomSelectOptionFont(select, value) {
+     const normalizedValue = value === "noto" ? "noto-sans-mono" : value;
+
      if (select.dataset.textControl !== "font") {
           return "";
      }
 
-     if (value === "dancing") {
+     if (normalizedValue === "dancing") {
           return "var(--font-dancing)";
      }
 
-     if (value === "caveat") {
+     if (normalizedValue === "caveat") {
           return "var(--font-caveat)";
      }
 
-     if (value === "playwrite") {
+     if (normalizedValue === "playwrite") {
           return "var(--font-playwrite)";
      }
 
+     if (normalizedValue === "annotation-mono") {
+          return "var(--font-annotation-mono)";
+     }
+
+     if (normalizedValue === "noto-sans-mono") {
+          return "var(--font-noto-sans-mono)";
+     }
+
      const handwritingFonts = new Set([
-          "homemade-apple",
           "miltonian",
           "mr-bedfort",
-          "mr-dafoe",
-          "mr-de-haviland",
-          "mrs-saint-delafield",
-          "mrs-sheppards",
           "permanent-marker",
           "reenie-beanie",
           "rock-salt",
           "sedgwick-ave-display"
      ]);
 
-     if (handwritingFonts.has(value)) {
-          return `var(--font-${value})`;
+     if (handwritingFonts.has(normalizedValue)) {
+          return `var(--font-${normalizedValue})`;
      }
 
-     if (value === "sans") {
+     if (normalizedValue === "sans") {
           return "Arial, Helvetica, sans-serif";
      }
 
-     if (value === "serif") {
+     if (normalizedValue === "serif") {
           return "Georgia, 'Times New Roman', serif";
      }
 
-     return "var(--font-noto)";
+     return "var(--font-annotation-mono)";
 }
 
 function syncCustomSelect(select) {
