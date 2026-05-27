@@ -851,7 +851,8 @@ function handlePageTurnKey(event) {
           event.ctrlKey ||
           event.metaKey ||
           event.shiftKey ||
-          isTypingFieldShortcutTarget(event.target)
+          isTypingFieldShortcutTarget(event.target) ||
+          isPanelControlShortcutTarget(event.target)
      ) {
           return;
      }
@@ -907,6 +908,11 @@ function isTypingFieldShortcutTarget(target) {
      return !["button", "checkbox", "radio", "range", "color", "submit", "reset"].includes(type);
 }
 
+function isPanelControlShortcutTarget(target) {
+     // NOTE: Lets focused panel controls receive Enter instead of reopening the selected widget panel
+     return Boolean(target?.closest?.("button, input, select, textarea, [contenteditable='true'], .custom-select"));
+}
+
 function handleMenuEnterKey(event) {
      // NOTE: Activates the focused panel control with E or Enter while the control panel is open
      if (
@@ -917,7 +923,8 @@ function handleMenuEnterKey(event) {
           event.ctrlKey ||
           event.metaKey ||
           event.shiftKey ||
-          isTypingFieldShortcutTarget(event.target)
+          isTypingFieldShortcutTarget(event.target) ||
+          isPanelControlShortcutTarget(event.target)
      ) {
           return;
      }
@@ -1449,7 +1456,8 @@ function handleKeyboardCursorActivateKey(event) {
           event.ctrlKey ||
           event.metaKey ||
           event.shiftKey ||
-          isTypingFieldShortcutTarget(event.target)
+          isTypingFieldShortcutTarget(event.target) ||
+          isPanelControlShortcutTarget(event.target)
      ) {
           return;
      }
@@ -2020,7 +2028,8 @@ function handleSelectedTextEditKey(event) {
           event.ctrlKey ||
           event.metaKey ||
           event.shiftKey ||
-          isTypingFieldShortcutTarget(event.target)
+          isTypingFieldShortcutTarget(event.target) ||
+          isPanelControlShortcutTarget(event.target)
      ) {
           return;
      }

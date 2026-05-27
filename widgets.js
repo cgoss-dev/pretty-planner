@@ -1555,6 +1555,29 @@ function setWidgetPanelTab(controls, tabName) {
      });
 }
 
+function handleWidgetPanelButtonKey(event) {
+     if (
+          event.defaultPrevented ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          (event.key !== "Enter" && event.key.toLowerCase() !== "e")
+     ) {
+          return;
+     }
+
+     const button = event.target.closest(".widget-panel-button, .item-design-popup-back");
+
+     if (!button || button.disabled || button.getAttribute("aria-disabled") === "true") {
+          return;
+     }
+
+     event.preventDefault();
+     event.stopPropagation();
+     button.click();
+}
+
 // NOTE: Drag Items, Resize Items, And Move The Control Panel
 function markGridState(item, isOnGrid, page = null) {
      item.classList.toggle("is-on-grid", isOnGrid);
@@ -2891,6 +2914,7 @@ function makePlannerItem(type = "sticker") {
 
           event.stopPropagation();
      });
+     controls.addEventListener("keydown", handleWidgetPanelButtonKey);
      controls.querySelectorAll("[data-widget-panel-tab]").forEach((tab) => {
           tab.addEventListener("click", () => setWidgetPanelTab(controls, tab.dataset.widgetPanelTab));
      });
