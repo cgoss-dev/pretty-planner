@@ -461,13 +461,13 @@ window.KeyboardControls = (() => {
           {
                title: "Global",
                controls: [
-                    { key: "Tab", action: "Swap Interact and Design modes" },
+                    { key: "Tab", action: "Toggle Mode" },
                     { key: "Enter", action: "Activate focused menu control" },
                     { key: "Delete / Esc", action: "Cancel, close, or deselect" },
                     { key: "1-5", action: "Choose the current mode option" },
                     { key: "X", action: "Toggle gridlines on or off" },
                     { key: "Q / E", action: "Last or next page, spread, or tab" },
-                    { key: "WASD / Arrows", action: "Move Interact focus or Design cursor" },
+                    { key: "WASD / Arrows", action: "Move Interact focus" },
                     { key: "C", action: "Center" },
                     { key: "Z", action: "Cycle zoom" },
                ]
@@ -497,29 +497,27 @@ window.KeyboardControls = (() => {
           {
                title: "Selected Object",
                controls: [
-                    { key: "1", action: "Open object settings" },
+                    { key: "1 / Enter", action: "Open widget actions" },
                     { key: "2", action: "Group or ungroup selection" },
                     { key: "3", action: "Delete selected object" },
-                    { key: "Enter", action: "Edit text" },
+                    { key: "Enter", action: "Open widget actions" },
                     { key: "Delete / Esc", action: "Deselect object" }
                ]
           },
           {
-               title: "Move Mode",
+               title: "Reposition Mode",
                controls: [
                     { key: "WASD / Arrows", action: "Move one grid cell" },
-                    { key: "1 / Enter", action: "Place selection" },
-                    { key: "2", action: "Switch to resize" },
+                    { key: "Enter", action: "Place widget" },
                     { key: "X", action: "Toggle gridlines" },
-                    { key: "Delete / Esc", action: "Cancel move" }
+                    { key: "Delete / Esc", action: "Cancel reposition" }
                ]
           },
           {
                title: "Resize Mode",
                controls: [
                     { key: "WASD / Arrows", action: "Resize from upper-left anchor" },
-                    { key: "1", action: "Switch to reposition" },
-                    { key: "2 / Enter", action: "Confirm resize" },
+                    { key: "Enter", action: "Confirm resize" },
                     { key: "X", action: "Toggle gridlines" },
                     { key: "Delete / Esc", action: "Cancel resize" }
                ]

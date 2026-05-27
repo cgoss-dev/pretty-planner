@@ -2478,6 +2478,14 @@ body {
      touch-action: none;
 }
 
+:root[data-keyboard-mode="interact"] .planner-item {
+     cursor: pointer;
+}
+
+:root[data-keyboard-mode="design"] .planner-item {
+     cursor: grab;
+}
+
 .planner-item.is-spread-hidden {
      display: none !important;
 }
@@ -2583,7 +2591,7 @@ body {
      color: var(--color-gray1);
      font: 400 var(--font-size-sm) var(--font-noto);
      line-height: 1;
-     pointer-events: none;
+     pointer-events: auto;
 }
 
 .toc-widget::before {
@@ -2667,9 +2675,20 @@ body {
      grid-template-columns: var(--toc-left-column-width, 22.222222%) minmax(var(--toc-right-column-min-width, 22.222222%), 1fr);
      align-items: stretch;
      gap: 0;
+     width: 100%;
+     padding: 0;
+     border: 0;
      min-width: 0;
      min-height: 0;
      background: var(--widget-box-fill);
+     color: inherit;
+     cursor: pointer;
+     font: inherit;
+     text-align: inherit;
+}
+
+:root[data-keyboard-mode="design"] .toc-row {
+     cursor: grab;
 }
 
 .toc-page-number {
@@ -3208,6 +3227,21 @@ body {
      min-height: 0;
 }
 
+.perpetual-calendar-day-text {
+     width: 100%;
+     height: 100%;
+     padding: 0 4px;
+}
+
+:root[data-keyboard-mode="interact"] .perpetual-calendar-row,
+:root[data-keyboard-mode="interact"] .perpetual-calendar-day-text {
+     cursor: pointer;
+}
+
+:root[data-keyboard-mode="interact"] .perpetual-calendar-day-text[contenteditable="true"] {
+     cursor: text;
+}
+
 .perpetual-calendar-edge-bottom {
      border-bottom: 0;
 }
@@ -3495,8 +3529,27 @@ body {
      min-width: 220px !important;
 }
 
+.item-controls.is-design-popup {
+     width: min(420px, calc(100vw - 32px)) !important;
+     inline-size: min(420px, calc(100vw - 32px)) !important;
+     min-width: min(320px, calc(100vw - 32px)) !important;
+}
+
+.item-controls.is-design-popup::before {
+     content: attr(data-design-scope-label);
+     padding: 6px 8px 0;
+     color: var(--color-gray2);
+     font: 700 var(--font-size-sm) var(--font-noto);
+     line-height: 1;
+     text-align: center;
+}
+
 .item-controls.is-actions-popup .item-control-tabs {
      display: none;
+}
+
+.item-controls.is-design-popup .item-control-tabs {
+     display: flex;
 }
 
 .item-controls.is-actions-popup .item-control-panel {
@@ -3517,6 +3570,14 @@ body {
 
 .item-controls.is-actions-popup .item-actions-widget-type {
      display: block;
+}
+
+.item-design-action-group {
+     display: grid;
+     grid-template-columns: repeat(2, minmax(0, 1fr));
+     gap: 6px;
+     padding-top: 6px;
+     border-top: var(--border-sm) solid rgba(17, 17, 17, 0.14);
 }
 
 .planner-item.is-menu-open .item-controls {
@@ -3989,6 +4050,13 @@ body {
 
 .planner-item.is-resize-nesw {
      cursor: nesw-resize;
+}
+
+:root[data-keyboard-mode="interact"] .planner-item.is-resize-ew,
+:root[data-keyboard-mode="interact"] .planner-item.is-resize-ns,
+:root[data-keyboard-mode="interact"] .planner-item.is-resize-nwse,
+:root[data-keyboard-mode="interact"] .planner-item.is-resize-nesw {
+     cursor: pointer;
 }
 
 .selection-marquee {

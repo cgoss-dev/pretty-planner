@@ -1104,7 +1104,7 @@ function hideKeyboardCursorForPointer() {
 }
 
 function scheduleKeyboardCursorUpdate() {
-     // NOTE: Repositions the cursor after page layout, pan, and turn animation transforms settle
+     // NOTE: Refreshes the page navigation cursor after layout, pan, and turn animation transforms settle
      requestAnimationFrame(() => {
           requestAnimationFrame(updateKeyboardCursor);
      });
@@ -1696,42 +1696,50 @@ function handleKeyboardPlacementKey(event) {
      }
 }
 
-function getKeyboardMovableItems() {
-     // NOTE: Gets selected page items that can be moved as one keyboard pickup
-     return Array.from(selectedItems).filter((item) => getPlannerItems().includes(item) && getItemPage(item));
+function getKeyboardTransformItems(item) {
+     // NOTE: Gets selected page widgets that should move together in explicit Reposition mode
+     if (!item || !getItemPage(item)) {
+          return [];
+     }
+
+     if (!selectedItems.has(item)) {
+          return [item];
+     }
+
+     return Array.from(selectedItems).filter((selected) => getPlannerItems().includes(selected) && getItemPage(selected));
 }
 
-function startKeyboardMove() {
-     // NOTE: Picks up the current selection for one-grid-cell keyboard movement
-     if (activeAction || !selectedItems.size || !selectedItem) {
+function startKeyboardRepositionFromPopup(item = selectedItem) {
+     // NOTE: Enters popup-triggered Reposition mode for grid-cell keyboard movement
+     if (activeAction || keyboardMode !== "design" || !item) {
           return false;
      }
 
-     const movingItems = getKeyboardMovableItems();
+     const movingItems = getKeyboardTransformItems(item);
 
-     if (!movingItems.length || !movingItems.includes(selectedItem)) {
+     if (!movingItems.length) {
           return false;
      }
 
      closeItemMenus();
-     setKeyboardCursorFromBox(selectedItem);
+     selectItem(item);
      activeAction = {
-          type: "keyboard-move",
-          item: selectedItem,
-          items: movingItems.map((item) => ({
-               item,
-               page: getItemPage(item),
-               box: getItemBox(item)
+          type: "keyboard-reposition",
+          item,
+          items: movingItems.map((movingItem) => ({
+               item: movingItem,
+               page: getItemPage(movingItem),
+               box: getItemBox(movingItem)
           }))
      };
-     activeAction.items.forEach(({ item }) => item.classList.add("is-dragging"));
-     markSnapReady(selectedItem, true);
+     activeAction.items.forEach(({ item: movingItem }) => movingItem.classList.add("is-dragging"));
+     markSnapReady(item, true);
      renderKeyHints();
      return true;
 }
 
-function getKeyboardMoveDelta(direction) {
-     // NOTE: Calculates a clamped one-cell delta for the keyboard-held selection
+function getKeyboardRepositionDelta(direction) {
+     // NOTE: Calculates one clamped grid-cell move for the active Reposition selection
      const primary = activeAction?.items?.find(({ item }) => item === activeAction.item) || activeAction?.items?.[0];
 
      if (!primary?.page) {
@@ -1767,13 +1775,13 @@ function getKeyboardMoveDelta(direction) {
      }, rawDelta);
 }
 
-function moveKeyboardMoveItems(direction) {
-     // NOTE: Moves every keyboard-held selected item by the same clamped grid delta
-     if (activeAction?.type !== "keyboard-move") {
+function moveKeyboardRepositionItems(direction) {
+     // NOTE: Moves popup-triggered Reposition items by one grid cell
+     if (activeAction?.type !== "keyboard-reposition") {
           return;
      }
 
-     const delta = getKeyboardMoveDelta(direction);
+     const delta = getKeyboardRepositionDelta(direction);
 
      if (!delta) {
           return;
@@ -1788,14 +1796,12 @@ function moveKeyboardMoveItems(direction) {
                y: box.y + delta.y
           });
      });
-     setKeyboardCursorFromBox(activeAction.item);
-     wakeKeyboardCursor();
      renderKeyHints();
 }
 
-function finishKeyboardMove() {
-     // NOTE: Places the keyboard-held selection and saves the planner state
-     if (activeAction?.type !== "keyboard-move") {
+function finishKeyboardReposition() {
+     // NOTE: Confirms popup-triggered Reposition mode and saves the planner state
+     if (activeAction?.type !== "keyboard-reposition") {
           return;
      }
 
@@ -1807,13 +1813,12 @@ function finishKeyboardMove() {
      notifyTemplateChanged();
      activeAction = null;
      clearDragOver();
-     setKeyboardCursorFromBox(item);
      renderKeyHints();
 }
 
-function cancelKeyboardMove() {
-     // NOTE: Restores the original positions when keyboard pickup is cancelled
-     if (activeAction?.type !== "keyboard-move") {
+function cancelKeyboardReposition() {
+     // NOTE: Restores original positions when popup-triggered Reposition mode is cancelled
+     if (activeAction?.type !== "keyboard-reposition") {
           return;
      }
 
@@ -1827,77 +1832,11 @@ function cancelKeyboardMove() {
      selectItem(item);
      activeAction = null;
      clearDragOver();
-     setKeyboardCursorFromBox(item);
      renderKeyHints();
-}
-
-function handleKeyboardMoveKey(event) {
-     // NOTE: Handles WASD/arrow movement, numeric resize toggle, Enter place, and Delete/Escape cancel while moving selected items
-     if (activeAction?.type !== "keyboard-move" || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
-          return;
-     }
-
-     const direction = getKeyboardDirection(event);
-
-     if (direction) {
-          event.preventDefault();
-          moveKeyboardMoveItems(direction);
-          return;
-     }
-
-     if (event.key === "2") {
-          event.preventDefault();
-          switchKeyboardMoveToResize();
-          return;
-     }
-
-     if (event.key === "Enter" || event.key === "1") {
-          event.preventDefault();
-          finishKeyboardMove();
-          return;
-     }
-
-     if (isCancelKey(event)) {
-          event.preventDefault();
-          cancelKeyboardMove();
-     }
-}
-
-function switchKeyboardMoveToResize() {
-     // NOTE: Changes keyboard reposition mode into anchored resize mode for the same selected object
-     if (activeAction?.type !== "keyboard-move") {
-          return false;
-     }
-
-     const item = activeAction.item;
-     const primary = activeAction.items.find(({ item: movingItem }) => movingItem === item) || activeAction.items[0];
-     const page = primary?.page || getItemPage(item);
-
-     if (!item || !page) {
-          return false;
-     }
-
-     activeAction.items.forEach(({ item: movedItem }) => movedItem.classList.remove("is-dragging"));
-     markSnapReady(item, false);
-     selectItem(item);
-     activeAction = {
-          type: "keyboard-resize",
-          item,
-          page,
-          startBox: getItemBox(item)
-     };
-     item.classList.add("is-dragging", "is-resizing", "is-resize-nwse");
-     markSnapReady(item, true);
-     renderKeyHints();
-     return true;
-}
-
-function handleStartKeyboardMoveKey(event) {
-     // NOTE: Numeric transform controls own keyboard move starts now
 }
 
 function canKeyboardResizeItem(item = selectedItem) {
-     // NOTE: Checks whether the selected object can use anchored keyboard resize
+     // NOTE: Checks whether popup-triggered Resize mode can change this widget
      return Boolean(
           item &&
           selectedItems.size === 1 &&
@@ -1909,9 +1848,9 @@ function canKeyboardResizeItem(item = selectedItem) {
      );
 }
 
-function startKeyboardResize(item = selectedItem) {
-     // NOTE: Starts anchored keyboard resize from the object's upper-left grid point
-     if (activeAction || !canKeyboardResizeItem(item)) {
+function startKeyboardResizeFromPopup(item = selectedItem) {
+     // NOTE: Enters popup-triggered Resize mode from the widget's upper-left anchor
+     if (activeAction || keyboardMode !== "design" || !canKeyboardResizeItem(item)) {
           return false;
      }
 
@@ -1919,7 +1858,6 @@ function startKeyboardResize(item = selectedItem) {
 
      closeItemMenus();
      selectItem(item);
-     setKeyboardCursorFromBox(item, page);
      activeAction = {
           type: "keyboard-resize",
           item,
@@ -1933,7 +1871,7 @@ function startKeyboardResize(item = selectedItem) {
 }
 
 function getKeyboardResizePointer(page, box, direction) {
-     // NOTE: Converts a one-cell resize request into the pointer position used by existing resize math
+     // NOTE: Converts one resize key press into the pointer math used by normal resizing
      const grid = getGridSize(page);
      const pageRect = page.getBoundingClientRect();
      const viewZoom = getViewZoom();
@@ -1947,7 +1885,7 @@ function getKeyboardResizePointer(page, box, direction) {
 }
 
 function moveKeyboardResizeItem(direction) {
-     // NOTE: Resizes the selected object from its fixed upper-left anchor by one grid cell
+     // NOTE: Resizes the selected widget one grid cell from its upper-left anchor
      const item = activeAction?.item;
      const page = activeAction?.page;
 
@@ -1960,13 +1898,11 @@ function moveKeyboardResizeItem(direction) {
      const mode = direction === "left" || direction === "right" ? "right" : "bottom";
 
      setItemBox(item, getResizedBox(item, page, pointer.clientX, pointer.clientY, mode));
-     setKeyboardCursorFromBox(item, page);
-     wakeKeyboardCursor();
      renderKeyHints();
 }
 
 function finishKeyboardResize() {
-     // NOTE: Confirms anchored keyboard resize and saves the planner state
+     // NOTE: Confirms popup-triggered Resize mode and saves the planner state
      if (activeAction?.type !== "keyboard-resize") {
           return;
      }
@@ -1982,7 +1918,7 @@ function finishKeyboardResize() {
 }
 
 function cancelKeyboardResize() {
-     // NOTE: Restores the original size when anchored keyboard resize is cancelled
+     // NOTE: Restores original size when popup-triggered Resize mode is cancelled
      if (activeAction?.type !== "keyboard-resize") {
           return;
      }
@@ -1997,9 +1933,16 @@ function cancelKeyboardResize() {
      renderKeyHints();
 }
 
-function handleKeyboardResizeKey(event) {
-     // NOTE: Handles WASD/arrow resize, numeric reposition toggle, Enter confirm, and Delete/Escape cancel in resize mode
-     if (event.defaultPrevented || activeAction?.type !== "keyboard-resize" || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+function handleKeyboardTransformKey(event) {
+     // NOTE: Handles popup-triggered Reposition and Resize keyboard modes
+     if (
+          event.defaultPrevented ||
+          (activeAction?.type !== "keyboard-reposition" && activeAction?.type !== "keyboard-resize") ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey
+     ) {
           return;
      }
 
@@ -2007,44 +1950,32 @@ function handleKeyboardResizeKey(event) {
 
      if (direction) {
           event.preventDefault();
-          moveKeyboardResizeItem(direction);
+          if (activeAction.type === "keyboard-reposition") {
+               moveKeyboardRepositionItems(direction);
+          } else {
+               moveKeyboardResizeItem(direction);
+          }
           return;
      }
 
-     if (event.key === "1") {
+     if (event.key === "Enter") {
           event.preventDefault();
-          switchKeyboardResizeToMove();
-          return;
-     }
-
-     if (event.key === "Enter" || event.key === "2") {
-          event.preventDefault();
-          finishKeyboardResize();
+          if (activeAction.type === "keyboard-reposition") {
+               finishKeyboardReposition();
+          } else {
+               finishKeyboardResize();
+          }
           return;
      }
 
      if (isCancelKey(event)) {
           event.preventDefault();
-          cancelKeyboardResize();
+          if (activeAction.type === "keyboard-reposition") {
+               cancelKeyboardReposition();
+          } else {
+               cancelKeyboardResize();
+          }
      }
-}
-
-function switchKeyboardResizeToMove() {
-     // NOTE: Changes anchored keyboard resize mode back into keyboard reposition mode
-     if (activeAction?.type !== "keyboard-resize") {
-          return false;
-     }
-
-     const item = activeAction.item;
-
-     item.classList.remove("is-dragging", "is-resizing", "is-resize-nwse");
-     markSnapReady(item, false);
-     activeAction = null;
-     return startKeyboardMove();
-}
-
-function handleStartKeyboardResizeKey(event) {
-     // NOTE: Numeric transform controls own keyboard move/resize starts now
 }
 
 function handleObjectSettingsKey(event) {
@@ -2080,7 +2011,7 @@ function startSelectedItemTextEditing(item) {
 }
 
 function handleSelectedTextEditKey(event) {
-     // NOTE: Uses Enter to edit text on the selected object when directly activating it
+     // NOTE: Uses Enter to open selected object design actions in Design Mode
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -2095,6 +2026,17 @@ function handleSelectedTextEditKey(event) {
      }
 
      if (event.key !== "Enter") {
+          return;
+     }
+
+     if (keyboardMode === "design" && selectedItem && selectedItems.size) {
+          const rect = selectedItem.getBoundingClientRect();
+
+          event.preventDefault();
+          openItemActionsPopup(selectedItem, {
+               clientX: rect.left + (rect.width / 2),
+               clientY: rect.top + Math.min(rect.height / 2, 36)
+          });
           return;
      }
 
@@ -2188,17 +2130,22 @@ function returnToKeyboardDesignRoot() {
      renderKeyHints();
 }
 
-function openSelectedObjectSettingsFromKeyboard() {
-     // NOTE: Opens selected object settings from Design > Object via number key
+function openSelectedObjectActionsFromKeyboard() {
+     // NOTE: Opens selected object actions popup from Design > Object via number key
      if (!selectedItem || !selectedItems.size) {
           return false;
      }
 
+     const rect = selectedItem.getBoundingClientRect();
+
      keyboardMode = "design";
-     designBranch = "object-settings";
+     designBranch = "object";
      syncKeyboardModeUi();
-     openItemMenu(selectedItem);
-     openSidebar();
+     closeSidebar();
+     openItemActionsPopup(selectedItem, {
+          clientX: rect.left + (rect.width / 2),
+          clientY: rect.top + Math.min(rect.height / 2, 36)
+     });
      renderKeyHints();
      return true;
 }
@@ -2273,11 +2220,6 @@ function handleKeyboardModeNumberKey(event) {
                syncKeyboardModeUi();
                closeSidebar();
                renderKeyHints();
-          } else if (event.key === "5") {
-               designBranch = "transform";
-               syncKeyboardModeUi();
-               closeSidebar();
-               renderKeyHints();
           }
           return;
      }
@@ -2294,16 +2236,7 @@ function handleKeyboardModeNumberKey(event) {
           return;
      }
 
-     if (designBranch === "object-settings" && event.key === "1") {
-          event.preventDefault();
-          designBranch = "object";
-          syncKeyboardModeUi();
-          closeSidebar();
-          renderKeyHints();
-          return;
-     }
-
-     if (designBranch === "notebook" || designBranch === "menu" || designBranch === "object-settings") {
+     if (designBranch === "notebook" || designBranch === "menu") {
           const tab = settingsTabs[Number(event.key) - 1];
 
           if (!tab || tab.disabled) {
@@ -2322,7 +2255,7 @@ function handleKeyboardModeNumberKey(event) {
           if (event.key === "4") {
                returnToKeyboardDesignRoot();
           } else if (event.key === "1") {
-               openSelectedObjectSettingsFromKeyboard();
+               openSelectedObjectActionsFromKeyboard();
           } else if (event.key === "2") {
                toggleSelectedGroupFromKeyboard();
           } else if (event.key === "3") {
@@ -2331,16 +2264,6 @@ function handleKeyboardModeNumberKey(event) {
           return;
      }
 
-     if (designBranch === "transform") {
-          event.preventDefault();
-          if (event.key === "5") {
-               returnToKeyboardDesignRoot();
-          } else if (event.key === "1") {
-               startKeyboardMove();
-          } else if (event.key === "2") {
-               startKeyboardResize();
-          }
-     }
 }
 
 function handleNumberedMenuTabKey(event) {
@@ -2862,12 +2785,12 @@ function getKeyHintState() {
           };
      }
 
-     if (activeAction?.type === "keyboard-move") {
+     if (activeAction?.type === "keyboard-reposition") {
           return {
-               mode: "Design Mode > Transform > Move",
+               mode: "Design Mode > Reposition",
                entries: [
-               ["1", "Place"],
-               ["2", "Resize"],
+               ["Arrows/WASD", "Move"],
+               ["Enter", "Place"],
                ["X", "Gridlines"],
                ["Delete / Esc", "Cancel"]
                ]
@@ -2876,10 +2799,10 @@ function getKeyHintState() {
 
      if (activeAction?.type === "keyboard-resize") {
           return {
-               mode: "Design Mode > Transform > Resize",
+               mode: "Design Mode > Resize",
                entries: [
-               ["1", "Reposition"],
-               ["2", "Confirm"],
+               ["Arrows/WASD", "Resize"],
+               ["Enter", "Confirm"],
                ["X", "Gridlines"],
                ["Delete / Esc", "Cancel"]
                ]
@@ -2922,40 +2845,14 @@ function getKeyHintState() {
           };
      }
 
-     if (keyboardMode === "design" && designBranch === "object-settings") {
-          return {
-               mode: "Design Mode > Object > Settings",
-               entries: [
-               ["1", "Back"],
-               ["1-5", "Tabs"],
-               ["Q / E", "Last / Next Tab"],
-               ["Enter", "Select"],
-               ["Delete / Esc", "Back"]
-               ]
-          };
-     }
-
      if (keyboardMode === "design" && designBranch === "object") {
           return {
                mode: "Design Mode > Object",
                entries: [
                ["4", "Back"],
-               ["1", "Settings"],
+               ["1 / Enter", "Actions"],
                ["2", "Group / Ungroup"],
                ["3", "Delete selected"],
-               ["X", "Gridlines"],
-               ["Delete / Esc", "Back"]
-               ]
-          };
-     }
-
-     if (keyboardMode === "design" && designBranch === "transform") {
-          return {
-               mode: "Design Mode > Transform",
-               entries: [
-               ["5", "Back"],
-               ["1", "Move"],
-               ["2", "Resize"],
                ["X", "Gridlines"],
                ["Delete / Esc", "Back"]
                ]
@@ -2966,11 +2863,10 @@ function getKeyHintState() {
           return {
                mode: "Design Mode",
                entries: [
-               ["Tab", "Interact Mode"],
+               ["Tab", "Toggle Mode"],
                ["2", "Notebook"],
                ["3", "Menu"],
                ["4", "Object"],
-               ["5", "Transform"],
                ["X", "Gridlines"],
                ["Delete / Esc", "Interact Mode"]
                ]
@@ -2981,11 +2877,10 @@ function getKeyHintState() {
           return {
                mode: "Interact Mode > Widget Navigate",
                entries: [
-               ["Arrows", "Move focus"],
-               ["WASD", "Move focus"],
-               ["Enter", "Edit focused text"],
+               ["Arrows/WASD", "Navigate"],
+               ["Enter", "Open"],
                ["Delete / Esc", "Back"],
-               ["Tab", "Design Mode"]
+               ["Tab", "Toggle Mode"]
                ]
           };
      }
@@ -2994,11 +2889,10 @@ function getKeyHintState() {
           return {
                mode: "Interact Mode > Widget Focus",
                entries: [
-               ["Arrows", "Move between widgets"],
-               ["WASD", "Move between widgets"],
-               ["Enter", "Open widget"],
+               ["Arrows/WASD", "Navigate"],
+               ["Enter", "Open"],
                ["Delete / Esc", "Clear focus"],
-               ["Tab", "Design Mode"]
+               ["Tab", "Toggle Mode"]
                ]
           };
      }
@@ -3006,10 +2900,9 @@ function getKeyHintState() {
      return {
           mode: "Interact Mode",
           entries: [
-          ["Tab", "Design Mode"],
-          ["Arrows", "Move focus"],
-          ["WASD", "Move focus"],
-          ["Enter", "Open focused widget"],
+          ["Tab", "Toggle Mode"],
+          ["Arrows/WASD", "Navigate"],
+          ["Enter", "Open"],
           ["Q / E", "Last / Next Page"],
           ["Z", "Zoom"],
           ["X", "Gridlines"],
@@ -3466,8 +3359,7 @@ document.addEventListener("keydown", (event) => {
      blockSpacebarShortcut(event);
      handleModeToggleKey(event);
      handleKeyboardPlacementKey(event);
-     handleKeyboardMoveKey(event);
-     handleKeyboardResizeKey(event);
+     handleKeyboardTransformKey(event);
      handleMainMenuArrowKey(event);
      handleMainMenuWasdKey(event);
      handlePageTurnKey(event);
@@ -3475,8 +3367,6 @@ document.addEventListener("keydown", (event) => {
      handleKeyboardCursorActivateKey(event);
      handleSelectedTextEditKey(event);
      handleObjectSettingsKey(event);
-     handleStartKeyboardMoveKey(event);
-     handleStartKeyboardResizeKey(event);
      handleNumberedMenuTabKey(event);
      handleMainMenuToggleKey(event);
      handleCancelKey(event);

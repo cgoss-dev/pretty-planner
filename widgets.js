@@ -284,11 +284,32 @@ function renderToc(item, entries = []) {
      }
 
      tocEntries.forEach((entry) => {
-          const row = document.createElement("div");
+          const row = document.createElement("button");
           const number = document.createElement("span");
           const title = document.createElement("span");
 
           row.className = "toc-row";
+          row.type = "button";
+          row.dataset.tocPageNumber = String(entry.pageNumber);
+          row.setAttribute("aria-label", `Go to page ${entry.pageNumber}`);
+          row.addEventListener("click", (event) => {
+               event.stopPropagation();
+               if (typeof keyboardMode !== "undefined" && keyboardMode !== "interact") {
+                    return;
+               }
+               if (typeof setFocusedPageNumber === "function") {
+                    setFocusedPageNumber(entry.pageNumber);
+               }
+               if (typeof resetViewPanOffset === "function") {
+                    resetViewPanOffset();
+               }
+               if (typeof syncNotebookSpread === "function") {
+                    syncNotebookSpread();
+               }
+               if (typeof applyViewControls === "function") {
+                    applyViewControls();
+               }
+          });
           number.className = "toc-page-number";
           number.textContent = String(entry.pageNumber);
           title.className = "toc-entry-title";
@@ -315,7 +336,7 @@ function isCalendarItem(item) {
 }
 
 function isCalendarTextItemType(type) {
-     return type === "full-month" || type === "weekly-vertical";
+     return type === "full-month" || type === "weekly-vertical" || type === "perpetual-calendar";
 }
 
 function isCalendarTextItem(item) {
@@ -827,8 +848,8 @@ function applyCalendarDayTextStyle(item, textElement) {
 }
 
 function updateCalendarDayTextOverflow(textElement) {
-     const cell = textElement.closest(".dayCell");
-     const item = textElement.closest(".planner-item-full-month, .planner-item-weekly-vertical");
+     const cell = textElement.closest(".dayCell, .perpetual-calendar-row");
+     const item = textElement.closest(".planner-item-full-month, .planner-item-weekly-vertical, .planner-item-perpetual-calendar");
 
      if (!cell || !item) {
           return;
@@ -1347,6 +1368,7 @@ function renderPerpetualCalendar(item) {
      const { month, year } = getCalendarEffectiveMonthYear(item);
      const titleMonthText = getCalendarMonthTitle(month, monthDisplay);
      const daysInMonth = getCalendarDaysInMonth(year, month);
+     const dayNotes = getCalendarDayNotes(item);
      const todayKey = getTodayCalendarDayKey();
 
      if (!calendar) {
@@ -1391,6 +1413,35 @@ function renderPerpetualCalendar(item) {
           numberCell.textContent = String(day);
           markCurrentCalendarDayNumber(numberCell, dayKey, todayKey);
           lineCell.className = "perpetual-calendar-line";
+
+          const dayText = document.createElement("div");
+
+          dayText.className = "calendar-day-text perpetual-calendar-day-text";
+          dayText.dataset.dayKey = dayKey;
+          dayText.setAttribute("contenteditable", "false");
+          dayText.textContent = dayNotes[dayKey] || "";
+          applyCalendarDayTextStyle(item, dayText);
+          dayText.addEventListener("input", () => updateCalendarDayTextOverflow(dayText));
+          dayText.addEventListener("pointerdown", (event) => {
+               if (dayText.isContentEditable) {
+                    event.stopPropagation();
+               }
+          });
+          dayText.addEventListener("wheel", (event) => {
+               if (dayText.isContentEditable) {
+                    event.stopPropagation();
+               }
+          });
+          row.addEventListener("click", (event) => {
+               if (typeof keyboardMode !== "undefined" && keyboardMode !== "interact") {
+                    return;
+               }
+
+               event.preventDefault();
+               event.stopPropagation();
+               startCalendarDayTextEditing(dayText, item);
+          });
+          lineCell.append(dayText);
           row.append(numberCell, lineCell);
           calendar.append(row);
      }
@@ -2539,6 +2590,26 @@ function updateActionsPopupTypeLabel(controls, items) {
      }
 }
 
+function getWidgetTypeItems(type) {
+     return getPlannerItems().filter((item) => item.dataset.itemType === type);
+}
+
+function enterItemDesignPopup(controls, item, scope = "unique") {
+     const actionItems = scope === "universal" ? getWidgetTypeItems(item.dataset.itemType) : [item];
+     const scopeLabel = scope === "universal" ? "Universal Design" : "Unique Design";
+
+     setControlsActionItems(controls, actionItems.length ? actionItems : [item]);
+     controls.dataset.designScope = scope;
+     controls.dataset.designScopeLabel = `${scopeLabel}: ${getItemTypeLabel(item.dataset.itemType)}`;
+     controls.classList.remove("is-actions-popup");
+     controls.classList.add("is-design-popup");
+     setItemControlsTab(controls, "style");
+     positionItemActionsPopup(controls, {
+          clientX: item.getBoundingClientRect().left,
+          clientY: item.getBoundingClientRect().top
+     });
+}
+
 function positionItemControls(item) {
      const controls = getItemControls(item);
 
@@ -2546,7 +2617,7 @@ function positionItemControls(item) {
           return;
      }
 
-     if (controls.classList.contains("is-actions-popup")) {
+     if (controls.classList.contains("is-actions-popup") || controls.classList.contains("is-design-popup")) {
           return;
      }
 
@@ -2657,6 +2728,9 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      setControlsActionItems(controls, actionItems);
      updateActionsPopupTypeLabel(controls, actionItems);
      controls.classList.remove("is-docked");
+     controls.classList.remove("is-design-popup");
+     delete controls.dataset.designScope;
+     delete controls.dataset.designScopeLabel;
      controls.classList.add("is-floating", "is-actions-popup");
      item.classList.add("is-menu-open");
      setItemControlsTab(controls, "actions");
@@ -2675,8 +2749,10 @@ function closeItemMenu(item) {
 
      closeCustomSelects(controls);
      clearSelectFocus(controls);
-     controls.classList.remove("is-floating", "is-docked", "is-actions-popup");
+     controls.classList.remove("is-floating", "is-docked", "is-actions-popup", "is-design-popup");
      controls.removeAttribute("style");
+     delete controls.dataset.designScope;
+     delete controls.dataset.designScopeLabel;
      clearControlsActionItems(controls);
      item.append(controls);
      updateObjectControlsState();
@@ -3153,7 +3229,7 @@ function clearSelectedResizeCursors() {
 }
 
 function updateDeskResizeCursor(event) {
-     if (activeAction || !selectedItem || selectedItems.size !== 1 || event.target.closest(".planner-settings, .item-controls, .page-snap-controls")) {
+     if (keyboardMode !== "design" || activeAction || !selectedItem || selectedItems.size !== 1 || event.target.closest(".planner-settings, .item-controls, .page-snap-controls")) {
           plannerDesk.style.cursor = "";
           clearSelectedResizeCursors();
           return;
@@ -3303,6 +3379,11 @@ function makePlannerItem(type = "sticker") {
      const displayWeekNumberSelect = document.createElement("select");
      const displayWeekStartLabel = document.createElement("label");
      const displayWeekStartSelect = document.createElement("select");
+     const designActionGroup = document.createElement("div");
+     const designUniversalButton = document.createElement("button");
+     const designUniqueButton = document.createElement("button");
+     const designRepositionButton = document.createElement("button");
+     const designResizeButton = document.createElement("button");
      const stylePanel = document.createElement("div");
      const textPanel = document.createElement("div");
      const widgetPanel = document.createElement("div");
@@ -3431,6 +3512,24 @@ function makePlannerItem(type = "sticker") {
      actionsWidgetType.className = "item-actions-widget-type";
      actionsWidgetType.dataset.actionsWidgetType = "true";
      actionsWidgetType.textContent = getItemTypeLabel(type);
+     designActionGroup.className = "item-design-action-group";
+     designActionGroup.setAttribute("aria-label", "Design scope");
+     designUniversalButton.className = "item-control";
+     designUniversalButton.type = "button";
+     designUniversalButton.textContent = "Universal";
+     designUniversalButton.setAttribute("aria-label", `Design all ${getItemTypeLabel(type)} widgets`);
+     designUniqueButton.className = "item-control";
+     designUniqueButton.type = "button";
+     designUniqueButton.textContent = "Unique";
+     designUniqueButton.setAttribute("aria-label", "Design this unique widget");
+     designRepositionButton.className = "item-control";
+     designRepositionButton.type = "button";
+     designRepositionButton.textContent = "Reposition";
+     designRepositionButton.setAttribute("aria-label", "Reposition this widget with keys");
+     designResizeButton.className = "item-control";
+     designResizeButton.type = "button";
+     designResizeButton.textContent = "Resize";
+     designResizeButton.setAttribute("aria-label", "Resize this widget with keys");
      displayDateRow.className = "item-calendar-display-row";
      displayYearLabel.className = "item-calendar-display-control";
      displayYearLabel.textContent = "Year";
@@ -3961,11 +4060,12 @@ function makePlannerItem(type = "sticker") {
      controlTabs.append(styleTab);
      duplicateGroupActions.append(duplicateButton, groupButton);
      layerButtonGroup.append(sendBackwardButton, bringForwardButton);
+     designActionGroup.append(designUniversalButton, designUniqueButton, designRepositionButton, designResizeButton);
      actionsPanel.append(actionsWidgetType);
      if (isCalendarItemType(type)) {
           actionsPanel.append(displayDateRow);
      }
-     actionsPanel.append(duplicateGroupActions, layerButtonGroup, deleteButton);
+     actionsPanel.append(designActionGroup, duplicateGroupActions, layerButtonGroup, deleteButton);
      stylePanel.append(fillLabel, borderColorLabel, borderSizeField);
      if (isStickerTextItemType(type)) {
           textPanel.append(
@@ -4092,6 +4192,11 @@ function makePlannerItem(type = "sticker") {
           startMove(item, event);
      });
      item.addEventListener("pointermove", (event) => {
+          if (keyboardMode !== "design") {
+               setResizeCursor(item, "");
+               return;
+          }
+
           const resizeMode = getResizeMode(item, event);
 
           setResizeCursor(item, resizeMode);
@@ -4113,7 +4218,7 @@ function makePlannerItem(type = "sticker") {
                selectItem(item, true);
           } else if (!activeAction) {
                selectItem(item);
-               openItemMenu(item);
+               openItemActionsPopup(item, event);
           }
      });
      item.addEventListener("dblclick", (event) => {
@@ -4157,6 +4262,26 @@ function makePlannerItem(type = "sticker") {
      duplicateButton.addEventListener("click", (event) => {
           event.stopPropagation();
           duplicateItem(item);
+     });
+     designUniversalButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          enterItemDesignPopup(controls, item, "universal");
+     });
+     designUniqueButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          enterItemDesignPopup(controls, item, "unique");
+     });
+     designRepositionButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          if (typeof startKeyboardRepositionFromPopup === "function") {
+               startKeyboardRepositionFromPopup(item);
+          }
+     });
+     designResizeButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          if (typeof startKeyboardResizeFromPopup === "function") {
+               startKeyboardResizeFromPopup(item);
+          }
      });
      groupButton.addEventListener("click", (event) => {
           event.stopPropagation();
