@@ -2029,11 +2029,20 @@ function handleSelectedTextEditKey(event) {
           return;
      }
 
-     if (keyboardMode === "design" && selectedItem && selectedItems.size) {
-          const rect = selectedItem.getBoundingClientRect();
+     if (keyboardMode === "design") {
+          const actionItem = getItemForMenuKeyboardToggle(event.target);
+
+          if (!actionItem) {
+               return;
+          }
+
+          const rect = actionItem.getBoundingClientRect();
 
           event.preventDefault();
-          openItemActionsPopup(selectedItem, {
+          if (!selectedItems.has(actionItem)) {
+               selectItem(actionItem);
+          }
+          openItemActionsPopup(actionItem, {
                clientX: rect.left + (rect.width / 2),
                clientY: rect.top + Math.min(rect.height / 2, 36)
           });
@@ -2210,17 +2219,18 @@ function handleKeyboardModeNumberKey(event) {
      if (designBranch === "root") {
           event.preventDefault();
           if (event.key === "1") {
-               exitKeyboardDesignMode();
+               enterKeyboardMenuBranch("controls", "controls");
           } else if (event.key === "2") {
                enterKeyboardMenuBranch("notebook", "page");
           } else if (event.key === "3") {
                enterKeyboardMenuBranch("menu", "add");
-          } else if (event.key === "4") {
-               designBranch = "object";
-               syncKeyboardModeUi();
-               closeSidebar();
-               renderKeyHints();
           }
+          return;
+     }
+
+     if (designBranch === "controls" && event.key === "1") {
+          event.preventDefault();
+          returnToKeyboardDesignRoot();
           return;
      }
 
@@ -2236,7 +2246,7 @@ function handleKeyboardModeNumberKey(event) {
           return;
      }
 
-     if (designBranch === "notebook" || designBranch === "menu") {
+     if (designBranch === "controls" || designBranch === "notebook" || designBranch === "menu") {
           const tab = settingsTabs[Number(event.key) - 1];
 
           if (!tab || tab.disabled) {
@@ -2290,13 +2300,7 @@ function handleCancelKey(event) {
      }
 
      event.preventDefault();
-     if (keyboardMode === "design" && designBranch !== "root") {
-          returnToKeyboardDesignRoot();
-          return;
-     }
-
-     if (keyboardMode === "design" && designBranch === "root") {
-          exitKeyboardDesignMode();
+     if (keyboardMode === "design") {
           return;
      }
 
@@ -2826,8 +2830,19 @@ function getKeyHintState() {
                ["2", "Back"],
                ["1-5", "Tabs"],
                ["Q / E", "Last / Next Tab"],
-               ["Enter", "Select"],
-               ["Delete / Esc", "Back"]
+               ["Enter", "Select"]
+               ]
+          };
+     }
+
+     if (keyboardMode === "design" && designBranch === "controls") {
+          return {
+               mode: "Design Mode > Controls",
+               entries: [
+               ["1", "Back"],
+               ["1-3", "Tabs"],
+               ["Q / E", "Last / Next Tab"],
+               ["Enter", "Select"]
                ]
           };
      }
@@ -2839,8 +2854,7 @@ function getKeyHintState() {
                ["3", "Back"],
                ["1-5", "Tabs"],
                ["Q / E", "Last / Next Tab"],
-               ["Enter", "Select"],
-               ["Delete / Esc", "Back"]
+               ["Enter", "Select"]
                ]
           };
      }
@@ -2853,8 +2867,7 @@ function getKeyHintState() {
                ["1 / Enter", "Actions"],
                ["2", "Group / Ungroup"],
                ["3", "Delete selected"],
-               ["X", "Gridlines"],
-               ["Delete / Esc", "Back"]
+               ["X", "Gridlines"]
                ]
           };
      }
@@ -2864,11 +2877,13 @@ function getKeyHintState() {
                mode: "Design Mode",
                entries: [
                ["Tab", "Toggle Mode"],
+               ["1", "Controls"],
                ["2", "Notebook"],
                ["3", "Menu"],
-               ["4", "Object"],
+               ["Q / E", "Last / Next Page"],
+               ["Z", "Zoom"],
                ["X", "Gridlines"],
-               ["Delete / Esc", "Interact Mode"]
+               ["C", "Center"]
                ]
           };
      }

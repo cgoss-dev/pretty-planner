@@ -2601,6 +2601,7 @@ function enterItemDesignPopup(controls, item, scope = "unique") {
      setControlsActionItems(controls, actionItems.length ? actionItems : [item]);
      controls.dataset.designScope = scope;
      controls.dataset.designScopeLabel = `${scopeLabel}: ${getItemTypeLabel(item.dataset.itemType)}`;
+     controls.querySelector(".item-design-popup-title")?.replaceChildren(controls.dataset.designScopeLabel);
      controls.classList.remove("is-actions-popup");
      controls.classList.add("is-design-popup");
      setItemControlsTab(controls, "style");
@@ -2608,6 +2609,21 @@ function enterItemDesignPopup(controls, item, scope = "unique") {
           clientX: item.getBoundingClientRect().left,
           clientY: item.getBoundingClientRect().top
      });
+}
+
+function returnItemDesignPopupToActions(controls, item) {
+     const actionItems = getSelectedOrGroupedActionItems(item);
+
+     setControlsActionItems(controls, actionItems);
+     updateActionsPopupTypeLabel(controls, actionItems);
+     controls.classList.remove("is-design-popup");
+     controls.classList.add("is-actions-popup");
+     delete controls.dataset.designScope;
+     delete controls.dataset.designScopeLabel;
+     controls.querySelector(".item-design-popup-title")?.replaceChildren();
+     setItemControlsTab(controls, "actions");
+     updateObjectControlsState();
+     updateClipboardControls();
 }
 
 function positionItemControls(item) {
@@ -2646,6 +2662,67 @@ function positionItemActionsPopup(controls, event) {
 
      controls.style.left = `${x}px`;
      controls.style.top = `${y}px`;
+}
+
+function getFloatingControlsBox(controls) {
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const rect = controls.getBoundingClientRect();
+
+     return {
+          x: rect.left - deskRect.left,
+          y: rect.top - deskRect.top,
+          width: rect.width,
+          height: rect.height
+     };
+}
+
+function setFloatingControlsBox(controls, box) {
+     controls.style.left = `${box.x}px`;
+     controls.style.top = `${box.y}px`;
+}
+
+function getMovedFloatingControlsBox(clientX, clientY) {
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const current = activeAction.box;
+     const rawX = clientX - deskRect.left - activeAction.offsetX;
+     const rawY = clientY - deskRect.top - activeAction.offsetY;
+     const gap = 8;
+
+     return {
+          ...current,
+          x: clamp(rawX, gap, Math.max(gap, deskRect.width - current.width - gap)),
+          y: clamp(rawY, gap, Math.max(gap, deskRect.height - current.height - gap))
+     };
+}
+
+function startFloatingControlsMove(controls, event) {
+     if (
+          keyboardMode !== "design" ||
+          activeAction ||
+          event.button !== 0 ||
+          !controls.classList.contains("is-floating") ||
+          event.target.closest("input, select, textarea, [contenteditable='true'], .custom-select")
+     ) {
+          return;
+     }
+
+     const box = getFloatingControlsBox(controls);
+
+     activeAction = {
+          type: "pending-controls-move",
+          controls,
+          box,
+          startX: event.clientX,
+          startY: event.clientY,
+          offsetX: event.clientX - controls.getBoundingClientRect().left,
+          offsetY: event.clientY - controls.getBoundingClientRect().top,
+          didMove: false
+     };
+
+     try {
+          controls.setPointerCapture(event.pointerId);
+     } catch {
+     }
 }
 
 function getSelectedOrGroupedActionItems(item) {
@@ -2731,6 +2808,7 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      controls.classList.remove("is-design-popup");
      delete controls.dataset.designScope;
      delete controls.dataset.designScopeLabel;
+     controls.querySelector(".item-design-popup-title")?.replaceChildren();
      controls.classList.add("is-floating", "is-actions-popup");
      item.classList.add("is-menu-open");
      setItemControlsTab(controls, "actions");
@@ -2753,6 +2831,7 @@ function closeItemMenu(item) {
      controls.removeAttribute("style");
      delete controls.dataset.designScope;
      delete controls.dataset.designScopeLabel;
+     controls.querySelector(".item-design-popup-title")?.replaceChildren();
      clearControlsActionItems(controls);
      item.append(controls);
      updateObjectControlsState();
@@ -3361,6 +3440,9 @@ function makePlannerItem(type = "sticker") {
      const item = document.createElement("div");
      const sizeLabel = document.createElement("span");
      const controls = document.createElement("div");
+     const designPopupHeader = document.createElement("div");
+     const designBackButton = document.createElement("button");
+     const designScopeTitle = document.createElement("div");
      const controlTabs = document.createElement("div");
      const actionsTab = document.createElement("button");
      const styleTab = document.createElement("button");
@@ -3380,10 +3462,13 @@ function makePlannerItem(type = "sticker") {
      const displayWeekStartLabel = document.createElement("label");
      const displayWeekStartSelect = document.createElement("select");
      const designActionGroup = document.createElement("div");
+     const designActionTitle = document.createElement("div");
      const designUniversalButton = document.createElement("button");
      const designUniqueButton = document.createElement("button");
      const designRepositionButton = document.createElement("button");
      const designResizeButton = document.createElement("button");
+     const layoutActionGroup = document.createElement("div");
+     const layoutActionTitle = document.createElement("div");
      const stylePanel = document.createElement("div");
      const textPanel = document.createElement("div");
      const widgetPanel = document.createElement("div");
@@ -3484,6 +3569,14 @@ function makePlannerItem(type = "sticker") {
      controls.className = `item-controls item-controls-${type}`;
      controls.dataset.ownerId = item.dataset.templateId;
      controls.setAttribute("role", "menu");
+     designPopupHeader.className = "item-design-popup-header";
+     designBackButton.className = "item-design-popup-back";
+     designBackButton.type = "button";
+     designBackButton.textContent = "←";
+     designBackButton.setAttribute("aria-label", "Back to widget actions");
+     designScopeTitle.className = "item-design-popup-title";
+     designScopeTitle.setAttribute("aria-hidden", "true");
+     designPopupHeader.append(designBackButton, designScopeTitle);
      controlTabs.className = "item-control-tabs";
      controlTabs.setAttribute("role", "tablist");
      actionsTab.className = "item-control-tab";
@@ -3514,6 +3607,8 @@ function makePlannerItem(type = "sticker") {
      actionsWidgetType.textContent = getItemTypeLabel(type);
      designActionGroup.className = "item-design-action-group";
      designActionGroup.setAttribute("aria-label", "Design scope");
+     designActionTitle.className = "item-actions-section-title";
+     designActionTitle.textContent = "Design";
      designUniversalButton.className = "item-control";
      designUniversalButton.type = "button";
      designUniversalButton.textContent = "Universal";
@@ -3530,6 +3625,10 @@ function makePlannerItem(type = "sticker") {
      designResizeButton.type = "button";
      designResizeButton.textContent = "Resize";
      designResizeButton.setAttribute("aria-label", "Resize this widget with keys");
+     layoutActionGroup.className = "item-layout-action-group";
+     layoutActionGroup.setAttribute("aria-label", "Layout actions");
+     layoutActionTitle.className = "item-actions-section-title";
+     layoutActionTitle.textContent = "Layout";
      displayDateRow.className = "item-calendar-display-row";
      displayYearLabel.className = "item-calendar-display-control";
      displayYearLabel.textContent = "Year";
@@ -4060,12 +4159,13 @@ function makePlannerItem(type = "sticker") {
      controlTabs.append(styleTab);
      duplicateGroupActions.append(duplicateButton, groupButton);
      layerButtonGroup.append(sendBackwardButton, bringForwardButton);
-     designActionGroup.append(designUniversalButton, designUniqueButton, designRepositionButton, designResizeButton);
+     designActionGroup.append(designActionTitle, designUniversalButton, designUniqueButton, designRepositionButton, designResizeButton);
+     layoutActionGroup.append(layoutActionTitle, duplicateGroupActions, layerButtonGroup, deleteButton);
      actionsPanel.append(actionsWidgetType);
      if (isCalendarItemType(type)) {
           actionsPanel.append(displayDateRow);
      }
-     actionsPanel.append(designActionGroup, duplicateGroupActions, layerButtonGroup, deleteButton);
+     actionsPanel.append(designActionGroup, layoutActionGroup);
      stylePanel.append(fillLabel, borderColorLabel, borderSizeField);
      if (isStickerTextItemType(type)) {
           textPanel.append(
@@ -4099,7 +4199,7 @@ function makePlannerItem(type = "sticker") {
      initializeItemControlPanelSections(stylePanel);
      initializeItemControlPanelSections(textPanel);
      initializeItemControlPanelSections(widgetPanel);
-     controls.append(controlTabs, actionsPanel, stylePanel);
+     controls.append(designPopupHeader, controlTabs, actionsPanel, stylePanel);
      if (isStickerTextItemType(type) || isCalendarTextItemType(type)) {
           controls.append(textPanel);
      }
@@ -4254,8 +4354,20 @@ function makePlannerItem(type = "sticker") {
           updateGroupButton(groupButton, actionItems);
           openItemActionsPopup(item, event, actionItems);
      });
-     controls.addEventListener("pointerdown", (event) => event.stopPropagation());
-     controls.addEventListener("click", (event) => event.stopPropagation());
+     controls.addEventListener("pointerdown", (event) => {
+          startFloatingControlsMove(controls, event);
+          event.stopPropagation();
+     });
+     controls.addEventListener("click", (event) => {
+          if (controls.dataset.skipNextClick === "true") {
+               delete controls.dataset.skipNextClick;
+               event.preventDefault();
+               event.stopPropagation();
+               return;
+          }
+
+          event.stopPropagation();
+     });
      controls.querySelectorAll("[data-item-control-tab]").forEach((tab) => {
           tab.addEventListener("click", () => setItemControlsTab(controls, tab.dataset.itemControlTab));
      });
@@ -4270,6 +4382,10 @@ function makePlannerItem(type = "sticker") {
      designUniqueButton.addEventListener("click", (event) => {
           event.stopPropagation();
           enterItemDesignPopup(controls, item, "unique");
+     });
+     designBackButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          returnItemDesignPopupToActions(controls, item);
      });
      designRepositionButton.addEventListener("click", (event) => {
           event.stopPropagation();
@@ -5203,6 +5319,26 @@ function moveActiveItem(event) {
           return;
      }
 
+     if (activeAction.type === "pending-controls-move") {
+          const deltaX = event.clientX - activeAction.startX;
+          const deltaY = event.clientY - activeAction.startY;
+
+          if (Math.hypot(deltaX, deltaY) < moveStartThreshold) {
+               return;
+          }
+
+          event.preventDefault();
+          activeAction.type = "controls-move";
+          activeAction.didMove = true;
+          activeAction.controls.classList.add("is-dragging");
+     }
+
+     if (activeAction.type === "controls-move") {
+          activeAction.didMove = true;
+          setFloatingControlsBox(activeAction.controls, getMovedFloatingControlsBox(event.clientX, event.clientY));
+          return;
+     }
+
      if (activeAction.type === "select") {
           updateMarqueeSelection(setMarqueeBox(activeAction.marquee, activeAction.startX, activeAction.startY, event.clientX, event.clientY));
           return;
@@ -5306,6 +5442,20 @@ function endActiveItem(event) {
           }
 
           plannerSettings.classList.remove("is-dragging", "is-resizing");
+          activeAction = null;
+          return;
+     }
+
+     if (activeAction.type === "pending-controls-move" || activeAction.type === "controls-move") {
+          try {
+               activeAction.controls.releasePointerCapture(event.pointerId);
+          } catch {
+          }
+
+          activeAction.controls.classList.remove("is-dragging");
+          if (activeAction.didMove) {
+               activeAction.controls.dataset.skipNextClick = "true";
+          }
           activeAction = null;
           return;
      }

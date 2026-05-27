@@ -396,7 +396,7 @@ body {
      padding: 4px 6px;
      border: var(--border-sm) solid var(--menu-border);
      border-radius: 5px;
-     background: var(--menu-fill);
+     background: var(--color-white);
      color: var(--color-gray1);
      font: 700 var(--font-size-sm) var(--font-noto);
      line-height: 1;
@@ -3521,6 +3521,11 @@ body {
      min-width: min(300px, calc(100vw - 32px)) !important;
      display: grid;
      transform: none;
+     cursor: grab;
+}
+
+.item-controls.is-floating.is-dragging {
+     cursor: grabbing;
 }
 
 .item-controls.is-actions-popup {
@@ -3533,23 +3538,56 @@ body {
      width: min(420px, calc(100vw - 32px)) !important;
      inline-size: min(420px, calc(100vw - 32px)) !important;
      min-width: min(320px, calc(100vw - 32px)) !important;
+     padding: 6px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     background: var(--color-white);
 }
 
-.item-controls.is-design-popup::before {
-     content: attr(data-design-scope-label);
-     padding: 6px 8px 0;
-     color: var(--color-gray2);
-     font: 700 var(--font-size-sm) var(--font-noto);
-     line-height: 1;
-     text-align: center;
+.item-design-popup-header {
+     display: none;
 }
 
 .item-controls.is-actions-popup .item-control-tabs {
      display: none;
 }
 
+.item-controls.is-design-popup .item-design-popup-header {
+     display: grid;
+     grid-template-columns: 28px minmax(0, 1fr) 28px;
+     align-items: center;
+     gap: 4px;
+}
+
+.item-design-popup-back {
+     width: 28px;
+     height: 28px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-radius: 6px;
+     background: var(--color-white);
+     color: var(--color-gray1);
+     cursor: pointer;
+     font: 700 var(--font-size-md) var(--font-noto);
+     line-height: 1;
+}
+
+.item-design-popup-title {
+     min-width: 0;
+     color: var(--color-gray2);
+     font: 700 var(--font-size-sm) var(--font-noto);
+     line-height: 1;
+     overflow: hidden;
+     text-align: center;
+     text-overflow: ellipsis;
+     white-space: nowrap;
+}
+
 .item-controls.is-design-popup .item-control-tabs {
      display: flex;
+}
+
+.item-controls.is-design-popup .item-control-tab,
+.item-controls.is-design-popup .item-control-panel {
+     background: var(--color-white);
 }
 
 .item-controls.is-actions-popup .item-control-panel {
@@ -3561,7 +3599,6 @@ body {
 .item-actions-widget-type {
      display: none;
      padding: 3px 4px 5px;
-     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.14);
      color: var(--color-gray2);
      font: 700 var(--font-size-sm) var(--font-noto);
      line-height: 1;
@@ -3572,12 +3609,30 @@ body {
      display: block;
 }
 
-.item-design-action-group {
+.item-design-action-group,
+.item-layout-action-group {
      display: grid;
      grid-template-columns: repeat(2, minmax(0, 1fr));
      gap: 6px;
-     padding-top: 6px;
+}
+
+.item-layout-action-group {
+     padding-top: 7px;
      border-top: var(--border-sm) solid rgba(17, 17, 17, 0.14);
+}
+
+.item-actions-section-title {
+     grid-column: 1 / -1;
+     color: var(--color-gray2);
+     font: 700 var(--font-size-sm) var(--font-noto);
+     line-height: 1;
+     text-align: center;
+}
+
+.item-layout-action-group > .item-action-row,
+.item-layout-action-group > .item-layer-actions,
+.item-layout-action-group > .item-control {
+     grid-column: 1 / -1;
 }
 
 .planner-item.is-menu-open .item-controls {
