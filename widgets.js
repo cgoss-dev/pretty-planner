@@ -2407,7 +2407,6 @@ function makePlannerItem(type = "sticker") {
      designPopupHeader.className = "item-design-popup-header";
      designBackButton.className = "item-design-popup-back";
      designBackButton.type = "button";
-     designBackButton.textContent = "←";
      designBackButton.setAttribute("aria-label", "Back to widget actions");
      designScopeTitle.className = "item-design-popup-title";
      designScopeTitle.setAttribute("aria-hidden", "true");
@@ -2633,13 +2632,13 @@ function makePlannerItem(type = "sticker") {
      textFontSelect.setAttribute("aria-label", "Sticker text font");
      [
           ["annotation-mono", "Annotation Mono"],
-          ["noto-sans-mono", "Noto Sans Mono"],
           ["bungee", "Bungee"],
           ["bungee-outline", "Bungee Outline"],
           ["bungee-shade", "Bungee Shade"],
-          ["dancing", "Script"],
           ["caveat", "Caveat"],
+          ["dancing", "Dancing Script"],
           ["miltonian", "Miltonian"],
+          ["noto-sans-mono", "Noto Sans Mono"],
           ["permanent-marker", "Permanent Marker"],
           ["rock-salt", "Rock Salt"],
           ["sedgwick-ave-display", "Sedgwick Ave Display"],

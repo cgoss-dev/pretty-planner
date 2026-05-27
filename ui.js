@@ -157,10 +157,9 @@ function createColorMatrixToggle() {
 
      button.className = "palette-matrix-toggle";
      button.type = "button";
-     button.dataset.colorMatrixToggle = "";
+     button.dataset.colorPanelMatrixToggle = "";
      button.setAttribute("aria-label", "Show Tertiary matrix");
      button.setAttribute("aria-expanded", "false");
-     button.textContent = "⇧";
 
      return button;
 }
@@ -241,7 +240,7 @@ function getHexPopover() {
 
      popover = document.createElement("div");
      popover.className = "color-panel-hex";
-     popover.dataset.hexPopover = "";
+     popover.dataset.colorPanelHex = "";
      popover.hidden = true;
      popover.innerHTML = `
           <div class="color-panel-hex-swatch-cell">
@@ -586,7 +585,6 @@ function setColorMatrixOpen(isOpen) {
 
      document.querySelectorAll("[data-color-panel-matrix-toggle]").forEach((toggle) => {
           toggle.setAttribute("aria-expanded", String(isOpen && toggle === activeColorMatrixToggle));
-          toggle.textContent = "⇧";
      });
 
      if (isOpen) {
@@ -1042,7 +1040,9 @@ function initializeWidgetPanelPageSections(panel) {
           return;
      }
 
-     const controls = Array.from(panel.children).filter((child) => !child.matches("[data-control-section]"));
+     const controls = Array.from(panel.children).filter((child) => {
+          return !child.matches("[data-control-section], .widget-panel-section-title");
+     });
 
      controls.forEach((control) => {
           panel.append(createControlSection(getWidgetPanelSectionTitle(control), [control], false));
