@@ -4462,6 +4462,10 @@ body {
      --active-controls-color: var(--color-white);
 }
 
+.control-panel.is-open {
+     transform: none;
+}
+
 .control-panel-title {
      grid-column: 1 / -1;
 }

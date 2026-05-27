@@ -2976,6 +2976,10 @@ function syncControlPanelHintAnchor() {
           return;
      }
 
+     if (activeAction?.type === "control-panel-move" || activeAction?.type === "control-panel-resize") {
+          return;
+     }
+
      const deskRect = plannerDesk.getBoundingClientRect();
      const hintRect = hintPanel.getBoundingClientRect();
      const panelWidth = controlPanel.offsetWidth || 135;
@@ -2983,12 +2987,11 @@ function syncControlPanelHintAnchor() {
      const anchorTop = clamp(hintRect.bottom - deskRect.top + 8, 8, Math.max(8, deskRect.height - 80));
 
      delete controlPanel.dataset.centerX;
-     if (!controlPanel.dataset.userPositioned) {
-          controlPanel.style.left = "";
-          controlPanel.style.top = "";
-          controlPanel.style.setProperty("--control-panel-anchor-left", `${anchorLeft}px`);
-          controlPanel.style.setProperty("--control-panel-anchor-top", `${anchorTop}px`);
-     }
+     delete controlPanel.dataset.userPositioned;
+     controlPanel.style.left = "";
+     controlPanel.style.top = "";
+     controlPanel.style.setProperty("--control-panel-anchor-left", `${anchorLeft}px`);
+     controlPanel.style.setProperty("--control-panel-anchor-top", `${anchorTop}px`);
 }
 
 function getItemForMenuKeyboardToggle(target) {

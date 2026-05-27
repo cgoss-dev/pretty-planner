@@ -2331,6 +2331,8 @@ function makePlannerItem(type = "sticker") {
      const textToggleLabel = document.createElement("label");
      const textTitle = document.createElement("span");
      const textToggleInput = document.createElement("button");
+     const textSizeLabel = document.createElement("div");
+     const textSizeTitle = document.createElement("span");
      const textSizeGroup = document.createElement("div");
      const textFontSelect = document.createElement("select");
      const textColorLabel = document.createElement("label");
@@ -2571,7 +2573,7 @@ function makePlannerItem(type = "sticker") {
      fillSwatches.dataset.styleSwatches = "fill";
      borderColorLabel.className = "widget-panel-row color-panel-control";
      borderTitle.className = "widget-panel-title";
-     borderTitle.textContent = "Border";
+     borderTitle.textContent = "Border Color";
      borderSizeField.className = "widget-panel-row";
      borderSizeField.textContent = "Border Style";
      borderColorInput.className = "native-select";
@@ -2601,7 +2603,10 @@ function makePlannerItem(type = "sticker") {
      tocElement.className = "toc-widget";
      textToggleLabel.className = "widget-panel-row text-panel-control text-panel-settings-control";
      textTitle.className = "widget-panel-title";
-     textTitle.textContent = "Text";
+     textTitle.textContent = "Typeface";
+     textSizeLabel.className = "widget-panel-row text-panel-control text-panel-size-control";
+     textSizeTitle.className = "widget-panel-title";
+     textSizeTitle.textContent = "Text Size";
      textToggleInput.className = "text-panel-toggle text-panel-visibility-toggle";
      textToggleInput.type = "button";
      textToggleInput.textContent = "Visibility On";
@@ -2654,7 +2659,7 @@ function makePlannerItem(type = "sticker") {
      });
      textColorLabel.className = "widget-panel-row text-panel-control color-panel-control";
      textColorTitle.className = "widget-panel-title";
-     textColorTitle.textContent = "Font Palette";
+     textColorTitle.textContent = "Text Color";
      textColorInput.className = "native-select";
      textColorInput.dataset.textControl = "color";
      textColorInput.setAttribute("aria-label", "Sticker text palette");
@@ -2680,7 +2685,7 @@ function makePlannerItem(type = "sticker") {
      textControlsRow.className = "text-panel-control-row";
      textFormatGroup.className = "text-panel-format text-panel-control";
      textFormatTitle.className = "widget-panel-title";
-     textFormatTitle.textContent = "BIUS";
+     textFormatTitle.textContent = "Text Style";
      textBoldInput.className = "text-panel-toggle text-panel-toggle-bold";
      textBoldInput.type = "button";
      textBoldInput.textContent = "Bold";
@@ -2965,17 +2970,18 @@ function makePlannerItem(type = "sticker") {
      borderColorLabel.append(borderTitle, borderColorInput, borderColorSwatches);
      dotGridLabel.append(dotGridInput);
      if (type === "sticker") {
-          textToggleLabel.append(textTitle, textToggleInput, textSizeGroup, textFontSelect);
+          textToggleLabel.append(textTitle, textToggleInput, textFontSelect);
      } else {
           textToggleLabel.classList.add("text-panel-settings-control-no-toggle");
-          textToggleLabel.append(textTitle, textSizeGroup, textFontSelect);
+          textToggleLabel.append(textTitle, textFontSelect);
      }
+     textSizeLabel.append(textSizeTitle, textSizeGroup);
      textColorLabel.append(textColorTitle, textColorInput, textColorSwatches);
      textRoleLabel.append(textRoleTitle, textRoleSelect);
      textFormatGroup.append(textFormatTitle, textBoldInput, textItalicInput, textUnderlineInput, textStrikeInput);
      textAlignLabel.append(textAlignTitle, textAlignmentGrid);
      textLineHeightLabel.append(textLineHeightSelect);
-     textControlsRow.append(textToggleLabel, textFormatGroup, textAlignLabel);
+     textControlsRow.append(textToggleLabel, textSizeLabel, textFormatGroup, textAlignLabel);
      monthLabel.append(monthSelect);
      monthDisplayLabel.append(monthDisplaySelect);
      yearLabel.append(yearSelect);
@@ -3028,7 +3034,10 @@ function makePlannerItem(type = "sticker") {
      if (isStickerTextItemType(type)) {
           textPanel.append(textPanelTitle);
           textPanel.append(
-               textControlsRow,
+               textToggleLabel,
+               textSizeLabel,
+               textFormatGroup,
+               textAlignLabel,
                textColorLabel,
                textRoleLabel
           );
@@ -3036,7 +3045,10 @@ function makePlannerItem(type = "sticker") {
      if (isCalendarTextItemType(type) || type === "mini-month") {
           textPanel.append(textPanelTitle);
           textPanel.append(
-               textControlsRow,
+               textToggleLabel,
+               textSizeLabel,
+               textFormatGroup,
+               textAlignLabel,
                textColorLabel,
                textRoleLabel
           );
