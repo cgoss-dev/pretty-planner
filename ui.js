@@ -794,10 +794,6 @@ function getCustomSelectOptionFont(select, value) {
           return "var(--font-caveat)";
      }
 
-     if (normalizedValue === "playwrite") {
-          return "var(--font-playwrite)";
-     }
-
      if (normalizedValue === "annotation-mono") {
           return "var(--font-annotation-mono)";
      }
@@ -806,11 +802,25 @@ function getCustomSelectOptionFont(select, value) {
           return "var(--font-noto-sans-mono)";
      }
 
+     if (normalizedValue === "bungee") {
+          return "var(--font-bungee)";
+     }
+
+     if (normalizedValue === "bungee-outline") {
+          return "var(--font-bungee-outline)";
+     }
+
+     if (normalizedValue === "bungee-shade") {
+          return "var(--font-bungee-shade)";
+     }
+
+     if (normalizedValue === "sofia-sans-ec") {
+          return "var(--font-sofia-sans-ec)";
+     }
+
      const handwritingFonts = new Set([
           "miltonian",
-          "mr-bedfort",
           "permanent-marker",
-          "reenie-beanie",
           "rock-salt",
           "sedgwick-ave-display"
      ]);

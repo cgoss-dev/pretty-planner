@@ -857,15 +857,16 @@ function getStickerTextFont(fontKey) {
      const fonts = {
           "annotation-mono": "var(--font-annotation-mono)",
           "noto-sans-mono": "var(--font-noto-sans-mono)",
+          bungee: "var(--font-bungee)",
+          "bungee-outline": "var(--font-bungee-outline)",
+          "bungee-shade": "var(--font-bungee-shade)",
           dancing: "var(--font-dancing)",
           caveat: "var(--font-caveat)",
           miltonian: "var(--font-miltonian)",
-          "mr-bedfort": "var(--font-mr-bedfort)",
           "permanent-marker": "var(--font-permanent-marker)",
-          playwrite: "var(--font-playwrite)",
-          "reenie-beanie": "var(--font-reenie-beanie)",
           "rock-salt": "var(--font-rock-salt)",
           "sedgwick-ave-display": "var(--font-sedgwick-ave-display)",
+          "sofia-sans-ec": "var(--font-sofia-sans-ec)",
           sans: "Arial, Verdana, sans-serif",
           serif: "Georgia, serif"
      };
@@ -2294,15 +2295,16 @@ function makePlannerItem(type = "sticker") {
      [
           ["annotation-mono", "Annotation Mono"],
           ["noto-sans-mono", "Noto Sans Mono"],
+          ["bungee", "Bungee"],
+          ["bungee-outline", "Bungee Outline"],
+          ["bungee-shade", "Bungee Shade"],
           ["dancing", "Script"],
           ["caveat", "Caveat"],
           ["miltonian", "Miltonian"],
-          ["mr-bedfort", "Mr Bedfort"],
           ["permanent-marker", "Permanent Marker"],
-          ["playwrite", "Playwrite"],
-          ["reenie-beanie", "Reenie Beanie"],
           ["rock-salt", "Rock Salt"],
           ["sedgwick-ave-display", "Sedgwick Ave Display"],
+          ["sofia-sans-ec", "Sofia Sans EC"],
           ["sans", "Standard Sans"],
           ["serif", "Standard Serif"]
      ].forEach(([value, label]) => {

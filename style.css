@@ -61,16 +61,16 @@
      --border-radius: 10px;
      --font-noto-sans-mono: "Noto Sans Mono", monospace;
      --font-annotation-mono: "Annotation Mono", "Noto Sans Mono", monospace;
-     --font-bungee: "Bungee Shade", monospace;
+     --font-bungee: "Bungee", monospace;
+     --font-bungee-outline: "Bungee Outline", monospace;
+     --font-bungee-shade: "Bungee Shade", monospace;
      --font-dancing: "Dancing Script", cursive;
      --font-caveat: "Caveat", cursive;
      --font-miltonian: "Miltonian", cursive;
-     --font-mr-bedfort: "Mr Bedfort", cursive;
      --font-permanent-marker: "Permanent Marker", cursive;
-     --font-playwrite: "Playwrite GB J", cursive;
-     --font-reenie-beanie: "Reenie Beanie", cursive;
      --font-rock-salt: "Rock Salt", cursive;
      --font-sedgwick-ave-display: "Sedgwick Ave Display", cursive;
+     --font-sofia-sans-ec: "Sofia Sans Extra Condensed", sans-serif;
      --font-symbol: "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", sans-serif;
      --font-size-lg: clamp(2rem, 2rem, 2rem);
      --font-size-md: clamp(1.5rem, 1.5rem, 1.5rem);
@@ -4284,7 +4284,7 @@ body {
      min-height: 0;
      max-height: calc(100vh - 128px);
      grid-template-columns: max-content minmax(0, 1fr);
-     grid-template-rows: minmax(0, 1fr);
+     grid-template-rows: auto minmax(0, 1fr);
      align-content: start;
      align-items: stretch;
      gap: 4px;
@@ -4296,6 +4296,10 @@ body {
      transition: none;
      backdrop-filter: blur(8px);
      --active-controls-color: var(--color-white);
+}
+
+.control-panel-title {
+     grid-column: 1 / -1;
 }
 
 .control-panel:not(.is-open) {
@@ -4314,6 +4318,8 @@ body {
 }
 
 .control-panel-tabs {
+     grid-column: 1;
+     grid-row: 2;
      flex-direction: column;
      align-items: stretch;
      justify-content: start;
@@ -4341,6 +4347,8 @@ body {
 }
 
 .control-panel-page {
+     grid-column: 2;
+     grid-row: 2;
      min-width: 0;
      max-width: none;
      height: 100%;
@@ -4404,6 +4412,17 @@ body.is-single-page-viewport .control-panel {
      min-height: 0;
      min-width: 0 !important;
      grid-template-columns: max-content minmax(0, 1fr);
+     grid-template-rows: auto minmax(0, 1fr);
+}
+
+body.is-single-page-viewport .control-panel:not(.is-open) {
+     width: max-content !important;
+     inline-size: max-content !important;
+     height: auto !important;
+     min-height: 0 !important;
+     max-height: none !important;
+     grid-template-columns: 1fr;
+     grid-template-rows: auto auto;
 }
 
 body.is-single-page-viewport .control-panel-page {
