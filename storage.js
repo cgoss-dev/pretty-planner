@@ -113,7 +113,8 @@ function serializePlannerItem(item) {
                               strike: item.dataset.dayTextStrike === "true",
                               align: item.dataset.dayTextAlign || "left",
                               yAlign: item.dataset.dayTextYAlign || "top",
-                              lineHeight: Number(item.dataset.dayTextLineHeight) || 1
+                              lineHeight: Number(item.dataset.dayTextLineHeight) || 1,
+                              role: item.dataset.dayTextRole || "body"
                          }
                          : null
           }
@@ -131,7 +132,8 @@ function serializePlannerItem(item) {
                     strike: item.dataset.textStrike === "true",
                     align: item.dataset.textAlign || "left",
                     yAlign: item.dataset.textYAlign || "top",
-                    lineHeight: Number(item.dataset.textLineHeight) || 1
+                    lineHeight: Number(item.dataset.textLineHeight) || 1,
+                    role: item.dataset.textRole || "body"
                }
                : null
      };
@@ -470,7 +472,8 @@ function restorePlannerItemSettings(item, itemData) {
                strike: normalizeStoredBoolean(text.strike),
                align: text.align,
                yAlign: text.yAlign,
-               lineHeight: text.lineHeight
+               lineHeight: text.lineHeight,
+               role: text.role
           });
      }
      if (isCalendarItem(item)) {
@@ -486,7 +489,8 @@ function restorePlannerItemSettings(item, itemData) {
                     strike: normalizeStoredBoolean(widget.dayText?.strike),
                     align: widget.dayText?.align,
                     yAlign: widget.dayText?.yAlign,
-                    lineHeight: widget.dayText?.lineHeight
+                    lineHeight: widget.dayText?.lineHeight,
+                    role: widget.dayText?.role
                });
           }
           setCalendarWidgetSettings(item, {

@@ -370,7 +370,7 @@ window.PageControls = (() => {
      function bindPageTurnControls({ pages, getGridMetrics, turnNotebookSpread, setCornerOverlay = () => {} }) {
           pages.forEach((page) => {
                page.addEventListener("click", (event) => {
-                    if (event.target.closest(".planner-item, .item-controls")) {
+                    if (event.target.closest(".planner-item, .widget-panel")) {
                          return;
                     }
 
@@ -462,7 +462,7 @@ window.KeyboardControls = (() => {
                title: "Global",
                controls: [
                     { key: "Tab", action: "Toggle Mode" },
-                    { key: "Enter", action: "Activate focused menu control" },
+                    { key: "Enter", action: "Activate focused panel control" },
                     { key: "Delete / Esc", action: "Cancel, close, or deselect" },
                     { key: "1-5", action: "Choose the current mode option" },
                     { key: "X", action: "Toggle gridlines on or off" },
@@ -550,7 +550,7 @@ window.KeyboardControls = (() => {
      }
 
      function renderControlsPanel(container) {
-          // NOTE: Renders the keyboard command reference into the Controls menu panel
+          // NOTE: Renders the keyboard command reference into the Controls panel
           if (!container) {
                return;
           }

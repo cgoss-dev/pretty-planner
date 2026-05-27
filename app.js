@@ -1,7 +1,7 @@
 // NOTE: Things The App Grabs From The HTML
 const pages = Array.from(document.querySelectorAll("[data-page]"));
 const plannerDesk = document.querySelector(".planner-desk");
-const plannerSettings = document.querySelector(".planner-settings");
+const controlPanel = document.querySelector(".control-panel");
 const notebook = document.querySelector(".notebook");
 const sourceItems = Array.from(document.querySelectorAll("[data-create-item]"));
 const insertPageButton = document.querySelector("[data-insert-page]");
@@ -16,29 +16,29 @@ const deskColorSelect = document.querySelector("[data-setting='desk-color']");
 const palettePreviewSwatches = document.querySelector("[data-palette-preview-swatches]");
 const accentPaletteSwatches = document.querySelector("[data-accent-palette-swatches]");
 const keyboardControlsPanel = document.querySelector("[data-keyboard-controls]");
-const tertiaryMatrixPopover = document.querySelector("[data-tertiary-matrix]");
-const tertiaryMatrixGrid = document.querySelector("[data-tertiary-matrix-grid]");
+const colorMatrixPopover = document.querySelector("[data-color-panel-matrix]");
+const colorMatrixGrid = document.querySelector("[data-color-panel-matrix-grid]");
 const settingSelects = Array.from(document.querySelectorAll("[data-setting]")).filter((select) => !["paper", "grid", "paper-color", "accent-color", "desk-color"].includes(select.dataset.setting));
 const guideInputs = Array.from(document.querySelectorAll("[data-guide]"));
-const settingsTabs = Array.from(document.querySelectorAll("[data-settings-tab]"));
-const settingsPanels = Array.from(document.querySelectorAll("[data-settings-panel]"));
-const settingsStepButtons = Array.from(document.querySelectorAll("[data-settings-step]"));
+const controlPanelTabs = Array.from(document.querySelectorAll("[data-control-panel-tab]"));
+const controlPanelPages = Array.from(document.querySelectorAll("[data-control-panel-page]"));
+const controlPanelStepButtons = Array.from(document.querySelectorAll("[data-control-panel-step]"));
 const objectControlsShell = document.querySelector("[data-object-controls-shell]");
 const objectControlsEmpty = document.querySelector("[data-object-controls-empty]");
 const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]"));
 const zoomToast = document.querySelector("[data-zoom-toast]");
-const keyHintPanel = document.querySelector("[data-key-hint-panel]");
+const hintPanel = document.querySelector("[data-hint-panel]");
 const pageGridCursor = document.querySelector("[data-page-grid-cursor]");
 const pageCornerFoldOverlay = document.createElement("div");
 const pageCornerFoldOverlayNumber = document.createElement("span");
-const settingChoiceInputs = Array.from(document.querySelectorAll("[data-setting-choice]"));
+const controlChoiceInputs = Array.from(document.querySelectorAll("[data-control-choice]"));
 let customSelectDetails = [];
 const {
      app: appControls,
      calendar: calendarControls,
      colors: colorControls,
      guides: guideControls,
-     items: itemControls,
+     items: widgetPanel,
      notebook: notebookControls,
      paper: paperControls,
      screenReferencePaper,
@@ -55,14 +55,14 @@ const resizeEdgeSize = appControls.resizeEdgeSize;
 const moveStartThreshold = appControls.moveStartThreshold;
 const pageStickDepth = appControls.pageStickDepth;
 const inchToCentimeters = appControls.inchToCentimeters;
-const stickerGridUnits = itemControls.stickerGridUnits;
-const tocLeftColumnGridUnits = itemControls.tocLeftColumnGridUnits;
-const tocRightColumnMinGridUnits = itemControls.tocRightColumnMinGridUnits;
-const perpetualCalendarMaxDayRows = itemControls.perpetualCalendarMaxDayRows;
-const perpetualCalendarHeaderRows = itemControls.perpetualCalendarHeaderRows;
-const perpetualCalendarLeftColumnGridUnits = itemControls.perpetualCalendarLeftColumnGridUnits;
-const perpetualCalendarRightColumnMinGridUnits = itemControls.perpetualCalendarRightColumnMinGridUnits;
-const itemGridUnits = itemControls.itemGridUnits;
+const stickerGridUnits = widgetPanel.stickerGridUnits;
+const tocLeftColumnGridUnits = widgetPanel.tocLeftColumnGridUnits;
+const tocRightColumnMinGridUnits = widgetPanel.tocRightColumnMinGridUnits;
+const perpetualCalendarMaxDayRows = widgetPanel.perpetualCalendarMaxDayRows;
+const perpetualCalendarHeaderRows = widgetPanel.perpetualCalendarHeaderRows;
+const perpetualCalendarLeftColumnGridUnits = widgetPanel.perpetualCalendarLeftColumnGridUnits;
+const perpetualCalendarRightColumnMinGridUnits = widgetPanel.perpetualCalendarRightColumnMinGridUnits;
+const itemGridUnits = widgetPanel.itemGridUnits;
 
 const templateSchemaVersion = storageControls.templateSchemaVersion;
 const plannerStorageKey = storageControls.plannerStorageKey;
@@ -95,7 +95,7 @@ const paperViewScales = paperControls.viewScales;
 const gridSizes = paperControls.gridSizes;
 const colorPalettes = colorControls.palettes;
 const colorPaletteOrder = colorControls.paletteOrder;
-const tertiaryMatrixSteps = colorControls.tertiaryMatrixSteps;
+const colorMatrixSteps = colorControls.colorMatrixSteps;
 const paperColorPalette = paperControls.colorPalette;
 const paperColors = {
      ...Object.fromEntries(paperColorPalette.map((color) => [color.key, color])),
@@ -160,7 +160,7 @@ pageCornerFoldOverlay.className = "page-corner-fold-overlay";
 pageCornerFoldOverlayNumber.className = "page-corner-fold-overlay-number";
 pageCornerFoldOverlay.append(pageCornerFoldOverlayNumber);
 plannerDesk.append(pageCornerFoldOverlay);
-let activeTertiaryMatrixToggle = document.querySelector("[data-tertiary-matrix-toggle]");
+let activeColorMatrixToggle = document.querySelector("[data-color-panel-matrix-toggle]");
 let activeHexTarget = null;
 let isRestoringPlannerState = false;
 
@@ -492,9 +492,9 @@ function applyResponsiveViewMode() {
 
 function handleWindowResize() {
      applyResponsiveViewMode();
-     syncSidebarSnap();
+     syncControlPanelSnap();
      customSelectDetails.forEach((dropdown) => updateSelectFocusSpace(dropdown));
-     positionTertiaryMatrix();
+     positionColorMatrix();
 }
 
 function getZoomAnchor(clientX, clientY) {
@@ -567,7 +567,7 @@ function zoomViewFromWheel(event) {
           return;
      }
 
-     if (event.target.closest(".planner-settings, .item-controls")) {
+     if (event.target.closest(".control-panel, .widget-panel")) {
           return;
      }
 
@@ -860,15 +860,15 @@ function handlePageTurnKey(event) {
 
      if (key === "q" || event.key === "[" || event.key === "PageDown") {
           event.preventDefault();
-          if (plannerSettings.classList.contains("is-open")) {
-               stepSettingsTab(-1);
+          if (controlPanel.classList.contains("is-open")) {
+               stepControlPanelTab(-1);
           } else {
                turnNotebookSpread(-1);
           }
      } else if (key === "e" || event.key === "]" || event.key === "PageUp") {
           event.preventDefault();
-          if (plannerSettings.classList.contains("is-open")) {
-               stepSettingsTab(1);
+          if (controlPanel.classList.contains("is-open")) {
+               stepControlPanelTab(1);
           } else {
                turnNotebookSpread(1);
           }
@@ -908,11 +908,11 @@ function isTypingFieldShortcutTarget(target) {
 }
 
 function handleMenuEnterKey(event) {
-     // NOTE: Activates the focused menu control with E or Enter while the main menu is open
+     // NOTE: Activates the focused panel control with E or Enter while the control panel is open
      if (
           event.defaultPrevented ||
           activeAction ||
-          !plannerSettings.classList.contains("is-open") ||
+          !controlPanel.classList.contains("is-open") ||
           event.altKey ||
           event.ctrlKey ||
           event.metaKey ||
@@ -928,7 +928,7 @@ function handleMenuEnterKey(event) {
 
      const activeElement = document.activeElement;
 
-     if (!activeElement || !plannerSettings.contains(activeElement)) {
+     if (!activeElement || !controlPanel.contains(activeElement)) {
           return;
      }
 
@@ -1071,7 +1071,7 @@ function shouldShowKeyboardCursor() {
      return Boolean(
           pageGridCursor &&
           hasUsedKeyboardCursor &&
-          !plannerSettings.classList.contains("is-open") &&
+          !controlPanel.classList.contains("is-open") &&
           !document.querySelector("[contenteditable='true']")
      );
 }
@@ -1444,7 +1444,7 @@ function handleKeyboardCursorActivateKey(event) {
      if (
           event.defaultPrevented ||
           activeAction ||
-          plannerSettings.classList.contains("is-open") ||
+          controlPanel.classList.contains("is-open") ||
           event.altKey ||
           event.ctrlKey ||
           event.metaKey ||
@@ -1592,7 +1592,7 @@ function startKeyboardSourcePlacement(source) {
           item,
           page
      };
-     closeSidebar();
+     closeControlPanel();
      renderKeyHints();
      return true;
 }
@@ -1978,8 +1978,8 @@ function handleKeyboardTransformKey(event) {
      }
 }
 
-function handleObjectSettingsKey(event) {
-     // NOTE: Numeric object controls own keyboard object settings now
+function handleObjectControlKey(event) {
+     // NOTE: Numeric object controls own keyboard object controls now
 }
 
 function getSelectedTextEditItem() {
@@ -2015,7 +2015,7 @@ function handleSelectedTextEditKey(event) {
      if (
           event.defaultPrevented ||
           activeAction ||
-          plannerSettings.classList.contains("is-open") ||
+          controlPanel.classList.contains("is-open") ||
           event.altKey ||
           event.ctrlKey ||
           event.metaKey ||
@@ -2064,7 +2064,7 @@ function enterDesignModeFromEmptyContextMenu(event) {
      if (
           event.defaultPrevented ||
           keyboardMode !== "interact" ||
-          event.target.closest(".planner-item, .item-controls, .planner-settings")
+          event.target.closest(".planner-item, .widget-panel, .control-panel")
      ) {
           return;
      }
@@ -2076,8 +2076,8 @@ function enterDesignModeFromEmptyContextMenu(event) {
 
 function syncKeyboardModeUi() {
      // NOTE: Reflects Interact/Design mode on the menu so unavailable tabs look unavailable
-     plannerSettings.classList.toggle("is-interact-mode", keyboardMode === "interact");
-     plannerSettings.classList.toggle("is-design-mode", keyboardMode === "design");
+     controlPanel.classList.toggle("is-interact-mode", keyboardMode === "interact");
+     controlPanel.classList.toggle("is-design-mode", keyboardMode === "design");
      document.documentElement.dataset.keyboardMode = keyboardMode;
 }
 
@@ -2087,7 +2087,7 @@ function enterKeyboardDesignMode() {
      designBranch = "root";
      clearInteractFocus();
      syncKeyboardModeUi();
-     closeSidebar();
+     closeControlPanel();
      renderKeyHints();
 }
 
@@ -2096,7 +2096,7 @@ function exitKeyboardDesignMode() {
      keyboardMode = "interact";
      designBranch = "root";
      syncKeyboardModeUi();
-     closeSidebar();
+     closeControlPanel();
      renderKeyHints();
 }
 
@@ -2123,19 +2123,19 @@ function handleModeToggleKey(event) {
 }
 
 function enterKeyboardMenuBranch(branch, tabName) {
-     // NOTE: Opens a numbered Design branch backed by a main menu tab
+     // NOTE: Opens a numbered Design branch backed by a control panel tab
      keyboardMode = "design";
      designBranch = branch;
      syncKeyboardModeUi();
-     selectSettingsTab(tabName);
-     openSidebar();
+     selectControlPanelTab(tabName);
+     openControlPanel();
      renderKeyHints();
 }
 
 function returnToKeyboardDesignRoot() {
      // NOTE: Goes one level up from a Design branch to the top-level Design choices
      designBranch = "root";
-     closeSidebar();
+     closeControlPanel();
      renderKeyHints();
 }
 
@@ -2150,7 +2150,7 @@ function openSelectedObjectActionsFromKeyboard() {
      keyboardMode = "design";
      designBranch = "object";
      syncKeyboardModeUi();
-     closeSidebar();
+     closeControlPanel();
      openItemActionsPopup(selectedItem, {
           clientX: rect.left + (rect.width / 2),
           clientY: rect.top + Math.min(rect.height / 2, 36)
@@ -2247,15 +2247,15 @@ function handleKeyboardModeNumberKey(event) {
      }
 
      if (designBranch === "controls" || designBranch === "notebook" || designBranch === "menu") {
-          const tab = settingsTabs[Number(event.key) - 1];
+          const tab = controlPanelTabs[Number(event.key) - 1];
 
           if (!tab || tab.disabled) {
                return;
           }
 
           event.preventDefault();
-          selectSettingsTab(tab.dataset.settingsTab);
-          openSidebar();
+          selectControlPanelTab(tab.dataset.controlPanelTab);
+          openControlPanel();
           renderKeyHints();
           return;
      }
@@ -2308,14 +2308,14 @@ function handleCancelKey(event) {
           return;
      }
 
-     if (plannerSettings.classList.contains("is-open")) {
-          closeSidebar();
+     if (controlPanel.classList.contains("is-open")) {
+          closeControlPanel();
           return;
      }
 
      closeCustomSelects();
      clearSelectFocus();
-     setTertiaryMatrixOpen(false);
+     setColorMatrixOpen(false);
      closeHexPopover();
      clearSelection();
 }
@@ -2383,24 +2383,24 @@ function blockSpacebarShortcut(event) {
      event.preventDefault();
 }
 
-function getActiveSettingsPanel() {
-     // NOTE: Finds the currently visible main menu panel for keyboard scrolling
-     const activeTabName = settingsTabs.find((tab) => tab.getAttribute("aria-selected") === "true")?.dataset.settingsTab;
+function getActiveControlPanelPage() {
+     // NOTE: Finds the currently visible control panel page for keyboard scrolling
+     const activeTabName = controlPanelTabs.find((tab) => tab.getAttribute("aria-selected") === "true")?.dataset.controlPanelTab;
 
-     return settingsPanels.find((panel) => panel.dataset.settingsPanel === activeTabName) || null;
+     return controlPanelPages.find((panel) => panel.dataset.controlPanelPage === activeTabName) || null;
 }
 
 function getMenuFocusableElements() {
-     // NOTE: Gets visible controls in the active menu panel for arrow-key menu navigation
-     const activePanel = getActiveSettingsPanel();
+     // NOTE: Gets visible controls in the active panel for arrow-key panel navigation
+     const activePanel = getActiveControlPanelPage();
 
      if (!activePanel) {
           return [];
      }
 
-     return Array.from(activePanel.querySelectorAll("button, .setting-choice, input, select, textarea, [tabindex]:not([tabindex='-1'])"))
+     return Array.from(activePanel.querySelectorAll("button, .control-choice, input, select, textarea, [tabindex]:not([tabindex='-1'])"))
           .filter((element) => {
-               if (element.matches(".setting-choice input")) {
+               if (element.matches(".control-choice input")) {
                     return false;
                }
 
@@ -2490,13 +2490,13 @@ function moveMenuFocus(direction) {
           return false;
      }
 
-     if (nextElement.matches(".setting-choice") && !nextElement.hasAttribute("tabindex")) {
+     if (nextElement.matches(".control-choice") && !nextElement.hasAttribute("tabindex")) {
           nextElement.tabIndex = -1;
      }
-     plannerSettings.querySelectorAll(".is-menu-keyboard-focus").forEach((element) => {
-          element.classList.remove("is-menu-keyboard-focus");
+     controlPanel.querySelectorAll(".is-panel-keyboard-focus").forEach((element) => {
+          element.classList.remove("is-panel-keyboard-focus");
      });
-     nextElement.classList.add("is-menu-keyboard-focus");
+     nextElement.classList.add("is-panel-keyboard-focus");
      nextElement.focus();
      nextElement.scrollIntoView({
           block: "nearest",
@@ -2508,7 +2508,7 @@ function moveMenuFocus(direction) {
 
 function activateMenuFocusedElement(element) {
      // NOTE: Activates the visible menu tile or native control currently selected by keyboard navigation
-     if (element.matches(".setting-choice")) {
+     if (element.matches(".control-choice")) {
           const input = element.querySelector("input");
 
           if (input && !input.disabled) {
@@ -2526,8 +2526,8 @@ function activateMenuFocusedElement(element) {
 }
 
 function scrollActiveMenuPanel(direction, distance = 64) {
-     // NOTE: Scrolls the active menu panel when spatial focus cannot move farther vertically
-     const activePanel = getActiveSettingsPanel();
+     // NOTE: Scrolls the active panel when spatial focus cannot move farther vertically
+     const activePanel = getActiveControlPanelPage();
 
      if (!activePanel) {
           return false;
@@ -2545,7 +2545,7 @@ function handleMainMenuArrowKey(event) {
      // NOTE: Uses arrow keys to move through visible controls in the open menu
      if (
           activeAction ||
-          !plannerSettings.classList.contains("is-open") ||
+          !controlPanel.classList.contains("is-open") ||
           event.altKey ||
           event.ctrlKey ||
           event.metaKey ||
@@ -2572,7 +2572,7 @@ function handleMainMenuArrowKey(event) {
                scrollActiveMenuPanel("down");
           }
      } else if (event.key === "PageUp" || event.key === "PageDown") {
-          const activePanel = getActiveSettingsPanel();
+          const activePanel = getActiveControlPanelPage();
 
           if (!activePanel) {
                return;
@@ -2591,7 +2591,7 @@ function handleMainMenuWasdKey(event) {
      if (
           event.defaultPrevented ||
           activeAction ||
-          !plannerSettings.classList.contains("is-open") ||
+          !controlPanel.classList.contains("is-open") ||
           event.altKey ||
           event.ctrlKey ||
           event.metaKey ||
@@ -2647,7 +2647,7 @@ function handlePageFocusNavigationKey(event) {
      if (
           event.defaultPrevented ||
           activeAction ||
-          plannerSettings.classList.contains("is-open") ||
+          controlPanel.classList.contains("is-open") ||
           event.altKey ||
           event.ctrlKey ||
           event.metaKey ||
@@ -2716,7 +2716,7 @@ function handleViewFocusToggleKey(event) {
      if (
           event.defaultPrevented ||
           activeAction ||
-          plannerSettings.classList.contains("is-open") ||
+          controlPanel.classList.contains("is-open") ||
           event.altKey ||
           event.ctrlKey ||
           event.metaKey ||
@@ -2928,38 +2928,38 @@ function getKeyHintState() {
 
 function renderKeyHints() {
      // NOTE: Renders the upper-left keyboard shortcut popup for the current app state
-     if (!keyHintPanel) {
+     if (!hintPanel) {
           return;
      }
 
-     keyHintPanel.replaceChildren();
+     hintPanel.replaceChildren();
      const hintState = getKeyHintState();
      const modeRow = document.createElement("div");
 
-     modeRow.className = "key-hint-mode";
+     modeRow.className = "hint-mode";
      modeRow.textContent = hintState.mode;
-     keyHintPanel.append(modeRow);
+     hintPanel.append(modeRow);
 
-     if (hasUsedKeyboardCursor && !plannerSettings.classList.contains("is-open")) {
+     if (hasUsedKeyboardCursor && !controlPanel.classList.contains("is-open")) {
           const coordinateRow = document.createElement("div");
 
-          coordinateRow.className = "key-hint-coordinates";
+          coordinateRow.className = "hint-coordinates";
           coordinateRow.classList.toggle("is-idle", !isKeyboardCursorActive);
           coordinateRow.textContent = getKeyboardCursorLabel();
-          keyHintPanel.append(coordinateRow);
+          hintPanel.append(coordinateRow);
      }
      hintState.entries.forEach(([key, action]) => {
           const row = document.createElement("div");
           const keyElement = document.createElement("kbd");
           const actionElement = document.createElement("span");
 
-          row.className = "key-hint-row";
-          keyElement.className = "key-hint-key";
+          row.className = "hint-row";
+          keyElement.className = "hint-key";
           keyElement.textContent = key;
-          actionElement.className = "key-hint-action";
+          actionElement.className = "hint-action";
           actionElement.textContent = action;
           row.append(keyElement, actionElement);
-          keyHintPanel.append(row);
+          hintPanel.append(row);
      });
      updateKeyboardCursor();
 }
@@ -2971,7 +2971,7 @@ function getItemForMenuKeyboardToggle(target) {
           return targetItem;
      }
 
-     const targetControls = target?.closest?.(".item-controls");
+     const targetControls = target?.closest?.(".widget-panel");
      const ownerId = targetControls?.dataset.ownerId;
      const ownerItem = ownerId
           ? getPlannerItems().find((item) => item.dataset.templateId === ownerId)
@@ -3004,7 +3004,7 @@ function handleMenuToggleKey(event) {
           selectItem(item);
      }
 
-     if (item.classList.contains("is-menu-open")) {
+     if (item.classList.contains("is-widget-panel-open")) {
           closeItemMenu(item);
      } else {
           openItemMenu(item);
@@ -3126,14 +3126,14 @@ function applyPlannerConfig() {
      setRootNumber("--third-guide-opacity", plannerConfig.guides.thirds ? "0.25" : "0");
      setRootNumber("--fourth-guide-opacity", plannerConfig.guides.fourths ? "0.25" : "0");
 
-     delete plannerSettings.dataset.width;
-     plannerSettings.style.width = "";
+     delete controlPanel.dataset.width;
+     controlPanel.style.width = "";
 
-     delete plannerSettings.dataset.height;
-     plannerSettings.style.height = "";
+     delete controlPanel.dataset.height;
+     controlPanel.style.height = "";
 
-     delete plannerSettings.dataset.centerX;
-     plannerSettings.style.left = "";
+     delete controlPanel.dataset.centerX;
+     controlPanel.style.left = "";
 
      document.documentElement.dataset.paper = plannerConfig.paperKey;
      document.documentElement.dataset.paperColor = plannerConfig.paperColorKey;
@@ -3156,12 +3156,12 @@ window.perfectPlanner = window.prettyPlanner;
 syncAllSettingChoiceInputs();
 KeyboardControls.renderControlsPanel(keyboardControlsPanel);
 initializeCustomSelects();
-initializeNotebookSettingsSections();
-initializeSettingsSections(plannerSettings);
+initializeNotebookControlSections();
+initializeControlSections(controlPanel);
 initializePalettePreview();
-updateSettingsPanelSteps();
+updateControlPanelSteps();
 updateObjectControlsState();
-updateSidebarPanelFocusState();
+updateControlPanelFocusState();
 syncResponsiveViewportClass();
 syncKeyboardModeUi();
 applyPlannerConfig();
@@ -3172,7 +3172,7 @@ if (isSinglePageViewport) {
 }
 applyViewControls();
 renderKeyHints();
-syncSidebarSnap();
+syncControlPanelSnap();
 paperSelect.addEventListener("change", () => {
      syncSettingChoiceInputs("paper");
      changePaperSetting();
@@ -3192,17 +3192,17 @@ deskColorSelect.addEventListener("change", () => {
 settingSelects.forEach((select) => {
      select.addEventListener("change", () => updateCustomSelectDisplay(select));
 });
-settingChoiceInputs.forEach((input) => {
+controlChoiceInputs.forEach((input) => {
      input.addEventListener("change", () => changeSettingChoice(input));
 });
 guideInputs.forEach((input) => {
      input.addEventListener("change", changePlannerSetting);
 });
-plannerSettings.addEventListener("change", (event) => {
-     const section = event.target.closest("[data-settings-section]");
+controlPanel.addEventListener("change", (event) => {
+     const section = event.target.closest("[data-control-section]");
 
      if (section) {
-          window.setTimeout(() => closeSettingsSection(section), 0);
+          window.setTimeout(() => closeControlSection(section), 0);
      }
 });
 insertPageButton?.addEventListener("click", insertFocusedPage);
@@ -3210,7 +3210,7 @@ deletePageButton?.addEventListener("click", deleteFocusedPage);
 clearPageButton?.addEventListener("click", clearFocusedPage);
 clearBookButton?.addEventListener("click", clearCurrentBook);
 document.addEventListener("click", (event) => {
-     const toggle = event.target.closest("[data-tertiary-matrix-toggle]");
+     const toggle = event.target.closest("[data-color-panel-matrix-toggle]");
 
      if (!toggle) {
           return;
@@ -3220,8 +3220,8 @@ document.addEventListener("click", (event) => {
      event.stopPropagation();
      const shouldOpen = toggle.getAttribute("aria-expanded") !== "true";
 
-     activeTertiaryMatrixToggle = toggle;
-     setTertiaryMatrixOpen(shouldOpen);
+     activeColorMatrixToggle = toggle;
+     setColorMatrixOpen(shouldOpen);
 }, true);
 pageSnapButtons.forEach((button) => {
      button.addEventListener("click", () => movePageSnap(button.dataset.pageSnap));
@@ -3235,7 +3235,7 @@ PageControls.bindPageTurnControls({
      turnNotebookSpread,
      setCornerOverlay: setPageCornerOverlay
 });
-settingsTabs.forEach((tab) => {
+controlPanelTabs.forEach((tab) => {
      tab.addEventListener("click", (event) => {
           if (keyboardMode === "interact") {
                event.preventDefault();
@@ -3249,19 +3249,19 @@ settingsTabs.forEach((tab) => {
 
           const isActiveTab = tab.getAttribute("aria-selected") === "true";
 
-          if (isActiveTab && plannerSettings.classList.contains("is-open")) {
-               closeSidebar();
+          if (isActiveTab && controlPanel.classList.contains("is-open")) {
+               closeControlPanel();
                return;
           }
 
-          selectSettingsTab(tab.dataset.settingsTab);
-          openSidebar();
+          selectControlPanelTab(tab.dataset.controlPanelTab);
+          openControlPanel();
      });
 });
-plannerSettings.addEventListener("pointerdown", (event) => {
-     const tab = event.target.closest("[data-settings-tab]");
+controlPanel.addEventListener("pointerdown", (event) => {
+     const tab = event.target.closest("[data-control-panel-tab]");
 
-     if (!tab || plannerSettings.classList.contains("is-open")) {
+     if (!tab || controlPanel.classList.contains("is-open")) {
           return;
      }
 
@@ -3270,41 +3270,41 @@ plannerSettings.addEventListener("pointerdown", (event) => {
           return;
      }
 
-     selectSettingsTab(tab.dataset.settingsTab);
-     openSidebar();
+     selectControlPanelTab(tab.dataset.controlPanelTab);
+     openControlPanel();
      shouldSkipNextTabClick = true;
 });
-settingsStepButtons.forEach((button) => {
+controlPanelStepButtons.forEach((button) => {
      button.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
           if (button.getAttribute("aria-disabled") === "true") {
                return;
           }
-          stepSettingsTab(Number(button.dataset.settingsStep) || 0);
+          stepControlPanelTab(Number(button.dataset.controlPanelStep) || 0);
      });
 });
-plannerSettings.addEventListener("pointerdown", (event) => {
-     if (event.target.closest("[data-settings-tab]")) {
+controlPanel.addEventListener("pointerdown", (event) => {
+     if (event.target.closest("[data-control-panel-tab]")) {
           return;
      }
 
-     const resizeMode = getSidebarVerticalResizeMode(event);
+     const resizeMode = getControlPanelVerticalResizeMode(event);
 
      if (resizeMode) {
-          startSidebarResize(event, resizeMode);
+          startControlPanelResize(event, resizeMode);
      }
 });
-plannerSettings.addEventListener("pointermove", (event) => {
+controlPanel.addEventListener("pointermove", (event) => {
      if (activeAction) {
           return;
      }
 
-     plannerSettings.classList.toggle("is-resize-ns", Boolean(getSidebarVerticalResizeMode(event)));
+     controlPanel.classList.toggle("is-resize-ns", Boolean(getControlPanelVerticalResizeMode(event)));
 });
-plannerSettings.addEventListener("pointerleave", () => {
+controlPanel.addEventListener("pointerleave", () => {
      if (!activeAction) {
-          plannerSettings.classList.remove("is-resize-ns");
+          controlPanel.classList.remove("is-resize-ns");
      }
 });
 initializeCalendarSourcePreviews(sourceItems);
@@ -3341,28 +3341,28 @@ document.addEventListener("click", (event) => {
      });
 
      if (
-          tertiaryMatrixPopover &&
-          !tertiaryMatrixPopover.hidden &&
-          !event.target.closest("[data-tertiary-matrix]") &&
-          !event.target.closest("[data-tertiary-matrix-toggle]")
+          colorMatrixPopover &&
+          !colorMatrixPopover.hidden &&
+          !event.target.closest("[data-color-panel-matrix]") &&
+          !event.target.closest("[data-color-panel-matrix-toggle]")
      ) {
-          setTertiaryMatrixOpen(false);
+          setColorMatrixOpen(false);
      }
 
-     document.querySelectorAll("[data-settings-section].is-open").forEach((section) => {
+     document.querySelectorAll("[data-control-section].is-open").forEach((section) => {
           if (
                !section.contains(event.target) &&
-               !event.target.closest("[data-tertiary-matrix], [data-hex-popover]")
+               !event.target.closest("[data-color-panel-matrix], [data-color-panel-hex]")
           ) {
-               closeSettingsSection(section);
+               closeControlSection(section);
           }
      });
 
      if (
           !event.target.closest(".planner-item") &&
-          !event.target.closest(".planner-settings") &&
+          !event.target.closest(".control-panel") &&
           !event.target.closest(".page-snap-controls") &&
-          !event.target.closest("[data-tertiary-matrix], [data-hex-popover]")
+          !event.target.closest("[data-color-panel-matrix], [data-color-panel-hex]")
      ) {
           clearSelection();
      }
@@ -3381,7 +3381,7 @@ document.addEventListener("keydown", (event) => {
      handleMenuEnterKey(event);
      handleKeyboardCursorActivateKey(event);
      handleSelectedTextEditKey(event);
-     handleObjectSettingsKey(event);
+     handleObjectControlKey(event);
      handleNumberedMenuTabKey(event);
      handleMainMenuToggleKey(event);
      handleCancelKey(event);
@@ -3395,7 +3395,7 @@ document.addEventListener("keydown", (event) => {
 
           closeCustomSelects();
           clearSelectFocus();
-          setTertiaryMatrixOpen(false);
+          setColorMatrixOpen(false);
           closeHexPopover();
           if (didToggleMenu) {
                return;
@@ -3407,7 +3407,7 @@ window.addEventListener("pointermove", moveActiveItem);
 window.addEventListener("pointerup", endActiveItem);
 window.addEventListener("pointercancel", endActiveItem);
 window.addEventListener("resize", handleWindowResize);
-window.addEventListener("scroll", positionTertiaryMatrix, true);
+window.addEventListener("scroll", positionColorMatrix, true);
 window.setInterval(refreshRelativeCalendarWidgets, 60 * 60 * 1000);
 document.addEventListener("visibilitychange", () => {
      if (!document.hidden) {
