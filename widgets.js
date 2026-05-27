@@ -1101,7 +1101,7 @@ function enterItemDesignPopup(controls, item, scope = "unique") {
      controls.querySelector(".item-design-popup-title")?.replaceChildren(controls.dataset.designScopeLabel);
      controls.classList.remove("is-actions-popup");
      controls.classList.add("is-design-popup");
-     setWidgetPanelTab(controls, "style");
+     setWidgetPanelDesignSections(controls);
      positionItemActionsPopup(controls, {
           clientX: item.getBoundingClientRect().left,
           clientY: item.getBoundingClientRect().top
@@ -1558,6 +1558,7 @@ function setWidgetPanelTab(controls, tabName) {
      closeCustomSelects(controls);
      clearSelectFocus(controls);
      controls.dataset.activeWidgetPanelTab = tabName;
+     controls.querySelector(".widget-panel-tabs")?.removeAttribute("hidden");
 
      controls.querySelectorAll("[data-widget-panel-tab]").forEach((tab) => {
           const isActive = tab.dataset.widgetPanelTab === tabName;
@@ -1567,6 +1568,23 @@ function setWidgetPanelTab(controls, tabName) {
      });
      controls.querySelectorAll("[data-widget-panel-page]").forEach((panel) => {
           panel.hidden = panel.dataset.widgetPanelPage !== tabName;
+     });
+}
+
+function setWidgetPanelDesignSections(controls) {
+     closeCustomSelects(controls);
+     clearSelectFocus(controls);
+     controls.dataset.activeWidgetPanelTab = "design";
+     controls.querySelector(".widget-panel-tabs")?.setAttribute("hidden", "");
+     controls.querySelectorAll("[data-widget-panel-tab]").forEach((tab) => {
+          tab.classList.remove("is-active");
+          tab.setAttribute("aria-selected", "false");
+     });
+     controls.querySelectorAll("[data-widget-panel-page]").forEach((panel) => {
+          const pageName = panel.dataset.widgetPanelPage;
+          const hasTab = Boolean(controls.querySelector(`[data-widget-panel-tab="${pageName}"]`));
+
+          panel.hidden = pageName === "actions" || !hasTab;
      });
 }
 
@@ -2253,6 +2271,9 @@ function makePlannerItem(type = "sticker") {
      const designBackButton = document.createElement("button");
      const designScopeTitle = document.createElement("div");
      const controlTabs = document.createElement("div");
+     const stylePanelTitle = document.createElement("div");
+     const textPanelTitle = document.createElement("div");
+     const widgetPanelSectionTitle = document.createElement("div");
      const actionsTab = document.createElement("button");
      const styleTab = document.createElement("button");
      const textTab = document.createElement("button");
@@ -2502,13 +2523,19 @@ function makePlannerItem(type = "sticker") {
      stylePanel.className = "widget-panel-page";
      stylePanel.dataset.widgetPanelPage = "style";
      stylePanel.setAttribute("role", "tabpanel");
+     stylePanelTitle.className = "widget-panel-section-title section-title";
+     stylePanelTitle.textContent = "Appearance";
      textPanel.className = "widget-panel-page text-panel";
      textPanel.dataset.textPanel = "true";
      textPanel.dataset.widgetPanelPage = "text";
      textPanel.setAttribute("role", "tabpanel");
+     textPanelTitle.className = "widget-panel-section-title section-title";
+     textPanelTitle.textContent = "Text";
      widgetPanel.className = "widget-panel-page widget-options-panel";
      widgetPanel.dataset.widgetPanelPage = "widget";
      widgetPanel.setAttribute("role", "tabpanel");
+     widgetPanelSectionTitle.className = "widget-panel-section-title section-title";
+     widgetPanelSectionTitle.textContent = "Options";
      dateWidgetGroup.className = "widget-option-group widget-option-date-group";
      dateWidgetTitle.className = "widget-option-group-title";
      dateWidgetTitle.textContent = "Day";
@@ -2997,8 +3024,10 @@ function makePlannerItem(type = "sticker") {
           actionsPanel.append(displayDateRow);
      }
      actionsPanel.append(designActionGroup, layoutActionGroup);
+     stylePanel.append(stylePanelTitle);
      stylePanel.append(fillLabel, borderColorLabel, borderSizeField);
      if (isStickerTextItemType(type)) {
+          textPanel.append(textPanelTitle);
           textPanel.append(
                textControlsRow,
                textColorLabel,
@@ -3006,6 +3035,7 @@ function makePlannerItem(type = "sticker") {
           );
      }
      if (isCalendarTextItemType(type) || type === "mini-month") {
+          textPanel.append(textPanelTitle);
           textPanel.append(
                textControlsRow,
                textColorLabel,
@@ -3016,12 +3046,15 @@ function makePlannerItem(type = "sticker") {
           controlTabs.append(textTab);
      }
      if (type === "sticker") {
+          widgetPanel.append(widgetPanelSectionTitle);
           widgetPanel.append(dotGridLabel);
      }
      if (isCalendarItemType(type) && type !== "weekly-vertical") {
+          widgetPanel.append(widgetPanelSectionTitle);
           widgetPanel.append(calendarAttributesGrid);
      }
      if (type === "weekly-vertical") {
+          widgetPanel.append(widgetPanelSectionTitle);
           dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid);
           timeWidgetGroup.append(timeWidgetTitle, timeVisibleLabel, startTimeLabel, timeFormatLabel, timeIncrementLabel, visibleDaysLabel);
           widgetPanel.append(dateWidgetGroup, timeWidgetGroup);
