@@ -1200,7 +1200,7 @@ function startFloatingControlsMove(controls, event) {
           activeAction ||
           event.button !== 0 ||
           !controls.classList.contains("is-floating") ||
-          event.target.closest("input, select, textarea, [contenteditable='true'], .custom-select")
+          event.target.closest("button, input, select, textarea, [contenteditable='true'], .custom-select")
      ) {
           return;
      }

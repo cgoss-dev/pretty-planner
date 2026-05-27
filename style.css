@@ -4227,7 +4227,6 @@ body {
 }
 
 .item-actions-widget-type,
-.item-actions-section-title,
 .item-design-popup-title,
 .keyboard-control-title {
      padding: 0 0 6px;
@@ -4243,6 +4242,13 @@ body {
 
 .item-actions-section-title {
      justify-self: stretch;
+     padding: 0;
+     border: 0;
+     background: transparent;
+     color: var(--color-gray1);
+     font: 400 var(--font-size-sm) var(--font-noto);
+     line-height: 1.1;
+     text-align: center;
 }
 
 .item-layout-action-group {
