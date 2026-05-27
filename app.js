@@ -2793,7 +2793,6 @@ function getKeyHintState() {
           return {
                mode: "Design Mode > Reposition",
                entries: [
-               ["Arrows/WASD", "Move"],
                ["Enter", "Place"],
                ["X", "Gridlines"],
                ["Delete / Esc", "Cancel"]
@@ -2805,7 +2804,6 @@ function getKeyHintState() {
           return {
                mode: "Design Mode > Resize",
                entries: [
-               ["Arrows/WASD", "Resize"],
                ["Enter", "Confirm"],
                ["X", "Gridlines"],
                ["Delete / Esc", "Cancel"]
@@ -2877,9 +2875,7 @@ function getKeyHintState() {
                mode: "Design Mode",
                entries: [
                ["Tab", "Toggle Mode"],
-               ["1", "Controls"],
-               ["2", "Notebook"],
-               ["3", "Menu"],
+               ["Enter", "Edit"],
                ["Q / E", "Last / Next Page"],
                ["Z", "Zoom"],
                ["X", "Gridlines"],
@@ -2892,7 +2888,6 @@ function getKeyHintState() {
           return {
                mode: "Interact Mode > Widget Navigate",
                entries: [
-               ["Arrows/WASD", "Navigate"],
                ["Enter", "Open"],
                ["Delete / Esc", "Back"],
                ["Tab", "Toggle Mode"]
@@ -2904,7 +2899,6 @@ function getKeyHintState() {
           return {
                mode: "Interact Mode > Widget Focus",
                entries: [
-               ["Arrows/WASD", "Navigate"],
                ["Enter", "Open"],
                ["Delete / Esc", "Clear focus"],
                ["Tab", "Toggle Mode"]
@@ -2916,8 +2910,7 @@ function getKeyHintState() {
           mode: "Interact Mode",
           entries: [
           ["Tab", "Toggle Mode"],
-          ["Arrows/WASD", "Navigate"],
-          ["Enter", "Open"],
+          ["Enter", "Edit"],
           ["Q / E", "Last / Next Page"],
           ["Z", "Zoom"],
           ["X", "Gridlines"],
@@ -2961,7 +2954,23 @@ function renderKeyHints() {
           row.append(keyElement, actionElement);
           hintPanel.append(row);
      });
+     syncControlPanelHintAnchor();
      updateKeyboardCursor();
+}
+
+function syncControlPanelHintAnchor() {
+     // NOTE: Attaches the control panel position to the bottom-left of the hint panel
+     if (!hintPanel || !controlPanel || !plannerDesk) {
+          return;
+     }
+
+     const deskRect = plannerDesk.getBoundingClientRect();
+     const hintRect = hintPanel.getBoundingClientRect();
+
+     delete controlPanel.dataset.centerX;
+     controlPanel.style.left = "";
+     controlPanel.style.setProperty("--control-panel-anchor-left", `${hintRect.left - deskRect.left}px`);
+     controlPanel.style.setProperty("--control-panel-anchor-top", `${hintRect.bottom - deskRect.top + 8}px`);
 }
 
 function getItemForMenuKeyboardToggle(target) {

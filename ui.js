@@ -1419,6 +1419,11 @@ function syncControlPanelSnap() {
           centerX: getControlPanelCenter(box.width),
           height: nextHeight
      });
+     delete controlPanel.dataset.centerX;
+     controlPanel.style.left = "";
+     if (typeof syncControlPanelHintAnchor === "function") {
+          syncControlPanelHintAnchor();
+     }
 }
 
 function getControlPanelCenter(width) {

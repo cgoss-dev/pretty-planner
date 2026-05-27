@@ -236,6 +236,8 @@ body {
      z-index: 200;
      left: 50%;
      bottom: 0;
+     --control-panel-anchor-left: 14px;
+     --control-panel-anchor-top: 112px;
      width: min(600px, calc(100vw - 32px)) !important;
      inline-size: min(600px, calc(100vw - 32px)) !important;
      max-width: calc(100vw - 32px) !important;
@@ -259,6 +261,10 @@ body {
 
 .control-panel.is-open {
      transform: translate(-50%, 0);
+}
+
+:root[data-keyboard-mode="interact"] .control-panel {
+     display: none;
 }
 
 .page-snap-controls {
@@ -383,12 +389,10 @@ body {
 }
 
 .hint-mode {
-     padding: 4px 6px;
-     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-     border-radius: 5px;
-     background: var(--color-white);
+     padding: 0 0 6px;
+     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      color: var(--color-gray1);
-     font: 700 var(--font-size-sm) var(--font-noto);
+     font: 700 var(--font-size-md) var(--font-noto);
      line-height: 1.1;
 }
 
@@ -4226,12 +4230,13 @@ body {
 .item-actions-section-title,
 .item-design-popup-title,
 .keyboard-control-title {
-     padding: 4px 6px;
-     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-     border-radius: 5px;
-     background: var(--color-white);
+     padding: 0 0 6px;
+     border: 0;
+     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-radius: 0;
+     background: transparent;
      color: var(--color-gray1);
-     font: 700 var(--font-size-sm) var(--font-noto);
+     font: 700 var(--font-size-md) var(--font-noto);
      line-height: 1.1;
      text-align: center;
 }
@@ -4246,8 +4251,8 @@ body {
 
 /* NOTE: Floating Control Panel With Side Tabs */
 .control-panel {
-     left: 14px;
-     top: 112px;
+     left: var(--control-panel-anchor-left);
+     top: var(--control-panel-anchor-top);
      bottom: auto;
      width: min(620px, calc(100vw - 28px)) !important;
      inline-size: min(620px, calc(100vw - 28px)) !important;

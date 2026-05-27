@@ -1308,6 +1308,7 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      delete controls.dataset.designScope;
      delete controls.dataset.designScopeLabel;
      controls.querySelector(".item-design-popup-title")?.replaceChildren();
+     updateGroupButton(controls.querySelector("[data-widget-action='group']"), actionItems);
      controls.classList.add("is-floating", "is-actions-popup");
      item.classList.add("is-widget-panel-open");
      setWidgetPanelTab(controls, "actions");
@@ -1459,6 +1460,10 @@ function itemsHaveGroup(items) {
 }
 
 function updateGroupButton(button, items = Array.from(selectedItems)) {
+     if (!button) {
+          return;
+     }
+
      const isGrouped = itemsHaveGroup(items);
 
      button.classList.toggle("is-grouped", isGrouped);
@@ -2206,6 +2211,7 @@ function makePlannerItem(type = "sticker") {
      groupButton.className = "widget-panel-button";
      groupButton.type = "button";
      groupButton.textContent = "Group";
+     groupButton.dataset.widgetAction = "group";
      groupButton.setAttribute("aria-label", "Group selected stickers");
      layerButtonGroup.className = "item-layer-actions";
      bringForwardButton.className = "widget-panel-button";
@@ -2834,8 +2840,10 @@ function makePlannerItem(type = "sticker") {
           if (event.metaKey || event.ctrlKey) {
                selectItem(item, true);
           } else if (!activeAction) {
-               selectItem(item);
-               openItemActionsPopup(item, event);
+               if (!selectedItems.has(item) || selectedItems.size < 2) {
+                    selectItem(item);
+               }
+               openItemActionsPopup(item, event, getSelectedOrGroupedActionItems(item));
           }
      });
      item.addEventListener("dblclick", (event) => {
@@ -3742,6 +3750,8 @@ function startMove(item, event) {
      activeAction = {
           type: "pending-move",
           item,
+          wasSelected: selectedItems.has(item),
+          selectionSize: selectedItems.size,
           items: movingItems.map((movingItem) => {
                return {
                     item: movingItem,
@@ -3997,7 +4007,9 @@ function endActiveItem(event) {
      }
 
      if (activeAction.type === "pending-move") {
-          selectItem(activeAction.item);
+          if (!activeAction.wasSelected || activeAction.selectionSize < 2) {
+               selectItem(activeAction.item);
+          }
           activeAction = null;
           clearDragOver();
           return;
