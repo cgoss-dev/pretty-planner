@@ -69,8 +69,22 @@ function getGrayPaletteColors() {
      return getPalette("gray").colors;
 }
 
-function getColorPanelGrayColors() {
-     return [...getGrayPaletteColors()].reverse();
+function getColorPanelRampColors() {
+     return ["111", "222", "333", "444", "555", "666", "777", "888", "999", "aaa", "bbb", "ccc", "ddd", "eee"].map((label) => ({
+          label,
+          value: `#${label}`,
+          ink: ["111", "222", "333", "444", "555", "666"].includes(label) ? "var(--color-white)" : "var(--color-gray1)"
+     }));
+}
+
+function getColorPanelUtilityColors() {
+     const grays = getPalette("gray").colors;
+
+     return [
+          grays.find((color) => color.label === "000"),
+          grays.find((color) => color.label === "FFF"),
+          getClearPaletteColor()
+     ].filter(Boolean);
 }
 
 function hexToAlphaColor(hexValue, alphaValue) {
@@ -571,36 +585,33 @@ function renderColorMatrix() {
 }
 
 function getColorPanelPopupColors() {
-     const paletteMode = activeColorMatrixToggle?.dataset.colorPanelPalette
-          || activeColorMatrixToggle?.closest(".palette-swatches, .color-panel-swatches")?.dataset.colorPanelPalette
-          || "paper";
-     const leadingColors = paletteMode === "accent" ? getAccentPaletteColors() : getPaperPaletteColors();
-
-     const colors = [
-          ...leadingColors,
-          ...getColorPanelGrayColors(),
-          getClearPaletteColor()
-     ];
-     const seenValues = new Set();
-
-     return colors.filter((color) => {
-          const key = color.value;
-
-          if (seenValues.has(key)) {
-               return false;
-          }
-          seenValues.add(key);
-          return true;
-     });
+     return getColorPanelRampColors();
 }
 
 function renderColorPanelPopupRow() {
+     const utilityRow = colorMatrixPopover?.querySelector("[data-color-panel-utility-row]");
      const row = colorMatrixPopover?.querySelector("[data-color-panel-popup-row]");
      const activeSwatches = activeColorMatrixToggle?.closest(".palette-swatches, .color-panel-swatches");
      const onSelect = activeColorMatrixToggle?.onPaletteColorSelect || activeSwatches?.onPaletteColorSelect;
 
      if (!row) {
           return;
+     }
+
+     if (utilityRow) {
+          utilityRow.replaceChildren();
+          appendColorSwatches(utilityRow, getColorPanelUtilityColors(), activeColorMatrixToggle?.dataset.colorValue || "", (nextColor) => {
+               if (typeof onSelect === "function") {
+                    onSelect(nextColor);
+               }
+               setColorMatrixOpen(false);
+          }, "color-panel-swatch");
+          utilityRow.append(createHexButton((nextColor) => {
+               if (typeof onSelect === "function") {
+                    onSelect(nextColor);
+               }
+               setColorMatrixOpen(false);
+          }, "color-panel-swatch"));
      }
 
      row.replaceChildren();
@@ -610,12 +621,6 @@ function renderColorPanelPopupRow() {
           }
           setColorMatrixOpen(false);
      }, "color-panel-swatch");
-     row.append(createHexButton((nextColor) => {
-          if (typeof onSelect === "function") {
-               onSelect(nextColor);
-          }
-          setColorMatrixOpen(false);
-     }, "color-panel-swatch"));
 }
 
 function syncColorMatrixSwatchSize() {

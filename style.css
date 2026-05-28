@@ -1442,6 +1442,7 @@ body {
      top: 50%;
      z-index: 300;
      display: grid;
+     grid-template-columns: minmax(0, 1fr) max-content;
      gap: 6px;
      width: max-content;
      max-width: calc(100vw - 28px);
@@ -1471,28 +1472,43 @@ body {
 }
 
 .color-panel-matrix-title {
+     grid-column: 1;
+     grid-row: 1;
      color: var(--color-gray1);
      font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
      line-height: 1;
 }
 
-.color-panel-popup-row {
+.color-panel-utility-row {
+     grid-column: 2;
+     grid-row: 1;
      display: grid;
      grid-auto-flow: column;
      grid-auto-columns: var(--color-swatch-size);
      gap: var(--palette-swatch-gap);
+     justify-self: end;
      width: max-content;
-     margin-left: calc(var(--matrix-label-width) + var(--palette-swatch-gap));
+}
+
+.color-panel-popup-row {
+     grid-column: 1 / -1;
+     display: grid;
+     grid-auto-flow: column;
+     grid-auto-columns: var(--color-swatch-size);
+     gap: var(--palette-swatch-gap);
+     justify-self: end;
+     width: max-content;
 }
 
 .color-panel-matrix {
+     grid-column: 1 / -1;
      display: grid;
      grid-template-columns: var(--matrix-label-width) repeat(12, var(--matrix-swatch-size));
      grid-auto-rows: var(--matrix-swatch-size);
      gap: 3px;
      width: max-content;
      max-width: none;
-     max-height: calc((var(--matrix-swatch-size) * 7) + (3px * 6));
+     max-height: calc((var(--matrix-swatch-size) * 10) + (3px * 9));
      overflow-y: auto;
      overscroll-behavior: contain;
      padding-right: 4px;
