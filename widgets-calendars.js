@@ -790,6 +790,14 @@ function setCalendarDisplayControlLabel(select, labelText, ariaLabel) {
      select?.setAttribute("aria-label", ariaLabel);
 }
 
+function setCalendarDisplayControlHidden(select, hidden) {
+     const label = select?.closest(".item-calendar-display-control");
+
+     if (label) {
+          label.hidden = hidden;
+     }
+}
+
 function syncCalendarDisplayDateControls(item, displayYearSelect, displayMonthSelect) {
      if (!displayYearSelect || !displayMonthSelect) {
           return;
@@ -798,6 +806,8 @@ function syncCalendarDisplayDateControls(item, displayYearSelect, displayMonthSe
      if (item.dataset.dateMode === "relative") {
           const offset = getCalendarDisplayOffsetParts(item.dataset.dateOffset);
 
+          setCalendarDisplayControlHidden(displayYearSelect, false);
+          setCalendarDisplayControlHidden(displayMonthSelect, false);
           setCalendarDisplayControlLabel(displayYearSelect, "Offset", "Display date offset direction");
           setCalendarDisplayControlLabel(displayMonthSelect, "Amount", "Display date offset amount");
           replaceSelectOptions(displayYearSelect, [
@@ -814,6 +824,8 @@ function syncCalendarDisplayDateControls(item, displayYearSelect, displayMonthSe
           return;
      }
 
+     setCalendarDisplayControlHidden(displayYearSelect, item.dataset.itemType === "perpetual-calendar");
+     setCalendarDisplayControlHidden(displayMonthSelect, false);
      setCalendarDisplayControlLabel(displayYearSelect, "Year", "Display year");
      setCalendarDisplayControlLabel(displayMonthSelect, "Month", "Display month");
      replaceSelectOptions(displayYearSelect, Array.from({
@@ -1010,6 +1022,19 @@ function startCalendarDayTextEditing(textElement, item) {
      }, {
           once: true
      });
+}
+
+function handleCalendarTextPointerDown(textElement, event) {
+     if (!textElement.isContentEditable) {
+          return;
+     }
+
+     if (typeof keyboardMode !== "undefined" && keyboardMode === "design") {
+          textElement.blur();
+          return;
+     }
+
+     event.stopPropagation();
 }
 
 function renderMiniMonth(item) {
@@ -1233,9 +1258,7 @@ function renderMiniMonth(item) {
                                    startCalendarDayTextEditing(dayText, item);
                               });
                               dayText.addEventListener("pointerdown", (event) => {
-                                   if (dayText.isContentEditable) {
-                                        event.stopPropagation();
-                                   }
+                                   handleCalendarTextPointerDown(dayText, event);
                               });
                               dayText.addEventListener("wheel", (event) => {
                                    if (dayText.isContentEditable) {
@@ -1290,16 +1313,10 @@ function renderMiniMonth(item) {
                }
 
                if (cell.dataset.calendarStyleKey) {
-                    cell.addEventListener("pointerdown", (event) => {
-                         if (getResizeMode(item, event)) {
+                    cell.addEventListener("click", (event) => {
+                         if (shouldSkipNextItemClick) {
                               return;
                          }
-
-                         if (isCalendarBorderStylePointer(item, event)) {
-                              selectCalendarBorderStyleTarget(item, event);
-                              return;
-                         }
-
                          selectCalendarCellStyleTarget(item, cell, event);
                     });
                }
@@ -1312,7 +1329,13 @@ function renderMiniMonth(item) {
 
           borderTarget.className = `calendar-border-hit-target is-${edge}`;
           borderTarget.setAttribute("aria-hidden", "true");
-          borderTarget.addEventListener("pointerdown", (event) => selectCalendarBorderStyleTarget(item, event));
+          borderTarget.addEventListener("click", (event) => {
+               if (shouldSkipNextItemClick) {
+                    return;
+               }
+
+               selectCalendarBorderStyleTarget(item, event);
+          });
           calendar.append(borderTarget);
      });
      applyThemeToWidget(item);
@@ -1380,9 +1403,7 @@ function renderPerpetualCalendar(item) {
           applyCalendarDayTextStyle(item, dayText);
           dayText.addEventListener("input", () => updateCalendarDayTextOverflow(dayText));
           dayText.addEventListener("pointerdown", (event) => {
-               if (dayText.isContentEditable) {
-                    event.stopPropagation();
-               }
+               handleCalendarTextPointerDown(dayText, event);
           });
           dayText.addEventListener("wheel", (event) => {
                if (dayText.isContentEditable) {
@@ -1468,9 +1489,7 @@ function renderDiaryView(item) {
                startCalendarDayTextEditing(dayText, item);
           });
           dayText.addEventListener("pointerdown", (event) => {
-               if (dayText.isContentEditable) {
-                    event.stopPropagation();
-               }
+               handleCalendarTextPointerDown(dayText, event);
           });
           dayText.addEventListener("wheel", (event) => {
                if (dayText.isContentEditable) {
@@ -1486,16 +1505,10 @@ function renderDiaryView(item) {
                event.stopPropagation();
                startCalendarDayTextEditing(dayText, item);
           });
-          row.addEventListener("pointerdown", (event) => {
-               if (getResizeMode(item, event)) {
+          row.addEventListener("click", (event) => {
+               if (shouldSkipNextItemClick) {
                     return;
                }
-
-               if (isCalendarBorderStylePointer(item, event)) {
-                    selectCalendarBorderStyleTarget(item, event);
-                    return;
-               }
-
                selectCalendarCellStyleTarget(item, row, event);
           });
           row.append(dateLabel, dayText);
@@ -1508,7 +1521,13 @@ function renderDiaryView(item) {
 
           borderTarget.className = `calendar-border-hit-target is-${edge}`;
           borderTarget.setAttribute("aria-hidden", "true");
-          borderTarget.addEventListener("pointerdown", (event) => selectCalendarBorderStyleTarget(item, event));
+          borderTarget.addEventListener("click", (event) => {
+               if (shouldSkipNextItemClick) {
+                    return;
+               }
+
+               selectCalendarBorderStyleTarget(item, event);
+          });
           calendar.append(borderTarget);
      });
      applyThemeToWidget(item);
@@ -1655,9 +1674,7 @@ function renderWeeklyVertical(item) {
                               startCalendarDayTextEditing(slotText, item);
                          });
                          slotText.addEventListener("pointerdown", (event) => {
-                              if (slotText.isContentEditable) {
-                                   event.stopPropagation();
-                              }
+                              handleCalendarTextPointerDown(slotText, event);
                          });
                          slotText.addEventListener("wheel", (event) => {
                               if (slotText.isContentEditable) {

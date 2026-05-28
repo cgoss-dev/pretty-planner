@@ -3027,7 +3027,7 @@ function makePlannerItem(type = "sticker") {
      titleVisibleLabel.append(titleVisibleInput);
      weekNumberLabel.append(weekNumberSelect);
      if (type === "perpetual-calendar") {
-          calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, monthDisplayLabel, yearDisplayLabel);
+          calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, monthDisplayLabel);
      } else if (type === "weekly-view") {
           calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "diary-view") {
@@ -3186,6 +3186,10 @@ function makePlannerItem(type = "sticker") {
                return;
           }
 
+          if (typeof finishAllTextEditing === "function") {
+               finishAllTextEditing();
+          }
+
           if (isStickerTextItem(item) && event.detail > 1) {
                event.preventDefault();
                selectItem(item);
@@ -3202,13 +3206,12 @@ function makePlannerItem(type = "sticker") {
           const resizeMode = getResizeMode(item, event);
 
           if (resizeMode) {
-               startResize(item, event, resizeMode);
-               return;
-          }
+               const canResize = selectedItems.size === 1 && !item.dataset.groupId && item.dataset.itemType !== "mini-month";
 
-          if (isCalendarItem(item) && isCalendarBorderStylePointer(item, event)) {
-               selectCalendarBorderStyleTarget(item, event);
-               return;
+               if (canResize) {
+                    startResize(item, event, resizeMode);
+                    return;
+               }
           }
 
           startMove(item, event);
@@ -3432,6 +3435,11 @@ function makePlannerItem(type = "sticker") {
      });
      textElement.addEventListener("blur", () => stopStickerTextEditing(item));
      textElement.addEventListener("pointerdown", (event) => {
+          if (textElement.isContentEditable && typeof keyboardMode !== "undefined" && keyboardMode === "design") {
+               textElement.blur();
+               return;
+          }
+
           if (textElement.isContentEditable) {
                event.stopPropagation();
           }
@@ -4456,6 +4464,7 @@ function endActiveItem(event) {
 
           if (activeAction.type === "move") {
                activeAction.items.forEach(({ item }) => item.classList.remove("is-dragging"));
+               shouldSkipNextItemClick = true;
           } else {
                activeAction.item.classList.remove("is-dragging");
                selectItem(activeAction.item);

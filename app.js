@@ -2496,24 +2496,6 @@ function handleSelectedTextEditKey(event) {
      startSelectedItemTextEditing(item);
 }
 
-function toggleKeyboardModeFromEmptyContextMenu(event) {
-     // NOTE: Lets a mouse user right-click empty space to swap Interact and Design modes.
-     if (
-          event.defaultPrevented ||
-          event.target.closest(".planner-item, .widget-panel, .control-panel")
-     ) {
-          return;
-     }
-
-     event.preventDefault();
-     clearSelection();
-     if (keyboardMode === "design") {
-          exitKeyboardDesignMode();
-     } else {
-          enterKeyboardDesignMode();
-     }
-}
-
 function syncKeyboardModeUi() {
      // NOTE: Reflects Interact/Design mode on the menu so unavailable tabs look unavailable
      controlPanel.classList.toggle("is-interact-mode", keyboardMode === "interact");
@@ -2523,6 +2505,7 @@ function syncKeyboardModeUi() {
 
 function enterKeyboardDesignMode() {
      // NOTE: Enters the top-level keyboard Design Mode without opening a specific panel
+     finishAllTextEditing();
      keyboardMode = "design";
      designBranch = "root";
      clearInteractFocus();
@@ -2809,6 +2792,11 @@ function finishTextEditingFromOutsidePointer(event) {
      }
 
      editingTarget.blur();
+}
+
+function finishAllTextEditing() {
+     // NOTE: Ends any active widget text entry before Design interactions such as dragging.
+     document.querySelectorAll("[contenteditable='true']").forEach((editingTarget) => editingTarget.blur());
 }
 
 function blockSpacebarShortcut(event) {
@@ -3871,7 +3859,6 @@ plannerDesk.addEventListener("pointerleave", () => {
 plannerDesk.addEventListener("wheel", zoomViewFromWheel, {
      passive: false
 });
-plannerDesk.addEventListener("contextmenu", toggleKeyboardModeFromEmptyContextMenu);
 document.addEventListener("pointerdown", finishTextEditingFromOutsidePointer, true);
 document.addEventListener("pointerdown", collapseMenusFromOutsidePointer, true);
 document.addEventListener("click", (event) => {
