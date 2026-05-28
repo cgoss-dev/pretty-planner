@@ -1164,9 +1164,9 @@ body {
      grid-template-columns: repeat(auto-fit, minmax(calc(var(--color-swatch-size) * 2), 1fr));
      gap: 6px;
      padding: 7px;
-     border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
-     border-radius: 6px;
-     background: rgba(255, 255, 255, 0.28);
+     border: 0;
+     border-radius: 0;
+     background: transparent;
      overflow: visible;
 }
 
@@ -4491,7 +4491,6 @@ body {
 .control-section-body,
 .keyboard-control-section,
 .palette-preview .palette-swatches,
-.item-calendar-display-row,
 .widget-panel-row {
      border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
      border-radius: 6px;

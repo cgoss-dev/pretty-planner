@@ -1108,17 +1108,10 @@ function updateActionsPopupTypeLabel(controls, items) {
      }
 }
 
-function getWidgetTypeItems(type) {
-     return getPlannerItems().filter((item) => item.dataset.itemType === type);
-}
-
-function enterItemDesignPopup(controls, item, scope = "unique") {
-     const actionItems = scope === "universal" ? getWidgetTypeItems(item.dataset.itemType) : [item];
-     const scopeLabel = scope === "universal" ? "Universal Design" : "Unique Design";
-
-     setControlsActionItems(controls, actionItems.length ? actionItems : [item]);
-     controls.dataset.designScope = scope;
-     controls.dataset.designScopeLabel = scopeLabel;
+function enterItemDesignPopup(controls, item) {
+     setControlsActionItems(controls, [item]);
+     controls.dataset.designScope = "unique";
+     controls.dataset.designScopeLabel = "Unique Design";
      controls.querySelector(".item-design-popup-title")?.replaceChildren(controls.dataset.designScopeLabel);
      controls.classList.remove("is-actions-popup");
      controls.classList.add("is-design-popup");
@@ -1711,15 +1704,10 @@ function getSelectedCalendarStyleItem(item) {
 }
 
 function getCalendarStyleScopeItems(item) {
-     const controls = getWidgetPanel(item);
      const target = getCalendarStyleTarget(item);
 
      if (!target) {
           return [];
-     }
-
-     if (controls?.dataset.designScope === "universal") {
-          return getWidgetTypeItems(item.dataset.itemType);
      }
 
      return [item];
@@ -2306,6 +2294,8 @@ function makePlannerItem(type = "sticker") {
      const displayYearSelect = document.createElement("select");
      const displayMonthLabel = document.createElement("label");
      const displayMonthSelect = document.createElement("select");
+     const displayDateModeLabel = document.createElement("label");
+     const displayDateModeSelect = document.createElement("select");
      const displayDayLabel = document.createElement("label");
      const displayDaySelect = document.createElement("select");
      const displayWeekNumberLabel = document.createElement("label");
@@ -2314,7 +2304,6 @@ function makePlannerItem(type = "sticker") {
      const displayWeekStartSelect = document.createElement("select");
      const designActionGroup = document.createElement("div");
      const designActionTitle = document.createElement("div");
-     const designUniversalButton = document.createElement("button");
      const designUniqueButton = document.createElement("button");
      const designRepositionButton = document.createElement("button");
      const designResizeButton = document.createElement("button");
@@ -2466,10 +2455,6 @@ function makePlannerItem(type = "sticker") {
      designActionGroup.setAttribute("aria-label", "Design scope");
      designActionTitle.className = "item-actions-section-title section-title";
      designActionTitle.textContent = "Design";
-     designUniversalButton.className = "widget-panel-button";
-     designUniversalButton.type = "button";
-     designUniversalButton.textContent = "Universal";
-     designUniversalButton.setAttribute("aria-label", `Design all ${getItemTypeLabel(type)} widgets`);
      designUniqueButton.className = "widget-panel-button";
      designUniqueButton.type = "button";
      designUniqueButton.textContent = "Unique";
@@ -2508,6 +2493,20 @@ function makePlannerItem(type = "sticker") {
           option.value = String(index);
           option.textContent = monthName;
           displayMonthSelect.append(option);
+     });
+     displayDateModeLabel.className = "item-calendar-display-control";
+     displayDateModeLabel.textContent = "Actual/Current";
+     displayDateModeSelect.dataset.widgetControl = "display-date-mode";
+     displayDateModeSelect.setAttribute("aria-label", "Display date mode");
+     [
+          ["fixed", "Actual"],
+          ["relative", "Current"]
+     ].forEach(([value, label]) => {
+          const option = document.createElement("option");
+
+          option.value = value;
+          option.textContent = label;
+          displayDateModeSelect.append(option);
      });
      displayDayLabel.className = "item-calendar-display-control";
      displayDayLabel.textContent = "Day";
@@ -2845,7 +2844,7 @@ function makePlannerItem(type = "sticker") {
      dateModeSelect.dataset.widgetControl = "date-mode";
      dateModeSelect.setAttribute("aria-label", "Calendar display date mode");
      [
-          ["fixed", "Specific"],
+          ["fixed", "Actual"],
           ["relative", "Current"]
      ].forEach(([value, label]) => {
           const option = document.createElement("option");
@@ -3008,15 +3007,17 @@ function makePlannerItem(type = "sticker") {
      yearDisplayLabel.append(yearDisplaySelect);
      displayYearLabel.append(displayYearSelect);
      displayMonthLabel.append(displayMonthSelect);
+     displayDateModeLabel.append(displayDateModeSelect);
      displayDayLabel.append(displayDaySelect);
      displayWeekNumberLabel.append(displayWeekNumberSelect);
      displayWeekStartLabel.append(displayWeekStartSelect);
      if (isCalendarItemType(type)) {
-          displayDateRow.append(displayYearLabel, displayMonthLabel);
           if (type === "mini-month" || type === "full-month") {
-               displayDateRow.append(displayWeekNumberLabel);
+               displayDateRow.append(displayDateModeLabel, displayWeekNumberLabel, displayYearLabel, displayMonthLabel);
           } else if (type === "weekly-view" || type === "day-view" || type === "diary-view") {
-               displayDateRow.append(displayDayLabel);
+               displayDateRow.append(displayDateModeLabel, displayDayLabel, displayYearLabel, displayMonthLabel);
+          } else {
+               displayDateRow.append(displayDateModeLabel, displayYearLabel, displayMonthLabel);
           }
      }
      weekStartLabel.append(weekStartSelect);
@@ -3046,7 +3047,7 @@ function makePlannerItem(type = "sticker") {
      controlTabs.append(styleTab);
      duplicateGroupActions.append(duplicateButton, groupButton);
      layerButtonGroup.append(sendBackwardButton, bringForwardButton);
-     designActionGroup.append(designActionTitle, designUniversalButton, designUniqueButton, designRepositionButton, designResizeButton);
+     designActionGroup.append(designActionTitle, designUniqueButton, designRepositionButton, designResizeButton);
      layoutActionGroup.append(layoutActionTitle, duplicateGroupActions, layerButtonGroup, deleteButton);
      actionsPanel.append(actionsWidgetType);
      if (isCalendarItemType(type)) {
@@ -3309,13 +3310,9 @@ function makePlannerItem(type = "sticker") {
           event.stopPropagation();
           duplicateItem(item);
      });
-     designUniversalButton.addEventListener("click", (event) => {
-          event.stopPropagation();
-          enterItemDesignPopup(controls, item, "universal");
-     });
      designUniqueButton.addEventListener("click", (event) => {
           event.stopPropagation();
-          enterItemDesignPopup(controls, item, "unique");
+          enterItemDesignPopup(controls, item);
      });
      designBackButton.addEventListener("click", (event) => {
           event.stopPropagation();
@@ -3490,9 +3487,23 @@ function makePlannerItem(type = "sticker") {
           });
      });
      displayMonthSelect.addEventListener("change", () => {
+          if (item.dataset.dateMode === "relative") {
+               applyCalendarWidgetSettingsToActionItems(item, {
+                    dateMode: "relative",
+                    dateOffset: getCalendarDisplayOffsetValue(displayYearSelect.value, displayMonthSelect.value)
+               });
+               return;
+          }
+
           applyCalendarWidgetSettingsToActionItems(item, {
                dateMode: "fixed",
                month: displayMonthSelect.value
+          });
+     });
+     displayDateModeSelect.addEventListener("change", () => {
+          applyCalendarWidgetSettingsToActionItems(item, {
+               dateMode: displayDateModeSelect.value,
+               dateOffset: displayDateModeSelect.value === "relative" ? "1" : item.dataset.dateOffset
           });
      });
      monthDisplaySelect.addEventListener("change", () => {
@@ -3506,6 +3517,14 @@ function makePlannerItem(type = "sticker") {
           });
      });
      displayYearSelect.addEventListener("change", () => {
+          if (item.dataset.dateMode === "relative") {
+               applyCalendarWidgetSettingsToActionItems(item, {
+                    dateMode: "relative",
+                    dateOffset: getCalendarDisplayOffsetValue(displayYearSelect.value, displayMonthSelect.value)
+               });
+               return;
+          }
+
           applyCalendarWidgetSettingsToActionItems(item, {
                dateMode: "fixed",
                year: displayYearSelect.value
@@ -3629,57 +3648,6 @@ function copyItemConfiguration(source, target) {
           }
           renderMiniMonth(target);
      }
-}
-
-function advanceDuplicatedCalendarView(source, target) {
-     if (!isCalendarItem(source) || !isCalendarItem(target)) {
-          return;
-     }
-
-     if (source.dataset.dateMode === "relative") {
-          const offset = Number(source.dataset.dateOffset) || 0;
-          const step = offset < 0 ? -1 : 1;
-
-          setCalendarWidgetSettings(target, {
-               dateMode: "relative",
-               dateOffset: String(offset + step)
-          });
-          return;
-     }
-
-     if (source.dataset.itemType === "day-view") {
-          const nextDate = getCalendarEffectiveDate(source);
-
-          nextDate.setDate(nextDate.getDate() + 1);
-          setCalendarWidgetSettings(target, {
-               month: String(nextDate.getMonth()),
-               year: String(nextDate.getFullYear()),
-               startDay: String(nextDate.getDate())
-          });
-          return;
-     }
-
-     if (source.dataset.itemType === "weekly-view" || source.dataset.itemType === "diary-view") {
-          const visibleDays = clamp(Number(source.dataset.visibleDays) || 7, 1, 7);
-          const nextStartDate = getWeeklyViewStartDate(source);
-
-          nextStartDate.setDate(nextStartDate.getDate() + visibleDays);
-          setCalendarWidgetSettings(target, {
-               month: String(nextStartDate.getMonth()),
-               year: String(nextStartDate.getFullYear()),
-               startDay: String(nextStartDate.getDate())
-          });
-          return;
-     }
-
-     const month = Number(source.dataset.month) || 0;
-     const year = Number(source.dataset.year) || new Date().getFullYear();
-     const nextMonthDate = new Date(year, month + 1, 1);
-
-     setCalendarWidgetSettings(target, {
-          month: String(nextMonthDate.getMonth()),
-          year: String(nextMonthDate.getFullYear())
-     });
 }
 
 function getOrderedPlannerItems(items) {
@@ -3881,7 +3849,6 @@ function duplicateItem(item) {
 
      parent.append(duplicate);
      copyItemConfiguration(item, duplicate);
-     advanceDuplicatedCalendarView(item, duplicate);
      markGridState(duplicate, Boolean(page), page);
      setItemBox(duplicate, nextBox);
      selectItem(duplicate);

@@ -609,7 +609,11 @@ function getRelativeDateOffsetMax(unit) {
           return 31;
      }
 
-     if (normalizedUnit === "week" || normalizedUnit === "month") {
+     if (normalizedUnit === "month") {
+          return 31;
+     }
+
+     if (normalizedUnit === "week") {
           return 12;
      }
 
@@ -647,6 +651,71 @@ function populateRelativeDateOffsetSelect(select, unit, selectedOffset) {
           select.append(option);
      }
      select.value = clampedOffset;
+}
+
+function replaceSelectOptions(select, options, selectedValue) {
+     if (!select) {
+          return;
+     }
+
+     select.replaceChildren();
+     options.forEach(([value, label]) => {
+          const option = document.createElement("option");
+
+          option.value = String(value);
+          option.textContent = String(label);
+          select.append(option);
+     });
+     select.value = String(selectedValue);
+}
+
+function getCalendarDisplayOffsetParts(offset) {
+     const number = Number(offset) || 1;
+     const direction = number < 0 ? "-" : "+";
+     const magnitude = clamp(Math.abs(number), 1, 31);
+
+     return {
+          direction,
+          magnitude: String(magnitude)
+     };
+}
+
+function getCalendarDisplayOffsetValue(direction, magnitude) {
+     const amount = clamp(Number(magnitude) || 1, 1, 31);
+
+     return String(direction === "-" ? -amount : amount);
+}
+
+function syncCalendarDisplayDateControls(item, displayYearSelect, displayMonthSelect) {
+     if (!displayYearSelect || !displayMonthSelect) {
+          return;
+     }
+
+     if (item.dataset.dateMode === "relative") {
+          const offset = getCalendarDisplayOffsetParts(item.dataset.dateOffset);
+
+          replaceSelectOptions(displayYearSelect, [
+               ["+", "+"],
+               ["-", "-"]
+          ], offset.direction);
+          replaceSelectOptions(displayMonthSelect, Array.from({
+               length: 31
+          }, (_, index) => {
+               const value = String(index + 1);
+
+               return [value, value];
+          }), offset.magnitude);
+          return;
+     }
+
+     replaceSelectOptions(displayYearSelect, Array.from({
+          length: calendarYearRange.end - calendarYearRange.start + 1
+     }, (_, index) => {
+          const year = String(calendarYearRange.start + index);
+
+          return [year, year];
+     }), item.dataset.year);
+     replaceSelectOptions(displayMonthSelect, calendarMonthNames.map((monthName, index) => [String(index), monthName]), item.dataset.month);
 }
 
 function getCalendarFixedNumber(value, fallback) {
@@ -1533,6 +1602,8 @@ function getVisibleCalendarDisplay(nextDisplay, currentDisplay, fallback = "full
 function setCalendarWidgetSettings(item, settings = {}) {
      const today = new Date();
      const defaultDateSettings = typeof getPlannerDefaultDateSettings === "function" ? getPlannerDefaultDateSettings() : {};
+     const previousDateMode = item.dataset.dateMode || "fixed";
+     const nextDateMode = (settings.dateMode || item.dataset.dateMode) === "relative" ? "relative" : "fixed";
      const weekNumberFormat = getWeekNumberFormatFromSettings(settings, item);
      const titleVisible = settings.titleVisible !== undefined
           ? normalizeCalendarTitleVisible(settings.titleVisible)
@@ -1542,9 +1613,9 @@ function setCalendarWidgetSettings(item, settings = {}) {
      item.dataset.weekNumbers = weekNumberFormat === "off" ? "false" : "true";
      item.dataset.weekStart = settings.weekStart || item.dataset.weekStart || defaultDateSettings.weekStart || "monday";
      item.dataset.weekdayLabelFormat = normalizeWeekdayLabelFormat(settings.weekdayLabelFormat || item.dataset.weekdayLabelFormat || "d");
-     item.dataset.dateMode = (settings.dateMode || item.dataset.dateMode) === "relative" ? "relative" : "fixed";
+     item.dataset.dateMode = nextDateMode;
      item.dataset.dateUnit = getCalendarRelativeDateUnit(item);
-     item.dataset.dateOffset = clampRelativeDateOffset(settings.dateOffset ?? item.dataset.dateOffset ?? "0", item.dataset.dateUnit);
+     item.dataset.dateOffset = clampRelativeDateOffset(settings.dateOffset ?? (nextDateMode === "relative" && previousDateMode !== "relative" ? "1" : item.dataset.dateOffset ?? "0"), item.dataset.dateUnit);
      item.dataset.calendarTitleVisible = titleVisible;
      item.dataset.monthDisplay = getVisibleCalendarDisplay(settings.monthDisplay, item.dataset.monthDisplay, "full");
      item.dataset.monthVisible = item.dataset.monthDisplay === "none" ? "false" : "true";
@@ -1572,6 +1643,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      const dateOffsetSelect = controls.querySelector("[data-widget-control='date-offset']");
      const displayMonthSelect = controls.querySelector("[data-widget-control='display-month']");
      const displayYearSelect = controls.querySelector("[data-widget-control='display-year']");
+     const displayDateModeSelect = controls.querySelector("[data-widget-control='display-date-mode']");
      const displayDaySelect = controls.querySelector("[data-widget-control='display-day']");
      const displayWeekNumberSelect = controls.querySelector("[data-widget-control='display-week-number']");
      const displayWeekStartSelect = controls.querySelector("[data-widget-control='display-week-start']");
@@ -1612,6 +1684,10 @@ function setCalendarWidgetSettings(item, settings = {}) {
           dateModeSelect.value = item.dataset.dateMode;
      }
 
+     if (displayDateModeSelect) {
+          displayDateModeSelect.value = item.dataset.dateMode;
+     }
+
      if (dateOffsetSelect) {
           populateRelativeDateOffsetSelect(dateOffsetSelect, item.dataset.dateUnit, item.dataset.dateOffset);
      }
@@ -1624,10 +1700,6 @@ function setCalendarWidgetSettings(item, settings = {}) {
           monthSelect.value = item.dataset.month;
      }
 
-     if (displayMonthSelect) {
-          displayMonthSelect.value = item.dataset.month;
-     }
-
      if (monthDisplaySelect) {
           monthDisplaySelect.value = item.dataset.monthDisplay;
      }
@@ -1636,16 +1708,13 @@ function setCalendarWidgetSettings(item, settings = {}) {
           yearSelect.value = item.dataset.year;
      }
 
-     if (displayYearSelect) {
-          displayYearSelect.value = item.dataset.year;
-     }
-
      if (yearDisplaySelect) {
           yearDisplaySelect.value = item.dataset.yearDisplay;
      }
 
      syncStartDayOptions(startDaySelect, Number(item.dataset.year), Number(item.dataset.month), item.dataset.startDay);
      syncStartDayOptions(displayDaySelect, Number(item.dataset.year), Number(item.dataset.month), item.dataset.startDay);
+     syncCalendarDisplayDateControls(item, displayYearSelect, displayMonthSelect);
 
      if (visibleDaysSelect) {
           visibleDaysSelect.value = item.dataset.visibleDays;
@@ -1671,7 +1740,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
           shareWeekendsInput.checked = item.dataset.shareWeekends === "true";
      }
 
-     const rebuiltSelects = new Set([dateOffsetSelect, startDaySelect, displayDaySelect].filter(Boolean));
+     const rebuiltSelects = new Set([dateOffsetSelect, startDaySelect, displayDaySelect, displayYearSelect, displayMonthSelect].filter(Boolean));
 
      rebuiltSelects.forEach(syncCustomSelect);
      controls.querySelectorAll("select").forEach((select) => {
