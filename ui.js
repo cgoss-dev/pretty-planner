@@ -7,6 +7,18 @@ function getPaletteKeyForColor(colorValue) {
      return colorPaletteOrder.find((paletteKey) => getPalette(paletteKey).colors.some((color) => color.value === colorValue)) || "tertiary";
 }
 
+function getPaletteLabelForColor(colorValue) {
+     const allColors = [
+          ...getPaperPaletteColors(),
+          ...getAccentPaletteColors(),
+          ...getGrayPaletteColors(),
+          getClearPaletteColor()
+     ];
+     const match = allColors.find((color) => color.value === colorValue);
+
+     return match?.label || "Color";
+}
+
 function populatePaletteSelect(select, selectedPalette = "tertiary") {
      if (!select) {
           return;
@@ -155,11 +167,12 @@ function appendColorSwatches(swatches, colors, selectedColor = "", onSelect = nu
 function createColorMatrixToggle() {
      const button = document.createElement("button");
 
-     button.className = "palette-matrix-toggle";
+     button.className = "color-panel-open-button color-panel-swatch";
      button.type = "button";
      button.dataset.colorPanelMatrixToggle = "";
-     button.setAttribute("aria-label", "Show Tertiary matrix");
+     button.setAttribute("aria-label", "Open color panel");
      button.setAttribute("aria-expanded", "false");
+     button.textContent = "Color";
 
      return button;
 }
@@ -197,37 +210,38 @@ function appendPaletteUtilityControls(swatches, onSelect = null, swatchClass = "
      }
 
      swatches.onPaletteColorSelect = onSelect;
-     swatches.append(createHexButton(onSelect, swatchClass));
      appendColorMatrixToggle(swatches, onSelect);
 }
 
-function renderPaletteControl(swatches, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
+function renderColorPanelOpenControl(swatches, selectedColor = "", onSelect = null, paletteMode = "paper") {
      if (!swatches) {
           return;
      }
 
      swatches.replaceChildren();
-     appendColorSwatches(
-          swatches,
-          getPaperPaletteColors(),
-          selectedColor,
-          onSelect,
-          swatchClass
-     );
-     appendColorSwatches(swatches, getGrayPaletteColors(), selectedColor, onSelect, swatchClass);
-     appendColorSwatches(swatches, [getClearPaletteColor()], selectedColor, onSelect, swatchClass);
-     appendPaletteUtilityControls(swatches, onSelect, swatchClass);
+     swatches.dataset.colorPanelPalette = paletteMode;
+     swatches.onPaletteColorSelect = onSelect;
+
+     const button = createColorMatrixToggle();
+
+     button.onPaletteColorSelect = onSelect;
+     button.dataset.colorPanelPalette = paletteMode;
+     button.dataset.colorValue = selectedColor || "";
+     button.style.setProperty("--swatch", selectedColor || "var(--color-white)");
+     button.style.setProperty("--swatch-ink", getSwatchInk({
+          value: selectedColor || "var(--color-white)"
+     }));
+     button.textContent = getPaletteLabelForColor(selectedColor) || "Color";
+     button.classList.toggle("is-clear", selectedColor === "transparent");
+     swatches.append(button);
 }
 
-function renderAccentPaletteControl(swatches, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
-     if (!swatches) {
-          return;
-     }
+function renderPaletteControl(swatches, selectedColor = "", onSelect = null) {
+     renderColorPanelOpenControl(swatches, selectedColor, onSelect, "paper");
+}
 
-     swatches.replaceChildren();
-     appendColorSwatches(swatches, getAccentPaletteColors(), selectedColor, onSelect, swatchClass);
-     appendColorSwatches(swatches, getGrayPaletteColors(), selectedColor, onSelect, swatchClass);
-     appendPaletteUtilityControls(swatches, onSelect, swatchClass);
+function renderAccentPaletteControl(swatches, selectedColor = "", onSelect = null) {
+     renderColorPanelOpenControl(swatches, selectedColor, onSelect, "accent");
 }
 
 
@@ -517,7 +531,6 @@ function renderColorMatrix() {
      const colors = getPalette("tertiary").colors;
      const activeSwatches = activeColorMatrixToggle?.closest(".palette-swatches, .color-panel-swatches");
      const onSelect = activeColorMatrixToggle?.onPaletteColorSelect || activeSwatches?.onPaletteColorSelect;
-     const activeSection = activeColorMatrixToggle?.closest("[data-control-section]");
 
      colorMatrixGrid.replaceChildren();
      getColorMatrixRows().forEach((row) => {
@@ -545,13 +558,49 @@ function renderColorMatrix() {
                          event.stopPropagation();
                          onSelect(swatchValue);
                          setColorMatrixOpen(false);
-                         closeControlSection(activeSection);
                     });
                }
 
                colorMatrixGrid.append(swatch);
           });
      });
+}
+
+function getColorPanelPopupColors() {
+     const paletteMode = activeColorMatrixToggle?.dataset.colorPanelPalette
+          || activeColorMatrixToggle?.closest(".palette-swatches, .color-panel-swatches")?.dataset.colorPanelPalette
+          || "paper";
+     const leadingColors = paletteMode === "accent" ? getAccentPaletteColors() : getPaperPaletteColors();
+
+     return [
+          ...leadingColors,
+          ...getGrayPaletteColors(),
+          getClearPaletteColor()
+     ];
+}
+
+function renderColorPanelPopupRow() {
+     const row = colorMatrixPopover?.querySelector("[data-color-panel-popup-row]");
+     const activeSwatches = activeColorMatrixToggle?.closest(".palette-swatches, .color-panel-swatches");
+     const onSelect = activeColorMatrixToggle?.onPaletteColorSelect || activeSwatches?.onPaletteColorSelect;
+
+     if (!row) {
+          return;
+     }
+
+     row.replaceChildren();
+     appendColorSwatches(row, getColorPanelPopupColors(), activeColorMatrixToggle?.dataset.colorValue || "", (nextColor) => {
+          if (typeof onSelect === "function") {
+               onSelect(nextColor);
+          }
+          setColorMatrixOpen(false);
+     }, "color-panel-swatch");
+     row.append(createHexButton((nextColor) => {
+          if (typeof onSelect === "function") {
+               onSelect(nextColor);
+          }
+          setColorMatrixOpen(false);
+     }, "color-panel-swatch"));
 }
 
 function syncColorMatrixSwatchSize() {
@@ -588,19 +637,14 @@ function setColorMatrixOpen(isOpen) {
      });
 
      if (isOpen) {
-          const body = activeColorMatrixToggle.closest("[data-control-section]")?.querySelector(":scope > [data-control-section-body]");
-
-          if (body && colorMatrixPopover.parentElement !== body) {
-               body.append(colorMatrixPopover);
+          if (colorMatrixPopover.parentElement !== document.body) {
+               document.body.append(colorMatrixPopover);
           }
           colorMatrixPopover.hidden = false;
+          renderColorPanelPopupRow();
           renderColorMatrix();
           requestAnimationFrame(() => {
                colorMatrixPopover.classList.add("is-open");
-               colorMatrixPopover.scrollIntoView({
-                    block: "nearest",
-                    inline: "nearest"
-               });
           });
      } else {
           colorMatrixPopover.classList.remove("is-open");
@@ -786,7 +830,7 @@ function buildCustomSelectOptions(select, dropdown) {
 function getCustomSelectOptionFont(select, value) {
      const normalizedValue = value === "noto" ? "noto-sans-mono" : value;
 
-     if (select.dataset.textControl !== "font") {
+     if (select.dataset.textControl !== "font" && select.dataset.defaultControl !== "text-font") {
           return "";
      }
 
@@ -1182,7 +1226,7 @@ function makeCustomSelect(select) {
 
      select.classList.add("native-select");
      dropdown.className = "custom-select";
-     dropdown.dataset.customSelect = select.dataset.setting || select.dataset.styleControl || select.dataset.textControl || select.dataset.widgetControl || "";
+     dropdown.dataset.customSelect = select.dataset.setting || select.dataset.styleControl || select.dataset.textControl || select.dataset.widgetControl || select.dataset.defaultControl || "";
      summary.setAttribute("role", "button");
      optionsBox.className = "custom-select-options";
 

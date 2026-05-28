@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-296">
+     <link rel="stylesheet" href="style.css?v=planner-storage-298">
 </head>
 <body>
      <main class="planner-desk">
@@ -28,24 +28,31 @@
           <form class="control-panel" aria-label="Planner settings panel">
                <div class="panel-title title control-panel-title">Settings Panel</div>
                <div class="control-panel-tabs" role="tablist" aria-label="Planner settings panel tabs">
-                    <button class="control-panel-tab is-active" type="button" role="tab" aria-selected="true" aria-label="Defaults" aria-controls="defaults-panel" data-control-panel-tab="defaults">
+                    <button class="control-panel-tab is-active" type="button" role="tab" aria-selected="true" aria-label="Controls" aria-controls="controls-panel" data-control-panel-tab="controls">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">1 Defaults</span>
+                         <span class="control-panel-tab-label">1 Controls</span>
+                         <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
+                    </button>
+                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Defaults" aria-controls="defaults-panel" data-control-panel-tab="defaults">
+                         <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
+                         <span class="control-panel-tab-label">2 Defaults</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
                     <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Notebook" aria-controls="page-panel" data-control-panel-tab="page">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">2 Notebook</span>
+                         <span class="control-panel-tab-label">3 Notebook</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
                     <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Widgets" aria-controls="add-panel" data-control-panel-tab="add">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">3 Widgets</span>
+                         <span class="control-panel-tab-label">4 Widgets</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
                </div>
 
-               <div class="control-panel-page controls-panel defaults-panel" id="defaults-panel" role="tabpanel" data-control-panel-page="defaults">
+               <div class="control-panel-page controls-panel" id="controls-panel" role="tabpanel" data-control-panel-page="controls" data-keyboard-controls></div>
+
+               <div class="control-panel-page controls-panel defaults-panel" id="defaults-panel" role="tabpanel" data-control-panel-page="defaults" hidden>
                     <div class="keyboard-control-section defaults-section">
                          <div class="keyboard-control-title">Interface</div>
                          <div class="control-choice-group" aria-label="Hint Panel">
@@ -274,6 +281,8 @@
                     <div class="page-panel-actions">
                          <button class="control-action-button" type="button" data-insert-page>Insert Page</button>
                          <button class="control-action-button" type="button" data-delete-page>Delete Page</button>
+                         <button class="control-action-button" type="button" data-clear-page>Empty Page</button>
+                         <button class="control-action-button" type="button" data-clear-book>Empty Book</button>
                          <span class="page-count-status" data-page-count-status aria-live="polite"></span>
                     </div>
 
@@ -297,10 +306,6 @@
                     <button class="weekly-vertical-source" type="button" data-create-item data-create-type="weekly-vertical" data-widget-label="Vertical Week" aria-label="Add weekly vertical calendar widget">
                          <span>Vertical Week</span>
                     </button>
-                    <div class="add-panel-actions">
-                         <button class="control-action-button" type="button" data-clear-page>Clear Page</button>
-                         <button class="control-action-button" type="button" data-clear-book>Clear Book</button>
-                    </div>
                </div>
 
                <div class="control-panel-page object-control-panel-page" id="object-panel" role="tabpanel" data-control-panel-page="object" hidden>
@@ -312,7 +317,8 @@
           </form>
 
           <div class="color-panel-matrix-popover" data-color-panel-matrix hidden>
-               <div class="color-panel-matrix-title">Color Matrix</div>
+               <div class="color-panel-matrix-title">Color Panel</div>
+               <div class="color-panel-popup-row" data-color-panel-popup-row></div>
                <div class="color-panel-matrix" data-color-panel-matrix-grid></div>
           </div>
 
@@ -352,11 +358,11 @@
      </main>
 
      <script src="config.js?v=planner-storage-163"></script>
-     <script src="ui.js?v=planner-storage-210"></script>
+     <script src="ui.js?v=planner-storage-212"></script>
      <script src="widgets-calendars.js?v=planner-storage-6"></script>
      <script src="widgets.js?v=planner-storage-275"></script>
      <script src="storage.js?v=planner-storage-23"></script>
-     <script src="controls.js?v=planner-storage-193"></script>
-     <script src="app.js?v=planner-storage-244"></script>
+     <script src="controls.js?v=planner-storage-194"></script>
+     <script src="app.js?v=planner-storage-247"></script>
 </body>
 </html>

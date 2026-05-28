@@ -342,6 +342,9 @@ function resetItemsToPlannerDefaults(items) {
           setItemStyle(item, getPlannerDefaultItemStyle(item.dataset.itemType));
           if (isCalendarItem(item)) {
                setCalendarPartStyles(item, {});
+          }
+          applyThemeToWidget(item);
+          if (isCalendarItem(item)) {
                applyCalendarPartStyles(item);
           }
           if (isCalendarTextItem(item)) {
@@ -356,18 +359,25 @@ function resetItemsToPlannerDefaults(items) {
 }
 
 function resetUniqueStylesToDefaults() {
-     resetItemsToPlannerDefaults(selectedItems.size ? Array.from(selectedItems) : getAllPlannerItems());
+     if (!selectedItems.size) {
+          return;
+     }
+
+     resetItemsToPlannerDefaults(Array.from(selectedItems));
 }
 
 function resetUniversalStylesToDefaults() {
      if (!selectedItems.size) {
-          resetItemsToPlannerDefaults(getAllPlannerItems());
           return;
      }
 
      const selectedTypes = new Set(Array.from(selectedItems).map((item) => item.dataset.itemType));
 
      resetItemsToPlannerDefaults(getAllPlannerItems().filter((item) => selectedTypes.has(item.dataset.itemType)));
+}
+
+function resetNotebookStylesToDefaults() {
+     resetItemsToPlannerDefaults(getAllPlannerItems());
 }
 
 restoreSavedSettings();
@@ -2437,34 +2447,42 @@ function handleKeyboardModeNumberKey(event) {
      if (designBranch === "root") {
           event.preventDefault();
           if (event.key === "1") {
-               enterKeyboardMenuBranch("defaults", "defaults");
+               enterKeyboardMenuBranch("controls", "controls");
           } else if (event.key === "2") {
-               enterKeyboardMenuBranch("notebook", "page");
+               enterKeyboardMenuBranch("defaults", "defaults");
           } else if (event.key === "3") {
+               enterKeyboardMenuBranch("notebook", "page");
+          } else if (event.key === "4") {
                enterKeyboardMenuBranch("menu", "add");
           }
           return;
      }
 
-     if (designBranch === "defaults" && event.key === "1") {
+     if (designBranch === "controls" && event.key === "1") {
           event.preventDefault();
           returnToKeyboardDesignRoot();
           return;
      }
 
-     if (designBranch === "notebook" && event.key === "2") {
+     if (designBranch === "defaults" && event.key === "2") {
           event.preventDefault();
           returnToKeyboardDesignRoot();
           return;
      }
 
-     if (designBranch === "menu" && event.key === "3") {
+     if (designBranch === "notebook" && event.key === "3") {
           event.preventDefault();
           returnToKeyboardDesignRoot();
           return;
      }
 
-     if (designBranch === "defaults" || designBranch === "notebook" || designBranch === "menu") {
+     if (designBranch === "menu" && event.key === "4") {
+          event.preventDefault();
+          returnToKeyboardDesignRoot();
+          return;
+     }
+
+     if (designBranch === "controls" || designBranch === "defaults" || designBranch === "notebook" || designBranch === "menu") {
           const tab = controlPanelTabs[Number(event.key) - 1];
 
           if (!tab || tab.disabled) {
@@ -3043,8 +3061,20 @@ function getKeyHintState() {
           return {
                mode: "Design Mode > Notebook",
                entries: [
-               ["2", "Back"],
-               ["1-5", "Tabs"],
+               ["3", "Back"],
+               ["1-4", "Tabs"],
+               ["Q / E", "Last / Next Tab"],
+               ["Enter", "Select"]
+               ]
+          };
+     }
+
+     if (keyboardMode === "design" && designBranch === "controls") {
+          return {
+               mode: "Design Mode > Controls",
+               entries: [
+               ["1", "Back"],
+               ["1-4", "Tabs"],
                ["Q / E", "Last / Next Tab"],
                ["Enter", "Select"]
                ]
@@ -3055,8 +3085,8 @@ function getKeyHintState() {
           return {
                mode: "Design Mode > Defaults",
                entries: [
-               ["1", "Back"],
-               ["1-3", "Tabs"],
+               ["2", "Back"],
+               ["1-4", "Tabs"],
                ["Q / E", "Last / Next Tab"],
                ["Enter", "Select"]
                ]
@@ -3065,10 +3095,10 @@ function getKeyHintState() {
 
      if (keyboardMode === "design" && designBranch === "menu") {
           return {
-               mode: "Design Mode > Menu",
+               mode: "Design Mode > Widgets",
                entries: [
-               ["3", "Back"],
-               ["1-5", "Tabs"],
+               ["4", "Back"],
+               ["1-4", "Tabs"],
                ["Q / E", "Last / Next Tab"],
                ["Enter", "Select"]
                ]
@@ -3414,6 +3444,7 @@ function initializeDefaultControls() {
                if (["text-color", "grid-color", "grid-fill"].includes(control.dataset.defaultControl)) {
                     return;
                }
+               makeCustomSelect(control);
                control.addEventListener("change", () => {
                     setDefaultControlValue(control.dataset.defaultControl, control.value);
                     updateCustomSelectDisplay(control);
@@ -3436,7 +3467,7 @@ function initializeDefaultControls() {
 
      resetUniqueDefaultsButton?.addEventListener("click", resetUniqueStylesToDefaults);
      resetUniversalDefaultsButton?.addEventListener("click", resetUniversalStylesToDefaults);
-     resetNotebookDefaultsButton?.addEventListener("click", clearCurrentBook);
+     resetNotebookDefaultsButton?.addEventListener("click", resetNotebookStylesToDefaults);
      syncDefaultControls();
 }
 

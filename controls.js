@@ -459,29 +459,33 @@ window.PageControls = (() => {
 window.KeyboardControls = (() => {
      const groups = [
           {
-               title: "Global",
+               title: "Hint Panel",
                controls: [
                     { key: "Tab", action: "Toggle Mode" },
-                    { key: "Enter", action: "Activate focused panel control" },
-                    { key: "Delete / Esc", action: "Cancel, close, or deselect" },
-                    { key: "1-5", action: "Choose the current mode option" },
-                    { key: "X", action: "Toggle gridlines on or off" },
                     { key: "Q / E", action: "Last or next page, spread, or tab" },
-                    { key: "WASD / Arrows", action: "Move Interact focus" },
-                    { key: "C", action: "Center" },
+                    { key: "Enter", action: "Edit" },
                     { key: "Z", action: "Cycle zoom" },
+                    { key: "X", action: "Toggle gridlines on or off" },
+                    { key: "C", action: "Center" },
                ]
           },
           {
-               title: "Menu",
+               title: "Control Panel",
                controls: [
-                    { key: "Tab", action: "Move through tabs and controls" },
-                    { key: "1-5", action: "Move between menu tabs" },
-                    { key: "Q / E", action: "Last or next menu tab" },
-                    { key: "W / A / S / D", action: "Move spatially through menu controls; W/S scroll at edges" },
-                    { key: "Arrows", action: "Move spatially through menu controls; up/down scroll at edges" },
+                    { key: "1-4", action: "Choose Controls, Defaults, Notebook, or Widgets" },
+                    { key: "Q / E", action: "Last or next panel tab" },
+                    { key: "WASD / Arrows", action: "Move spatially through panel controls; up/down scroll at edges" },
                     { key: "Enter", action: "Activate selected control" },
-                    { key: "Delete / Esc", action: "Close menu" }
+                    { key: "Delete / Esc", action: "Close panel" }
+               ]
+          },
+          {
+               title: "Design Mode",
+               controls: [
+                    { key: "1", action: "Open Controls" },
+                    { key: "2", action: "Open Defaults" },
+                    { key: "3", action: "Open Notebook" },
+                    { key: "4", action: "Open Widgets" }
                ]
           },
           {
