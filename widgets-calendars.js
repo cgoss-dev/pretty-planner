@@ -670,9 +670,9 @@ function replaceSelectOptions(select, options, selectedValue) {
 }
 
 function getCalendarDisplayOffsetParts(offset) {
-     const number = Number(offset) || 1;
+     const number = Number(offset) || 0;
      const direction = number < 0 ? "-" : "+";
-     const magnitude = clamp(Math.abs(number), 1, 31);
+     const magnitude = clamp(Math.abs(number), 0, 31);
 
      return {
           direction,
@@ -681,9 +681,19 @@ function getCalendarDisplayOffsetParts(offset) {
 }
 
 function getCalendarDisplayOffsetValue(direction, magnitude) {
-     const amount = clamp(Number(magnitude) || 1, 1, 31);
+     const amount = clamp(Number(magnitude) || 0, 0, 31);
 
      return String(direction === "-" ? -amount : amount);
+}
+
+function setCalendarDisplayControlLabel(select, labelText, ariaLabel) {
+     const label = select?.closest(".item-calendar-display-control");
+     const textNode = label ? [...label.childNodes].find((node) => node.nodeType === Node.TEXT_NODE) : null;
+
+     if (textNode) {
+          textNode.textContent = labelText;
+     }
+     select?.setAttribute("aria-label", ariaLabel);
 }
 
 function syncCalendarDisplayDateControls(item, displayYearSelect, displayMonthSelect) {
@@ -694,20 +704,24 @@ function syncCalendarDisplayDateControls(item, displayYearSelect, displayMonthSe
      if (item.dataset.dateMode === "relative") {
           const offset = getCalendarDisplayOffsetParts(item.dataset.dateOffset);
 
+          setCalendarDisplayControlLabel(displayYearSelect, "Offset", "Display date offset direction");
+          setCalendarDisplayControlLabel(displayMonthSelect, "Amount", "Display date offset amount");
           replaceSelectOptions(displayYearSelect, [
                ["+", "+"],
                ["-", "-"]
           ], offset.direction);
           replaceSelectOptions(displayMonthSelect, Array.from({
-               length: 31
+               length: 32
           }, (_, index) => {
-               const value = String(index + 1);
+               const value = String(index);
 
                return [value, value];
           }), offset.magnitude);
           return;
      }
 
+     setCalendarDisplayControlLabel(displayYearSelect, "Year", "Display year");
+     setCalendarDisplayControlLabel(displayMonthSelect, "Month", "Display month");
      replaceSelectOptions(displayYearSelect, Array.from({
           length: calendarYearRange.end - calendarYearRange.start + 1
      }, (_, index) => {

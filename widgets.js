@@ -2495,7 +2495,7 @@ function makePlannerItem(type = "sticker") {
           displayMonthSelect.append(option);
      });
      displayDateModeLabel.className = "item-calendar-display-control";
-     displayDateModeLabel.textContent = "Actual/Current";
+     displayDateModeLabel.textContent = "Date Type";
      displayDateModeSelect.dataset.widgetControl = "display-date-mode";
      displayDateModeSelect.setAttribute("aria-label", "Display date mode");
      [
