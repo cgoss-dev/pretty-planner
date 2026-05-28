@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-300">
+     <link rel="stylesheet" href="style.css?v=planner-storage-303">
 </head>
 <body>
      <main class="planner-desk">
@@ -144,6 +144,26 @@
                                    <span>Dot Grid On</span>
                               </label>
                          </div>
+                    </div>
+
+                    <div class="keyboard-control-section defaults-section">
+                         <div class="keyboard-control-title">Date Defaults</div>
+                         <label class="widget-panel-row text-panel-control">
+                              <span class="widget-panel-title">Week Start</span>
+                              <select class="native-select" data-default-control="date-week-start" aria-label="Default calendar week start">
+                                   <option value="monday" selected>Monday</option>
+                                   <option value="sunday">Sunday</option>
+                              </select>
+                         </label>
+                         <label class="widget-panel-row text-panel-control">
+                              <span class="widget-panel-title">Time Format</span>
+                              <select class="native-select" data-default-control="date-time-format" aria-label="Default calendar time format">
+                                   <option value="12">12hr</option>
+                                   <option value="12-double">12hr Double</option>
+                                   <option value="24" selected>24hr</option>
+                                   <option value="24-four">24hr Four</option>
+                              </select>
+                         </label>
                     </div>
 
                     <div class="keyboard-control-section defaults-section">
@@ -294,17 +314,20 @@
                     </button>
                     <button class="sticker-source" type="button" data-create-item data-create-type="sticker" data-widget-label="Sticker" aria-label="Add sticker"></button>
                     <button class="toc-source" type="button" data-create-item data-create-type="toc" data-widget-label="Table of Contents" aria-label="Add table of contents widget"></button>
+                    <button class="perpetual-calendar-source" type="button" data-create-item data-create-type="perpetual-calendar" data-widget-label="Perpetual Calendar" aria-label="Add perpetual calendar widget">
+                         <span>Perpetual Calendar</span>
+                    </button>
                     <button class="mini-month-source" type="button" data-create-item data-create-type="mini-month" data-widget-label="Mini Month" aria-label="Add mini month widget">
                          <span>Mini Month</span>
                     </button>
                     <button class="full-month-source" type="button" data-create-item data-create-type="full-month" data-widget-label="Full Month" aria-label="Add full month widget">
                          <span>Full Month</span>
                     </button>
-                    <button class="perpetual-calendar-source" type="button" data-create-item data-create-type="perpetual-calendar" data-widget-label="Perpetual Calendar" aria-label="Add perpetual calendar widget">
-                         <span>Perpetual Calendar</span>
+                    <button class="weekly-view-source" type="button" data-create-item data-create-type="weekly-view" data-widget-label="WeeklyView" aria-label="Add weekly view calendar widget">
+                         <span>WeeklyView</span>
                     </button>
-                    <button class="weekly-vertical-source" type="button" data-create-item data-create-type="weekly-vertical" data-widget-label="Vertical Week" aria-label="Add weekly vertical calendar widget">
-                         <span>Vertical Week</span>
+                    <button class="day-view-source" type="button" data-create-item data-create-type="day-view" data-widget-label="Day View" aria-label="Add day view calendar widget">
+                         <span>Day View</span>
                     </button>
                </div>
 
@@ -357,12 +380,12 @@
           </div>
      </main>
 
-     <script src="config.js?v=planner-storage-163"></script>
+     <script src="config.js?v=planner-storage-164"></script>
      <script src="ui.js?v=planner-storage-213"></script>
-     <script src="widgets-calendars.js?v=planner-storage-6"></script>
-     <script src="widgets.js?v=planner-storage-275"></script>
-     <script src="storage.js?v=planner-storage-23"></script>
+     <script src="widgets-calendars.js?v=planner-storage-8"></script>
+     <script src="widgets.js?v=planner-storage-277"></script>
+     <script src="storage.js?v=planner-storage-24"></script>
      <script src="controls.js?v=planner-storage-194"></script>
-     <script src="app.js?v=planner-storage-247"></script>
+     <script src="app.js?v=planner-storage-249"></script>
 </body>
 </html>

@@ -190,6 +190,10 @@ const factoryPlannerDefaults = {
           weight: "1",
           fill: "var(--paper-offwhite)",
           dotGrid: "false"
+     },
+     date: {
+          weekStart: "monday",
+          timeFormat: "24"
      }
 };
 let plannerDefaultSettings = getNormalizedPlannerDefaults();
@@ -204,6 +208,10 @@ function getNormalizedPlannerDefaults(defaults = {}) {
           grid: {
                ...factoryPlannerDefaults.grid,
                ...(defaults.grid && typeof defaults.grid === "object" ? defaults.grid : {})
+          },
+          date: {
+               ...factoryPlannerDefaults.date,
+               ...(defaults.date && typeof defaults.date === "object" ? defaults.date : {})
           }
      };
 }
@@ -238,6 +246,12 @@ function getPlannerDefaultGridSettings() {
      };
 }
 
+function getPlannerDefaultDateSettings() {
+     return {
+          ...plannerDefaultSettings.date
+     };
+}
+
 function applyPlannerDefaultsToThemeWidgets() {
      getAllPlannerItems().forEach((item) => {
           applyThemeToWidget(item);
@@ -246,6 +260,18 @@ function applyPlannerDefaultsToThemeWidgets() {
           }
      });
      renderTocWidgets();
+}
+
+function applyPlannerDefaultsToDateWidgets() {
+     if (typeof setCalendarWidgetSettings !== "function") {
+          return;
+     }
+
+     getAllPlannerItems()
+          .filter((item) => isCalendarItem(item))
+          .forEach((item) => {
+               setCalendarWidgetSettings(item, getPlannerDefaultDateSettings());
+          });
 }
 
 function applyHintPanelVisibility() {
@@ -272,11 +298,19 @@ function setDefaultControlValue(controlName, value) {
           "grid-fill": "fill",
           "dot-grid": "dotGrid"
      };
+     const dateMap = {
+          "date-week-start": "weekStart",
+          "date-time-format": "timeFormat"
+     };
 
      if (textMap[controlName]) {
           plannerDefaultSettings.text[textMap[controlName]] = value;
      } else if (gridMap[controlName]) {
           plannerDefaultSettings.grid[gridMap[controlName]] = value;
+     } else if (dateMap[controlName]) {
+          plannerDefaultSettings.date[dateMap[controlName]] = value;
+          applyPlannerDefaultsToDateWidgets();
+          return;
      }
      applyPlannerDefaultsToThemeWidgets();
 }
@@ -323,6 +357,12 @@ function syncDefaultControls() {
                control.value = plannerDefaultSettings.grid.weight;
           } else if (name === "grid-fill") {
                setPaletteControlValue(control, defaultGridFillSwatches, plannerDefaultSettings.grid.fill);
+          } else if (name === "date-week-start") {
+               control.value = plannerDefaultSettings.date.weekStart;
+               updateCustomSelectDisplay(control);
+          } else if (name === "date-time-format") {
+               control.value = plannerDefaultSettings.date.timeFormat;
+               updateCustomSelectDisplay(control);
           } else if (name.startsWith("text-")) {
                const styleName = name.replace("text-", "");
                const key = styleName === "strike" ? "strike" : styleName;
@@ -567,7 +607,7 @@ function getTextLineHeightCellSize(item) {
           return item.offsetHeight / getMiniMonthGridUnits(item).height;
      }
 
-     if (item.dataset.itemType === "full-month" || item.dataset.itemType === "weekly-vertical") {
+     if (item.dataset.itemType === "full-month" || item.dataset.itemType === "weekly-view" || item.dataset.itemType === "day-view") {
           const rowCellHeight = Number.parseFloat(item.style.getPropertyValue("--weekly-row-cell-height"));
 
           if (Number.isFinite(rowCellHeight) && rowCellHeight > 0) {
@@ -1574,8 +1614,8 @@ function getInteractWidgetTargets(item) {
           return Array.from(item.querySelectorAll(".perpetual-calendar-row[data-day-key]"));
      }
 
-     if (item.dataset.itemType === "weekly-vertical") {
-          return Array.from(item.querySelectorAll(".weekly-vertical-slot.dayCell[data-day-key]"));
+     if (item.dataset.itemType === "weekly-view" || item.dataset.itemType === "day-view") {
+          return Array.from(item.querySelectorAll(".weekly-view-slot.dayCell[data-day-key]"));
      }
 
      const stickerText = item.querySelector(".sticker-text");

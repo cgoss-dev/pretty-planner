@@ -427,6 +427,10 @@ function normalizePlannerItemType(type = "sticker") {
           return "full-month";
      }
 
+     if (type === "weekly-vertical") {
+          return "weekly-view";
+     }
+
      return type;
 }
 

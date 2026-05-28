@@ -64,8 +64,12 @@
                          width: perpetualCalendarLeftColumnGridUnits + perpetualCalendarRightColumnMinGridUnits,
                          height: 32
                     },
-                    "weekly-vertical": {
+                    "weekly-view": {
                          width: 14,
+                         height: 14
+                    },
+                    "day-view": {
+                         width: 8,
                          height: 14
                     }
                }

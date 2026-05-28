@@ -84,7 +84,11 @@ function applyThemeToWidget(item) {
                     });
                }
                if (partSlots.fillSlot && theme.widget?.[partSlots.fillSlot]) {
-                    part.style.background = getThemeFillValue(theme, partSlots.fillSlot);
+                    if (isCalendarItem(item) && partSlots.fillSlot !== "fillColor1") {
+                         part.style.background = "";
+                    } else {
+                         part.style.background = getThemeFillValue(theme, partSlots.fillSlot);
+                    }
                }
                if (partSlots.borderSlot && theme.widget?.[partSlots.borderSlot]) {
                     part.style.borderColor = typeof getPlannerDefaultGridSettings === "function"
@@ -111,7 +115,7 @@ async function loadPlannerThemeData() {
      try {
           const [themesResponse, slotsResponse] = await Promise.all([
                fetch("data/themes.json?v=planner-storage-8"),
-               fetch("data/widget-theme-slots.json?v=planner-storage-4")
+               fetch("data/widget-theme-slots.json?v=planner-storage-5")
           ]);
 
           plannerThemesData = await themesResponse.json();
@@ -649,7 +653,7 @@ function setItemBox(item, box) {
      item.style.height = `${box.height}px`;
      updateStickerDotGrid(item, page, box);
      updateItemSizeLabel(item);
-     if (item.dataset.itemType === "full-month" || item.dataset.itemType === "weekly-vertical") {
+     if (item.dataset.itemType === "full-month" || isTimeGridCalendarType(item.dataset.itemType)) {
           updateCalendarGridMetrics(item, page, box);
      }
      updateTocGridMetrics(item, page, box);
@@ -657,7 +661,7 @@ function setItemBox(item, box) {
      updateItemTextLineHeight(item);
      updateStickerTextOverflow(item);
      renderToc(item, getPageTitleEntries());
-     if (item.dataset.itemType === "weekly-vertical") {
+     if (isTimeGridCalendarType(item.dataset.itemType)) {
           renderWeeklyVertical(item);
      }
      updateCalendarTextOverflow(item);
@@ -1079,7 +1083,8 @@ function getItemTypeLabel(type) {
           "mini-month": "Mini Month",
           "full-month": "Full Month",
           "perpetual-calendar": "Perpetual Calendar",
-          "weekly-vertical": "Vertical Week"
+          "weekly-view": "WeeklyView",
+          "day-view": "Day View"
      }[type] || "Widget";
 }
 
@@ -2047,7 +2052,7 @@ function getResizedBox(item, page, clientX, clientY, mode) {
      const pageTitleMinGridUnits = item.dataset.itemType === "page-title" ? getPageTitleMinGridUnits() : null;
      const minGridWidth = pageTitleMinGridUnits
           ? pageTitleMinGridUnits.width
-          : (isTocItem(item) ? getTocMinGridColumns() : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMinGridColumns() : (item.dataset.itemType === "weekly-vertical" ? getWeeklyVerticalMinGridColumns(item) : (isFullPageCalendarType(item.dataset.itemType) ? 16 : 2))));
+          : (isTocItem(item) ? getTocMinGridColumns() : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMinGridColumns() : (isTimeGridCalendarType(item.dataset.itemType) ? getWeeklyVerticalMinGridColumns(item) : (isFullPageCalendarType(item.dataset.itemType) ? 16 : 2))));
      const minGridHeight = pageTitleMinGridUnits
           ? pageTitleMinGridUnits.height
           : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMaxGridRows() : (isFullPageCalendarType(item.dataset.itemType) ? 14 : 2));
@@ -3012,9 +3017,9 @@ function makePlannerItem(type = "sticker") {
      if (isCalendarItemType(type)) {
           displayDateRow.append(displayYearLabel, displayMonthLabel);
           if (type === "mini-month" || type === "full-month") {
-               displayDateRow.append(displayWeekNumberLabel, displayWeekStartLabel);
-          } else if (type === "weekly-vertical") {
-               displayDateRow.append(displayDayLabel, displayWeekStartLabel);
+               displayDateRow.append(displayWeekNumberLabel);
+          } else if (type === "weekly-view" || type === "day-view") {
+               displayDateRow.append(displayDayLabel);
           }
      }
      weekStartLabel.append(weekStartSelect);
@@ -3025,10 +3030,12 @@ function makePlannerItem(type = "sticker") {
      weekNumberLabel.append(weekNumberSelect);
      if (type === "perpetual-calendar") {
           calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, monthDisplayLabel, yearDisplayLabel);
-     } else if (type === "weekly-vertical") {
-          calendarAttributesGrid.append(weekStartLabel, weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
+     } else if (type === "weekly-view") {
+          calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
+     } else if (type === "day-view") {
+          calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else {
-          calendarAttributesGrid.append(weekStartLabel, weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
+          calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
      }
      startDayLabel.append(startDaySelect);
      visibleDaysLabel.append(visibleDaysSelect);
@@ -3078,14 +3085,20 @@ function makePlannerItem(type = "sticker") {
           widgetPanel.append(widgetPanelSectionTitle);
           widgetPanel.append(dotGridLabel);
      }
-     if (isCalendarItemType(type) && type !== "weekly-vertical") {
+     if (isCalendarItemType(type) && type !== "weekly-view") {
           widgetPanel.append(widgetPanelSectionTitle);
           widgetPanel.append(calendarAttributesGrid);
      }
-     if (type === "weekly-vertical") {
+     if (type === "weekly-view") {
           widgetPanel.append(widgetPanelSectionTitle);
           dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid);
-          timeWidgetGroup.append(timeWidgetTitle, timeVisibleLabel, startTimeLabel, timeFormatLabel, timeIncrementLabel, visibleDaysLabel);
+          timeWidgetGroup.append(timeWidgetTitle, timeVisibleLabel, startTimeLabel, timeIncrementLabel, visibleDaysLabel);
+          widgetPanel.append(dateWidgetGroup, timeWidgetGroup);
+     }
+     if (type === "day-view") {
+          widgetPanel.append(widgetPanelSectionTitle);
+          dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid);
+          timeWidgetGroup.append(timeWidgetTitle, timeVisibleLabel, startTimeLabel, timeIncrementLabel);
           widgetPanel.append(dateWidgetGroup, timeWidgetGroup);
      }
      if (hasWidgetControls) {
@@ -3630,7 +3643,19 @@ function advanceDuplicatedCalendarView(source, target) {
           return;
      }
 
-     if (source.dataset.itemType === "weekly-vertical") {
+     if (source.dataset.itemType === "day-view") {
+          const nextDate = getCalendarEffectiveDate(source);
+
+          nextDate.setDate(nextDate.getDate() + 1);
+          setCalendarWidgetSettings(target, {
+               month: String(nextDate.getMonth()),
+               year: String(nextDate.getFullYear()),
+               startDay: String(nextDate.getDate())
+          });
+          return;
+     }
+
+     if (source.dataset.itemType === "weekly-view") {
           const visibleDays = clamp(Number(source.dataset.visibleDays) || 7, 1, 7);
           const nextStartDate = getWeeklyViewStartDate(source);
 
