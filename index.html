@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-293">
+     <link rel="stylesheet" href="style.css?v=planner-storage-296">
 </head>
 <body>
      <main class="planner-desk">
@@ -25,12 +25,12 @@
           <aside class="hint-panel" data-hint-panel aria-label="Available keyboard controls" aria-live="polite"></aside>
           <div class="page-grid-cursor" data-page-grid-cursor aria-hidden="true"></div>
 
-          <form class="control-panel" aria-label="Planner control panel">
-               <div class="panel-title title control-panel-title">Control Panel</div>
-               <div class="control-panel-tabs" role="tablist" aria-label="Planner control panel tabs">
-                    <button class="control-panel-tab is-active" type="button" role="tab" aria-selected="true" aria-label="Controls" aria-controls="controls-panel" data-control-panel-tab="controls">
+          <form class="control-panel" aria-label="Planner settings panel">
+               <div class="panel-title title control-panel-title">Settings Panel</div>
+               <div class="control-panel-tabs" role="tablist" aria-label="Planner settings panel tabs">
+                    <button class="control-panel-tab is-active" type="button" role="tab" aria-selected="true" aria-label="Defaults" aria-controls="defaults-panel" data-control-panel-tab="defaults">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">1 Controls</span>
+                         <span class="control-panel-tab-label">1 Defaults</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
                     <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Notebook" aria-controls="page-panel" data-control-panel-tab="page">
@@ -45,7 +45,109 @@
                     </button>
                </div>
 
-               <div class="control-panel-page controls-panel" id="controls-panel" role="tabpanel" data-control-panel-page="controls" data-keyboard-controls></div>
+               <div class="control-panel-page controls-panel defaults-panel" id="defaults-panel" role="tabpanel" data-control-panel-page="defaults">
+                    <div class="keyboard-control-section defaults-section">
+                         <div class="keyboard-control-title">Interface</div>
+                         <div class="control-choice-group" aria-label="Hint Panel">
+                              <label class="control-choice">
+                                   <input type="radio" name="hint-panel-default" data-default-control="hint-panel" value="on" checked>
+                                   <span>Hint On</span>
+                              </label>
+                              <label class="control-choice">
+                                   <input type="radio" name="hint-panel-default" data-default-control="hint-panel" value="off">
+                                   <span>Hint Off</span>
+                              </label>
+                         </div>
+                    </div>
+
+                    <div class="keyboard-control-section defaults-section">
+                         <div class="keyboard-control-title">Text Defaults</div>
+                         <label class="widget-panel-row text-panel-control">
+                              <span class="widget-panel-title">Typeface</span>
+                              <select class="native-select" data-default-control="text-font" aria-label="Default text font">
+                                   <option value="annotation-mono" selected>Annotation Mono</option>
+                                   <option value="bungee">Bungee</option>
+                                   <option value="bungee-outline">Bungee Outline</option>
+                                   <option value="bungee-shade">Bungee Shade</option>
+                                   <option value="caveat">Caveat</option>
+                                   <option value="dancing">Dancing Script</option>
+                                   <option value="miltonian">Miltonian</option>
+                                   <option value="noto-sans-mono">Noto Sans Mono</option>
+                                   <option value="permanent-marker">Permanent Marker</option>
+                                   <option value="rock-salt">Rock Salt</option>
+                                   <option value="sedgwick-ave-display">Sedgwick Ave Display</option>
+                                   <option value="serif">Standard Serif</option>
+                                   <option value="sans">Standard Sans</option>
+                                   <option value="sofia-sans-ec">Sofia Sans EC</option>
+                              </select>
+                         </label>
+                         <label class="widget-panel-row text-panel-control">
+                              <span class="widget-panel-title">Text Size</span>
+                              <select class="native-select" data-default-control="text-size" aria-label="Default text size">
+                                   <option value="10" selected>10px</option>
+                                   <option value="20">20px</option>
+                                   <option value="40">40px</option>
+                                   <option value="80">80px</option>
+                                   <option value="160">160px</option>
+                              </select>
+                         </label>
+                         <label class="widget-panel-row text-panel-control color-panel-control">
+                              <span class="widget-panel-title">Text Color</span>
+                              <select class="native-select" data-default-control="text-color" aria-label="Default text color"></select>
+                              <div class="color-panel-swatches" data-default-text-color-swatches></div>
+                         </label>
+                         <div class="text-panel-format text-panel-control" aria-label="Default text style">
+                              <span class="widget-panel-title">Text Style</span>
+                              <button class="text-panel-toggle text-panel-toggle-bold" type="button" data-default-control="text-bold" aria-pressed="false">Bold</button>
+                              <button class="text-panel-toggle text-panel-toggle-italic" type="button" data-default-control="text-italic" aria-pressed="false">Italic</button>
+                              <button class="text-panel-toggle text-panel-toggle-underline" type="button" data-default-control="text-underline" aria-pressed="false">Underline</button>
+                              <button class="text-panel-toggle text-panel-toggle-strike" type="button" data-default-control="text-strike" aria-pressed="false">Strike</button>
+                         </div>
+                    </div>
+
+                    <div class="keyboard-control-section defaults-section">
+                         <div class="keyboard-control-title">Grid Defaults</div>
+                         <label class="widget-panel-row text-panel-control color-panel-control">
+                              <span class="widget-panel-title">Gridline Color</span>
+                              <select class="native-select" data-default-control="grid-color" aria-label="Default gridline color"></select>
+                              <div class="color-panel-swatches" data-default-grid-color-swatches></div>
+                         </label>
+                         <label class="widget-panel-row text-panel-control">
+                              <span class="widget-panel-title">Gridline Weight</span>
+                              <select class="native-select" data-default-control="grid-weight" aria-label="Default gridline weight">
+                                   <option value="0">0px</option>
+                                   <option value="1" selected>1px</option>
+                                   <option value="2">2px</option>
+                                   <option value="3">3px</option>
+                                   <option value="4">4px</option>
+                              </select>
+                         </label>
+                         <label class="widget-panel-row text-panel-control color-panel-control">
+                              <span class="widget-panel-title">Grid Fill</span>
+                              <select class="native-select" data-default-control="grid-fill" aria-label="Default grid fill"></select>
+                              <div class="color-panel-swatches" data-default-grid-fill-swatches></div>
+                         </label>
+                         <div class="control-choice-group" aria-label="Default dot grid">
+                              <label class="control-choice">
+                                   <input type="radio" name="dot-grid-default" data-default-control="dot-grid" value="false" checked>
+                                   <span>Dot Grid Off</span>
+                              </label>
+                              <label class="control-choice">
+                                   <input type="radio" name="dot-grid-default" data-default-control="dot-grid" value="true">
+                                   <span>Dot Grid On</span>
+                              </label>
+                         </div>
+                    </div>
+
+                    <div class="keyboard-control-section defaults-section">
+                         <div class="keyboard-control-title">Reset</div>
+                         <div class="defaults-action-grid">
+                              <button class="control-action-button" type="button" data-reset-unique-defaults>Reset Unique</button>
+                              <button class="control-action-button" type="button" data-reset-universal-defaults>Reset Universal</button>
+                              <button class="control-action-button widget-panel-danger" type="button" data-reset-notebook-defaults>Reset Entire Notebook</button>
+                         </div>
+                    </div>
+               </div>
 
                <div class="control-panel-page" id="page-panel" role="tabpanel" data-control-panel-page="page" hidden>
                     <div class="control-field">
@@ -250,11 +352,11 @@
      </main>
 
      <script src="config.js?v=planner-storage-163"></script>
-     <script src="ui.js?v=planner-storage-209"></script>
+     <script src="ui.js?v=planner-storage-210"></script>
      <script src="widgets-calendars.js?v=planner-storage-6"></script>
-     <script src="widgets.js?v=planner-storage-274"></script>
-     <script src="storage.js?v=planner-storage-22"></script>
+     <script src="widgets.js?v=planner-storage-275"></script>
+     <script src="storage.js?v=planner-storage-23"></script>
      <script src="controls.js?v=planner-storage-193"></script>
-     <script src="app.js?v=planner-storage-243"></script>
+     <script src="app.js?v=planner-storage-244"></script>
 </body>
 </html>

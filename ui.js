@@ -1361,7 +1361,7 @@ function updateObjectControlsState() {
 
      if (activeTab && isObjectControlTab(activeTab.dataset.controlPanelTab || "") && activeTab.disabled) {
           const fallbackObjectTab = controlPanelTabs.find((tab) => isObjectControlTab(tab.dataset.controlPanelTab || "") && !tab.disabled);
-          const fallbackTab = fallbackObjectTab || controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "controls");
+          const fallbackTab = fallbackObjectTab || controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "defaults");
 
           if (fallbackTab) {
                selectControlPanelTab(fallbackTab.dataset.controlPanelTab);

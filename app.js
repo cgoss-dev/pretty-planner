@@ -28,6 +28,13 @@ const objectControlsEmpty = document.querySelector("[data-object-controls-empty]
 const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]"));
 const zoomToast = document.querySelector("[data-zoom-toast]");
 const hintPanel = document.querySelector("[data-hint-panel]");
+const defaultControls = Array.from(document.querySelectorAll("[data-default-control]"));
+const defaultTextColorSwatches = document.querySelector("[data-default-text-color-swatches]");
+const defaultGridColorSwatches = document.querySelector("[data-default-grid-color-swatches]");
+const defaultGridFillSwatches = document.querySelector("[data-default-grid-fill-swatches]");
+const resetUniqueDefaultsButton = document.querySelector("[data-reset-unique-defaults]");
+const resetUniversalDefaultsButton = document.querySelector("[data-reset-universal-defaults]");
+const resetNotebookDefaultsButton = document.querySelector("[data-reset-notebook-defaults]");
 const pageGridCursor = document.querySelector("[data-page-grid-cursor]");
 const pageCornerFoldOverlay = document.createElement("div");
 const pageCornerFoldOverlayNumber = document.createElement("span");
@@ -163,6 +170,205 @@ plannerDesk.append(pageCornerFoldOverlay);
 let activeColorMatrixToggle = document.querySelector("[data-color-panel-matrix-toggle]");
 let activeHexTarget = null;
 let isRestoringPlannerState = false;
+const factoryPlannerDefaults = {
+     hintPanel: "on",
+     text: {
+          size: "10",
+          font: "annotation-mono",
+          color: "var(--color-gray1)",
+          bold: "false",
+          italic: "false",
+          underline: "false",
+          strike: "false",
+          align: "center",
+          yAlign: "center",
+          lineHeight: "1",
+          role: "body"
+     },
+     grid: {
+          color: "var(--color-gray4)",
+          weight: "1",
+          fill: "var(--paper-offwhite)",
+          dotGrid: "false"
+     }
+};
+let plannerDefaultSettings = getNormalizedPlannerDefaults();
+
+function getNormalizedPlannerDefaults(defaults = {}) {
+     return {
+          hintPanel: defaults.hintPanel === "off" ? "off" : factoryPlannerDefaults.hintPanel,
+          text: {
+               ...factoryPlannerDefaults.text,
+               ...(defaults.text && typeof defaults.text === "object" ? defaults.text : {})
+          },
+          grid: {
+               ...factoryPlannerDefaults.grid,
+               ...(defaults.grid && typeof defaults.grid === "object" ? defaults.grid : {})
+          }
+     };
+}
+
+function serializePlannerDefaults() {
+     return JSON.parse(JSON.stringify(plannerDefaultSettings));
+}
+
+function restorePlannerDefaults(defaults) {
+     plannerDefaultSettings = getNormalizedPlannerDefaults(defaults);
+}
+
+function getPlannerDefaultTextSettings(overrides = {}) {
+     return {
+          ...plannerDefaultSettings.text,
+          ...overrides
+     };
+}
+
+function getPlannerDefaultItemStyle(type = "sticker") {
+     return {
+          fillColor: isPageTitleItemType(type) ? "transparent" : plannerDefaultSettings.grid.fill,
+          borderColor: isPageTitleItemType(type) ? "transparent" : plannerDefaultSettings.grid.color,
+          borderWidth: plannerDefaultSettings.grid.weight,
+          dotGrid: plannerDefaultSettings.grid.dotGrid
+     };
+}
+
+function getPlannerDefaultGridSettings() {
+     return {
+          ...plannerDefaultSettings.grid
+     };
+}
+
+function applyPlannerDefaultsToThemeWidgets() {
+     getAllPlannerItems().forEach((item) => {
+          applyThemeToWidget(item);
+          if (isCalendarItem(item)) {
+               applyCalendarPartStyles(item);
+          }
+     });
+     renderTocWidgets();
+}
+
+function applyHintPanelVisibility() {
+     if (hintPanel) {
+          hintPanel.hidden = plannerDefaultSettings.hintPanel === "off";
+     }
+}
+
+function setDefaultControlValue(controlName, value) {
+     if (controlName === "hint-panel") {
+          plannerDefaultSettings.hintPanel = value === "off" ? "off" : "on";
+          applyHintPanelVisibility();
+          return;
+     }
+
+     const textMap = {
+          "text-size": "size",
+          "text-font": "font",
+          "text-color": "color"
+     };
+     const gridMap = {
+          "grid-color": "color",
+          "grid-weight": "weight",
+          "grid-fill": "fill",
+          "dot-grid": "dotGrid"
+     };
+
+     if (textMap[controlName]) {
+          plannerDefaultSettings.text[textMap[controlName]] = value;
+     } else if (gridMap[controlName]) {
+          plannerDefaultSettings.grid[gridMap[controlName]] = value;
+     }
+     applyPlannerDefaultsToThemeWidgets();
+}
+
+function toggleDefaultTextStyle(controlName, button) {
+     const textMap = {
+          "text-bold": "bold",
+          "text-italic": "italic",
+          "text-underline": "underline",
+          "text-strike": "strike"
+     };
+     const key = textMap[controlName];
+
+     if (!key) {
+          return;
+     }
+
+     const nextValue = plannerDefaultSettings.text[key] === "true" ? "false" : "true";
+
+     plannerDefaultSettings.text[key] = nextValue;
+     button.setAttribute("aria-pressed", String(nextValue === "true"));
+     button.classList.toggle("is-active", nextValue === "true");
+     applyPlannerDefaultsToThemeWidgets();
+}
+
+function syncDefaultControls() {
+     defaultControls.forEach((control) => {
+          const name = control.dataset.defaultControl;
+
+          if (name === "hint-panel") {
+               control.checked = control.value === plannerDefaultSettings.hintPanel;
+          } else if (name === "dot-grid") {
+               control.checked = control.value === plannerDefaultSettings.grid.dotGrid;
+          } else if (name === "text-size") {
+               control.value = plannerDefaultSettings.text.size;
+          } else if (name === "text-font") {
+               control.value = plannerDefaultSettings.text.font;
+               updateCustomSelectDisplay(control);
+          } else if (name === "text-color") {
+               setPaletteControlValue(control, defaultTextColorSwatches, plannerDefaultSettings.text.color);
+          } else if (name === "grid-color") {
+               setPaletteControlValue(control, defaultGridColorSwatches, plannerDefaultSettings.grid.color);
+          } else if (name === "grid-weight") {
+               control.value = plannerDefaultSettings.grid.weight;
+          } else if (name === "grid-fill") {
+               setPaletteControlValue(control, defaultGridFillSwatches, plannerDefaultSettings.grid.fill);
+          } else if (name.startsWith("text-")) {
+               const styleName = name.replace("text-", "");
+               const key = styleName === "strike" ? "strike" : styleName;
+               const isActive = plannerDefaultSettings.text[key] === "true";
+
+               control.setAttribute("aria-pressed", String(isActive));
+               control.classList.toggle("is-active", isActive);
+          }
+     });
+     applyHintPanelVisibility();
+}
+
+function resetItemsToPlannerDefaults(items) {
+     const uniqueItems = Array.from(new Set(items)).filter(Boolean);
+
+     uniqueItems.forEach((item) => {
+          setItemStyle(item, getPlannerDefaultItemStyle(item.dataset.itemType));
+          if (isCalendarItem(item)) {
+               setCalendarPartStyles(item, {});
+               applyCalendarPartStyles(item);
+          }
+          if (isCalendarTextItem(item)) {
+               setCalendarDayTextSettings(item, getPlannerDefaultTextSettings());
+          } else if (isStickerTextItem(item)) {
+               setStickerTextSettings(item, getPlannerDefaultTextSettings({
+                    enabled: item.dataset.textEnabled ?? (isPageTitleItem(item) || isTocItem(item) ? "true" : "false")
+               }));
+          }
+     });
+     notifyTemplateChanged();
+}
+
+function resetUniqueStylesToDefaults() {
+     resetItemsToPlannerDefaults(selectedItems.size ? Array.from(selectedItems) : getAllPlannerItems());
+}
+
+function resetUniversalStylesToDefaults() {
+     if (!selectedItems.size) {
+          resetItemsToPlannerDefaults(getAllPlannerItems());
+          return;
+     }
+
+     const selectedTypes = new Set(Array.from(selectedItems).map((item) => item.dataset.itemType));
+
+     resetItemsToPlannerDefaults(getAllPlannerItems().filter((item) => selectedTypes.has(item.dataset.itemType)));
+}
 
 restoreSavedSettings();
 let plannerConfig = buildPlannerConfig();
@@ -2231,7 +2437,7 @@ function handleKeyboardModeNumberKey(event) {
      if (designBranch === "root") {
           event.preventDefault();
           if (event.key === "1") {
-               enterKeyboardMenuBranch("controls", "controls");
+               enterKeyboardMenuBranch("defaults", "defaults");
           } else if (event.key === "2") {
                enterKeyboardMenuBranch("notebook", "page");
           } else if (event.key === "3") {
@@ -2240,7 +2446,7 @@ function handleKeyboardModeNumberKey(event) {
           return;
      }
 
-     if (designBranch === "controls" && event.key === "1") {
+     if (designBranch === "defaults" && event.key === "1") {
           event.preventDefault();
           returnToKeyboardDesignRoot();
           return;
@@ -2258,7 +2464,7 @@ function handleKeyboardModeNumberKey(event) {
           return;
      }
 
-     if (designBranch === "controls" || designBranch === "notebook" || designBranch === "menu") {
+     if (designBranch === "defaults" || designBranch === "notebook" || designBranch === "menu") {
           const tab = controlPanelTabs[Number(event.key) - 1];
 
           if (!tab || tab.disabled) {
@@ -2845,9 +3051,9 @@ function getKeyHintState() {
           };
      }
 
-     if (keyboardMode === "design" && designBranch === "controls") {
+     if (keyboardMode === "design" && designBranch === "defaults") {
           return {
-               mode: "Design Mode > Controls",
+               mode: "Design Mode > Defaults",
                entries: [
                ["1", "Back"],
                ["1-3", "Tabs"],
@@ -3179,6 +3385,61 @@ function applyPlannerConfig() {
      document.documentElement.dataset.guideFourths = String(plannerConfig.guides.fourths);
 }
 
+function initializeDefaultControls() {
+     const textColorSelect = document.querySelector("[data-default-control='text-color']");
+     const gridColorSelect = document.querySelector("[data-default-control='grid-color']");
+     const gridFillSelect = document.querySelector("[data-default-control='grid-fill']");
+
+     if (textColorSelect) {
+          initializePaletteColorControl(textColorSelect, defaultTextColorSwatches, plannerDefaultSettings.text.color, (nextColor) => {
+               setDefaultControlValue("text-color", nextColor);
+               savePlannerState();
+          });
+     }
+     if (gridColorSelect) {
+          initializePaletteColorControl(gridColorSelect, defaultGridColorSwatches, plannerDefaultSettings.grid.color, (nextColor) => {
+               setDefaultControlValue("grid-color", nextColor);
+               savePlannerState();
+          });
+     }
+     if (gridFillSelect) {
+          initializePaletteColorControl(gridFillSelect, defaultGridFillSwatches, plannerDefaultSettings.grid.fill, (nextColor) => {
+               setDefaultControlValue("grid-fill", nextColor);
+               savePlannerState();
+          });
+     }
+
+     defaultControls.forEach((control) => {
+          if (control.matches("select")) {
+               if (["text-color", "grid-color", "grid-fill"].includes(control.dataset.defaultControl)) {
+                    return;
+               }
+               control.addEventListener("change", () => {
+                    setDefaultControlValue(control.dataset.defaultControl, control.value);
+                    updateCustomSelectDisplay(control);
+                    savePlannerState();
+               });
+          } else if (control.matches("input[type='radio']")) {
+               control.addEventListener("change", () => {
+                    if (control.checked) {
+                         setDefaultControlValue(control.dataset.defaultControl, control.value);
+                         savePlannerState();
+                    }
+               });
+          } else if (control.matches("button")) {
+               control.addEventListener("click", () => {
+                    toggleDefaultTextStyle(control.dataset.defaultControl, control);
+                    savePlannerState();
+               });
+          }
+     });
+
+     resetUniqueDefaultsButton?.addEventListener("click", resetUniqueStylesToDefaults);
+     resetUniversalDefaultsButton?.addEventListener("click", resetUniversalStylesToDefaults);
+     resetNotebookDefaultsButton?.addEventListener("click", clearCurrentBook);
+     syncDefaultControls();
+}
+
 // NOTE: Start The App And Connect The Buttons
 window.prettyPlanner = {
      serializeTemplate: serializePlannerTemplate,
@@ -3189,7 +3450,10 @@ window.prettyPlanner = {
 window.perfectPlanner = window.prettyPlanner;
 
 syncAllSettingChoiceInputs();
-KeyboardControls.renderControlsPanel(keyboardControlsPanel);
+if (keyboardControlsPanel) {
+     KeyboardControls.renderControlsPanel(keyboardControlsPanel);
+}
+initializeDefaultControls();
 initializeCustomSelects();
 initializeNotebookControlSections();
 initializeControlSections(controlPanel);

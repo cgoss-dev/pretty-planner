@@ -31,8 +31,11 @@ function getThemeTextSize(theme, textTheme = {}) {
 }
 
 function getThemeFillValue(theme, fillSlot) {
-     const fillColor = getThemeColorValue(theme.widget?.[fillSlot]);
-     const baseFill = getThemeColorValue(theme.widget?.fillColor1 || "paper");
+     const defaultGrid = typeof getPlannerDefaultGridSettings === "function" ? getPlannerDefaultGridSettings() : null;
+     const fillColor = fillSlot === "fillColor1" && defaultGrid?.fill
+          ? defaultGrid.fill
+          : getThemeColorValue(theme.widget?.[fillSlot]);
+     const baseFill = defaultGrid?.fill || getThemeColorValue(theme.widget?.fillColor1 || "paper");
 
      if (!fillColor || fillSlot === "fillColor1") {
           return fillColor || baseFill;
@@ -42,22 +45,23 @@ function getThemeFillValue(theme, fillSlot) {
 }
 
 function applyTextThemeToElement(element, textTheme = {}, theme = null, overrides = {}) {
+     const defaultText = typeof getPlannerDefaultTextSettings === "function" ? getPlannerDefaultTextSettings() : null;
      const nextTextTheme = {
           ...textTheme,
           ...overrides
      };
 
-     element.style.fontFamily = getStickerTextFont(nextTextTheme.typeface || "annotation-mono");
-     element.style.fontSize = `${getThemeTextSize(theme, nextTextTheme)}px`;
-     element.style.color = getThemeColorValue(nextTextTheme.color || "gray1");
-     element.style.fontWeight = nextTextTheme.style?.includes("bold") ? "700" : "400";
-     element.style.fontStyle = nextTextTheme.style?.includes("italic") ? "italic" : "normal";
+     element.style.fontFamily = getStickerTextFont(defaultText?.font || nextTextTheme.typeface || "annotation-mono");
+     element.style.fontSize = `${defaultText?.size || getThemeTextSize(theme, nextTextTheme)}px`;
+     element.style.color = defaultText?.color || getThemeColorValue(nextTextTheme.color || "gray1");
+     element.style.fontWeight = (defaultText?.bold === "true" || nextTextTheme.style?.includes("bold")) ? "700" : "400";
+     element.style.fontStyle = (defaultText?.italic === "true" || nextTextTheme.style?.includes("italic")) ? "italic" : "normal";
      element.style.textDecoration = getTextDecorationValue(
-          nextTextTheme.style?.includes("underline") ? "true" : "false",
-          nextTextTheme.style?.includes("strikethrough") ? "true" : "false"
+          defaultText?.underline ?? (nextTextTheme.style?.includes("underline") ? "true" : "false"),
+          defaultText?.strike ?? (nextTextTheme.style?.includes("strikethrough") ? "true" : "false")
      );
-     element.style.textAlign = "center";
-     element.style.alignContent = "center";
+     element.style.textAlign = defaultText?.align || "center";
+     element.style.alignContent = getTextYAlignValue(defaultText?.yAlign || "center");
 }
 
 function applyThemeToWidget(item) {
@@ -83,7 +87,9 @@ function applyThemeToWidget(item) {
                     part.style.background = getThemeFillValue(theme, partSlots.fillSlot);
                }
                if (partSlots.borderSlot && theme.widget?.[partSlots.borderSlot]) {
-                    part.style.borderColor = getThemeColorValue(theme.widget[partSlots.borderSlot]);
+                    part.style.borderColor = typeof getPlannerDefaultGridSettings === "function"
+                         ? getPlannerDefaultGridSettings().color
+                         : getThemeColorValue(theme.widget[partSlots.borderSlot]);
                }
           });
      });
@@ -95,7 +101,9 @@ function applyThemeToWidget(item) {
           item.style.setProperty("--widget-box-fill", getThemeFillValue(theme, backgroundSlots.fillSlot));
      }
      if (backgroundSlots?.borderSlot && theme.widget?.[backgroundSlots.borderSlot]) {
-          item.style.setProperty("--sticker-border-color", getThemeColorValue(theme.widget[backgroundSlots.borderSlot]));
+          item.style.setProperty("--sticker-border-color", typeof getPlannerDefaultGridSettings === "function"
+               ? getPlannerDefaultGridSettings().color
+               : getThemeColorValue(theme.widget[backgroundSlots.borderSlot]));
      }
 }
 
@@ -3121,23 +3129,27 @@ function makePlannerItem(type = "sticker") {
           item.append(tocElement);
      }
      item.append(controls);
-     setItemStyle(item, {
+     setItemStyle(item, typeof getPlannerDefaultItemStyle === "function" ? getPlannerDefaultItemStyle(type) : {
           fillColor: isPageTitleItemType(type) ? "transparent" : "var(--paper-offwhite)",
           borderColor: isPageTitleItemType(type) ? "transparent" : "var(--color-gray4)",
           borderWidth: borderWidthSelect.value,
           dotGrid: "false"
      });
-     setStickerTextSettings(item, isPageTitleItemType(type) ? {
-          enabled: "true",
-          size: "80",
-          font: "annotation-mono",
-          color: "var(--color-gray1)",
-          bold: "false",
-          strike: "false",
-          align: "center",
-          yAlign: "center"
-     } : {});
-     setCalendarDayTextSettings(item);
+     setStickerTextSettings(item, typeof getPlannerDefaultTextSettings === "function"
+          ? getPlannerDefaultTextSettings({
+               enabled: isPageTitleItemType(type) || isTocItemType(type) ? "true" : "false"
+          })
+          : (isPageTitleItemType(type) ? {
+               enabled: "true",
+               size: "80",
+               font: "annotation-mono",
+               color: "var(--color-gray1)",
+               bold: "false",
+               strike: "false",
+               align: "center",
+               yAlign: "center"
+          } : {}));
+     setCalendarDayTextSettings(item, typeof getPlannerDefaultTextSettings === "function" ? getPlannerDefaultTextSettings() : {});
      if (isCalendarItemType(type)) {
           setCalendarWidgetSettings(item);
      }

@@ -288,6 +288,7 @@ function serializePlannerSettings() {
           accentColor: accentColorSelect?.value || "Red",
           customAccentColor: accentColors.Custom?.color || "#ff0000",
           deskColor: deskColorSelect?.value || "wood-brown",
+          defaults: typeof serializePlannerDefaults === "function" ? serializePlannerDefaults() : null,
           guides: Object.fromEntries(guideInputs.map((input) => [input.dataset.guide, input.checked])),
           view: {
                zoomIndex: viewZoomIndex,
@@ -315,6 +316,9 @@ function restoreSavedSettings() {
      setSelectValue(paperColorSelect, settings.paperColor);
      setSelectValue(accentColorSelect, settings.accentColor);
      setSelectValue(deskColorSelect, settings.deskColor);
+     if (settings.defaults && typeof restorePlannerDefaults === "function") {
+          restorePlannerDefaults(settings.defaults);
+     }
      if (settings.guides && typeof settings.guides === "object") {
           if (settings.guides.halves === true) {
                settings.guides.fourths = true;
