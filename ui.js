@@ -1178,7 +1178,11 @@ function updateSelectFocusSpace(dropdown) {
      const availableSpace = opensUp
           ? summaryRect.top - menuRect.top - 12
           : menuRect.bottom - summaryRect.bottom - 12;
-     const availableHeight = Math.max(92, Math.floor(availableSpace));
+     let availableHeight = Math.max(92, Math.floor(availableSpace));
+
+     if (["font", "text-font"].includes(dropdown.dataset.customSelect)) {
+          availableHeight = Math.min(availableHeight, 300);
+     }
 
      dropdown.style.setProperty("--select-focus-options-height", `${availableHeight}px`);
 }

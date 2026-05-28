@@ -394,6 +394,10 @@ body {
      backdrop-filter: blur(8px);
 }
 
+.hint-panel[hidden] {
+     display: none;
+}
+
 .title {
      padding: 0 0 6px;
      border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
@@ -794,6 +798,80 @@ body {
      align-content: start;
 }
 
+.defaults-panel .defaults-section {
+     gap: 6px;
+}
+
+.defaults-panel .keyboard-control-title {
+     padding-bottom: 5px;
+}
+
+.defaults-panel .widget-panel-row,
+.defaults-panel .text-panel-format,
+.defaults-panel .color-panel-control {
+     padding: 0;
+     border: 0;
+     border-radius: 0;
+     background: transparent;
+}
+
+.defaults-panel .widget-panel-row {
+     grid-template-columns: 112px minmax(0, 1fr);
+     align-items: center;
+     gap: 8px;
+}
+
+.defaults-panel .widget-panel-title {
+     grid-column: auto;
+}
+
+.defaults-panel .widget-panel-row .custom-select,
+.defaults-panel .color-panel-control .custom-select {
+     grid-column: 2;
+     justify-self: stretch;
+     width: 100%;
+}
+
+.defaults-panel .color-panel-control {
+     grid-template-columns: 112px var(--color-swatch-size);
+     align-items: center;
+     gap: 8px;
+}
+
+.defaults-panel .color-panel-swatches {
+     grid-column: 2;
+}
+
+.defaults-panel .text-panel-format {
+     grid-template-columns: 112px repeat(4, minmax(0, 1fr));
+     align-items: center;
+     gap: 6px;
+}
+
+.defaults-panel .text-panel-toggle {
+     min-height: 28px;
+     padding: 4px 6px;
+     text-align: center;
+}
+
+.defaults-panel .defaults-section:has(.defaults-half-control) {
+     grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.defaults-panel .defaults-section:has(.defaults-half-control) > .keyboard-control-title,
+.defaults-panel .defaults-section:has(.defaults-half-control) > .widget-panel-row:not(.defaults-half-control),
+.defaults-panel .defaults-section:has(.defaults-half-control) > .control-choice-group {
+     grid-column: 1 / -1;
+}
+
+.defaults-panel .defaults-half-control {
+     grid-template-columns: minmax(0, 1fr) var(--color-swatch-size);
+}
+
+.defaults-panel .defaults-half-control .color-panel-swatches {
+     grid-column: 2;
+}
+
 .defaults-action-grid {
      display: grid;
      grid-template-columns: repeat(auto-fit, minmax(calc(var(--color-swatch-size) * 3), 1fr));
@@ -1011,8 +1089,9 @@ body {
      animation: select-options-slide 200ms ease both;
 }
 
-.custom-select[data-custom-select="font"][open] .custom-select-options {
-     max-height: calc(10 * 28px);
+.custom-select[data-custom-select="font"][open] .custom-select-options,
+.custom-select[data-custom-select="text-font"][open] .custom-select-options {
+     max-height: calc(10 * 30px);
 }
 
 .custom-select-option {
@@ -1445,7 +1524,7 @@ body {
 }
 
 .control-panel.is-select-focused .control-panel-page {
-     overflow: hidden;
+     overflow: auto;
 }
 
 .control-panel-page:has(.custom-select[open]),
@@ -1491,24 +1570,6 @@ body {
      max-height: 240px;
      opacity: 1;
      transform: translateY(0);
-}
-
-.control-panel-page.is-select-focused > :not(.is-select-focus) {
-     display: none;
-     max-height: 0;
-     margin: 0;
-     padding-top: 0;
-     padding-bottom: 0;
-     border-width: 0;
-     opacity: 0;
-     overflow: hidden;
-     pointer-events: none;
-     transform: translateY(-14px);
-}
-
-.control-panel-page.is-select-focused .is-select-focus {
-     align-self: start;
-     order: -1;
 }
 
 @keyframes select-options-slide {
@@ -4322,6 +4383,88 @@ body {
           var(--color-white);
 }
 
+.defaults-panel .widget-panel-row,
+.defaults-panel .text-panel-format,
+.defaults-panel .color-panel-control {
+     padding: 0;
+     border: 0;
+     border-radius: 0;
+     background: transparent;
+}
+
+.defaults-panel .widget-panel-row {
+     grid-template-columns: 112px minmax(0, 1fr);
+     align-items: center;
+     gap: 8px;
+}
+
+.defaults-panel .widget-panel-title {
+     grid-column: auto;
+}
+
+.defaults-panel .widget-panel-row .custom-select,
+.defaults-panel .color-panel-control .custom-select {
+     grid-column: 2;
+     justify-self: stretch;
+     width: 100%;
+}
+
+.defaults-panel .color-panel-control {
+     grid-template-columns: 112px var(--color-swatch-size);
+     align-items: center;
+     gap: 8px;
+}
+
+.defaults-panel .color-panel-swatches {
+     grid-column: 2;
+}
+
+.defaults-panel .text-panel-format {
+     grid-template-columns: 112px repeat(4, minmax(0, 1fr));
+     align-items: center;
+     gap: 6px;
+}
+
+.defaults-panel .text-panel-toggle {
+     min-height: 28px;
+     padding: 4px 6px;
+     text-align: center;
+}
+
+.defaults-panel .defaults-section:has(.defaults-half-control) {
+     grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.defaults-panel .defaults-section:has(.defaults-half-control) > .keyboard-control-title,
+.defaults-panel .defaults-section:has(.defaults-half-control) > .widget-panel-row:not(.defaults-half-control),
+.defaults-panel .defaults-section:has(.defaults-half-control) > .control-choice-group {
+     grid-column: 1 / -1;
+}
+
+.defaults-panel .defaults-half-control {
+     grid-template-columns: minmax(0, 1fr) var(--color-swatch-size);
+}
+
+.defaults-panel .defaults-section > .widget-panel-row:has([data-default-control="grid-color"]) {
+     grid-column: 1;
+     grid-row: 2;
+}
+
+.defaults-panel .defaults-section > .widget-panel-row:has([data-default-control="grid-fill"]) {
+     grid-column: 2;
+     grid-row: 2;
+}
+
+.defaults-panel .defaults-section > .widget-panel-row:has([data-default-control="grid-weight"]) {
+     grid-column: 1 / -1;
+     grid-row: 3;
+}
+
+.defaults-panel .defaults-section > .control-choice-group:has([data-default-control="dot-grid"]) {
+     grid-column: 1 / -1;
+     grid-row: 4;
+}
+
 .item-actions-widget-type,
 .item-design-popup-title,
 .keyboard-control-title {
@@ -4657,6 +4800,25 @@ body.is-single-page-viewport .control-panel-page {
 
      .control-panel-tab-step[aria-disabled="true"] {
           pointer-events: none;
+     }
+
+     .defaults-panel .defaults-section:has(.defaults-half-control),
+     .defaults-panel .text-panel-format {
+          grid-template-columns: 1fr;
+     }
+
+     .defaults-panel .widget-panel-row,
+     .defaults-panel .color-panel-control,
+     .defaults-panel .defaults-half-control {
+          grid-template-columns: 96px minmax(0, 1fr);
+     }
+
+     .defaults-panel .defaults-half-control {
+          grid-column: 1 / -1;
+     }
+
+     .defaults-panel .text-panel-format .widget-panel-title {
+          grid-column: 1;
      }
 }
 
