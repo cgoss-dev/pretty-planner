@@ -463,6 +463,7 @@ window.KeyboardControls = (() => {
                controls: [
                     { key: "Tab", action: "Toggle Mode" },
                     { key: "Q / E", action: "Last or next page, spread, or tab" },
+                    { key: "Mouse Back / Forward", action: "Last or next page" },
                     { key: "Enter", action: "Edit" },
                     { key: "Z", action: "Cycle zoom" },
                     { key: "X", action: "Toggle gridlines on or off" },

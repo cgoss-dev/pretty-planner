@@ -148,6 +148,8 @@ let nextGroupId = 1;
 let plannerClipboard = null;
 let keyboardMode = "interact";
 let designBranch = "root";
+let lastMousePageTurnButton = null;
+let lastMousePageTurnTime = 0;
 let shouldSkipNextClear = false;
 let shouldSkipNextItemClick = false;
 let shouldSkipNextTabClick = false;
@@ -1129,6 +1131,46 @@ function handlePageTurnKey(event) {
           } else {
                turnNotebookSpread(1);
           }
+     }
+}
+
+function handleMousePageTurnButton(event) {
+     // NOTE: Uses browser back/forward mouse side buttons to turn planner pages instead of browser history.
+     const isPageTurnButton = event.button === 3 || event.button === 4;
+
+     if (!isPageTurnButton) {
+          return;
+     }
+
+     if (event.defaultPrevented) {
+          return;
+     }
+
+     event.preventDefault();
+     event.stopPropagation();
+
+     if (lastMousePageTurnButton === event.button && event.timeStamp - lastMousePageTurnTime < 300) {
+          return;
+     }
+     lastMousePageTurnButton = event.button;
+     lastMousePageTurnTime = event.timeStamp;
+
+     if (
+          activeAction ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTypingFieldShortcutTarget(event.target) ||
+          isPanelControlShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (event.button === 3) {
+          turnNotebookSpread(-1);
+     } else if (event.button === 4) {
+          turnNotebookSpread(1);
      }
 }
 
@@ -3745,6 +3787,8 @@ document.addEventListener("click", (event) => {
      }
 });
 document.addEventListener("pointerdown", closeHexPopoverFromOutsidePointer, true);
+document.addEventListener("mousedown", handleMousePageTurnButton, true);
+document.addEventListener("auxclick", handleMousePageTurnButton, true);
 document.addEventListener("keydown", (event) => {
      handleClipboardShortcut(event);
      handleTextEditFinishKey(event);
