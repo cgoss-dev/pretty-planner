@@ -1473,32 +1473,41 @@ body {
 }
 
 .color-panel-matrix-title {
-     grid-column: 1 / 10;
+     grid-column: 1 / -1;
      grid-row: 1;
      color: var(--color-gray1);
-     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     font: 700 var(--font-size-md) var(--font-noto-sans-mono);
      line-height: 1;
+     text-align: center;
 }
 
-.color-panel-utility-row {
-     grid-column: 10 / -1;
-     grid-row: 1;
-     display: grid;
-     grid-auto-flow: column;
-     grid-auto-columns: var(--color-swatch-size);
-     gap: var(--palette-swatch-gap);
-     justify-self: end;
-     width: max-content;
+.color-panel-matrix-title::after {
+     content: "";
+     display: block;
+     width: 100%;
+     height: var(--border-sm);
+     margin-top: 5px;
+     background: rgba(17, 17, 17, 0.18);
 }
 
 .color-panel-popup-row {
      grid-column: 1 / -1;
      display: grid;
      grid-auto-flow: column;
+     grid-template-columns: var(--matrix-label-width);
      grid-auto-columns: var(--color-swatch-size);
      gap: var(--palette-swatch-gap);
-     justify-self: end;
+     justify-self: start;
      width: max-content;
+}
+
+.color-panel-popup-label {
+     font-size: var(--font-size-sm);
+}
+
+.color-panel-swatch-spacer {
+     visibility: hidden;
+     pointer-events: none;
 }
 
 .color-panel-matrix {

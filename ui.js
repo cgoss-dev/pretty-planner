@@ -69,20 +69,16 @@ function getGrayPaletteColors() {
      return getPalette("gray").colors;
 }
 
-function getColorPanelRampColors() {
-     return ["111", "222", "333", "444", "555", "666", "777", "888", "999", "aaa", "bbb", "ccc", "ddd", "eee"].map((label) => ({
+function getColorPanelPopupColors() {
+     return ["000", "222", "444", "666", "888", "aaa", "ccc", "eee", "fff"].map((label) => ({
           label,
           value: `#${label}`,
-          ink: ["111", "222", "333", "444", "555", "666"].includes(label) ? "var(--color-white)" : "var(--color-gray1)"
+          ink: ["000", "222", "444", "666"].includes(label) ? "var(--color-white)" : "var(--color-gray1)"
      }));
 }
 
 function getColorPanelUtilityColors() {
-     const grays = getPalette("gray").colors;
-
      return [
-          grays.find((color) => color.label === "000"),
-          grays.find((color) => color.label === "FFF"),
           getClearPaletteColor()
      ].filter(Boolean);
 }
@@ -584,12 +580,7 @@ function renderColorMatrix() {
      });
 }
 
-function getColorPanelPopupColors() {
-     return getColorPanelRampColors();
-}
-
 function renderColorPanelPopupRow() {
-     const utilityRow = colorMatrixPopover?.querySelector("[data-color-panel-utility-row]");
      const row = colorMatrixPopover?.querySelector("[data-color-panel-popup-row]");
      const activeSwatches = activeColorMatrixToggle?.closest(".palette-swatches, .color-panel-swatches");
      const onSelect = activeColorMatrixToggle?.onPaletteColorSelect || activeSwatches?.onPaletteColorSelect;
@@ -598,29 +589,35 @@ function renderColorPanelPopupRow() {
           return;
      }
 
-     if (utilityRow) {
-          utilityRow.replaceChildren();
-          appendColorSwatches(utilityRow, getColorPanelUtilityColors(), activeColorMatrixToggle?.dataset.colorValue || "", (nextColor) => {
-               if (typeof onSelect === "function") {
-                    onSelect(nextColor);
-               }
-               setColorMatrixOpen(false);
-          }, "color-panel-swatch");
-          utilityRow.append(createHexButton((nextColor) => {
-               if (typeof onSelect === "function") {
-                    onSelect(nextColor);
-               }
-               setColorMatrixOpen(false);
-          }, "color-panel-swatch"));
-     }
-
      row.replaceChildren();
+     const label = document.createElement("div");
+
+     label.className = "color-panel-matrix-label color-panel-popup-label";
+     label.textContent = "Grayscale";
+     row.append(label);
      appendColorSwatches(row, getColorPanelPopupColors(), activeColorMatrixToggle?.dataset.colorValue || "", (nextColor) => {
           if (typeof onSelect === "function") {
                onSelect(nextColor);
           }
           setColorMatrixOpen(false);
      }, "color-panel-swatch");
+     const spacer = document.createElement("span");
+
+     spacer.className = "color-panel-swatch color-panel-swatch-spacer";
+     spacer.setAttribute("aria-hidden", "true");
+     row.append(spacer);
+     appendColorSwatches(row, getColorPanelUtilityColors(), activeColorMatrixToggle?.dataset.colorValue || "", (nextColor) => {
+          if (typeof onSelect === "function") {
+               onSelect(nextColor);
+          }
+          setColorMatrixOpen(false);
+     }, "color-panel-swatch");
+     row.append(createHexButton((nextColor) => {
+          if (typeof onSelect === "function") {
+               onSelect(nextColor);
+          }
+          setColorMatrixOpen(false);
+     }, "color-panel-swatch"));
 }
 
 function syncColorMatrixSwatchSize() {
