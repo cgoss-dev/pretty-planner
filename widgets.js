@@ -110,7 +110,12 @@ async function loadPlannerThemeData() {
           plannerWidgetThemeSlots = await slotsResponse.json();
           getPlannerItems()
                .filter((item) => Boolean(plannerWidgetThemeSlots?.widgets?.[item.dataset.itemType]))
-               .forEach(applyThemeToWidget);
+               .forEach((item) => {
+                    applyThemeToWidget(item);
+                    if (isCalendarItem(item)) {
+                         applyCalendarPartStyles(item);
+                    }
+               });
      } catch (error) {
           console.warn("Theme data could not be loaded.", error);
      }

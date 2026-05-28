@@ -112,8 +112,8 @@ function serializePlannerItem(item) {
                               italic: item.dataset.dayTextItalic === "true",
                               underline: item.dataset.dayTextUnderline === "true",
                               strike: item.dataset.dayTextStrike === "true",
-                              align: item.dataset.dayTextAlign || "left",
-                              yAlign: item.dataset.dayTextYAlign || "top",
+                              align: item.dataset.dayTextAlign || "center",
+                              yAlign: item.dataset.dayTextYAlign || "center",
                               lineHeight: Number(item.dataset.dayTextLineHeight) || 1,
                               role: item.dataset.dayTextRole || "body"
                          }
@@ -131,8 +131,8 @@ function serializePlannerItem(item) {
                     italic: item.dataset.textItalic === "true",
                     underline: item.dataset.textUnderline === "true",
                     strike: item.dataset.textStrike === "true",
-                    align: item.dataset.textAlign || "left",
-                    yAlign: item.dataset.textYAlign || "top",
+                    align: item.dataset.textAlign || "center",
+                    yAlign: item.dataset.textYAlign || "center",
                     lineHeight: Number(item.dataset.textLineHeight) || 1,
                     role: item.dataset.textRole || "body"
                }
@@ -465,7 +465,7 @@ function restorePlannerItemSettings(item, itemData) {
                enabled: normalizeStoredBoolean(text.enabled),
                content: isTocItem(item) ? undefined : text.content || "",
                size: text.size,
-               font: "annotation-mono",
+               font: text.font,
                color: text.color,
                bold: normalizeStoredBoolean(text.bold),
                italic: normalizeStoredBoolean(text.italic),
@@ -482,7 +482,7 @@ function restorePlannerItemSettings(item, itemData) {
                item.dataset.dayNotes = JSON.stringify(widget.dayNotes || {});
                setCalendarDayTextSettings(item, {
                     size: widget.dayText?.size,
-                    font: "annotation-mono",
+                    font: widget.dayText?.font,
                     color: widget.dayText?.color,
                     bold: normalizeStoredBoolean(widget.dayText?.bold),
                     italic: normalizeStoredBoolean(widget.dayText?.italic),
@@ -579,6 +579,10 @@ function restorePlannerItem(itemData) {
 
           markGridState(item, false);
           setItemBox(item, box);
+     }
+
+     if (isCalendarItem(item)) {
+          applyCalendarPartStyles(item);
      }
 
      return item;
