@@ -1174,6 +1174,21 @@ function handleMousePageTurnButton(event) {
      }
 }
 
+function closeColorMatrixFromOutsidePointer(event) {
+     // NOTE: Closes the Color Panel as soon as the user points anywhere outside it.
+     if (
+          !colorMatrixPopover ||
+          colorMatrixPopover.hidden ||
+          event.target.closest("[data-color-panel-matrix]") ||
+          event.target.closest("[data-color-panel-matrix-toggle]") ||
+          event.target.closest("[data-color-panel-hex]")
+     ) {
+          return;
+     }
+
+     setColorMatrixOpen(false);
+}
+
 function handleMainMenuToggleKey(event) {
      // NOTE: Legacy no-op; numeric keyboard mode handling owns Design/Interact transitions
      if (
@@ -3733,6 +3748,7 @@ sourceItems.forEach((sourceItem) => {
      sourceItem.addEventListener("mousedown", startSourceMove, true);
 });
 document.addEventListener("pointerdown", hideKeyboardCursorForPointer, true);
+document.addEventListener("pointerdown", closeColorMatrixFromOutsidePointer, true);
 plannerDesk.addEventListener("pointerdown", startMarquee);
 plannerDesk.addEventListener("pointermove", updateDeskResizeCursor);
 plannerDesk.addEventListener("pointerleave", () => {
