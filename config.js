@@ -163,22 +163,10 @@
                },
                colorPalette: [
                     {
-                         key: "Offwhite",
-                         label: "Offwhite",
-                         display: "FFE",
-                         color: "var(--paper-offwhite)"
-                    },
-                    {
-                         key: "Cream",
-                         label: "Cream",
-                         display: "EDB",
-                         color: "var(--paper-cream)"
-                    },
-                    {
-                         key: "Linen",
-                         label: "Linen",
-                         display: "DCA",
-                         color: "var(--paper-linen)"
+                         key: "White",
+                         label: "White",
+                         display: "FFF",
+                         color: "var(--color-white)"
                     }
                ]
           },

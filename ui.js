@@ -69,6 +69,10 @@ function getGrayPaletteColors() {
      return getPalette("gray").colors;
 }
 
+function getColorPanelGrayColors() {
+     return [...getGrayPaletteColors()].reverse();
+}
+
 function hexToAlphaColor(hexValue, alphaValue) {
      const alpha = Math.max(0, Math.min(100, Number(alphaValue) || 0));
 
@@ -262,7 +266,7 @@ function getHexPopover() {
           </div>
           <label class="color-panel-hex-hex-cell" data-color-panel-hex-cell tabindex="0">
                <span>HEX</span>
-               <input type="text" inputmode="text" maxlength="7" value="#FFFFEE" aria-label="Hex color" data-color-panel-hex-hex tabindex="-1" readonly>
+               <input type="text" inputmode="text" maxlength="7" value="#FFFFFF" aria-label="Hex color" data-color-panel-hex-hex tabindex="-1" readonly>
           </label>
           <label data-color-panel-hex-cell tabindex="0">
                <span>R</span>
@@ -493,7 +497,7 @@ function closeHexPopoverFromOutsidePointer(event) {
 
 function getColorMatrixRows() {
      return [
-          ...[80, 60, 40, 20].map((step) => ({
+          ...[90, 80, 70, 60, 50, 40, 30, 20, 10].map((step) => ({
                label: `Tint${step}`,
                mode: "tint",
                step
@@ -503,7 +507,7 @@ function getColorMatrixRows() {
                mode: "base",
                step: 0
           },
-          ...[20, 40, 60, 80].map((step) => ({
+          ...[10, 20, 30, 40, 50, 60, 70, 80, 90].map((step) => ({
                label: `Shade${step}`,
                mode: "shade",
                step
@@ -572,11 +576,22 @@ function getColorPanelPopupColors() {
           || "paper";
      const leadingColors = paletteMode === "accent" ? getAccentPaletteColors() : getPaperPaletteColors();
 
-     return [
+     const colors = [
           ...leadingColors,
-          ...getGrayPaletteColors(),
+          ...getColorPanelGrayColors(),
           getClearPaletteColor()
      ];
+     const seenValues = new Set();
+
+     return colors.filter((color) => {
+          const key = color.value;
+
+          if (seenValues.has(key)) {
+               return false;
+          }
+          seenValues.add(key);
+          return true;
+     });
 }
 
 function renderColorPanelPopupRow() {

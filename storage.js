@@ -283,8 +283,8 @@ function normalizeStoredViewFocusIndex(value) {
 function serializePlannerSettings() {
      return {
           paper: paperSelect?.value || "letter",
-          paperColor: paperColorSelect?.value || "Offwhite",
-          customPaperColor: paperColors.Custom?.color || "#ffffee",
+          paperColor: paperColorSelect?.value || "White",
+          customPaperColor: paperColors.Custom?.color || "#ffffff",
           accentColor: accentColorSelect?.value || "Red",
           customAccentColor: accentColors.Custom?.color || "#ff0000",
           deskColor: deskColorSelect?.value || "wood-brown",

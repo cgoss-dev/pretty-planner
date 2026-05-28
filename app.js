@@ -110,7 +110,7 @@ const paperColors = {
           key: "Custom",
           label: "Custom",
           display: "Hex",
-          color: "#ffffee"
+          color: "#ffffff"
      }
 };
 const accentColorPalette = [
@@ -190,7 +190,7 @@ const factoryPlannerDefaults = {
      grid: {
           color: "var(--color-gray4)",
           weight: "1",
-          fill: "var(--paper-offwhite)",
+          fill: "var(--color-white)",
           dotGrid: "false"
      },
      date: {
@@ -437,7 +437,7 @@ function convertLength(value, fromUnit, toUnit) {
 function buildPlannerConfig() {
      const paperKey = paperSelect ? paperSelect.value : "letter";
      const gridKey = getGridKeyForPaper(paperKey);
-     const paperColorKey = paperColorSelect ? paperColorSelect.value : "Offwhite";
+     const paperColorKey = paperColorSelect ? paperColorSelect.value : "White";
      const accentColorKey = accentColorSelect ? accentColorSelect.value : "Red";
      const deskColorKey = deskColorSelect ? deskColorSelect.value : "pink";
      const guides = {
@@ -475,7 +475,7 @@ function buildPlannerConfig() {
           deskColorKey,
           guides,
           paper,
-          paperColor: paperColors[paperColorKey] || paperColors.Offwhite,
+          paperColor: paperColors[paperColorKey] || paperColors.White,
           accentColor: accentColors[accentColorKey] || accentColors.Red,
           deskColor: deskColors[deskColorKey],
           grid,

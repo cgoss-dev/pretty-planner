@@ -48,12 +48,6 @@
      --tertiary-12: #f0f;
      
 
-     /* NOTE: Paper Colors */
-     --paper-offwhite: #ffe;
-     --paper-cream: #edb;
-     --paper-linen: #dca;
-     --paper-charcoal: #222;
-
      /* NOTE: Shared Sizes, Fonts, And Layout Knobs */
      --border-lg: 3px;
      --border-md: 2px;
@@ -91,7 +85,7 @@
      --arrow-control-fill: var(--tint-50);
      --arrow-active-fill: var(--color-gray3);
      --arrow-border: var(--border-sm) solid rgba(17, 17, 17, 0.25);
-     --widget-box-fill: var(--sticker-fill, var(--paper-offwhite));
+     --widget-box-fill: var(--sticker-fill, var(--color-white));
      --calendar-shaded-overlay: rgba(204, 204, 204, 0.25);
      --calendar-tint-alpha: 0.25;
      --calendar-tint: var(--calendar-shaded-overlay);
@@ -102,10 +96,10 @@
      --calendar-weekday-header-background:
           linear-gradient(var(--calendar-weekday-header-tint), var(--calendar-weekday-header-tint)),
           var(--sticker-fill-opaque, var(--widget-box-fill));
-     --desk: var(--paper-linen);
+     --desk: var(--color-white);
      --desk-image: none;
      --desk-size: auto;
-     --paper: var(--paper-cream);
+     --paper: var(--color-white);
      --paper-shadow: rgba(17, 17, 17, 0.25);
      --view-zoom: 1;
      --view-pan-x: 0px;
@@ -1458,12 +1452,13 @@ body {
      background: var(--menu-fill);
      filter: drop-shadow(0 10px 16px rgba(17, 17, 17, 0.18));
      opacity: 0;
-     overflow: auto;
+     overflow: hidden;
      transform: translate(-50%, calc(-50% - 4px));
      transition:
           opacity 180ms ease,
           transform 220ms ease;
      --matrix-swatch-size: var(--color-swatch-size);
+     --matrix-label-width: 64px;
 }
 
 .color-panel-matrix-popover[hidden] {
@@ -1487,15 +1482,20 @@ body {
      grid-auto-columns: var(--color-swatch-size);
      gap: var(--palette-swatch-gap);
      width: max-content;
+     margin-left: calc(var(--matrix-label-width) + var(--palette-swatch-gap));
 }
 
 .color-panel-matrix {
      display: grid;
-     grid-template-columns: max-content repeat(12, var(--matrix-swatch-size));
+     grid-template-columns: var(--matrix-label-width) repeat(12, var(--matrix-swatch-size));
      grid-auto-rows: var(--matrix-swatch-size);
      gap: 3px;
      width: max-content;
      max-width: none;
+     max-height: calc((var(--matrix-swatch-size) * 7) + (3px * 6));
+     overflow-y: auto;
+     overscroll-behavior: contain;
+     padding-right: 4px;
 }
 
 .color-panel-matrix-label,

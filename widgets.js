@@ -8,9 +8,6 @@ function getThemeColorValue(colorKey) {
           gray2: "var(--color-gray2)",
           gray3: "var(--color-gray3)",
           gray4: "var(--color-gray4)",
-          "paper-offwhite": "var(--paper-offwhite)",
-          "paper-cream": "var(--paper-cream)",
-          "paper-linen": "var(--paper-linen)",
           paper: "var(--paper)",
           tint30: "var(--tint-30)",
           tint70: "var(--tint-70)",
@@ -283,7 +280,7 @@ function getPageTitleMinGridUnits() {
 }
 
 function setItemStyle(item, style) {
-     item.dataset.fillColor = style.fillColor || item.dataset.fillColor || "var(--paper-offwhite)";
+     item.dataset.fillColor = style.fillColor || item.dataset.fillColor || "var(--color-white)";
      item.dataset.borderColor = style.borderColor || item.dataset.borderColor || "var(--color-gray4)";
      item.dataset.borderWidth = style.borderWidth || item.dataset.borderWidth || "1";
      item.dataset.dotGrid = style.dotGrid || item.dataset.dotGrid || "false";
@@ -3121,7 +3118,7 @@ function makePlannerItem(type = "sticker") {
      if (hasWidgetControls) {
           controls.append(widgetPanel);
      }
-     initializePaletteColorControl(fillInput, fillSwatches, "var(--paper-offwhite)", (nextColor) => {
+     initializePaletteColorControl(fillInput, fillSwatches, "var(--color-white)", (nextColor) => {
           applyStyleToActionItems(item, {
                fillColor: nextColor
           });
@@ -3150,7 +3147,7 @@ function makePlannerItem(type = "sticker") {
      }
      item.append(controls);
      setItemStyle(item, typeof getPlannerDefaultItemStyle === "function" ? getPlannerDefaultItemStyle(type) : {
-          fillColor: isPageTitleItemType(type) ? "transparent" : "var(--paper-offwhite)",
+          fillColor: isPageTitleItemType(type) ? "transparent" : "var(--color-white)",
           borderColor: isPageTitleItemType(type) ? "transparent" : "var(--color-gray4)",
           borderWidth: borderWidthSelect.value,
           dotGrid: "false"
