@@ -1442,8 +1442,9 @@ body {
      top: 50%;
      z-index: 300;
      display: grid;
-     grid-template-columns: minmax(0, 1fr) max-content;
-     gap: 6px;
+     grid-template-columns: var(--matrix-label-width) repeat(12, var(--matrix-swatch-size));
+     column-gap: 3px;
+     row-gap: 6px;
      width: max-content;
      max-width: calc(100vw - 28px);
      max-height: calc(100vh - 28px);
@@ -1472,7 +1473,7 @@ body {
 }
 
 .color-panel-matrix-title {
-     grid-column: 1;
+     grid-column: 1 / 10;
      grid-row: 1;
      color: var(--color-gray1);
      font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
@@ -1480,7 +1481,7 @@ body {
 }
 
 .color-panel-utility-row {
-     grid-column: 2;
+     grid-column: 10 / -1;
      grid-row: 1;
      display: grid;
      grid-auto-flow: column;
