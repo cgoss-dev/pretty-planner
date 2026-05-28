@@ -3503,7 +3503,7 @@ function makePlannerItem(type = "sticker") {
      displayDateModeSelect.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
                dateMode: displayDateModeSelect.value,
-               dateOffset: displayDateModeSelect.value === "relative" ? "1" : item.dataset.dateOffset
+               dateOffset: displayDateModeSelect.value === "relative" ? "0" : item.dataset.dateOffset
           });
      });
      monthDisplaySelect.addEventListener("change", () => {
@@ -3613,6 +3613,7 @@ function copyItemConfiguration(source, target) {
                weekNumberFormat: source.dataset.weekNumberFormat,
                weekStart: source.dataset.weekStart,
                weekdayLabelFormat: source.dataset.weekdayLabelFormat,
+               dateOrder: source.dataset.dateOrder,
                dateMode: source.dataset.dateMode,
                dateOffset: source.dataset.dateOffset,
                titleVisible: source.dataset.calendarTitleVisible,

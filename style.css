@@ -821,10 +821,48 @@ body {
 }
 
 .defaults-panel .widget-panel-row .custom-select,
-.defaults-panel .color-panel-control .custom-select {
+.defaults-panel .color-panel-control .custom-select,
+.defaults-panel .date-order-picker {
      grid-column: 2;
      justify-self: stretch;
      width: 100%;
+}
+
+.date-order-control {
+     display: grid;
+     grid-template-columns: 112px minmax(0, 1fr);
+     align-items: center;
+     gap: 8px;
+}
+
+.date-order-picker {
+     display: grid;
+     grid-template-columns: repeat(4, minmax(0, 1fr));
+     gap: 6px;
+}
+
+.date-order-chip {
+     min-height: var(--color-swatch-size);
+     padding: 3px 6px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-radius: 6px;
+     background: var(--color-white);
+     color: var(--color-gray1);
+     cursor: grab;
+     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     line-height: 1.1;
+     text-align: center;
+}
+
+.date-order-chip:active,
+.date-order-chip.is-dragging {
+     cursor: grabbing;
+}
+
+.date-order-chip.is-drop-target {
+     background: var(--color-gray4);
+     outline: var(--border-sm) solid var(--active-selection-color);
+     outline-offset: 1px;
 }
 
 .defaults-panel .color-panel-control {
@@ -2942,15 +2980,15 @@ body {
 }
 
 .weekly-view-source {
-     aspect-ratio: 0.72;
+     aspect-ratio: 1;
 }
 
 .day-view-source {
-     aspect-ratio: 0.72;
+     aspect-ratio: 0.57;
 }
 
 .diary-view-source {
-     aspect-ratio: 0.72;
+     aspect-ratio: 1;
 }
 
 .add-panel .page-title-source,
@@ -2967,6 +3005,10 @@ body {
 .add-panel .page-title-source {
      min-height: 33px;
      aspect-ratio: 3;
+}
+
+.add-panel .full-month-source {
+     min-height: 72px;
 }
 
 .calendar-source-preview {
@@ -3560,7 +3602,7 @@ body {
 
 .weekly-view-date-label {
      display: grid;
-     grid-template-columns: auto auto auto;
+     grid-template-columns: repeat(4, auto);
      align-items: center;
      justify-content: center;
      gap: 0.35em;
@@ -3655,7 +3697,7 @@ body {
 
 .diary-view-date-label {
      display: grid;
-     grid-template-columns: auto auto auto;
+     grid-template-columns: repeat(4, auto);
      align-items: center;
      justify-content: center;
      gap: 0.35em;
@@ -3668,7 +3710,8 @@ body {
 
 .diary-view-day-name,
 .diary-view-date-label .dayNumber,
-.diary-view-month-name {
+.diary-view-month-name,
+.calendar-date-part {
      min-width: 0;
 }
 
@@ -4540,7 +4583,8 @@ body {
 }
 
 .defaults-panel .widget-panel-row .custom-select,
-.defaults-panel .color-panel-control .custom-select {
+.defaults-panel .color-panel-control .custom-select,
+.defaults-panel .date-order-picker {
      grid-column: 2;
      justify-self: stretch;
      width: 100%;

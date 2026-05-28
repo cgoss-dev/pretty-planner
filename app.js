@@ -32,6 +32,7 @@ const defaultControls = Array.from(document.querySelectorAll("[data-default-cont
 const defaultTextColorSwatches = document.querySelector("[data-default-text-color-swatches]");
 const defaultGridColorSwatches = document.querySelector("[data-default-grid-color-swatches]");
 const defaultGridFillSwatches = document.querySelector("[data-default-grid-fill-swatches]");
+const dateOrderPicker = document.querySelector("[data-date-order-picker]");
 const resetUniqueDefaultsButton = document.querySelector("[data-reset-unique-defaults]");
 const resetUniversalDefaultsButton = document.querySelector("[data-reset-universal-defaults]");
 const resetNotebookDefaultsButton = document.querySelector("[data-reset-notebook-defaults]");
@@ -195,12 +196,42 @@ const factoryPlannerDefaults = {
      },
      date: {
           weekStart: "monday",
-          timeFormat: "24"
+          timeFormat: "24",
+          dateOrder: ["month", "date", "year", "day"]
      }
 };
+
+const dateOrderParts = [
+     { key: "month", label: "Month" },
+     { key: "date", label: "Date" },
+     { key: "year", label: "Year" },
+     { key: "day", label: "Day" }
+];
+
+function normalizeDateOrder(order) {
+     const validKeys = dateOrderParts.map((part) => part.key);
+     const orderedKeys = Array.isArray(order) ? order : String(order || "").split(",");
+     const uniqueKeys = [];
+
+     orderedKeys.forEach((key) => {
+          if (validKeys.includes(key) && !uniqueKeys.includes(key)) {
+               uniqueKeys.push(key);
+          }
+     });
+     validKeys.forEach((key) => {
+          if (!uniqueKeys.includes(key)) {
+               uniqueKeys.push(key);
+          }
+     });
+
+     return uniqueKeys;
+}
+
 let plannerDefaultSettings = getNormalizedPlannerDefaults();
 
 function getNormalizedPlannerDefaults(defaults = {}) {
+     const dateDefaults = defaults.date && typeof defaults.date === "object" ? defaults.date : {};
+
      return {
           hintPanel: defaults.hintPanel === "off" ? "off" : factoryPlannerDefaults.hintPanel,
           text: {
@@ -213,7 +244,8 @@ function getNormalizedPlannerDefaults(defaults = {}) {
           },
           date: {
                ...factoryPlannerDefaults.date,
-               ...(defaults.date && typeof defaults.date === "object" ? defaults.date : {})
+               ...dateDefaults,
+               dateOrder: normalizeDateOrder(dateDefaults.dateOrder || factoryPlannerDefaults.date.dateOrder)
           }
      };
 }
@@ -317,6 +349,12 @@ function setDefaultControlValue(controlName, value) {
      applyPlannerDefaultsToThemeWidgets();
 }
 
+function setDefaultDateOrder(order) {
+     plannerDefaultSettings.date.dateOrder = normalizeDateOrder(order);
+     renderDateOrderPicker();
+     applyPlannerDefaultsToDateWidgets();
+}
+
 function toggleDefaultTextStyle(controlName, button) {
      const textMap = {
           "text-bold": "bold",
@@ -374,7 +412,80 @@ function syncDefaultControls() {
                control.classList.toggle("is-active", isActive);
           }
      });
+     renderDateOrderPicker();
      applyHintPanelVisibility();
+}
+
+function moveDateOrderPart(sourceKey, targetKey) {
+     const currentOrder = normalizeDateOrder(plannerDefaultSettings.date.dateOrder);
+     const sourceIndex = currentOrder.indexOf(sourceKey);
+     const targetIndex = currentOrder.indexOf(targetKey);
+
+     if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+          return;
+     }
+
+     const nextOrder = [...currentOrder];
+     const [part] = nextOrder.splice(sourceIndex, 1);
+
+     nextOrder.splice(targetIndex, 0, part);
+     setDefaultDateOrder(nextOrder);
+     savePlannerState();
+}
+
+function renderDateOrderPicker() {
+     if (!dateOrderPicker) {
+          return;
+     }
+
+     const order = normalizeDateOrder(plannerDefaultSettings.date.dateOrder);
+
+     dateOrderPicker.replaceChildren();
+     order.forEach((key, index) => {
+          const part = dateOrderParts.find((entry) => entry.key === key);
+          const button = document.createElement("button");
+
+          button.className = "date-order-chip";
+          button.type = "button";
+          button.draggable = true;
+          button.dataset.dateOrderPart = key;
+          button.textContent = part?.label || key;
+          button.setAttribute("aria-label", `${button.textContent} date part. Drag to reorder.`);
+          button.addEventListener("dragstart", (event) => {
+               event.dataTransfer.effectAllowed = "move";
+               event.dataTransfer.setData("text/plain", key);
+               button.classList.add("is-dragging");
+          });
+          button.addEventListener("dragend", () => {
+               button.classList.remove("is-dragging");
+               dateOrderPicker.querySelectorAll(".date-order-chip").forEach((chip) => chip.classList.remove("is-drop-target"));
+          });
+          button.addEventListener("dragover", (event) => {
+               event.preventDefault();
+               event.dataTransfer.dropEffect = "move";
+               button.classList.add("is-drop-target");
+          });
+          button.addEventListener("dragleave", () => {
+               button.classList.remove("is-drop-target");
+          });
+          button.addEventListener("drop", (event) => {
+               event.preventDefault();
+               button.classList.remove("is-drop-target");
+               moveDateOrderPart(event.dataTransfer.getData("text/plain"), key);
+          });
+          button.addEventListener("keydown", (event) => {
+               if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+                    return;
+               }
+
+               event.preventDefault();
+               const direction = event.key === "ArrowLeft" ? -1 : 1;
+               const targetKey = order[clamp(index + direction, 0, order.length - 1)];
+
+               moveDateOrderPart(key, targetKey);
+          });
+          dateOrderPicker.append(button);
+     });
 }
 
 function resetItemsToPlannerDefaults(items) {
