@@ -100,7 +100,7 @@ function initializeCalendarSourcePreviews(sourceItems) {
           } else {
                populateCalendarSourcePreviewGrid(preview, {
                     columns: type === "day-view" ? 4 : 8,
-                    rows: type === "weekly-view" || type === "day-view" ? 14 : 8,
+                    rows: type === "weekly-view" || type === "day-view" || type === "diary-view" ? 14 : 8,
                     timeColumn: type === "weekly-view" || type === "day-view" ? 1 : 0,
                     wkdColumns: type === "day-view" ? [] : [7, 8]
                });
@@ -114,7 +114,7 @@ function isCalendarItemType(type) {
 }
 
 function isFullPageCalendarType(type) {
-     return type === "full-month" || type === "weekly-view" || type === "perpetual-calendar";
+     return type === "full-month" || type === "weekly-view" || type === "diary-view" || type === "perpetual-calendar";
 }
 
 function isCalendarItem(item) {
@@ -126,7 +126,7 @@ function isTimeGridCalendarType(type) {
 }
 
 function isCalendarTextItemType(type) {
-     return type === "full-month" || type === "weekly-view" || type === "day-view" || type === "perpetual-calendar";
+     return type === "full-month" || type === "weekly-view" || type === "day-view" || type === "diary-view" || type === "perpetual-calendar";
 }
 
 function isCalendarTextItem(item) {
@@ -192,6 +192,14 @@ function formatMinutesAsTime(totalMinutes) {
      return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
 
+function normalizeCalendarTimeFormat(format) {
+     if (format === "12" || format === "12-double" || format === "compact" || format === "ampm") {
+          return "12";
+     }
+
+     return "24";
+}
+
 function formatWeeklyTimeLabel(totalMinutes, format = "24") {
      const dayMinutes = 24 * 60;
      const normalizedMinutes = ((totalMinutes % dayMinutes) + dayMinutes) % dayMinutes;
@@ -199,28 +207,10 @@ function formatWeeklyTimeLabel(totalMinutes, format = "24") {
      const minute = normalizedMinutes % 60;
      const period = hour < 12 ? "a" : "p";
      const hour12 = hour % 12 || 12;
-     const normalizedFormat = format === "compact" ? "12" : format;
+     const normalizedFormat = normalizeCalendarTimeFormat(format);
 
      if (normalizedFormat === "12") {
-          return minute === 0 ? `${hour12}${period}` : `${hour12}:${String(minute).padStart(2, "0")}${period}`;
-     }
-
-     if (normalizedFormat === "12-double") {
-          return minute === 0
-               ? `${String(hour12).padStart(2, "0")}${period}`
-               : `${String(hour12).padStart(2, "0")}:${String(minute).padStart(2, "0")}${period}`;
-     }
-
-     if (format === "ampm") {
-          return `${hour12}:${String(minute).padStart(2, "0")} ${period}m`;
-     }
-
-     if (normalizedFormat === "24-four") {
-          return `${String(hour).padStart(2, "0")}${String(minute).padStart(2, "0")}`;
-     }
-
-     if (minute === 0) {
-          return String(hour).padStart(2, "0");
+          return `${hour12}:${String(minute).padStart(2, "0")}${period}`;
      }
 
      return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
@@ -561,7 +551,7 @@ function applyCalendarDayTextStyle(item, textElement) {
 
 function updateCalendarDayTextOverflow(textElement) {
      const cell = textElement.closest(".dayCell, .perpetual-calendar-row");
-     const item = textElement.closest(".planner-item-full-month, .planner-item-weekly-view, .planner-item-day-view, .planner-item-perpetual-calendar");
+     const item = textElement.closest(".planner-item-full-month, .planner-item-weekly-view, .planner-item-day-view, .planner-item-diary-view, .planner-item-perpetual-calendar");
 
      if (!cell || !item) {
           return;
@@ -609,7 +599,7 @@ function getCalendarRelativeDateUnit(item) {
           return "day";
      }
 
-     return item?.dataset?.itemType === "weekly-view" ? "week" : "month";
+     return item?.dataset?.itemType === "weekly-view" || item?.dataset?.itemType === "diary-view" ? "week" : "month";
 }
 
 function getRelativeDateOffsetMax(unit) {
@@ -805,6 +795,11 @@ function startCalendarDayTextEditing(textElement, item) {
 }
 
 function renderMiniMonth(item) {
+     if (item.dataset.itemType === "diary-view") {
+          renderDiaryView(item);
+          return;
+     }
+
      if (isTimeGridCalendarType(item.dataset.itemType)) {
           renderWeeklyVertical(item);
           return;
@@ -1192,6 +1187,122 @@ function renderPerpetualCalendar(item) {
      applyThemeToWidget(item);
 }
 
+function renderDiaryView(item) {
+     let calendar = item.querySelector(".diary-view");
+     const weekdayLabelFormat = normalizeWeekdayLabelFormat(item.dataset.weekdayLabelFormat);
+     const monthDisplay = item.dataset.monthDisplay || "short";
+     const visibleDays = clamp(Number(item.dataset.visibleDays) || 7, 1, 7);
+     const startDate = getWeeklyViewStartDate(item);
+     const dayNotes = getCalendarDayNotes(item);
+     const todayKey = getTodayCalendarDayKey();
+
+     if (!calendar) {
+          calendar = document.createElement("div");
+          calendar.className = "diary-view";
+          item.append(calendar);
+     }
+
+     calendar.replaceChildren();
+     calendar.style.setProperty("--diary-row-count", String(visibleDays));
+
+     for (let index = 0; index < visibleDays; index += 1) {
+          const date = new Date(startDate);
+          const row = document.createElement("span");
+          const dateLabel = document.createElement("span");
+          const dayName = document.createElement("span");
+          const dayNumber = document.createElement("span");
+          const monthName = document.createElement("span");
+          const dayText = document.createElement("div");
+
+          date.setDate(startDate.getDate() + index);
+
+          const dayKey = getCalendarDayKey(date.getFullYear(), date.getMonth(), date.getDate());
+          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+          row.className = "diary-view-row dayCell";
+          row.dataset.themePart = isWeekend ? "weekendDayRow" : "dayRow";
+          row.dataset.dayKey = dayKey;
+          row.dataset.calendarStyleKey = `diary-day-${index + 1}`;
+          row.dataset.calendarStyleRole = "cell";
+          if (isWeekend) {
+               row.classList.add("diary-view-weekend");
+          }
+          if (index === visibleDays - 1) {
+               row.classList.add("diary-view-edge-bottom");
+          }
+          markCurrentCalendarDay(row, dayKey, todayKey);
+
+          dateLabel.className = "diary-view-date-label";
+          dateLabel.dataset.themePart = isWeekend ? "weekendDayHeader" : "dayHeader";
+          dayName.className = "diary-view-day-name";
+          dayName.textContent = getWeekdayLabel(date.getDay(), weekdayLabelFormat);
+          dayNumber.className = "dayNumber";
+          dayNumber.textContent = String(date.getDate()).padStart(2, "0");
+          markCurrentCalendarDayNumber(dayNumber, dayKey, todayKey);
+          monthName.className = "diary-view-month-name";
+          monthName.textContent = getCalendarMonthTitle(date.getMonth(), monthDisplay);
+          dateLabel.append(dayName, dayNumber, monthName);
+
+          dayText.className = "calendar-day-text diary-view-day-text";
+          dayText.dataset.themePart = "dayNotes";
+          dayText.dataset.dayKey = dayKey;
+          dayText.setAttribute("contenteditable", "false");
+          dayText.textContent = dayNotes[dayKey] || "";
+          applyCalendarDayTextStyle(item, dayText);
+          dayText.addEventListener("input", () => updateCalendarDayTextOverflow(dayText));
+          dayText.addEventListener("dblclick", (event) => {
+               event.preventDefault();
+               event.stopPropagation();
+               startCalendarDayTextEditing(dayText, item);
+          });
+          dayText.addEventListener("pointerdown", (event) => {
+               if (dayText.isContentEditable) {
+                    event.stopPropagation();
+               }
+          });
+          dayText.addEventListener("wheel", (event) => {
+               if (dayText.isContentEditable) {
+                    event.stopPropagation();
+               }
+          });
+          row.addEventListener("click", (event) => {
+               if (typeof keyboardMode !== "undefined" && keyboardMode !== "interact") {
+                    return;
+               }
+
+               event.preventDefault();
+               event.stopPropagation();
+               startCalendarDayTextEditing(dayText, item);
+          });
+          row.addEventListener("pointerdown", (event) => {
+               if (getResizeMode(item, event)) {
+                    return;
+               }
+
+               if (isCalendarBorderStylePointer(item, event)) {
+                    selectCalendarBorderStyleTarget(item, event);
+                    return;
+               }
+
+               selectCalendarCellStyleTarget(item, row, event);
+          });
+          row.append(dateLabel, dayText);
+          calendar.append(row);
+          updateCalendarDayTextOverflow(dayText);
+     }
+
+     ["top", "right", "bottom", "left"].forEach((edge) => {
+          const borderTarget = document.createElement("span");
+
+          borderTarget.className = `calendar-border-hit-target is-${edge}`;
+          borderTarget.setAttribute("aria-hidden", "true");
+          borderTarget.addEventListener("pointerdown", (event) => selectCalendarBorderStyleTarget(item, event));
+          calendar.append(borderTarget);
+     });
+     applyThemeToWidget(item);
+     applyCalendarPartStyles(item);
+}
+
 function renderWeeklyVertical(item) {
      let calendar = item.querySelector(".weekly-view");
      const weekdayLabelFormat = normalizeWeekdayLabelFormat(item.dataset.weekdayLabelFormat);
@@ -1446,7 +1557,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      item.dataset.startDay = String(clamp(Number(item.dataset.startDay) || 1, 1, getCalendarDaysInMonth(Number(item.dataset.year), Number(item.dataset.month))));
      item.dataset.timeIncrement = settings.timeIncrement || item.dataset.timeIncrement || "30";
      item.dataset.startTime = settings.startTime || item.dataset.startTime || "00:00";
-     item.dataset.timeFormat = settings.timeFormat || item.dataset.timeFormat || defaultDateSettings.timeFormat || "24";
+     item.dataset.timeFormat = normalizeCalendarTimeFormat(settings.timeFormat || item.dataset.timeFormat || defaultDateSettings.timeFormat || "24");
      item.dataset.timeVisible = settings.timeVisible ?? item.dataset.timeVisible ?? "true";
      item.dataset.shareWeekends = settings.shareWeekends ?? item.dataset.shareWeekends ?? "false";
      renderMiniMonth(item);

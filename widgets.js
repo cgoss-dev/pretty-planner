@@ -115,7 +115,7 @@ async function loadPlannerThemeData() {
      try {
           const [themesResponse, slotsResponse] = await Promise.all([
                fetch("data/themes.json?v=planner-storage-8"),
-               fetch("data/widget-theme-slots.json?v=planner-storage-5")
+               fetch("data/widget-theme-slots.json?v=planner-storage-6")
           ]);
 
           plannerThemesData = await themesResponse.json();
@@ -1084,7 +1084,8 @@ function getItemTypeLabel(type) {
           "full-month": "Full Month",
           "perpetual-calendar": "Perpetual Calendar",
           "weekly-view": "WeeklyView",
-          "day-view": "Day View"
+          "day-view": "Day View",
+          "diary-view": "Diary View"
      }[type] || "Widget";
 }
 
@@ -2640,11 +2641,11 @@ function makePlannerItem(type = "sticker") {
      textSizeGroup.setAttribute("role", "group");
      textSizeGroup.setAttribute("aria-label", "Sticker text size");
      [
-          ["10", "SM"],
-          ["20", "MD"],
-          ["40", "LG"],
-          ["80", "1X"],
-          ["160", "2X"]
+          ["10", "SM: 10px"],
+          ["20", "MD: 20px"],
+          ["40", "LG: 40px"],
+          ["80", "1L: 80px"],
+          ["160", "2X: 160px"]
      ].forEach(([value, label]) => {
           const button = document.createElement("button");
 
@@ -2964,9 +2965,8 @@ function makePlannerItem(type = "sticker") {
      timeFormatSelect.dataset.widgetControl = "time-format";
      timeFormatSelect.setAttribute("aria-label", "Weekly planner time format");
      [
-          ["24", "24hr"],
-          ["compact", "8a"],
-          ["ampm", "8:30 am"]
+          ["12", "12hr - 11:00a / 3:30p"],
+          ["24", "24hr - 11:00 / 15:30"]
      ].forEach(([value, label]) => {
           const option = document.createElement("option");
 
@@ -3018,7 +3018,7 @@ function makePlannerItem(type = "sticker") {
           displayDateRow.append(displayYearLabel, displayMonthLabel);
           if (type === "mini-month" || type === "full-month") {
                displayDateRow.append(displayWeekNumberLabel);
-          } else if (type === "weekly-view" || type === "day-view") {
+          } else if (type === "weekly-view" || type === "day-view" || type === "diary-view") {
                displayDateRow.append(displayDayLabel);
           }
      }
@@ -3032,6 +3032,8 @@ function makePlannerItem(type = "sticker") {
           calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, monthDisplayLabel, yearDisplayLabel);
      } else if (type === "weekly-view") {
           calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
+     } else if (type === "diary-view") {
+          calendarAttributesGrid.append(weekdayLabelLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "day-view") {
           calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else {
@@ -3100,6 +3102,11 @@ function makePlannerItem(type = "sticker") {
           dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid);
           timeWidgetGroup.append(timeWidgetTitle, timeVisibleLabel, startTimeLabel, timeIncrementLabel);
           widgetPanel.append(dateWidgetGroup, timeWidgetGroup);
+     }
+     if (type === "diary-view") {
+          widgetPanel.append(widgetPanelSectionTitle);
+          dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid, visibleDaysLabel);
+          widgetPanel.append(dateWidgetGroup);
      }
      if (hasWidgetControls) {
           controlTabs.append(widgetTab);
@@ -3655,7 +3662,7 @@ function advanceDuplicatedCalendarView(source, target) {
           return;
      }
 
-     if (source.dataset.itemType === "weekly-view") {
+     if (source.dataset.itemType === "weekly-view" || source.dataset.itemType === "diary-view") {
           const visibleDays = clamp(Number(source.dataset.visibleDays) || 7, 1, 7);
           const nextStartDate = getWeeklyViewStartDate(source);
 

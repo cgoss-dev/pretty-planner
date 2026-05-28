@@ -1618,6 +1618,10 @@ function getInteractWidgetTargets(item) {
           return Array.from(item.querySelectorAll(".weekly-view-slot.dayCell[data-day-key]"));
      }
 
+     if (item.dataset.itemType === "diary-view") {
+          return Array.from(item.querySelectorAll(".diary-view-row.dayCell[data-day-key]"));
+     }
+
      const stickerText = item.querySelector(".sticker-text");
 
      return stickerText ? [stickerText] : [];

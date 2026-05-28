@@ -217,6 +217,37 @@
           "gridSlot": "interiorGridColor"
         }
       }
+    },
+    "diary-view": {
+      "label": "Diary View",
+      "parts": {
+        "background": {
+          "fillSlot": "fillColor1",
+          "borderSlot": "borderColor",
+          "gridSlot": "interiorGridColor"
+        },
+        "dayHeader": {
+          "textSlot": "subtitle",
+          "sizeMultiplier": 1,
+          "fillSlot": "fillColor3"
+        },
+        "weekendDayHeader": {
+          "textSlot": "subtitle",
+          "sizeMultiplier": 1,
+          "fillSlot": "fillColor2"
+        },
+        "dayRow": {
+          "fillSlot": "fillColor1",
+          "gridSlot": "interiorGridColor"
+        },
+        "weekendDayRow": {
+          "fillSlot": "fillColor2",
+          "gridSlot": "interiorGridColor"
+        },
+        "dayNotes": {
+          "textSlot": "body"
+        }
+      }
     }
   }
 }

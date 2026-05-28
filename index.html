@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-303">
+     <link rel="stylesheet" href="style.css?v=planner-storage-304">
 </head>
 <body>
      <main class="planner-desk">
@@ -91,11 +91,11 @@
                          <label class="widget-panel-row text-panel-control">
                               <span class="widget-panel-title">Text Size</span>
                               <select class="native-select" data-default-control="text-size" aria-label="Default text size">
-                                   <option value="10" selected>10px</option>
-                                   <option value="20">20px</option>
-                                   <option value="40">40px</option>
-                                   <option value="80">80px</option>
-                                   <option value="160">160px</option>
+                                   <option value="10" selected>SM: 10px</option>
+                                   <option value="20">MD: 20px</option>
+                                   <option value="40">LG: 40px</option>
+                                   <option value="80">1L: 80px</option>
+                                   <option value="160">2X: 160px</option>
                               </select>
                          </label>
                          <label class="widget-panel-row text-panel-control color-panel-control">
@@ -158,10 +158,8 @@
                          <label class="widget-panel-row text-panel-control">
                               <span class="widget-panel-title">Time Format</span>
                               <select class="native-select" data-default-control="date-time-format" aria-label="Default calendar time format">
-                                   <option value="12">12hr</option>
-                                   <option value="12-double">12hr Double</option>
-                                   <option value="24" selected>24hr</option>
-                                   <option value="24-four">24hr Four</option>
+                                   <option value="12">12hr - 11:00a / 3:30p</option>
+                                   <option value="24" selected>24hr - 11:00 / 15:30</option>
                               </select>
                          </label>
                     </div>
@@ -329,6 +327,9 @@
                     <button class="day-view-source" type="button" data-create-item data-create-type="day-view" data-widget-label="Day View" aria-label="Add day view calendar widget">
                          <span>Day View</span>
                     </button>
+                    <button class="diary-view-source" type="button" data-create-item data-create-type="diary-view" data-widget-label="Diary View" aria-label="Add diary view calendar widget">
+                         <span>Diary View</span>
+                    </button>
                </div>
 
                <div class="control-panel-page object-control-panel-page" id="object-panel" role="tabpanel" data-control-panel-page="object" hidden>
@@ -380,12 +381,12 @@
           </div>
      </main>
 
-     <script src="config.js?v=planner-storage-164"></script>
+     <script src="config.js?v=planner-storage-165"></script>
      <script src="ui.js?v=planner-storage-213"></script>
-     <script src="widgets-calendars.js?v=planner-storage-8"></script>
-     <script src="widgets.js?v=planner-storage-277"></script>
+     <script src="widgets-calendars.js?v=planner-storage-11"></script>
+     <script src="widgets.js?v=planner-storage-280"></script>
      <script src="storage.js?v=planner-storage-24"></script>
      <script src="controls.js?v=planner-storage-194"></script>
-     <script src="app.js?v=planner-storage-249"></script>
+     <script src="app.js?v=planner-storage-250"></script>
 </body>
 </html>
