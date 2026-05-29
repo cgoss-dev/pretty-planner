@@ -928,9 +928,14 @@ body {
 }
 
 .defaults-panel .text-panel-format {
-     grid-template-columns: 112px repeat(4, minmax(0, 1fr));
+     grid-template-columns: 112px repeat(2, minmax(0, 1fr));
      align-items: center;
      gap: 6px;
+}
+
+.defaults-panel .text-panel-format .widget-panel-title {
+     grid-row: 1 / span 2;
+     align-self: center;
 }
 
 .defaults-panel .text-panel-toggle {
@@ -3797,7 +3802,8 @@ body {
      border-radius: inherit;
      outline: 0;
      background: transparent;
-     grid-template-rows: repeat(var(--diary-row-count, 7), minmax(0, 1fr));
+     align-content: start;
+     grid-template-rows: repeat(var(--diary-row-count, 7), calc(var(--diary-row-cell-height, var(--weekly-row-cell-height, 12px)) * 5));
 }
 
 .diary-view::before {
@@ -3813,7 +3819,9 @@ body {
 .diary-view-row {
      position: relative;
      display: grid;
-     grid-template-columns: minmax(calc(var(--weekly-column-cell-width, 12px) * 5), 24%) minmax(0, 1fr);
+     grid-template-columns:
+          calc(var(--diary-column-cell-width, var(--weekly-column-cell-width, 12px)) * 5)
+          minmax(calc(var(--diary-column-cell-width, var(--weekly-column-cell-width, 12px)) * 12), 1fr);
      min-width: 0;
      min-height: 0;
      border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.16);
@@ -3826,9 +3834,9 @@ body {
 
 .diary-view-date-label {
      display: grid;
-     grid-template-columns: repeat(4, auto);
-     align-items: center;
-     justify-content: center;
+     grid-template-columns: repeat(2, minmax(0, 1fr));
+     grid-template-rows: repeat(2, minmax(0, 1fr));
+     place-items: center;
      gap: 0.35em;
      min-width: 0;
      min-height: 0;
@@ -3842,6 +3850,15 @@ body {
 .diary-view-month-name,
 .calendar-date-part {
      min-width: 0;
+}
+
+.diary-view-date-label .calendar-date-part {
+     justify-self: center;
+     overflow: hidden;
+     max-width: 100%;
+     text-align: center;
+     text-overflow: ellipsis;
+     white-space: nowrap;
 }
 
 .diary-view-day-text {
@@ -3887,12 +3904,12 @@ body {
 }
 
 .planner-item-full-month.is-selected {
-     outline: 0;
+     outline: var(--border-md) solid var(--accent-ring);
+     outline-offset: 3px;
 }
 
 .planner-item-full-month.is-selected .mini-month {
-     outline: var(--border-md) solid var(--accent-ring);
-     outline-offset: 3px;
+     outline: 0;
 }
 
 .planner-item.is-interact-focus {
@@ -3935,7 +3952,8 @@ body {
 }
 
 .planner-item-full-month.is-selected:focus {
-     outline: 0;
+     outline: var(--border-md) solid var(--accent-ring);
+     outline-offset: 3px;
 }
 
 .item-size-label {
@@ -4743,9 +4761,14 @@ body {
 }
 
 .defaults-panel .text-panel-format {
-     grid-template-columns: 112px repeat(4, minmax(0, 1fr));
+     grid-template-columns: 112px repeat(2, minmax(0, 1fr));
      align-items: center;
      gap: 6px;
+}
+
+.defaults-panel .text-panel-format .widget-panel-title {
+     grid-row: 1 / span 2;
+     align-self: center;
 }
 
 .defaults-panel .text-panel-toggle {
@@ -4797,6 +4820,22 @@ body {
 
 .widget-panel-section-title {
      display: none;
+}
+
+.defaults-panel .widget-panel-section-title {
+     display: block;
+     margin-top: 8px;
+     padding: 6px 0 3px;
+     border-top: var(--border-sm) solid rgba(17, 17, 17, 0.12);
+     color: var(--color-gray1);
+     font: 700 var(--font-size-sm) var(--font-noto-sans-mono);
+     line-height: 1.1;
+     text-align: left;
+}
+
+.defaults-panel .keyboard-control-title + .widget-panel-section-title {
+     margin-top: 0;
+     border-top: 0;
 }
 
 .widget-panel.is-design-popup .widget-panel-tabs {
@@ -5107,9 +5146,12 @@ body.is-single-page-viewport .control-panel-page {
           pointer-events: none;
      }
 
-     .defaults-panel .defaults-section:has(.defaults-half-control),
-     .defaults-panel .text-panel-format {
+     .defaults-panel .defaults-section:has(.defaults-half-control) {
           grid-template-columns: 1fr;
+     }
+
+     .defaults-panel .text-panel-format {
+          grid-template-columns: 96px repeat(2, minmax(0, 1fr));
      }
 
      .defaults-panel .widget-panel-row,
@@ -5124,6 +5166,7 @@ body.is-single-page-viewport .control-panel-page {
 
      .defaults-panel .text-panel-format .widget-panel-title {
           grid-column: 1;
+          grid-row: 1 / span 2;
      }
 }
 

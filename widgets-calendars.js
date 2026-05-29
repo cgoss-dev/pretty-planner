@@ -489,7 +489,7 @@ function getWeeklyVerticalMinGridColumns(item) {
 function getFullMonthGridUnits(item) {
      return {
           width: 31 + getWeekNotesColumnUnits(item),
-          height: 38
+          height: (getFullMonthTitleRowUnits() * 2) + (6 * getFullMonthWeekRowUnits())
      };
 }
 
@@ -498,7 +498,7 @@ function getFullMonthTitleRowUnits() {
 }
 
 function getFullMonthWeekRowUnits() {
-     return 6;
+     return 5;
 }
 
 function getPerpetualCalendarVisibleGridRows(item) {
@@ -735,8 +735,11 @@ function getWeeklyViewStartDate(item) {
 
      const { month, year } = getCalendarEffectiveMonthYear(item);
      const startDay = clamp(Number(item.dataset.startDay) || 1, 1, getCalendarDaysInMonth(year, month));
+     const fixedDate = new Date(year, month, startDay);
 
-     return new Date(year, month, startDay);
+     return item.dataset.itemType === "diary-view"
+          ? getWeekStartDate(fixedDate, item.dataset.weekStart || "monday")
+          : fixedDate;
 }
 
 function normalizeRelativeDateUnit(unit) {
@@ -1583,6 +1586,8 @@ function renderDiaryView(item) {
 
      calendar.replaceChildren();
      calendar.style.setProperty("--diary-row-count", String(visibleDays));
+     calendar.style.setProperty("--diary-column-cell-width", `${getGridSize(getItemPage(item) || pages[0]).x}px`);
+     calendar.style.setProperty("--diary-row-cell-height", `${getGridSize(getItemPage(item) || pages[0]).y}px`);
 
      for (let index = 0; index < visibleDays; index += 1) {
           const date = new Date(startDate);
@@ -1914,6 +1919,36 @@ function syncStartDayOptions(select, year, month, selectedDay) {
      select.value = String(nextDay);
 }
 
+function syncDiaryWeekOptions(select, year, month, selectedDay, weekStart = "monday") {
+     if (!select) {
+          return;
+     }
+
+     const daysInMonth = getCalendarDaysInMonth(year, month);
+     const nextDay = clamp(Number(selectedDay) || 1, 1, daysInMonth);
+     const monthStart = new Date(year, month, 1);
+     const monthEnd = new Date(year, month, daysInMonth);
+     const firstWeekStart = getWeekStartDate(monthStart, weekStart);
+     const selectedWeekStart = getWeekStartDate(new Date(year, month, nextDay), weekStart);
+
+     select.replaceChildren();
+     for (let weekDate = new Date(firstWeekStart); weekDate <= monthEnd; weekDate.setDate(weekDate.getDate() + 7)) {
+          const option = document.createElement("option");
+          const anchorDay = clamp(weekDate.getMonth() === month ? weekDate.getDate() : 1, 1, daysInMonth);
+
+          option.value = String(anchorDay);
+          option.textContent = `Week ${getCalendarWeekNumber(weekDate, weekStart)}`;
+          select.append(option);
+          if (weekDate.getTime() === selectedWeekStart.getTime()) {
+               select.value = option.value;
+          }
+     }
+
+     if (!select.value) {
+          select.value = String(nextDay);
+     }
+}
+
 function normalizeCalendarTitleVisible(value) {
      return value === "false" || value === false ? "false" : "true";
 }
@@ -2054,8 +2089,15 @@ function setCalendarWidgetSettings(item, settings = {}) {
           yearDisplaySelect.value = item.dataset.yearDisplay;
      }
 
-     syncStartDayOptions(startDaySelect, Number(item.dataset.year), Number(item.dataset.month), item.dataset.startDay);
-     syncStartDayOptions(displayDaySelect, Number(item.dataset.year), Number(item.dataset.month), item.dataset.startDay);
+     if (item.dataset.itemType === "diary-view") {
+          setCalendarDisplayControlLabel(displayDaySelect, "Week #", "Display week number");
+          syncDiaryWeekOptions(startDaySelect, Number(item.dataset.year), Number(item.dataset.month), item.dataset.startDay, item.dataset.weekStart);
+          syncDiaryWeekOptions(displayDaySelect, Number(item.dataset.year), Number(item.dataset.month), item.dataset.startDay, item.dataset.weekStart);
+     } else {
+          setCalendarDisplayControlLabel(displayDaySelect, "Day", "Display start day");
+          syncStartDayOptions(startDaySelect, Number(item.dataset.year), Number(item.dataset.month), item.dataset.startDay);
+          syncStartDayOptions(displayDaySelect, Number(item.dataset.year), Number(item.dataset.month), item.dataset.startDay);
+     }
      syncCalendarDisplayDateControls(item, displayYearSelect, displayMonthSelect);
 
      if (visibleDaysSelect) {

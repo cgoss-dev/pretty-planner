@@ -31,6 +31,7 @@ const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]")
 const zoomToast = document.querySelector("[data-zoom-toast]");
 const hintPanel = document.querySelector("[data-hint-panel]");
 const defaultControls = Array.from(document.querySelectorAll("[data-default-control]"));
+const defaultTitleTextColorSwatches = document.querySelector("[data-default-title-text-color-swatches]");
 const defaultTextColorSwatches = document.querySelector("[data-default-text-color-swatches]");
 const defaultGridColorSwatches = Array.from(document.querySelectorAll("[data-default-grid-color-swatches]"));
 const defaultGridFillSwatches = document.querySelector("[data-default-grid-fill-swatches]");
@@ -281,7 +282,7 @@ let plannerDefaultSettings = getNormalizedPlannerDefaults();
 
 function normalizeGridLineDefaults(lineDefaults = {}, fallback = {}) {
      return {
-          enabled: lineDefaults.enabled === "false" ? "false" : (fallback.enabled || "true"),
+          enabled: "true",
           color: lineDefaults.color || fallback.color || factoryPlannerDefaults.grid.color,
           weight: String(lineDefaults.weight || fallback.weight || factoryPlannerDefaults.grid.weight)
      };
@@ -355,8 +356,8 @@ function getPlannerDefaultItemStyle(type = "sticker") {
 
      return {
           fillColor: isPageTitleItemType(type) ? "transparent" : plannerDefaultSettings.grid.fill,
-          borderColor: isPageTitleItemType(type) || perimeter.enabled === "false" ? "transparent" : perimeter.color,
-          borderWidth: perimeter.enabled === "false" ? "0" : perimeter.weight,
+          borderColor: isPageTitleItemType(type) ? "transparent" : perimeter.color,
+          borderWidth: perimeter.weight,
           dotGrid: plannerDefaultSettings.grid.dotGrid
      };
 }
@@ -410,10 +411,14 @@ function setDefaultControlValue(controlName, value) {
 
      const textMap = {
           "title-text-font": ["titleText", "font"],
-          "text-size": "size",
-          "text-font": "font",
-          "body-text-font": "font",
-          "text-color": "color"
+          "title-text-size": ["titleText", "size"],
+          "title-text-color": ["titleText", "color"],
+          "text-size": ["text", "size"],
+          "text-font": ["text", "font"],
+          "text-color": ["text", "color"],
+          "body-text-font": ["text", "font"],
+          "body-text-size": ["text", "size"],
+          "body-text-color": ["text", "color"]
      };
      const gridMap = {
           "grid-color": "color",
@@ -433,8 +438,6 @@ function setDefaultControlValue(controlName, value) {
           const [groupName, key] = textMap[controlName];
 
           plannerDefaultSettings[groupName][key] = value;
-     } else if (textMap[controlName]) {
-          plannerDefaultSettings.text[textMap[controlName]] = value;
      } else if (controlName.startsWith("grid-line-")) {
           const [, , lineName, key] = controlName.split("-");
           const normalizedLineName = {
@@ -465,20 +468,29 @@ function setDefaultDateOrder(order) {
 
 function toggleDefaultTextStyle(controlName, button) {
      const textMap = {
-          "text-bold": "bold",
-          "text-italic": "italic",
-          "text-underline": "underline",
-          "text-strike": "strike"
+          "title-text-bold": ["titleText", "bold"],
+          "title-text-italic": ["titleText", "italic"],
+          "title-text-underline": ["titleText", "underline"],
+          "title-text-strike": ["titleText", "strike"],
+          "text-bold": ["text", "bold"],
+          "text-italic": ["text", "italic"],
+          "text-underline": ["text", "underline"],
+          "text-strike": ["text", "strike"],
+          "body-text-bold": ["text", "bold"],
+          "body-text-italic": ["text", "italic"],
+          "body-text-underline": ["text", "underline"],
+          "body-text-strike": ["text", "strike"]
      };
-     const key = textMap[controlName];
+     const textControl = textMap[controlName];
 
-     if (!key) {
+     if (!textControl) {
           return;
      }
 
-     const nextValue = plannerDefaultSettings.text[key] === "true" ? "false" : "true";
+     const [groupName, key] = textControl;
+     const nextValue = plannerDefaultSettings[groupName][key] === "true" ? "false" : "true";
 
-     plannerDefaultSettings.text[key] = nextValue;
+     plannerDefaultSettings[groupName][key] = nextValue;
      button.setAttribute("aria-pressed", String(nextValue === "true"));
      button.classList.toggle("is-active", nextValue === "true");
      applyPlannerDefaultsToThemeWidgets();
@@ -492,7 +504,9 @@ function syncDefaultControls() {
                control.checked = control.value === plannerDefaultSettings.hintPanel;
           } else if (name === "dot-grid") {
                control.checked = control.value === plannerDefaultSettings.grid.dotGrid;
-          } else if (name === "text-size") {
+          } else if (name === "title-text-size") {
+               control.value = plannerDefaultSettings.titleText.size;
+          } else if (name === "text-size" || name === "body-text-size") {
                control.value = plannerDefaultSettings.text.size;
           } else if (name === "title-text-font") {
                control.value = plannerDefaultSettings.titleText.font;
@@ -500,7 +514,9 @@ function syncDefaultControls() {
           } else if (name === "text-font" || name === "body-text-font") {
                control.value = plannerDefaultSettings.text.font;
                updateCustomSelectDisplay(control);
-          } else if (name === "text-color") {
+          } else if (name === "title-text-color") {
+               setPaletteControlValue(control, defaultTitleTextColorSwatches, plannerDefaultSettings.titleText.color);
+          } else if (name === "text-color" || name === "body-text-color") {
                setPaletteControlValue(control, defaultTextColorSwatches, plannerDefaultSettings.text.color);
           } else if (name === "grid-color") {
                setPaletteControlValue(control, defaultGridColorSwatches[0], plannerDefaultSettings.grid.color);
@@ -543,10 +559,15 @@ function syncDefaultControls() {
                control.checked = control.value === plannerDefaultSettings.date.monthFormat;
           } else if (name === "date-day-format") {
                control.checked = control.value === plannerDefaultSettings.date.dayFormat;
-          } else if (name.startsWith("text-")) {
-               const styleName = name.replace("text-", "");
+          } else if (name.startsWith("title-text-") || name.startsWith("body-text-") || name.startsWith("text-")) {
+               const isTitleText = name.startsWith("title-text-");
+               const settings = isTitleText ? plannerDefaultSettings.titleText : plannerDefaultSettings.text;
+               const styleName = name
+                    .replace("title-text-", "")
+                    .replace("body-text-", "")
+                    .replace("text-", "");
                const key = styleName === "strike" ? "strike" : styleName;
-               const isActive = plannerDefaultSettings.text[key] === "true";
+               const isActive = settings[key] === "true";
 
                control.setAttribute("aria-pressed", String(isActive));
                control.classList.toggle("is-active", isActive);
@@ -3762,13 +3783,20 @@ function applyPlannerConfig() {
 }
 
 function initializeDefaultControls() {
-     const textColorSelect = document.querySelector("[data-default-control='text-color']");
+     const titleTextColorSelect = document.querySelector("[data-default-control='title-text-color']");
+     const bodyTextColorSelect = document.querySelector("[data-default-control='body-text-color'], [data-default-control='text-color']");
      const gridLineColorSelects = Array.from(document.querySelectorAll("[data-default-control$='-color']")).filter((select) => select.dataset.defaultControl.startsWith("grid-line-"));
      const gridFillSelect = document.querySelector("[data-default-control='grid-fill']");
 
-     if (textColorSelect) {
-          initializePaletteColorControl(textColorSelect, defaultTextColorSwatches, plannerDefaultSettings.text.color, (nextColor) => {
-               setDefaultControlValue("text-color", nextColor);
+     if (titleTextColorSelect) {
+          initializePaletteColorControl(titleTextColorSelect, defaultTitleTextColorSwatches, plannerDefaultSettings.titleText.color, (nextColor) => {
+               setDefaultControlValue("title-text-color", nextColor);
+               savePlannerState();
+          });
+     }
+     if (bodyTextColorSelect) {
+          initializePaletteColorControl(bodyTextColorSelect, defaultTextColorSwatches, plannerDefaultSettings.text.color, (nextColor) => {
+               setDefaultControlValue(bodyTextColorSelect.dataset.defaultControl, nextColor);
                savePlannerState();
           });
      }
@@ -3797,7 +3825,7 @@ function initializeDefaultControls() {
 
      defaultControls.forEach((control) => {
           if (control.matches("select")) {
-               if (["text-color", "grid-fill"].includes(control.dataset.defaultControl) || control.dataset.defaultControl.startsWith("grid-line-") && control.dataset.defaultControl.endsWith("-color")) {
+               if (["title-text-color", "text-color", "body-text-color", "grid-fill"].includes(control.dataset.defaultControl) || control.dataset.defaultControl.startsWith("grid-line-") && control.dataset.defaultControl.endsWith("-color")) {
                     return;
                }
                makeCustomSelect(control);

@@ -112,7 +112,7 @@ function applyThemeToWidget(item) {
 }
 
 function getGridLineStyle(lineSettings = {}) {
-     const enabled = lineSettings.enabled !== "false";
+     const enabled = lineSettings.color !== "transparent" && Number(lineSettings.weight || 1) > 0;
 
      return {
           color: enabled ? lineSettings.color || "var(--color-gray4)" : "transparent",
@@ -2622,9 +2622,9 @@ function makePlannerItem(type = "sticker") {
           displayDateModeSelect.append(option);
      });
      displayDayLabel.className = "item-calendar-display-control";
-     displayDayLabel.textContent = "Day";
+     displayDayLabel.textContent = type === "diary-view" ? "Week #" : "Day";
      displayDaySelect.dataset.widgetControl = "display-day";
-     displayDaySelect.setAttribute("aria-label", "Display start day");
+     displayDaySelect.setAttribute("aria-label", type === "diary-view" ? "Display week number" : "Display start day");
      syncStartDayOptions(displayDaySelect, new Date().getFullYear(), new Date().getMonth(), "1");
      displayWeekNumberLabel.className = "item-calendar-display-control";
      displayWeekNumberLabel.textContent = "Week #";
@@ -3045,9 +3045,9 @@ function makePlannerItem(type = "sticker") {
           yearDisplaySelect.append(option);
      });
      startDayLabel.className = "widget-panel-row widget-option-control";
-     startDayLabel.textContent = "Day";
+     startDayLabel.textContent = type === "diary-view" ? "Week #" : "Day";
      startDaySelect.dataset.widgetControl = "start-day";
-     startDaySelect.setAttribute("aria-label", "Weekly planner start day");
+     startDaySelect.setAttribute("aria-label", type === "diary-view" ? "Diary view week number" : "Weekly planner start day");
      visibleDaysLabel.className = "widget-panel-row widget-option-control";
      visibleDaysLabel.textContent = "Duration";
      visibleDaysSelect.dataset.widgetControl = "visible-days";

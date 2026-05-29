@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-320">
+     <link rel="stylesheet" href="style.css?v=planner-storage-325">
 </head>
 <body>
      <main class="planner-desk">
@@ -89,6 +89,28 @@
                                    <option value="sofia-sans-ec">Sofia Sans EC</option>
                               </select>
                          </label>
+                         <label class="widget-panel-row text-panel-control">
+                              <span class="widget-panel-title">Text Size</span>
+                              <select class="native-select" data-default-control="title-text-size" aria-label="Default title text size">
+                                   <option value="10" selected>SM: 10px</option>
+                                   <option value="20">MD: 20px</option>
+                                   <option value="40">LG: 40px</option>
+                                   <option value="80">1L: 80px</option>
+                                   <option value="160">2X: 160px</option>
+                              </select>
+                         </label>
+                         <label class="widget-panel-row text-panel-control color-panel-control">
+                              <span class="widget-panel-title">Text Color</span>
+                              <select class="native-select" data-default-control="title-text-color" aria-label="Default title text color"></select>
+                              <div class="color-panel-swatches" data-default-title-text-color-swatches></div>
+                         </label>
+                         <div class="text-panel-format text-panel-control" aria-label="Default title text style">
+                              <span class="widget-panel-title">Text Style</span>
+                              <button class="text-panel-toggle text-panel-toggle-bold" type="button" data-default-control="title-text-bold" aria-pressed="false">Bold</button>
+                              <button class="text-panel-toggle text-panel-toggle-italic" type="button" data-default-control="title-text-italic" aria-pressed="false">Italic</button>
+                              <button class="text-panel-toggle text-panel-toggle-underline" type="button" data-default-control="title-text-underline" aria-pressed="false">Underline</button>
+                              <button class="text-panel-toggle text-panel-toggle-strike" type="button" data-default-control="title-text-strike" aria-pressed="false">Strike</button>
+                         </div>
                          <div class="widget-panel-section-title">Body Text</div>
                          <label class="widget-panel-row text-panel-control">
                               <span class="widget-panel-title">Typeface</span>
@@ -111,7 +133,7 @@
                          </label>
                          <label class="widget-panel-row text-panel-control">
                               <span class="widget-panel-title">Text Size</span>
-                              <select class="native-select" data-default-control="text-size" aria-label="Default text size">
+                              <select class="native-select" data-default-control="body-text-size" aria-label="Default body text size">
                                    <option value="10" selected>SM: 10px</option>
                                    <option value="20">MD: 20px</option>
                                    <option value="40">LG: 40px</option>
@@ -121,31 +143,21 @@
                          </label>
                          <label class="widget-panel-row text-panel-control color-panel-control">
                               <span class="widget-panel-title">Text Color</span>
-                              <select class="native-select" data-default-control="text-color" aria-label="Default text color"></select>
+                              <select class="native-select" data-default-control="body-text-color" aria-label="Default body text color"></select>
                               <div class="color-panel-swatches" data-default-text-color-swatches></div>
                          </label>
                          <div class="text-panel-format text-panel-control" aria-label="Default text style">
                               <span class="widget-panel-title">Text Style</span>
-                              <button class="text-panel-toggle text-panel-toggle-bold" type="button" data-default-control="text-bold" aria-pressed="false">Bold</button>
-                              <button class="text-panel-toggle text-panel-toggle-italic" type="button" data-default-control="text-italic" aria-pressed="false">Italic</button>
-                              <button class="text-panel-toggle text-panel-toggle-underline" type="button" data-default-control="text-underline" aria-pressed="false">Underline</button>
-                              <button class="text-panel-toggle text-panel-toggle-strike" type="button" data-default-control="text-strike" aria-pressed="false">Strike</button>
+                              <button class="text-panel-toggle text-panel-toggle-bold" type="button" data-default-control="body-text-bold" aria-pressed="false">Bold</button>
+                              <button class="text-panel-toggle text-panel-toggle-italic" type="button" data-default-control="body-text-italic" aria-pressed="false">Italic</button>
+                              <button class="text-panel-toggle text-panel-toggle-underline" type="button" data-default-control="body-text-underline" aria-pressed="false">Underline</button>
+                              <button class="text-panel-toggle text-panel-toggle-strike" type="button" data-default-control="body-text-strike" aria-pressed="false">Strike</button>
                          </div>
                     </div>
 
                     <div class="keyboard-control-section defaults-section">
                          <div class="keyboard-control-title">Grid Defaults</div>
                          <div class="widget-panel-section-title">Perimeter Box</div>
-                         <div class="control-choice-group" aria-label="Perimeter box lines">
-                              <label class="control-choice">
-                                   <input type="radio" name="grid-line-perimeter-default" data-default-control="grid-line-perimeter-enabled" value="true" checked>
-                                   <span>On</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="grid-line-perimeter-default" data-default-control="grid-line-perimeter-enabled" value="false">
-                                   <span>Off</span>
-                              </label>
-                         </div>
                          <label class="widget-panel-row text-panel-control color-panel-control">
                               <span class="widget-panel-title">Color</span>
                               <select class="native-select" data-default-control="grid-line-perimeter-color" aria-label="Default perimeter line color"></select>
@@ -163,16 +175,6 @@
                          </label>
 
                          <div class="widget-panel-section-title">Title Box</div>
-                         <div class="control-choice-group" aria-label="Title box lines">
-                              <label class="control-choice">
-                                   <input type="radio" name="grid-line-title-default" data-default-control="grid-line-title-enabled" value="true" checked>
-                                   <span>On</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="grid-line-title-default" data-default-control="grid-line-title-enabled" value="false">
-                                   <span>Off</span>
-                              </label>
-                         </div>
                          <label class="widget-panel-row text-panel-control color-panel-control">
                               <span class="widget-panel-title">Color</span>
                               <select class="native-select" data-default-control="grid-line-title-color" aria-label="Default title box line color"></select>
@@ -190,16 +192,6 @@
                          </label>
 
                          <div class="widget-panel-section-title">Body Box Vertical</div>
-                         <div class="control-choice-group" aria-label="Body vertical lines">
-                              <label class="control-choice">
-                                   <input type="radio" name="grid-line-body-vertical-default" data-default-control="grid-line-bodyVertical-enabled" value="true" checked>
-                                   <span>On</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="grid-line-body-vertical-default" data-default-control="grid-line-bodyVertical-enabled" value="false">
-                                   <span>Off</span>
-                              </label>
-                         </div>
                          <label class="widget-panel-row text-panel-control color-panel-control">
                               <span class="widget-panel-title">Color</span>
                               <select class="native-select" data-default-control="grid-line-bodyVertical-color" aria-label="Default body vertical line color"></select>
@@ -217,16 +209,6 @@
                          </label>
 
                          <div class="widget-panel-section-title">Body Box Horizontal</div>
-                         <div class="control-choice-group" aria-label="Body horizontal lines">
-                              <label class="control-choice">
-                                   <input type="radio" name="grid-line-body-horizontal-default" data-default-control="grid-line-bodyHorizontal-enabled" value="true" checked>
-                                   <span>On</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="grid-line-body-horizontal-default" data-default-control="grid-line-bodyHorizontal-enabled" value="false">
-                                   <span>Off</span>
-                              </label>
-                         </div>
                          <label class="widget-panel-row text-panel-control color-panel-control">
                               <span class="widget-panel-title">Color</span>
                               <select class="native-select" data-default-control="grid-line-bodyHorizontal-color" aria-label="Default body horizontal line color"></select>
@@ -535,12 +517,12 @@
           </div>
      </main>
 
-     <script src="config.js?v=planner-storage-171"></script>
+     <script src="config.js?v=planner-storage-174"></script>
      <script src="ui.js?v=planner-storage-217"></script>
-     <script src="widgets-calendars.js?v=planner-storage-29"></script>
-     <script src="widgets.js?v=planner-storage-301"></script>
+     <script src="widgets-calendars.js?v=planner-storage-33"></script>
+     <script src="widgets.js?v=planner-storage-303"></script>
      <script src="storage.js?v=planner-storage-28"></script>
      <script src="controls.js?v=planner-storage-198"></script>
-     <script src="app.js?v=planner-storage-267"></script>
+     <script src="app.js?v=planner-storage-269"></script>
 </body>
 </html>
