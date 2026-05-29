@@ -459,18 +459,6 @@ window.PageControls = (() => {
 window.KeyboardControls = (() => {
      const groups = [
           {
-               title: "Hint Panel",
-               controls: [
-                    { key: "Tab", action: "Toggle Mode" },
-                    { key: "Q / E", action: "Last or next page, spread, or tab" },
-                    { key: "Mouse Back / Forward", action: "Last or next page" },
-                    { key: "Enter", action: "Edit" },
-                    { key: "Z", action: "Cycle zoom" },
-                    { key: "X", action: "Toggle gridlines on or off" },
-                    { key: "C", action: "Center" },
-               ]
-          },
-          {
                title: "Control Panel",
                controls: [
                     { key: "1-3", action: "Choose Guide, Controls, or Widgets" },
@@ -481,21 +469,12 @@ window.KeyboardControls = (() => {
                ]
           },
           {
-               title: "Design Mode",
+               title: "Widget Placement / Transform",
                controls: [
-                    { key: "1", action: "Open Guide" },
-                    { key: "2", action: "Open Controls" },
-                    { key: "3", action: "Open Widgets" }
-               ]
-          },
-          {
-               title: "Widget Placement",
-               controls: [
-                    { key: "Enter", action: "Pick up focused widget" },
-                    { key: "WASD / Arrows", action: "Move one grid cell" },
-                    { key: "Enter", action: "Place widget" },
+                    { key: "Enter", action: "Pick up, place, or confirm the widget" },
+                    { key: "WASD / Arrows", action: "Move one grid cell, or resize from the upper-left anchor" },
                     { key: "X", action: "Toggle gridlines" },
-                    { key: "Delete / Esc", action: "Cancel placement" }
+                    { key: "Delete / Esc", action: "Cancel placement, reposition, or resize" }
                ]
           },
           {
@@ -506,24 +485,6 @@ window.KeyboardControls = (() => {
                     { key: "3", action: "Delete selected object" },
                     { key: "Enter", action: "Open widget actions" },
                     { key: "Delete / Esc", action: "Deselect object" }
-               ]
-          },
-          {
-               title: "Reposition Mode",
-               controls: [
-                    { key: "WASD / Arrows", action: "Move one grid cell" },
-                    { key: "Enter", action: "Place widget" },
-                    { key: "X", action: "Toggle gridlines" },
-                    { key: "Delete / Esc", action: "Cancel reposition" }
-               ]
-          },
-          {
-               title: "Resize Mode",
-               controls: [
-                    { key: "WASD / Arrows", action: "Resize from upper-left anchor" },
-                    { key: "Enter", action: "Confirm resize" },
-                    { key: "X", action: "Toggle gridlines" },
-                    { key: "Delete / Esc", action: "Cancel resize" }
                ]
           },
           {

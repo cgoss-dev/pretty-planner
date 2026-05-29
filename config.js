@@ -54,7 +54,7 @@
                     },
                     "mini-month": {
                          width: 10,
-                         height: 8
+                         height: 9
                     },
                     "full-month": {
                          width: 14,

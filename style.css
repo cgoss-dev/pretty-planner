@@ -2900,7 +2900,7 @@ body {
 .toc-list::after {
      content: "";
      position: absolute;
-     top: 0;
+     top: calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * 2);
      bottom: 0;
      left: var(--toc-left-column-width, 22.222222%);
      z-index: 3;
@@ -2914,7 +2914,7 @@ body {
      position: relative;
      z-index: 4;
      display: grid;
-     grid-template-columns: var(--toc-left-column-width, 22.222222%) minmax(var(--toc-right-column-min-width, 22.222222%), 1fr);
+     grid-template-columns: minmax(0, 1fr);
      align-items: stretch;
      min-width: 0;
      min-height: 0;
@@ -2923,16 +2923,11 @@ body {
      color: var(--color-gray1);
 }
 
-.toc-title-page,
 .toc-title-name {
      display: grid;
      place-items: center;
      min-width: 0;
      min-height: 0;
-}
-
-.toc-title-page {
-     border-right: var(--border-sm) solid var(--toc-grid-line-color);
 }
 
 .toc-title-name {
@@ -3027,11 +3022,6 @@ body {
 .toc-title {
      border-bottom-color: var(--widget-title-line-color);
      border-bottom-width: var(--widget-title-line-width);
-}
-
-.toc-title-page {
-     border-right-color: var(--widget-title-line-color);
-     border-right-width: var(--widget-title-line-width);
 }
 
 .mini-month-cell,
@@ -3216,13 +3206,13 @@ body {
      position: relative;
      display: grid;
      width: calc((var(--mini-month-visible-columns, 8) / 8) * 100%);
-     height: calc((var(--mini-month-visible-row-units, var(--mini-month-visible-rows, 8)) / 8) * 100%);
+     height: calc((var(--mini-month-visible-row-units, var(--mini-month-visible-rows, 8)) / var(--mini-month-max-row-units, 8)) * 100%);
      overflow: hidden;
      border-radius: inherit;
      outline: 0;
      background: transparent;
      grid-template-columns: repeat(8, calc(100% / var(--mini-month-visible-columns, 8)));
-     grid-template-rows: repeat(8, calc(100% / var(--mini-month-visible-rows, 8)));
+     grid-template-rows: repeat(var(--mini-month-visible-row-units, var(--mini-month-visible-rows, 8)), calc(100% / var(--mini-month-visible-row-units, var(--mini-month-visible-rows, 8))));
 }
 
 .mini-month::before {
@@ -4361,17 +4351,6 @@ body {
      text-align: center;
 }
 
-.text-panel-visibility-toggle {
-     font-size: 0.78rem;
-     white-space: nowrap;
-}
-
-.text-panel-visibility-toggle.is-active {
-     border-color: rgba(17, 17, 17, 0.16);
-     background: rgba(255, 255, 255, 0.22);
-     color: var(--color-gray3);
-}
-
 .text-panel-controls-control-no-toggle {
      grid-template-columns: minmax(0, 1fr);
 }
@@ -5236,7 +5215,13 @@ body.is-single-page-viewport .planner-desk > .sticker-source {
 .planner-sidebar .hint-panel {
      position: static;
      z-index: auto;
+     align-self: start;
+     align-content: start;
+     align-items: start;
+     justify-content: start;
+     justify-items: start;
      width: 100%;
+     height: auto;
      max-width: none;
      padding: 0;
      border: 0;
@@ -5284,6 +5269,12 @@ body.is-single-page-viewport .planner-desk > .sticker-source {
 
 :root[data-keyboard-mode="interact"] .planner-sidebar .hint-panel {
      display: grid;
+}
+
+.planner-sidebar .hint-mode,
+.planner-sidebar .hint-row {
+     justify-self: start;
+     text-align: left;
 }
 
 :root[data-keyboard-mode="design"] .planner-sidebar .control-panel {
@@ -5402,11 +5393,6 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 .toc-title {
      border-bottom-color: var(--widget-title-line-color);
      border-bottom-width: var(--widget-title-line-width);
-}
-
-.toc-title-page {
-     border-right-color: var(--widget-title-line-color);
-     border-right-width: var(--widget-title-line-width);
 }
 
 .mini-month-cell,

@@ -204,7 +204,6 @@ function renderToc(item, entries = []) {
 
      const list = document.createElement("div");
      const tocTitle = document.createElement("div");
-     const tocTitlePage = document.createElement("span");
      const tocTitleName = document.createElement("span");
 
      list.className = "toc-list";
@@ -212,11 +211,9 @@ function renderToc(item, entries = []) {
      tocTitle.className = "toc-title";
      tocTitle.style.gridRow = "span 2";
      tocTitle.dataset.themePart = "heading";
-     tocTitlePage.className = "toc-title-page";
      tocTitleName.className = "toc-title-name";
-     tocTitlePage.textContent = "Page";
      tocTitleName.textContent = "Table of Contents";
-     tocTitle.append(tocTitlePage, tocTitleName);
+     tocTitle.append(tocTitleName);
      list.append(tocTitle);
 
      if (!tocEntries.length) {
@@ -805,17 +802,6 @@ function updateTextToggleControl(control, isActive) {
      control.setAttribute("aria-pressed", String(Boolean(isActive)));
 }
 
-function updateTextVisibilityToggle(control, isVisible) {
-     if (!control) {
-          return;
-     }
-
-     control.dataset.visibilityEnabled = String(Boolean(isVisible));
-     control.textContent = isVisible ? "Visibility On" : "Visibility Off";
-     control.setAttribute("aria-label", isVisible ? "Text visibility on" : "Text visibility off");
-     updateTextToggleControl(control, !isVisible);
-}
-
 function updateTextSizeControls(controls, size) {
      controls.querySelectorAll("[data-text-size-value]").forEach((button) => {
           const isActive = button.dataset.textSizeValue === String(size);
@@ -895,7 +881,6 @@ function setStickerTextSettings(item, settings = {}) {
           textElement.style.lineHeight = getTextLineHeightPixels(item, item.dataset.textLineHeight);
      }
 
-     const enabledInput = controls.querySelector("[data-text-control='enabled']");
      const fontSelect = controls.querySelector("[data-text-control='font']");
      const colorInput = controls.querySelector("[data-text-control='color']");
      const colorSwatches = controls.querySelector("[data-text-swatches='color']");
@@ -907,10 +892,6 @@ function setStickerTextSettings(item, settings = {}) {
      const yAlignSelect = controls.querySelector("[data-text-control='y-align']");
      const lineHeightSelect = controls.querySelector("[data-text-control='line-height']");
      const roleSelect = controls.querySelector("[data-text-control='role']");
-
-     if (enabledInput) {
-          updateTextVisibilityToggle(enabledInput, item.dataset.textEnabled === "true");
-     }
 
      updateTextSizeControls(controls, item.dataset.textSize);
 
@@ -2450,7 +2431,6 @@ function makePlannerItem(type = "sticker") {
      const textControlsRow = document.createElement("div");
      const textToggleLabel = document.createElement("label");
      const textTitle = document.createElement("span");
-     const textToggleInput = document.createElement("button");
      const textSizeLabel = document.createElement("div");
      const textSizeTitle = document.createElement("span");
      const textSizeGroup = document.createElement("div");
@@ -2755,12 +2735,6 @@ function makePlannerItem(type = "sticker") {
      textSizeLabel.className = "widget-panel-row text-panel-control text-panel-size-control";
      textSizeTitle.className = "widget-panel-title";
      textSizeTitle.textContent = "Text Size";
-     textToggleInput.className = "text-panel-toggle text-panel-visibility-toggle";
-     textToggleInput.type = "button";
-     textToggleInput.textContent = "Visibility On";
-     textToggleInput.dataset.textControl = "enabled";
-     textToggleInput.setAttribute("aria-label", "Text visibility on");
-     textToggleInput.setAttribute("aria-pressed", "false");
      textSizeGroup.className = "text-panel-size-options";
      textSizeGroup.setAttribute("role", "group");
      textSizeGroup.setAttribute("aria-label", "Sticker text size");
@@ -3131,12 +3105,8 @@ function makePlannerItem(type = "sticker") {
      fillLabel.append(fillTitle, fillInput, fillSwatches);
      borderColorLabel.append(borderTitle, borderColorInput, borderColorSwatches);
      dotGridLabel.append(dotGridInput);
-     if (type === "sticker") {
-          textToggleLabel.append(textTitle, textToggleInput, textFontSelect);
-     } else {
-          textToggleLabel.classList.add("text-panel-settings-control-no-toggle");
-          textToggleLabel.append(textTitle, textFontSelect);
-     }
+     textToggleLabel.classList.add("text-panel-settings-control-no-toggle");
+     textToggleLabel.append(textTitle, textFontSelect);
      textSizeLabel.append(textSizeTitle, textSizeGroup);
      textColorLabel.append(textColorTitle, textColorInput, textColorSwatches);
      textRoleLabel.append(textRoleTitle, textRoleSelect);
@@ -3510,13 +3480,6 @@ function makePlannerItem(type = "sticker") {
      dotGridInput.addEventListener("change", () => {
           applyStyleToActionItems(item, {
                dotGrid: dotGridInput.checked ? "true" : "false"
-          });
-     });
-     textToggleInput.addEventListener("click", () => {
-          const isVisible = textToggleInput.dataset.visibilityEnabled === "true";
-
-          applyTextSettingsToActionItems(item, {
-               enabled: isVisible ? "false" : "true"
           });
      });
      textSizeGroup.querySelectorAll("[data-text-size-value]").forEach((button) => {

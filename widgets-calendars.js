@@ -1184,7 +1184,7 @@ function renderMiniMonth(item) {
      const allWeekRows = Array.from({
           length: 6
      }, (_, weekIndex) => weekIndex);
-     const weekRows = usesExpandedCalendarUnits ? allWeekRows : allWeekRows.filter((weekIndex) => {
+     const weekRows = allWeekRows.filter((weekIndex) => {
           const weekStartDayNumber = (weekIndex * 7) + 1 - firstDayOffset;
 
           return weekStartDayNumber <= daysInMonth && weekStartDayNumber + 6 >= 1;
@@ -1194,7 +1194,7 @@ function renderMiniMonth(item) {
           1,
           ...weekRows.map((weekIndex) => weekIndex + 2)
      ];
-     const titleRowUnits = usesExpandedCalendarUnits ? getFullMonthTitleRowUnits() : 1;
+     const titleRowUnits = usesExpandedCalendarUnits ? getFullMonthTitleRowUnits() : 2;
      const dayNameRowUnits = 1;
      const weekRowUnits = usesExpandedCalendarUnits ? getFullMonthWeekRowUnits() : 1;
      const visibleColumnCount = columnSlots.length;
@@ -1242,14 +1242,16 @@ function renderMiniMonth(item) {
           ].join(" ");
      } else {
           calendar.style.gridTemplateColumns = `repeat(${visibleColumnCount}, calc(100% / ${visibleColumnCount}))`;
-          calendar.style.gridTemplateRows = `repeat(${visibleRowCount}, calc(100% / ${visibleRowCount}))`;
+          calendar.style.gridTemplateRows = `repeat(${visibleRowUnits}, calc(100% / ${visibleRowUnits}))`;
      }
      item.style.setProperty("--mini-month-fixed-row-units", String(fixedRowUnits));
      item.style.setProperty("--mini-month-title-row-units", String(titleRowUnits));
      item.style.setProperty("--mini-month-week-row-count", String(weekRows.length));
      for (let row = 0; row < calendarRows.length; row += 1) {
           const calendarRow = calendarRows[row];
-          const displayRow = row + 1;
+          const displayRow = usesExpandedCalendarUnits
+               ? row + 1
+               : calendarRows.slice(0, row).reduce((totalRows, previousCalendarRow) => totalRows + (previousCalendarRow === 0 ? titleRowUnits : 1), 1);
 
           for (let column = 0; column < visibleColumnCount; column += 1) {
                const columnSlot = columnSlots[column];
@@ -1265,7 +1267,9 @@ function renderMiniMonth(item) {
 
                cell.className = "mini-month-cell";
                cell.dataset.themePart = "dayCell";
-               cell.style.gridRow = String(displayRow);
+               cell.style.gridRow = calendarRow === 0 && !usesExpandedCalendarUnits
+                    ? `${displayRow} / span ${titleRowUnits}`
+                    : String(displayRow);
                cell.style.gridColumn = isTitleCell
                     ? `2 / span ${contentColumnSlots.length}`
                     : String(displayColumn);
