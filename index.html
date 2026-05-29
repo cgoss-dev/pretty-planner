@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-316">
+     <link rel="stylesheet" href="style.css?v=planner-storage-317">
 </head>
 <body>
      <main class="planner-desk">
@@ -33,12 +33,12 @@
           <form class="control-panel" aria-label="Planner settings panel">
                <div class="panel-title title control-panel-title">Settings Panel</div>
                <div class="control-panel-tabs" role="tablist" aria-label="Planner settings panel tabs">
-                    <button class="control-panel-tab is-active" type="button" role="tab" aria-selected="true" aria-label="Guide" aria-controls="defaults-panel" data-control-panel-tab="defaults">
+                    <button class="control-panel-tab is-active" type="button" role="tab" aria-selected="true" aria-label="Guide" aria-controls="controls-panel" data-control-panel-tab="controls">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
                          <span class="control-panel-tab-label">1 Guide</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
-                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Controls" aria-controls="controls-panel" data-control-panel-tab="controls">
+                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Controls" aria-controls="defaults-panel" data-control-panel-tab="defaults">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
                          <span class="control-panel-tab-label">2 Controls</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
@@ -50,9 +50,9 @@
                     </button>
                </div>
 
-               <div class="control-panel-page controls-panel" id="controls-panel" role="tabpanel" data-control-panel-page="controls" data-keyboard-controls hidden></div>
+               <div class="control-panel-page controls-panel" id="controls-panel" role="tabpanel" data-control-panel-page="controls" data-keyboard-controls></div>
 
-               <div class="control-panel-page controls-panel defaults-panel" id="defaults-panel" role="tabpanel" data-control-panel-page="defaults">
+               <div class="control-panel-page controls-panel defaults-panel" id="defaults-panel" role="tabpanel" data-control-panel-page="defaults" hidden>
                     <div class="keyboard-control-section defaults-section">
                          <div class="keyboard-control-title">Interface</div>
                          <div class="control-choice-group" aria-label="Hint Panel">
@@ -426,6 +426,6 @@
      <script src="widgets.js?v=planner-storage-295"></script>
      <script src="storage.js?v=planner-storage-27"></script>
      <script src="controls.js?v=planner-storage-197"></script>
-     <script src="app.js?v=planner-storage-263"></script>
+     <script src="app.js?v=planner-storage-264"></script>
 </body>
 </html>

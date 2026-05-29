@@ -2690,22 +2690,22 @@ function handleKeyboardModeNumberKey(event) {
      if (designBranch === "root") {
           event.preventDefault();
           if (event.key === "1") {
-               enterKeyboardMenuBranch("defaults", "defaults");
-          } else if (event.key === "2") {
                enterKeyboardMenuBranch("controls", "controls");
+          } else if (event.key === "2") {
+               enterKeyboardMenuBranch("defaults", "defaults");
           } else if (event.key === "3") {
                enterKeyboardMenuBranch("menu", "add");
           }
           return;
      }
 
-     if (designBranch === "defaults" && event.key === "1") {
+     if (designBranch === "controls" && event.key === "1") {
           event.preventDefault();
           returnToKeyboardDesignRoot();
           return;
      }
 
-     if (designBranch === "controls" && event.key === "2") {
+     if (designBranch === "defaults" && event.key === "2") {
           event.preventDefault();
           returnToKeyboardDesignRoot();
           return;

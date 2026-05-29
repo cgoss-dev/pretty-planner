@@ -659,7 +659,7 @@ body {
 .control-panel-page {
      display: grid;
      align-content: start;
-     gap: 8px;
+     gap: 14px;
      width: 100%;
      min-width: min(600px, calc(100vw - 32px));
      max-width: calc(100vw - 32px);
@@ -711,7 +711,7 @@ body {
 
 .control-section {
      display: grid;
-     gap: 7px;
+     gap: 10px;
      min-width: 0;
 }
 
@@ -785,7 +785,7 @@ body {
 
 .keyboard-control-section {
      display: grid;
-     gap: 6px;
+     gap: 9px;
      padding: 7px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
      border-radius: 6px;
@@ -797,7 +797,7 @@ body {
 }
 
 .defaults-panel .defaults-section {
-     gap: 6px;
+     gap: 9px;
 }
 
 .defaults-panel .keyboard-control-title {
@@ -3999,7 +3999,7 @@ body {
 }
 
 .widget-panel.is-actions-popup .widget-panel-page {
-     gap: 6px;
+     gap: 12px;
      padding: 6px;
      border-radius: 8px;
 }
@@ -4022,11 +4022,11 @@ body {
 .item-layout-action-group {
      display: grid;
      grid-template-columns: repeat(2, minmax(0, 1fr));
-     gap: 6px;
+     gap: 8px;
 }
 
 .item-layout-action-group {
-     padding-top: 7px;
+     padding-top: 12px;
      border-top: var(--border-sm) solid rgba(17, 17, 17, 0.14);
 }
 
@@ -4087,7 +4087,7 @@ body {
 
 .widget-panel-page {
      display: grid;
-     gap: 8px;
+     gap: 12px;
      width: 100%;
      padding: 8px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
@@ -4304,7 +4304,7 @@ body {
 
 .widget-option-group {
      display: grid;
-     gap: 6px;
+     gap: 9px;
      padding: 6px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
      border-radius: 6px;
@@ -4600,7 +4600,7 @@ body {
 
 .control-panel-page.is-sectioned-panel,
 .widget-panel-page.is-sectioned-panel {
-     gap: 4px;
+     gap: 8px;
 }
 
 .control-panel-page.is-sectioned-panel > .control-section > .control-section-button,
@@ -4609,7 +4609,7 @@ body {
 }
 
 .control-section-body {
-     gap: 6px;
+     gap: 9px;
 }
 
 .control-panel select,
@@ -4741,7 +4741,7 @@ body {
 
 .widget-panel.is-design-popup .widget-panel-page {
      display: grid;
-     gap: 6px;
+     gap: 12px;
      padding: 0;
      background: var(--color-white);
 }
@@ -4769,7 +4769,7 @@ body {
 .widget-panel.is-design-popup .widget-panel-page.is-sectioned-panel {
      display: grid;
      grid-template-columns: 1fr;
-     gap: 6px;
+     gap: 12px;
 }
 
 .widget-panel.is-design-popup .widget-panel-page.is-sectioned-panel > .widget-panel-section-title {
@@ -4778,7 +4778,7 @@ body {
 
 .widget-panel.is-design-popup .widget-panel-page.is-sectioned-panel > .control-section {
      display: grid;
-     gap: 4px;
+     gap: 8px;
 }
 
 .widget-panel.is-design-popup .control-section-button {
@@ -5235,6 +5235,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-tabs {
 body.is-single-page-viewport .planner-sidebar .control-panel-page {
      grid-column: 1;
      grid-row: 2;
+     gap: 14px;
      width: 100%;
      height: 100%;
      min-height: 0;
@@ -5253,7 +5254,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 }
 
 .planner-sidebar .control-panel.is-open .control-panel-page:not([hidden]) {
-     display: block;
+     display: grid;
 }
 
 .planner-sidebar .control-panel.is-open .control-panel-page.add-panel:not([hidden]) {
