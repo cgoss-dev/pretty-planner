@@ -58,7 +58,7 @@
                     },
                     "full-month": {
                          width: 14,
-                         height: 32
+                         height: 33
                     },
                     "perpetual-calendar": {
                          width: perpetualCalendarLeftColumnGridUnits + perpetualCalendarRightColumnMinGridUnits,

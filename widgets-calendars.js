@@ -487,14 +487,16 @@ function getWeeklyVerticalMinGridColumns(item) {
 }
 
 function getFullMonthGridUnits(item) {
+     const titleRowUnits = item?.dataset?.calendarTitleVisible === "false" ? 0 : getFullMonthTitleRowUnits();
+
      return {
           width: 31 + getWeekNotesColumnUnits(item),
-          height: (getFullMonthTitleRowUnits() * 2) + (6 * getFullMonthWeekRowUnits())
+          height: titleRowUnits + 1 + (6 * getFullMonthWeekRowUnits())
      };
 }
 
 function getFullMonthTitleRowUnits() {
-     return 1;
+     return 2;
 }
 
 function getFullMonthWeekRowUnits() {
@@ -1236,7 +1238,7 @@ function renderMiniMonth(item) {
 
           calendar.style.gridTemplateColumns = `var(--weekly-column-cell-width, 12px) ${contentTemplateColumns}`;
           calendar.style.gridTemplateRows = [
-               ...(titleVisible ? ["calc(var(--weekly-row-cell-height, 12px) * 2)"] : []),
+               ...(titleVisible ? [`calc(var(--weekly-row-cell-height, 12px) * ${titleRowUnits})`] : []),
                "var(--weekly-row-cell-height, 12px)",
                `repeat(${weekRows.length}, calc(var(--weekly-row-cell-height, 12px) * ${weekRowUnits}))`
           ].join(" ");
