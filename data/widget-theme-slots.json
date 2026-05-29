@@ -157,12 +157,12 @@
           "gridSlot": "interiorGridColor"
         },
         "dayHeader": {
-          "textSlot": "subtitle",
+          "textSlot": "title",
           "sizeMultiplier": 1,
           "fillSlot": "fillColor3"
         },
         "weekendDayHeader": {
-          "textSlot": "subtitle",
+          "textSlot": "title",
           "sizeMultiplier": 1,
           "fillSlot": "fillColor2"
         },
@@ -192,12 +192,12 @@
           "gridSlot": "interiorGridColor"
         },
         "dayHeader": {
-          "textSlot": "subtitle",
+          "textSlot": "title",
           "sizeMultiplier": 1,
           "fillSlot": "fillColor3"
         },
         "weekendDayHeader": {
-          "textSlot": "subtitle",
+          "textSlot": "title",
           "sizeMultiplier": 1,
           "fillSlot": "fillColor2"
         },
@@ -227,12 +227,12 @@
           "gridSlot": "interiorGridColor"
         },
         "dayHeader": {
-          "textSlot": "subtitle",
+          "textSlot": "title",
           "sizeMultiplier": 1,
           "fillSlot": "fillColor3"
         },
         "weekendDayHeader": {
-          "textSlot": "subtitle",
+          "textSlot": "title",
           "sizeMultiplier": 1,
           "fillSlot": "fillColor2"
         },

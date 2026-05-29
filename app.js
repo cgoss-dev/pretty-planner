@@ -32,7 +32,7 @@ const zoomToast = document.querySelector("[data-zoom-toast]");
 const hintPanel = document.querySelector("[data-hint-panel]");
 const defaultControls = Array.from(document.querySelectorAll("[data-default-control]"));
 const defaultTextColorSwatches = document.querySelector("[data-default-text-color-swatches]");
-const defaultGridColorSwatches = document.querySelector("[data-default-grid-color-swatches]");
+const defaultGridColorSwatches = Array.from(document.querySelectorAll("[data-default-grid-color-swatches]"));
 const defaultGridFillSwatches = document.querySelector("[data-default-grid-fill-swatches]");
 const dateOrderPicker = document.querySelector("[data-date-order-picker]");
 const resetUniqueDefaultsButton = document.querySelector("[data-reset-unique-defaults]");
@@ -177,6 +177,19 @@ let activeHexTarget = null;
 let isRestoringPlannerState = false;
 const factoryPlannerDefaults = {
      hintPanel: "on",
+     titleText: {
+          size: "10",
+          font: "annotation-mono",
+          color: "var(--color-gray1)",
+          bold: "false",
+          italic: "false",
+          underline: "false",
+          strike: "false",
+          align: "center",
+          yAlign: "center",
+          lineHeight: "1",
+          role: "title"
+     },
      text: {
           size: "10",
           font: "annotation-mono",
@@ -194,7 +207,27 @@ const factoryPlannerDefaults = {
           color: "var(--color-gray4)",
           weight: "1",
           fill: "var(--color-white)",
-          dotGrid: "false"
+          dotGrid: "false",
+          perimeter: {
+               enabled: "true",
+               color: "var(--color-gray4)",
+               weight: "1"
+          },
+          title: {
+               enabled: "true",
+               color: "var(--color-gray4)",
+               weight: "1"
+          },
+          bodyVertical: {
+               enabled: "true",
+               color: "var(--color-gray4)",
+               weight: "1"
+          },
+          bodyHorizontal: {
+               enabled: "true",
+               color: "var(--color-gray4)",
+               weight: "1"
+          }
      },
      date: {
           weekStart: "monday",
@@ -246,19 +279,48 @@ function normalizeDateDayFormat(format) {
 
 let plannerDefaultSettings = getNormalizedPlannerDefaults();
 
+function normalizeGridLineDefaults(lineDefaults = {}, fallback = {}) {
+     return {
+          enabled: lineDefaults.enabled === "false" ? "false" : (fallback.enabled || "true"),
+          color: lineDefaults.color || fallback.color || factoryPlannerDefaults.grid.color,
+          weight: String(lineDefaults.weight || fallback.weight || factoryPlannerDefaults.grid.weight)
+     };
+}
+
 function getNormalizedPlannerDefaults(defaults = {}) {
      const dateDefaults = defaults.date && typeof defaults.date === "object" ? defaults.date : {};
+     const bodyTextDefaults = defaults.bodyText && typeof defaults.bodyText === "object" ? defaults.bodyText : defaults.text;
+     const titleTextDefaults = defaults.titleText && typeof defaults.titleText === "object" ? defaults.titleText : {};
 
      return {
           hintPanel: defaults.hintPanel === "off" ? "off" : factoryPlannerDefaults.hintPanel,
+          titleText: {
+               ...factoryPlannerDefaults.titleText,
+               ...titleTextDefaults,
+               role: "title"
+          },
           text: {
                ...factoryPlannerDefaults.text,
-               ...(defaults.text && typeof defaults.text === "object" ? defaults.text : {})
+               ...(bodyTextDefaults && typeof bodyTextDefaults === "object" ? bodyTextDefaults : {}),
+               role: "body"
           },
-          grid: {
-               ...factoryPlannerDefaults.grid,
-               ...(defaults.grid && typeof defaults.grid === "object" ? defaults.grid : {})
-          },
+          grid: (() => {
+               const gridDefaults = defaults.grid && typeof defaults.grid === "object" ? defaults.grid : {};
+               const fallbackLine = {
+                    enabled: String(Number(gridDefaults.weight ?? factoryPlannerDefaults.grid.weight) > 0),
+                    color: gridDefaults.color || factoryPlannerDefaults.grid.color,
+                    weight: gridDefaults.weight || factoryPlannerDefaults.grid.weight
+               };
+
+               return {
+                    ...factoryPlannerDefaults.grid,
+                    ...gridDefaults,
+                    perimeter: normalizeGridLineDefaults(gridDefaults.perimeter, fallbackLine),
+                    title: normalizeGridLineDefaults(gridDefaults.title, fallbackLine),
+                    bodyVertical: normalizeGridLineDefaults(gridDefaults.bodyVertical, fallbackLine),
+                    bodyHorizontal: normalizeGridLineDefaults(gridDefaults.bodyHorizontal, fallbackLine)
+               };
+          })(),
           date: {
                ...factoryPlannerDefaults.date,
                ...dateDefaults,
@@ -278,18 +340,23 @@ function restorePlannerDefaults(defaults) {
      plannerDefaultSettings = getNormalizedPlannerDefaults(defaults);
 }
 
-function getPlannerDefaultTextSettings(overrides = {}) {
+function getPlannerDefaultTextSettings(overrides = {}, role = "body") {
+     const textRole = overrides.role || role;
+     const defaults = textRole === "title" ? plannerDefaultSettings.titleText : plannerDefaultSettings.text;
+
      return {
-          ...plannerDefaultSettings.text,
+          ...defaults,
           ...overrides
      };
 }
 
 function getPlannerDefaultItemStyle(type = "sticker") {
+     const perimeter = plannerDefaultSettings.grid.perimeter;
+
      return {
           fillColor: isPageTitleItemType(type) ? "transparent" : plannerDefaultSettings.grid.fill,
-          borderColor: isPageTitleItemType(type) ? "transparent" : plannerDefaultSettings.grid.color,
-          borderWidth: plannerDefaultSettings.grid.weight,
+          borderColor: isPageTitleItemType(type) || perimeter.enabled === "false" ? "transparent" : perimeter.color,
+          borderWidth: perimeter.enabled === "false" ? "0" : perimeter.weight,
           dotGrid: plannerDefaultSettings.grid.dotGrid
      };
 }
@@ -342,8 +409,10 @@ function setDefaultControlValue(controlName, value) {
      }
 
      const textMap = {
+          "title-text-font": ["titleText", "font"],
           "text-size": "size",
           "text-font": "font",
+          "body-text-font": "font",
           "text-color": "color"
      };
      const gridMap = {
@@ -360,8 +429,24 @@ function setDefaultControlValue(controlName, value) {
           "date-day-format": "dayFormat"
      };
 
-     if (textMap[controlName]) {
+     if (Array.isArray(textMap[controlName])) {
+          const [groupName, key] = textMap[controlName];
+
+          plannerDefaultSettings[groupName][key] = value;
+     } else if (textMap[controlName]) {
           plannerDefaultSettings.text[textMap[controlName]] = value;
+     } else if (controlName.startsWith("grid-line-")) {
+          const [, , lineName, key] = controlName.split("-");
+          const normalizedLineName = {
+               perimeter: "perimeter",
+               title: "title",
+               bodyVertical: "bodyVertical",
+               bodyHorizontal: "bodyHorizontal"
+          }[lineName];
+
+          if (normalizedLineName && key) {
+               plannerDefaultSettings.grid[normalizedLineName][key] = value;
+          }
      } else if (gridMap[controlName]) {
           plannerDefaultSettings.grid[gridMap[controlName]] = value;
      } else if (dateMap[controlName]) {
@@ -409,17 +494,43 @@ function syncDefaultControls() {
                control.checked = control.value === plannerDefaultSettings.grid.dotGrid;
           } else if (name === "text-size") {
                control.value = plannerDefaultSettings.text.size;
-          } else if (name === "text-font") {
+          } else if (name === "title-text-font") {
+               control.value = plannerDefaultSettings.titleText.font;
+               updateCustomSelectDisplay(control);
+          } else if (name === "text-font" || name === "body-text-font") {
                control.value = plannerDefaultSettings.text.font;
                updateCustomSelectDisplay(control);
           } else if (name === "text-color") {
                setPaletteControlValue(control, defaultTextColorSwatches, plannerDefaultSettings.text.color);
           } else if (name === "grid-color") {
-               setPaletteControlValue(control, defaultGridColorSwatches, plannerDefaultSettings.grid.color);
+               setPaletteControlValue(control, defaultGridColorSwatches[0], plannerDefaultSettings.grid.color);
           } else if (name === "grid-weight") {
                control.value = plannerDefaultSettings.grid.weight;
           } else if (name === "grid-fill") {
                setPaletteControlValue(control, defaultGridFillSwatches, plannerDefaultSettings.grid.fill);
+          } else if (name.startsWith("grid-line-")) {
+               const [, , lineName, key] = name.split("-");
+               const normalizedLineName = {
+                    perimeter: "perimeter",
+                    title: "title",
+                    bodyVertical: "bodyVertical",
+                    bodyHorizontal: "bodyHorizontal"
+               }[lineName];
+               const line = normalizedLineName ? plannerDefaultSettings.grid[normalizedLineName] : null;
+
+               if (!line) {
+                    return;
+               }
+               if (key === "enabled") {
+                    control.checked = control.value === line.enabled;
+               } else if (key === "color") {
+                    const swatches = document.querySelector(`[data-default-grid-color-swatches="${lineName}"]`);
+
+                    setPaletteControlValue(control, swatches, line.color);
+               } else if (key === "weight") {
+                    control.value = line.weight;
+                    updateCustomSelectDisplay(control);
+               }
           } else if (name === "date-week-start") {
                control.value = plannerDefaultSettings.date.weekStart;
                updateCustomSelectDisplay(control);
@@ -532,9 +643,11 @@ function resetItemsToPlannerDefaults(items) {
           if (isCalendarTextItem(item)) {
                setCalendarDayTextSettings(item, getPlannerDefaultTextSettings());
           } else if (isStickerTextItem(item)) {
+               const textRole = isPageTitleItem(item) ? "title" : "body";
+
                setStickerTextSettings(item, getPlannerDefaultTextSettings({
                     enabled: item.dataset.textEnabled ?? (isPageTitleItem(item) || isTocItem(item) ? "true" : "false")
-               }));
+               }, textRole));
           }
      });
      notifyTemplateChanged();
@@ -3650,7 +3763,7 @@ function applyPlannerConfig() {
 
 function initializeDefaultControls() {
      const textColorSelect = document.querySelector("[data-default-control='text-color']");
-     const gridColorSelect = document.querySelector("[data-default-control='grid-color']");
+     const gridLineColorSelects = Array.from(document.querySelectorAll("[data-default-control$='-color']")).filter((select) => select.dataset.defaultControl.startsWith("grid-line-"));
      const gridFillSelect = document.querySelector("[data-default-control='grid-fill']");
 
      if (textColorSelect) {
@@ -3659,12 +3772,22 @@ function initializeDefaultControls() {
                savePlannerState();
           });
      }
-     if (gridColorSelect) {
-          initializePaletteColorControl(gridColorSelect, defaultGridColorSwatches, plannerDefaultSettings.grid.color, (nextColor) => {
-               setDefaultControlValue("grid-color", nextColor);
+     gridLineColorSelects.forEach((gridColorSelect) => {
+          const [, , lineName] = gridColorSelect.dataset.defaultControl.split("-");
+          const normalizedLineName = {
+               perimeter: "perimeter",
+               title: "title",
+               bodyVertical: "bodyVertical",
+               bodyHorizontal: "bodyHorizontal"
+          }[lineName];
+          const swatches = document.querySelector(`[data-default-grid-color-swatches="${lineName}"]`);
+          const defaultColor = normalizedLineName ? plannerDefaultSettings.grid[normalizedLineName].color : plannerDefaultSettings.grid.color;
+
+          initializePaletteColorControl(gridColorSelect, swatches, defaultColor, (nextColor) => {
+               setDefaultControlValue(gridColorSelect.dataset.defaultControl, nextColor);
                savePlannerState();
           });
-     }
+     });
      if (gridFillSelect) {
           initializePaletteColorControl(gridFillSelect, defaultGridFillSwatches, plannerDefaultSettings.grid.fill, (nextColor) => {
                setDefaultControlValue("grid-fill", nextColor);
@@ -3674,7 +3797,7 @@ function initializeDefaultControls() {
 
      defaultControls.forEach((control) => {
           if (control.matches("select")) {
-               if (["text-color", "grid-color", "grid-fill"].includes(control.dataset.defaultControl)) {
+               if (["text-color", "grid-fill"].includes(control.dataset.defaultControl) || control.dataset.defaultControl.startsWith("grid-line-") && control.dataset.defaultControl.endsWith("-color")) {
                     return;
                }
                makeCustomSelect(control);

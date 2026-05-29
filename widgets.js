@@ -42,11 +42,12 @@ function getThemeFillValue(theme, fillSlot) {
 }
 
 function applyTextThemeToElement(element, textTheme = {}, theme = null, overrides = {}) {
-     const defaultText = typeof getPlannerDefaultTextSettings === "function" ? getPlannerDefaultTextSettings() : null;
      const nextTextTheme = {
           ...textTheme,
           ...overrides
      };
+     const defaultRole = nextTextTheme.textSlot === "title" ? "title" : "body";
+     const defaultText = typeof getPlannerDefaultTextSettings === "function" ? getPlannerDefaultTextSettings({}, defaultRole) : null;
 
      element.style.fontFamily = getStickerTextFont(defaultText?.font || nextTextTheme.typeface || "annotation-mono");
      element.style.fontSize = `${defaultText?.size || getThemeTextSize(theme, nextTextTheme)}px`;
@@ -77,6 +78,7 @@ function applyThemeToWidget(item) {
 
                if (partSlots.textSlot && theme.text?.[partSlots.textSlot]) {
                     applyTextThemeToElement(part, theme.text[partSlots.textSlot], theme, {
+                         textSlot: partSlots.textSlot,
                          sizeMultiplier: partSlots.sizeMultiplier
                     });
                }
@@ -103,8 +105,43 @@ function applyThemeToWidget(item) {
      }
      if (backgroundSlots?.borderSlot && theme.widget?.[backgroundSlots.borderSlot]) {
           item.style.setProperty("--sticker-border-color", typeof getPlannerDefaultGridSettings === "function"
-               ? getPlannerDefaultGridSettings().color
+               ? getPlannerDefaultGridSettings().perimeter?.color || getPlannerDefaultGridSettings().color
                : getThemeColorValue(theme.widget[backgroundSlots.borderSlot]));
+     }
+     applyDefaultGridLineStyles(item);
+}
+
+function getGridLineStyle(lineSettings = {}) {
+     const enabled = lineSettings.enabled !== "false";
+
+     return {
+          color: enabled ? lineSettings.color || "var(--color-gray4)" : "transparent",
+          width: enabled ? `${lineSettings.weight || "1"}px` : "0px"
+     };
+}
+
+function applyDefaultGridLineStyles(item) {
+     if (typeof getPlannerDefaultGridSettings !== "function") {
+          return;
+     }
+
+     const grid = getPlannerDefaultGridSettings();
+     const perimeter = getGridLineStyle(grid.perimeter);
+     const title = getGridLineStyle(grid.title);
+     const bodyVertical = getGridLineStyle(grid.bodyVertical);
+     const bodyHorizontal = getGridLineStyle(grid.bodyHorizontal);
+
+     item.style.setProperty("--widget-perimeter-line-color", perimeter.color);
+     item.style.setProperty("--widget-perimeter-line-width", perimeter.width);
+     item.style.setProperty("--widget-title-line-color", title.color);
+     item.style.setProperty("--widget-title-line-width", title.width);
+     item.style.setProperty("--widget-body-v-line-color", bodyVertical.color);
+     item.style.setProperty("--widget-body-v-line-width", bodyVertical.width);
+     item.style.setProperty("--widget-body-h-line-color", bodyHorizontal.color);
+     item.style.setProperty("--widget-body-h-line-width", bodyHorizontal.width);
+     if (!isPageTitleItem(item)) {
+          item.style.setProperty("--sticker-border-color", perimeter.color);
+          item.style.setProperty("--sticker-border-size", perimeter.width);
      }
 }
 
@@ -112,7 +149,7 @@ async function loadPlannerThemeData() {
      try {
           const [themesResponse, slotsResponse] = await Promise.all([
                fetch("data/themes.json?v=planner-storage-8"),
-               fetch("data/widget-theme-slots.json?v=planner-storage-6")
+               fetch("data/widget-theme-slots.json?v=planner-storage-7")
           ]);
 
           plannerThemesData = await themesResponse.json();
@@ -174,6 +211,7 @@ function renderToc(item, entries = []) {
      toc.replaceChildren(list);
      tocTitle.className = "toc-title";
      tocTitle.style.gridRow = "span 2";
+     tocTitle.dataset.themePart = "heading";
      tocTitlePage.className = "toc-title-page";
      tocTitleName.className = "toc-title-name";
      tocTitlePage.textContent = "Page";
@@ -187,6 +225,7 @@ function renderToc(item, entries = []) {
           empty.className = "toc-empty";
           empty.textContent = "No page titles";
           list.append(empty);
+          applyThemeToWidget(item);
           return;
      }
 
@@ -224,6 +263,8 @@ function renderToc(item, entries = []) {
           row.append(number, title);
           list.append(row);
      });
+
+     applyThemeToWidget(item);
 }
 
 function renderTocWidgetsForItems(items, getEntries) {
@@ -302,6 +343,7 @@ function setItemStyle(item, style) {
      }
      item.style.setProperty("--sticker-border-color", item.dataset.borderColor);
      item.style.setProperty("--sticker-border-size", `${item.dataset.borderWidth}px`);
+     applyDefaultGridLineStyles(item);
 
      const controls = getWidgetPanel(item) || item;
      const fillInput = controls.querySelector("[data-style-control='fill']");
@@ -1095,7 +1137,7 @@ function getItemGridUnits(item) {
      }
 
      if (item.dataset.itemType === "full-month") {
-          return getFullMonthGridUnits();
+          return getFullMonthGridUnits(item);
      }
 
      if (item.dataset.itemType === "perpetual-calendar") {
@@ -2467,6 +2509,8 @@ function makePlannerItem(type = "sticker") {
      const timeFormatSelect = document.createElement("select");
      const shareWeekendsLabel = document.createElement("label");
      const shareWeekendsInput = document.createElement("input");
+     const weekNotesLabel = document.createElement("label");
+     const weekNotesSelect = document.createElement("select");
      const deleteButton = document.createElement("button");
 
      item.className = `planner-item planner-item-${type}`;
@@ -2699,6 +2743,7 @@ function makePlannerItem(type = "sticker") {
      dotGridInput.dataset.styleControl = "dot-grid";
      dotGridInput.setAttribute("aria-label", "Show sticker dot grid");
      textElement.className = "sticker-text";
+     textElement.dataset.themePart = "text";
      textElement.hidden = true;
      textElement.spellcheck = true;
      textElement.setAttribute("contenteditable", "false");
@@ -3058,6 +3103,21 @@ function makePlannerItem(type = "sticker") {
      shareWeekendsInput.type = "checkbox";
      shareWeekendsInput.dataset.widgetControl = "share-weekends";
      shareWeekendsInput.setAttribute("aria-label", "Share Saturday and Sunday in one column");
+     weekNotesLabel.className = "widget-panel-row widget-option-control";
+     weekNotesLabel.textContent = "Week Notes";
+     weekNotesSelect.dataset.widgetControl = "week-notes";
+     weekNotesSelect.setAttribute("aria-label", "Week notes column");
+     [
+          ["off", "Off"],
+          ["first", "First"],
+          ["last", "Last"]
+     ].forEach(([value, label]) => {
+          const option = document.createElement("option");
+
+          option.value = value;
+          option.textContent = label;
+          weekNotesSelect.append(option);
+     });
      for (let minute = 0; minute < 24 * 60; minute += 30) {
           const option = document.createElement("option");
           const time = formatMinutesAsTime(minute);
@@ -3115,11 +3175,13 @@ function makePlannerItem(type = "sticker") {
      if (type === "perpetual-calendar") {
           calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, monthDisplayLabel);
      } else if (type === "weekly-view") {
-          calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
+          calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "diary-view") {
           calendarAttributesGrid.append(weekdayLabelLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "day-view") {
           calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
+     } else if (type === "full-month") {
+          calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
      } else {
           calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
      }
@@ -3130,6 +3192,7 @@ function makePlannerItem(type = "sticker") {
      timeVisibleLabel.append(timeVisibleInput);
      timeFormatLabel.append(timeFormatSelect);
      shareWeekendsLabel.append(shareWeekendsInput);
+     weekNotesLabel.append(weekNotesSelect);
      controlTabs.append(styleTab);
      duplicateGroupActions.append(duplicateButton, groupButton);
      layoutTransformActions.append(designRepositionButton, designResizeButton);
@@ -3243,7 +3306,7 @@ function makePlannerItem(type = "sticker") {
      setStickerTextSettings(item, typeof getPlannerDefaultTextSettings === "function"
           ? getPlannerDefaultTextSettings({
                enabled: isPageTitleItemType(type) || isTocItemType(type) ? "true" : "false"
-          })
+          }, isPageTitleItemType(type) ? "title" : "body")
           : (isPageTitleItemType(type) ? {
                enabled: "true",
                size: "80",
@@ -3259,6 +3322,7 @@ function makePlannerItem(type = "sticker") {
           setCalendarWidgetSettings(item);
      }
      renderToc(item);
+     applyThemeToWidget(item);
 
      item.addEventListener("pointerdown", (event) => {
           if (event.target.closest(".widget-panel")) {
@@ -3675,6 +3739,11 @@ function makePlannerItem(type = "sticker") {
                shareWeekends: shareWeekendsInput.checked ? "true" : "false"
           });
      });
+     weekNotesSelect.addEventListener("change", () => {
+          applyCalendarWidgetSettingsToActionItems(item, {
+               weekNotes: weekNotesSelect.value
+          });
+     });
      deleteButton.addEventListener("click", (event) => {
           event.stopPropagation();
           deleteItem(item);
@@ -3731,7 +3800,8 @@ function copyItemConfiguration(source, target) {
                startTime: source.dataset.startTime,
                timeFormat: source.dataset.timeFormat,
                timeVisible: source.dataset.timeVisible,
-               shareWeekends: source.dataset.shareWeekends
+               shareWeekends: source.dataset.shareWeekends,
+               weekNotes: source.dataset.weekNotes
           });
           if (isCalendarTextItem(source)) {
                target.dataset.dayNotes = source.dataset.dayNotes || "{}";

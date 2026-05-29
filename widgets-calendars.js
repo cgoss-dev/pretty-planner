@@ -376,6 +376,53 @@ function getCalendarYearTitle(year, display = "full") {
      return String(year);
 }
 
+function normalizeWeekNotesPosition(value) {
+     return value === "first" || value === "last" ? value : "off";
+}
+
+function getWeekNotesPosition(item) {
+     return normalizeWeekNotesPosition(item?.dataset?.weekNotes);
+}
+
+function getWeekNotesColumnUnits(item) {
+     return getWeekNotesPosition(item) === "off" ? 0 : 5;
+}
+
+function getCalendarWeekNoteKey(date, weekStart = "monday") {
+     const weekDate = getWeekStartDate(date, weekStart);
+
+     return `week:${getCalendarDayKey(weekDate.getFullYear(), weekDate.getMonth(), weekDate.getDate())}`;
+}
+
+function createCalendarWeekNotesText(item, noteKey, className) {
+     const dayNotes = getCalendarDayNotes(item);
+     const text = document.createElement("div");
+
+     text.className = `calendar-day-text ${className}`;
+     text.dataset.themePart = "dayNotes";
+     text.dataset.dayKey = noteKey;
+     text.setAttribute("contenteditable", "false");
+     text.textContent = dayNotes[noteKey] || "";
+     applyCalendarDayTextStyle(item, text);
+     text.addEventListener("input", () => updateCalendarDayTextOverflow(text));
+     text.addEventListener("paste", handlePlainTextPaste);
+     text.addEventListener("dblclick", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          startCalendarDayTextEditing(text, item);
+     });
+     text.addEventListener("pointerdown", (event) => {
+          handleCalendarTextPointerDown(text, event);
+     });
+     text.addEventListener("wheel", (event) => {
+          if (text.isContentEditable) {
+               event.stopPropagation();
+          }
+     });
+
+     return text;
+}
+
 // NOTE: Widget Sizes, Clear Fills, And Box Styling
 function updateCalendarGridMetrics(item, page, box) {
      if (item.dataset.itemType !== "full-month" && !isTimeGridCalendarType(item.dataset.itemType)) {
@@ -385,9 +432,9 @@ function updateCalendarGridMetrics(item, page, box) {
      const visibleDays = clamp(Number(item.dataset.visibleDays) || 7, 1, 7);
      const timeColumnUnits = isTimeGridCalendarType(item.dataset.itemType) && item.dataset.timeVisible !== "false" ? 1 : 0;
      const dayColumnUnits = item.dataset.itemType === "day-view" ? 7 : visibleDays * 5;
-     const columnUnits = item.dataset.itemType === "full-month" ? getFullMonthGridUnits().width : timeColumnUnits + dayColumnUnits;
+     const columnUnits = item.dataset.itemType === "full-month" ? getFullMonthGridUnits(item).width : timeColumnUnits + dayColumnUnits + getWeekNotesColumnUnits(item);
      const rowUnits = item.dataset.itemType === "full-month"
-          ? getFullMonthGridUnits().height
+          ? getFullMonthGridUnits(item).height
           : Math.max(1, Number(item.style.getPropertyValue("--weekly-row-count")) || 14);
      const fallbackCellWidth = box.width / columnUnits;
      const fallbackCellHeight = box.height / rowUnits;
@@ -436,12 +483,12 @@ function getWeeklyVerticalMinGridColumns(item) {
      const timeColumnUnits = item.dataset.timeVisible !== "false" ? 1 : 0;
      const dayColumnUnits = item.dataset.itemType === "day-view" ? 7 : getWeeklyVerticalDisplayColumnCount(item) * 5;
 
-     return timeColumnUnits + dayColumnUnits;
+     return timeColumnUnits + dayColumnUnits + getWeekNotesColumnUnits(item);
 }
 
-function getFullMonthGridUnits() {
+function getFullMonthGridUnits(item) {
      return {
-          width: 31,
+          width: 31 + getWeekNotesColumnUnits(item),
           height: 38
      };
 }
@@ -483,7 +530,7 @@ function clampMiniMonthBox(item, page, box) {
      }
 
      const grid = getGridSize(page);
-     const units = item.dataset.itemType === "full-month" ? getFullMonthGridUnits() : getMiniMonthGridUnits(item);
+     const units = item.dataset.itemType === "full-month" ? getFullMonthGridUnits(item) : getMiniMonthGridUnits(item);
 
      return {
           ...box,
@@ -1120,9 +1167,21 @@ function renderMiniMonth(item) {
      const hasDayText = isCalendarTextItem(item);
      const dayNotes = hasDayText ? getCalendarDayNotes(item) : {};
      const todayKey = getTodayCalendarDayKey();
-     const weekRows = Array.from({
+     const usesExpandedCalendarUnits = item.dataset.itemType === "full-month";
+     const weekNotesPosition = usesExpandedCalendarUnits ? getWeekNotesPosition(item) : "off";
+     const weekNotesEnabled = weekNotesPosition !== "off";
+     const dayColumnSlots = displayColumns.map((displayColumn) => ({
+          type: "day",
+          displayColumn
+     }));
+     const contentColumnSlots = weekNotesEnabled && weekNotesPosition === "first"
+          ? [{ type: "notes" }, ...dayColumnSlots]
+          : [...dayColumnSlots, ...(weekNotesEnabled ? [{ type: "notes" }] : [])];
+     const columnSlots = [{ type: "week" }, ...contentColumnSlots];
+     const allWeekRows = Array.from({
           length: 6
-     }, (_, weekIndex) => weekIndex).filter((weekIndex) => {
+     }, (_, weekIndex) => weekIndex);
+     const weekRows = usesExpandedCalendarUnits ? allWeekRows : allWeekRows.filter((weekIndex) => {
           const weekStartDayNumber = (weekIndex * 7) + 1 - firstDayOffset;
 
           return weekStartDayNumber <= daysInMonth && weekStartDayNumber + 6 >= 1;
@@ -1132,13 +1191,12 @@ function renderMiniMonth(item) {
           1,
           ...weekRows.map((weekIndex) => weekIndex + 2)
      ];
-     const usesExpandedCalendarUnits = item.dataset.itemType === "full-month";
      const titleRowUnits = usesExpandedCalendarUnits ? getFullMonthTitleRowUnits() : 1;
      const dayNameRowUnits = 1;
      const weekRowUnits = usesExpandedCalendarUnits ? getFullMonthWeekRowUnits() : 1;
-     const visibleColumnCount = 1 + displayColumns.length;
+     const visibleColumnCount = columnSlots.length;
      const visibleRowCount = calendarRows.length;
-     const visibleColumnUnits = usesExpandedCalendarUnits ? getFullMonthGridUnits().width : visibleColumnCount;
+     const visibleColumnUnits = usesExpandedCalendarUnits ? getFullMonthGridUnits(item).width : visibleColumnCount;
      const visibleRowUnits = (titleVisible ? titleRowUnits : 0) + dayNameRowUnits + (weekRows.length * weekRowUnits);
      const maxVisibleRowUnits = (titleVisible ? titleRowUnits : 0) + dayNameRowUnits + (6 * weekRowUnits);
      const fixedRowUnits = (titleVisible ? titleRowUnits : 0) + dayNameRowUnits;
@@ -1162,11 +1220,18 @@ function renderMiniMonth(item) {
      calendar.style.setProperty("--mini-month-fixed-row-units", String(fixedRowUnits));
      calendar.style.setProperty("--mini-month-title-row-units", String(titleRowUnits));
      calendar.style.setProperty("--mini-month-week-row-count", String(weekRows.length));
-     calendar.style.setProperty("--mini-month-day-column-count", String(displayColumns.length));
+     calendar.style.setProperty("--mini-month-day-column-count", String(displayColumns.length + (weekNotesEnabled ? 1 : 0)));
      if (usesExpandedCalendarUnits) {
           const dayColumnUnits = shareWeekends ? 5 : 30 / displayColumns.length;
+          const contentTemplateColumns = contentColumnSlots.map((slot) => {
+               if (slot.type === "notes") {
+                    return "minmax(calc(var(--weekly-column-cell-width, 12px) * 5), 1fr)";
+               }
 
-          calendar.style.gridTemplateColumns = `var(--weekly-column-cell-width, 12px) repeat(${displayColumns.length}, minmax(calc(var(--weekly-column-cell-width, 12px) * ${dayColumnUnits}), 1fr))`;
+               return `minmax(calc(var(--weekly-column-cell-width, 12px) * ${dayColumnUnits}), 1fr)`;
+          }).join(" ");
+
+          calendar.style.gridTemplateColumns = `var(--weekly-column-cell-width, 12px) ${contentTemplateColumns}`;
           calendar.style.gridTemplateRows = [
                ...(titleVisible ? ["calc(var(--weekly-row-cell-height, 12px) * 2)"] : []),
                "var(--weekly-row-cell-height, 12px)",
@@ -1184,12 +1249,14 @@ function renderMiniMonth(item) {
           const displayRow = row + 1;
 
           for (let column = 0; column < visibleColumnCount; column += 1) {
-               if (!weekNumbersEnabled && column === 0) {
+               const columnSlot = columnSlots[column];
+
+               if (!weekNumbersEnabled && columnSlot.type === "week") {
                     continue;
                }
 
                const cell = document.createElement("span");
-               const displayColumnInfo = column > 0 ? displayColumns[column - 1] : null;
+               const displayColumnInfo = columnSlot.type === "day" ? columnSlot.displayColumn : null;
                const isTitleCell = calendarRow === 0 && column === 1;
                const displayColumn = column + 1;
 
@@ -1197,7 +1264,7 @@ function renderMiniMonth(item) {
                cell.dataset.themePart = "dayCell";
                cell.style.gridRow = String(displayRow);
                cell.style.gridColumn = isTitleCell
-                    ? `2 / span ${displayColumns.length}`
+                    ? `2 / span ${contentColumnSlots.length}`
                     : String(displayColumn);
 
                if (calendarRow === 0) {
@@ -1218,7 +1285,7 @@ function renderMiniMonth(item) {
                     } else {
                          continue;
                     }
-               } else if (column === 0) {
+               } else if (columnSlot.type === "week") {
                     cell.classList.add("mini-month-week");
                     cell.dataset.calendarStyleKey = calendarRow === 1 ? "week-number-header" : `week-${calendarRow - 1}`;
                     cell.dataset.calendarStyleRole = "cell";
@@ -1239,6 +1306,28 @@ function renderMiniMonth(item) {
                          weekNumberLabel.dataset.themePart = "weekNumber";
                          weekNumberLabel.textContent = String(getCalendarWeekNumber(weekDate, weekStart));
                          cell.append(weekNumberLabel);
+                    }
+               } else if (columnSlot.type === "notes") {
+                    cell.classList.add("mini-month-week-notes", "dayCell");
+                    cell.dataset.themePart = "dayNotes";
+                    cell.dataset.calendarStyleKey = calendarRow === 1 ? "week-notes-header" : `week-notes-${calendarRow - 1}`;
+                    cell.dataset.calendarStyleRole = "cell";
+                    if (calendarRow === 1) {
+                         cell.classList.add("mini-month-day-name", "dayName");
+                         cell.textContent = "Notes";
+                    } else {
+                         const weekDate = new Date(year, month, 1 - firstDayOffset + ((calendarRow - 2) * 7));
+                         const noteKey = getCalendarWeekNoteKey(weekDate, weekStart);
+                         const notesText = createCalendarWeekNotesText(item, noteKey, "mini-month-week-notes-text");
+
+                         cell.dataset.dayKey = noteKey;
+                         cell.append(notesText);
+                         cell.addEventListener("dblclick", (event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              startCalendarDayTextEditing(notesText, item);
+                         });
+                         updateCalendarDayTextOverflow(notesText);
                     }
                } else if (calendarRow === 1) {
                     cell.classList.add("mini-month-day-name", "dayName");
@@ -1604,10 +1693,22 @@ function renderWeeklyVertical(item) {
      const displayColumns = isDayView
           ? [{ type: "day", dates: [weekStartDate] }]
           : getWeeklyDisplayColumns(weekStartDate, visibleDays, shareWeekends);
-     const timeColumn = timeVisible ? 0 : -1;
-     const dayColumnStart = timeVisible ? 1 : 0;
-     const columnCount = displayColumns.length + dayColumnStart;
+     const weekNotesPosition = isDayView ? "off" : getWeekNotesPosition(item);
+     const weekNotesEnabled = weekNotesPosition !== "off";
+     const dayColumnSlots = displayColumns.map((displayColumn) => ({
+          type: "day",
+          displayColumn
+     }));
+     const bodyColumnSlots = weekNotesEnabled && weekNotesPosition === "first"
+          ? [{ type: "notes" }, ...dayColumnSlots]
+          : [...dayColumnSlots, ...(weekNotesEnabled ? [{ type: "notes" }] : [])];
+     const columnSlots = [
+          ...(timeVisible ? [{ type: "time" }] : []),
+          ...bodyColumnSlots
+     ];
+     const columnCount = columnSlots.length;
      const todayKey = getTodayCalendarDayKey();
+     const weekNoteKey = getCalendarWeekNoteKey(weekStartDate, item.dataset.weekStart || "monday");
 
      if (!calendar) {
           calendar = document.createElement("div");
@@ -1619,11 +1720,14 @@ function renderWeeklyVertical(item) {
      calendar.style.setProperty("--weekly-slot-count", String(slotCount));
      calendar.style.setProperty("--weekly-row-count", String(slotCount + 1));
      calendar.style.setProperty("--weekly-day-count", String(displayColumns.length));
-     calendar.style.setProperty("--weekly-visible-column-units", String((timeVisible ? 1 : 0) + (isDayView ? 7 : displayColumns.length * 5)));
-     calendar.style.gridTemplateColumns = [
-          ...(timeVisible ? ["var(--weekly-column-cell-width, 12px)"] : []),
-          `repeat(${displayColumns.length}, minmax(calc(var(--weekly-column-cell-width, 12px) * ${isDayView ? 7 : 5}), 1fr))`
-     ].join(" ");
+     calendar.style.setProperty("--weekly-visible-column-units", String((timeVisible ? 1 : 0) + (isDayView ? 7 : displayColumns.length * 5) + (weekNotesEnabled ? 5 : 0)));
+     calendar.style.gridTemplateColumns = columnSlots.map((slot) => {
+          if (slot.type === "time") {
+               return "var(--weekly-column-cell-width, 12px)";
+          }
+
+          return `minmax(calc(var(--weekly-column-cell-width, 12px) * ${slot.type === "notes" ? 5 : isDayView ? 7 : 5}), 1fr)`;
+     }).join(" ");
      calendar.classList.remove("has-week-numbers", "has-week-number-outlines");
      calendar.classList.toggle("has-time-column", timeVisible);
      calendar.classList.remove("has-title-row");
@@ -1633,8 +1737,8 @@ function renderWeeklyVertical(item) {
           const calendarRow = row;
 
           for (let column = 0; column < columnCount; column += 1) {
+               const columnSlot = columnSlots[column];
                const cell = document.createElement("span");
-               const dayIndex = column - dayColumnStart;
                const displayColumn = column + 1;
 
                cell.className = "weekly-view-cell";
@@ -1642,11 +1746,37 @@ function renderWeeklyVertical(item) {
                cell.style.gridRow = String(row + 1);
                cell.style.gridColumn = String(displayColumn);
 
-               if (calendarRow === 0 && column === timeColumn) {
+               if (calendarRow === 0 && columnSlot.type === "time") {
                     cell.classList.add("weekly-view-time-heading");
-                    cell.dataset.themePart = "timeLabel";
+                    cell.dataset.themePart = "dayHeader";
+               } else if (columnSlot.type === "notes") {
+                    cell.classList.add("weekly-view-notes", "dayCell");
+                    cell.dataset.themePart = "dayNotes";
+                    cell.dataset.calendarStyleKey = "week-notes";
+                    cell.dataset.calendarStyleRole = "cell";
+                    if (calendarRow === 0) {
+                         cell.classList.add("weekly-view-date", "dayName", "weekly-view-notes-heading");
+                         cell.dataset.themePart = "dayHeader";
+                         cell.textContent = "Notes";
+                    } else if (calendarRow === 1) {
+                         const notesText = createCalendarWeekNotesText(item, weekNoteKey, "weekly-view-week-notes-text");
+
+                         cell.classList.add("weekly-view-slot", "weekly-view-week-notes");
+                         cell.classList.add("weekly-view-edge-bottom");
+                         cell.style.gridRow = `2 / span ${slotCount}`;
+                         cell.dataset.dayKey = weekNoteKey;
+                         cell.append(notesText);
+                         cell.addEventListener("dblclick", (event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              startCalendarDayTextEditing(notesText, item);
+                         });
+                         updateCalendarDayTextOverflow(notesText);
+                    } else {
+                         continue;
+                    }
                } else if (calendarRow === 0) {
-                    const displayColumn = displayColumns[dayIndex];
+                    const displayColumn = columnSlot.displayColumn;
 
                     cell.classList.add("weekly-view-date", "dayCell", "dayName");
                     cell.dataset.themePart = "dayHeader";
@@ -1671,14 +1801,14 @@ function renderWeeklyVertical(item) {
                          });
                          cell.append(dateLabel);
                     });
-               } else if (column === timeColumn) {
+               } else if (columnSlot.type === "time") {
                     const timeMinutes = startMinutes + ((calendarRow - 1) * timeIncrement);
 
                     cell.classList.add("weekly-view-time");
                     cell.dataset.themePart = "timeLabel";
                     cell.textContent = shouldShowWeeklyTimeLabel(timeMinutes, timeIncrement) ? formatWeeklyTimeLabel(timeMinutes, timeFormat) : "";
                } else {
-                    const displayColumn = displayColumns[dayIndex];
+                    const displayColumn = columnSlot.displayColumn;
                     const slotMinutes = startMinutes + ((calendarRow - 1) * timeIncrement);
                     const primaryDate = displayColumn.dates[0];
                     const slotKey = displayColumn.type === "shared-weekend"
@@ -1836,6 +1966,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      item.dataset.timeFormat = normalizeCalendarTimeFormat(settings.timeFormat || item.dataset.timeFormat || defaultDateSettings.timeFormat || "24");
      item.dataset.timeVisible = settings.timeVisible ?? item.dataset.timeVisible ?? "true";
      item.dataset.shareWeekends = settings.shareWeekends ?? item.dataset.shareWeekends ?? "false";
+     item.dataset.weekNotes = normalizeWeekNotesPosition(settings.weekNotes ?? item.dataset.weekNotes);
      renderMiniMonth(item);
      updateCalendarGridMetrics(item, getItemPage(item), getItemBox(item));
      updatePerpetualCalendarGridMetrics(item, getItemPage(item), getItemBox(item));
@@ -1865,6 +1996,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      const timeFormatSelect = controls.querySelector("[data-widget-control='time-format']");
      const timeVisibleInput = controls.querySelector("[data-widget-control='time-visible']");
      const shareWeekendsInput = controls.querySelector("[data-widget-control='share-weekends']");
+     const weekNotesSelect = controls.querySelector("[data-widget-control='week-notes']");
 
      if (weekNumberSelect) {
           weekNumberSelect.value = item.dataset.weekNumberFormat;
@@ -1948,6 +2080,10 @@ function setCalendarWidgetSettings(item, settings = {}) {
 
      if (shareWeekendsInput) {
           shareWeekendsInput.checked = item.dataset.shareWeekends === "true";
+     }
+
+     if (weekNotesSelect) {
+          weekNotesSelect.value = item.dataset.weekNotes;
      }
 
      const rebuiltSelects = new Set([dateOffsetSelect, startDaySelect, displayDaySelect, displayYearSelect, displayMonthSelect].filter(Boolean));
