@@ -1809,11 +1809,21 @@ function applyCalendarPartStyles(item) {
           const style = styles[cell.dataset.calendarStyleKey] || {};
 
           cell.style.background = style.fillColor || "";
-          cell.style.color = style.textColor || "";
-          cell.style.fontFamily = style.textFont ? getStickerTextFont(style.textFont) : "";
-          cell.style.fontWeight = style.textBold === "true" ? "700" : "";
-          cell.style.fontStyle = style.textItalic === "true" ? "italic" : "";
-          cell.style.textDecoration = getTextDecorationValue(style.textUnderline, style.textStrike);
+          if (style.textColor) {
+               cell.style.color = style.textColor;
+          }
+          if (style.textFont) {
+               cell.style.fontFamily = getStickerTextFont(style.textFont);
+          }
+          if (style.textBold !== undefined) {
+               cell.style.fontWeight = style.textBold === "true" ? "700" : "400";
+          }
+          if (style.textItalic !== undefined) {
+               cell.style.fontStyle = style.textItalic === "true" ? "italic" : "normal";
+          }
+          if (style.textUnderline !== undefined || style.textStrike !== undefined) {
+               cell.style.textDecoration = getTextDecorationValue(style.textUnderline, style.textStrike);
+          }
           cell.style.borderRightColor = style.borderColor || "";
           cell.style.borderBottomColor = style.borderColor || "";
           cell.style.borderRightWidth = style.borderWidth ? `${style.borderWidth}px` : "";
