@@ -36,7 +36,7 @@
                tocLeftColumnGridUnits: 2,
                tocRightColumnMinGridUnits: 8,
                perpetualCalendarMaxDayRows: 31,
-               perpetualCalendarHeaderRows: 1,
+               perpetualCalendarHeaderRows: 2,
                perpetualCalendarLeftColumnGridUnits,
                perpetualCalendarRightColumnMinGridUnits,
                itemGridUnits: {
@@ -53,7 +53,7 @@
                          height: 18
                     },
                     "mini-month": {
-                         width: 8,
+                         width: 10,
                          height: 8
                     },
                     "full-month": {
@@ -62,7 +62,7 @@
                     },
                     "perpetual-calendar": {
                          width: perpetualCalendarLeftColumnGridUnits + perpetualCalendarRightColumnMinGridUnits,
-                         height: 32
+                         height: 33
                     },
                     "weekly-view": {
                          width: 14,

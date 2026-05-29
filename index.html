@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-314">
+     <link rel="stylesheet" href="style.css?v=planner-storage-316">
 </head>
 <body>
      <main class="planner-desk">
@@ -25,39 +25,34 @@
           <aside class="planner-sidebar" data-planner-sidebar aria-label="Planner sidebar">
                <div class="panel-title title planner-sidebar-title">Sidebar</div>
                <div class="planner-sidebar-mode-controls" aria-label="Mode select">
-                    <button class="planner-sidebar-mode-button" type="button" data-sidebar-mode="interact" aria-pressed="true">Interact</button>
-                    <button class="planner-sidebar-mode-button" type="button" data-sidebar-mode="design" aria-pressed="false">Design</button>
+                    <button class="planner-sidebar-mode-button" type="button" data-sidebar-mode="interact" aria-pressed="true">Interact Mode</button>
+                    <button class="planner-sidebar-mode-button" type="button" data-sidebar-mode="design" aria-pressed="false">Design Mode</button>
                </div>
                <aside class="hint-panel" data-hint-panel aria-label="Available keyboard controls" aria-live="polite"></aside>
 
           <form class="control-panel" aria-label="Planner settings panel">
                <div class="panel-title title control-panel-title">Settings Panel</div>
                <div class="control-panel-tabs" role="tablist" aria-label="Planner settings panel tabs">
-                    <button class="control-panel-tab is-active" type="button" role="tab" aria-selected="true" aria-label="Controls" aria-controls="controls-panel" data-control-panel-tab="controls">
+                    <button class="control-panel-tab is-active" type="button" role="tab" aria-selected="true" aria-label="Guide" aria-controls="defaults-panel" data-control-panel-tab="defaults">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">1 Controls</span>
+                         <span class="control-panel-tab-label">1 Guide</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
-                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Defaults" aria-controls="defaults-panel" data-control-panel-tab="defaults">
+                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Controls" aria-controls="controls-panel" data-control-panel-tab="controls">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">2 Defaults</span>
-                         <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
-                    </button>
-                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Notebook" aria-controls="page-panel" data-control-panel-tab="page">
-                         <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">3 Notebook</span>
+                         <span class="control-panel-tab-label">2 Controls</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
                     <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Widgets" aria-controls="add-panel" data-control-panel-tab="add">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">4 Widgets</span>
+                         <span class="control-panel-tab-label">3 Widgets</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
                </div>
 
-               <div class="control-panel-page controls-panel" id="controls-panel" role="tabpanel" data-control-panel-page="controls" data-keyboard-controls></div>
+               <div class="control-panel-page controls-panel" id="controls-panel" role="tabpanel" data-control-panel-page="controls" data-keyboard-controls hidden></div>
 
-               <div class="control-panel-page controls-panel defaults-panel" id="defaults-panel" role="tabpanel" data-control-panel-page="defaults" hidden>
+               <div class="control-panel-page controls-panel defaults-panel" id="defaults-panel" role="tabpanel" data-control-panel-page="defaults">
                     <div class="keyboard-control-section defaults-section">
                          <div class="keyboard-control-title">Interface</div>
                          <div class="control-choice-group" aria-label="Hint Panel">
@@ -208,6 +203,136 @@
                          </div>
                     </div>
 
+                    <div class="keyboard-control-section defaults-section notebook-defaults-section">
+                         <div class="keyboard-control-title">Notebook</div>
+                         <div class="control-field">
+                              <span>Guides</span>
+                              <div class="guide-controls">
+                                   <label class="control-choice" data-guide-option="thirds">
+                                        <input type="checkbox" data-guide="thirds">
+                                        <span>1/3</span>
+                                   </label>
+                                   <label class="control-choice" data-guide-option="fourths">
+                                        <input type="checkbox" data-guide="fourths" checked>
+                                        <span>1/4</span>
+                                   </label>
+                              </div>
+                         </div>
+
+                         <div class="control-field">
+                              <span>Paper</span>
+                              <select class="native-select" data-setting="paper">
+                                   <option value="letter">Letter (8.5 x 11 in)</option>
+                                   <option value="half-letter">Half Letter (5.5 x 8.5 in)</option>
+                                   <option value="a4">A4 (21 x 29.7 cm)</option>
+                                   <option value="a5">A5 (14.8 x 21 cm)</option>
+                              </select>
+                              <div class="control-choice-group" aria-label="Paper">
+                                   <label class="control-choice">
+                                        <input type="radio" name="paper-choice" data-control-choice="paper" value="letter" checked>
+                                        <span>Letter</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="paper-choice" data-control-choice="paper" value="half-letter">
+                                        <span>Half Letter</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="paper-choice" data-control-choice="paper" value="a4">
+                                        <span>A4</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="paper-choice" data-control-choice="paper" value="a5">
+                                        <span>A5</span>
+                                   </label>
+                              </div>
+                         </div>
+
+                         <div class="control-field">
+                              <span>Desk</span>
+                              <select class="native-select" data-setting="desk-color">
+                                   <option value="pink">Pink</option>
+                                   <option value="gray">Gray</option>
+                                   <option value="black">Black</option>
+                                   <option value="white">White</option>
+                                   <option value="wood-white">White Wood</option>
+                                   <option value="wood-brown" selected>Brown Wood</option>
+                                   <option value="hot-springs-playa">Playa</option>
+                                   <option value="valencia">Valencia</option>
+                              </select>
+                              <div class="control-choice-group" aria-label="Desk">
+                                   <label class="control-choice">
+                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="pink">
+                                        <span>Pink</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="gray">
+                                        <span>Gray</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="black">
+                                        <span>Black</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="white">
+                                        <span>White</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="wood-white">
+                                        <span>White Wood</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="wood-brown" checked>
+                                        <span>Brown Wood</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="hot-springs-playa">
+                                        <span>Playa</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="valencia">
+                                        <span>Valencia</span>
+                                   </label>
+                              </div>
+                         </div>
+
+                         <div class="palette-preview" aria-label="Palette preview">
+                              <span class="palette-preview-label">Paper Color</span>
+                              <select class="paper-color-select" data-setting="paper-color" aria-label="Paper color">
+                                   <option value="White" selected>White</option>
+                                   <option value="Custom">Custom</option>
+                              </select>
+                              <div class="palette-swatches" data-palette-preview-swatches></div>
+                         </div>
+
+                         <div class="palette-preview" aria-label="Accent color preview">
+                              <span class="palette-preview-label">Accent Color</span>
+                              <select class="accent-color-select" data-setting="accent-color" aria-label="Accent color">
+                                   <option value="Red" selected>Red</option>
+                                   <option value="Orange">Orange</option>
+                                   <option value="Amber">Amber</option>
+                                   <option value="Gold">Gold</option>
+                                   <option value="Yellow">Yellow</option>
+                                   <option value="Lime">Lime</option>
+                                   <option value="Green">Green</option>
+                                   <option value="Sky">Sky</option>
+                                   <option value="Blue">Blue</option>
+                                   <option value="Violet">Violet</option>
+                                   <option value="Purple">Purple</option>
+                                   <option value="Magenta">Magenta</option>
+                                   <option value="Custom">Custom</option>
+                              </select>
+                              <div class="palette-swatches" data-accent-palette-swatches></div>
+                         </div>
+
+                         <div class="page-panel-actions">
+                              <button class="control-action-button" type="button" data-insert-page>Insert Page</button>
+                              <button class="control-action-button" type="button" data-delete-page>Delete Page</button>
+                              <button class="control-action-button" type="button" data-clear-page>Empty Page</button>
+                              <button class="control-action-button" type="button" data-clear-book>Empty Book</button>
+                              <span class="page-count-status" data-page-count-status aria-live="polite"></span>
+                         </div>
+                    </div>
+
                     <div class="keyboard-control-section defaults-section">
                          <div class="keyboard-control-title">Reset</div>
                          <div class="defaults-action-grid">
@@ -216,136 +341,6 @@
                               <button class="control-action-button widget-panel-danger" type="button" data-reset-notebook-defaults>Reset Entire Notebook</button>
                          </div>
                     </div>
-               </div>
-
-               <div class="control-panel-page" id="page-panel" role="tabpanel" data-control-panel-page="page" hidden>
-                    <div class="control-field">
-                         <span>Guides</span>
-                         <div class="guide-controls">
-                              <label class="control-choice" data-guide-option="thirds">
-                                   <input type="checkbox" data-guide="thirds">
-                                   <span>1/3</span>
-                              </label>
-                              <label class="control-choice" data-guide-option="fourths">
-                                   <input type="checkbox" data-guide="fourths" checked>
-                                   <span>1/4</span>
-                              </label>
-                         </div>
-                    </div>
-
-                    <div class="control-field">
-                         <span>Paper</span>
-                         <select class="native-select" data-setting="paper">
-                              <option value="letter">Letter (8.5 x 11 in)</option>
-                              <option value="half-letter">Half Letter (5.5 x 8.5 in)</option>
-                              <option value="a4">A4 (21 x 29.7 cm)</option>
-                              <option value="a5">A5 (14.8 x 21 cm)</option>
-                         </select>
-                         <div class="control-choice-group" aria-label="Paper">
-                              <label class="control-choice">
-                                   <input type="radio" name="paper-choice" data-control-choice="paper" value="letter" checked>
-                                   <span>Letter</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="paper-choice" data-control-choice="paper" value="half-letter">
-                                   <span>Half Letter</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="paper-choice" data-control-choice="paper" value="a4">
-                                   <span>A4</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="paper-choice" data-control-choice="paper" value="a5">
-                                   <span>A5</span>
-                              </label>
-                         </div>
-                    </div>
-
-                    <div class="control-field">
-                         <span>Desk</span>
-                         <select class="native-select" data-setting="desk-color">
-                              <option value="pink">Pink</option>
-                              <option value="gray">Gray</option>
-                              <option value="black">Black</option>
-                              <option value="white">White</option>
-                              <option value="wood-white">White Wood</option>
-                              <option value="wood-brown" selected>Brown Wood</option>
-                              <option value="hot-springs-playa">Playa</option>
-                              <option value="valencia">Valencia</option>
-                         </select>
-                         <div class="control-choice-group" aria-label="Desk">
-                              <label class="control-choice">
-                                   <input type="radio" name="desk-choice" data-control-choice="desk-color" value="pink">
-                                   <span>Pink</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="desk-choice" data-control-choice="desk-color" value="gray">
-                                   <span>Gray</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="desk-choice" data-control-choice="desk-color" value="black">
-                                   <span>Black</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="desk-choice" data-control-choice="desk-color" value="white">
-                                   <span>White</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="desk-choice" data-control-choice="desk-color" value="wood-white">
-                                   <span>White Wood</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="desk-choice" data-control-choice="desk-color" value="wood-brown" checked>
-                                   <span>Brown Wood</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="desk-choice" data-control-choice="desk-color" value="hot-springs-playa">
-                                   <span>Playa</span>
-                              </label>
-                              <label class="control-choice">
-                                   <input type="radio" name="desk-choice" data-control-choice="desk-color" value="valencia">
-                                   <span>Valencia</span>
-                              </label>
-                         </div>
-                    </div>
-
-                    <div class="palette-preview" aria-label="Palette preview">
-                         <span class="palette-preview-label">Paper Color</span>
-                         <select class="paper-color-select" data-setting="paper-color" aria-label="Paper color">
-                              <option value="White" selected>White</option>
-                              <option value="Custom">Custom</option>
-                         </select>
-                         <div class="palette-swatches" data-palette-preview-swatches></div>
-                    </div>
-
-                    <div class="palette-preview" aria-label="Accent color preview">
-                         <span class="palette-preview-label">Accent Color</span>
-                         <select class="accent-color-select" data-setting="accent-color" aria-label="Accent color">
-                              <option value="Red" selected>Red</option>
-                              <option value="Orange">Orange</option>
-                              <option value="Amber">Amber</option>
-                              <option value="Gold">Gold</option>
-                              <option value="Yellow">Yellow</option>
-                              <option value="Lime">Lime</option>
-                              <option value="Green">Green</option>
-                              <option value="Sky">Sky</option>
-                              <option value="Blue">Blue</option>
-                              <option value="Violet">Violet</option>
-                              <option value="Purple">Purple</option>
-                              <option value="Magenta">Magenta</option>
-                              <option value="Custom">Custom</option>
-                         </select>
-                         <div class="palette-swatches" data-accent-palette-swatches></div>
-                    </div>
-
-                    <div class="page-panel-actions">
-                         <button class="control-action-button" type="button" data-insert-page>Insert Page</button>
-                         <button class="control-action-button" type="button" data-delete-page>Delete Page</button>
-                         <button class="control-action-button" type="button" data-clear-page>Empty Page</button>
-                         <button class="control-action-button" type="button" data-clear-book>Empty Book</button>
-                         <span class="page-count-status" data-page-count-status aria-live="polite"></span>
-                    </div>
-
                </div>
 
                <div class="control-panel-page add-panel" id="add-panel" role="tabpanel" data-control-panel-page="add" hidden>
@@ -425,12 +420,12 @@
           </div>
      </main>
 
-     <script src="config.js?v=planner-storage-167"></script>
+     <script src="config.js?v=planner-storage-169"></script>
      <script src="ui.js?v=planner-storage-216"></script>
-     <script src="widgets-calendars.js?v=planner-storage-22"></script>
-     <script src="widgets.js?v=planner-storage-293"></script>
+     <script src="widgets-calendars.js?v=planner-storage-24"></script>
+     <script src="widgets.js?v=planner-storage-295"></script>
      <script src="storage.js?v=planner-storage-27"></script>
-     <script src="controls.js?v=planner-storage-195"></script>
-     <script src="app.js?v=planner-storage-259"></script>
+     <script src="controls.js?v=planner-storage-197"></script>
+     <script src="app.js?v=planner-storage-263"></script>
 </body>
 </html>

@@ -473,7 +473,7 @@ window.KeyboardControls = (() => {
           {
                title: "Control Panel",
                controls: [
-                    { key: "1-4", action: "Choose Controls, Defaults, Notebook, or Widgets" },
+                    { key: "1-3", action: "Choose Guide, Controls, or Widgets" },
                     { key: "Q / E", action: "Last or next panel tab" },
                     { key: "WASD / Arrows", action: "Move spatially through panel controls; up/down scroll at edges" },
                     { key: "Enter", action: "Activate selected control" },
@@ -483,10 +483,9 @@ window.KeyboardControls = (() => {
           {
                title: "Design Mode",
                controls: [
-                    { key: "1", action: "Open Controls" },
-                    { key: "2", action: "Open Defaults" },
-                    { key: "3", action: "Open Notebook" },
-                    { key: "4", action: "Open Widgets" }
+                    { key: "1", action: "Open Guide" },
+                    { key: "2", action: "Open Controls" },
+                    { key: "3", action: "Open Widgets" }
                ]
           },
           {

@@ -725,7 +725,7 @@ function setRootLength(name, value) {
 
 function getMiniMonthGridUnits(item) {
      return {
-          width: 8,
+          width: 10,
           height: 8
      };
 }
@@ -2690,42 +2690,34 @@ function handleKeyboardModeNumberKey(event) {
      if (designBranch === "root") {
           event.preventDefault();
           if (event.key === "1") {
-               enterKeyboardMenuBranch("controls", "controls");
-          } else if (event.key === "2") {
                enterKeyboardMenuBranch("defaults", "defaults");
+          } else if (event.key === "2") {
+               enterKeyboardMenuBranch("controls", "controls");
           } else if (event.key === "3") {
-               enterKeyboardMenuBranch("notebook", "page");
-          } else if (event.key === "4") {
                enterKeyboardMenuBranch("menu", "add");
           }
           return;
      }
 
-     if (designBranch === "controls" && event.key === "1") {
+     if (designBranch === "defaults" && event.key === "1") {
           event.preventDefault();
           returnToKeyboardDesignRoot();
           return;
      }
 
-     if (designBranch === "defaults" && event.key === "2") {
+     if (designBranch === "controls" && event.key === "2") {
           event.preventDefault();
           returnToKeyboardDesignRoot();
           return;
      }
 
-     if (designBranch === "notebook" && event.key === "3") {
+     if (designBranch === "menu" && event.key === "3") {
           event.preventDefault();
           returnToKeyboardDesignRoot();
           return;
      }
 
-     if (designBranch === "menu" && event.key === "4") {
-          event.preventDefault();
-          returnToKeyboardDesignRoot();
-          return;
-     }
-
-     if (designBranch === "controls" || designBranch === "defaults" || designBranch === "notebook" || designBranch === "menu") {
+     if (designBranch === "controls" || designBranch === "defaults" || designBranch === "menu") {
           const tab = controlPanelTabs[Number(event.key) - 1];
 
           if (!tab || tab.disabled) {
@@ -3305,24 +3297,12 @@ function getKeyHintState() {
           };
      }
 
-     if (keyboardMode === "design" && designBranch === "notebook") {
-          return {
-               mode: "Design Mode > Notebook",
-               entries: [
-               ["3", "Back"],
-               ["1-4", "Tabs"],
-               ["Q / E", "Last / Next Tab"],
-               ["Enter", "Select"]
-               ]
-          };
-     }
-
      if (keyboardMode === "design" && designBranch === "controls") {
           return {
                mode: "Design Mode > Controls",
                entries: [
-               ["1", "Back"],
-               ["1-4", "Tabs"],
+               ["2", "Back"],
+               ["1-3", "Tabs"],
                ["Q / E", "Last / Next Tab"],
                ["Enter", "Select"]
                ]
@@ -3331,10 +3311,10 @@ function getKeyHintState() {
 
      if (keyboardMode === "design" && designBranch === "defaults") {
           return {
-               mode: "Design Mode > Defaults",
+               mode: "Design Mode > Guide",
                entries: [
-               ["2", "Back"],
-               ["1-4", "Tabs"],
+               ["1", "Back"],
+               ["1-3", "Tabs"],
                ["Q / E", "Last / Next Tab"],
                ["Enter", "Select"]
                ]
@@ -3345,8 +3325,8 @@ function getKeyHintState() {
           return {
                mode: "Design Mode > Widgets",
                entries: [
-               ["4", "Back"],
-               ["1-4", "Tabs"],
+               ["3", "Back"],
+               ["1-3", "Tabs"],
                ["Q / E", "Last / Next Tab"],
                ["Enter", "Select"]
                ]
@@ -3427,9 +3407,7 @@ function renderKeyHints() {
 
      modeRow.className = "hint-mode subtitle";
      modeRow.textContent = hintState.mode;
-     if (plannerSidebar?.contains(hintPanel)) {
-          hintPanel.append(modeRow);
-     } else {
+     if (!plannerSidebar?.contains(hintPanel)) {
           const panelTitle = document.createElement("div");
 
           panelTitle.className = "panel-title title hint-panel-title";

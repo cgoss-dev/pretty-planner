@@ -855,6 +855,33 @@ body {
      grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.notebook-defaults-section .control-field,
+.notebook-defaults-section .palette-preview {
+     display: grid;
+     grid-template-columns: 84px minmax(0, 1fr);
+     align-items: center;
+     gap: 6px 8px;
+}
+
+.notebook-defaults-section .control-field > .control-choice-group,
+.notebook-defaults-section .control-field > .guide-controls,
+.notebook-defaults-section .control-field > .custom-select,
+.notebook-defaults-section .palette-preview > .custom-select,
+.notebook-defaults-section .palette-preview > .palette-swatches {
+     grid-column: 2;
+}
+
+.notebook-defaults-section .control-field > .control-choice-group,
+.notebook-defaults-section .guide-controls {
+     grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.notebook-defaults-section .palette-preview > .palette-swatches {
+     padding: 0;
+     border: 0;
+     background: transparent;
+}
+
 .date-order-chip {
      min-height: var(--color-swatch-size);
      padding: 3px 6px;
@@ -2543,13 +2570,13 @@ body {
 }
 
 .add-panel {
-     grid-template-columns: repeat(auto-fit, minmax(100px, 100px));
+     grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
      align-items: start;
-     justify-items: center;
-     justify-content: center;
+     justify-items: stretch;
+     justify-content: stretch;
      align-content: start;
-     gap: 12px;
-     padding-bottom: 18px;
+     gap: 8px;
+     padding-bottom: 8px;
 }
 
 .add-panel-actions,
@@ -2615,6 +2642,8 @@ body {
      position: relative;
      top: auto;
      left: auto;
+     display: grid;
+     place-items: center;
      margin-top: 0;
      filter: drop-shadow(0 14px 12px rgba(17, 17, 17, 0.18));
      transform: scale(1);
@@ -2632,7 +2661,9 @@ body {
 .add-panel .weekly-view-source,
 .add-panel .day-view-source,
 .add-panel .diary-view-source {
-     width: 100px;
+     width: 100%;
+     max-width: 100px;
+     justify-self: center;
 }
 
 .add-panel .sticker-source:hover,
@@ -5049,7 +5080,7 @@ body.is-single-page-viewport .planner-desk > .sticker-source {
      bottom: 14px;
      display: grid;
      grid-template-columns: minmax(0, 1fr);
-     grid-template-rows: auto minmax(0, auto);
+     grid-template-rows: auto auto minmax(0, 1fr);
      align-content: start;
      gap: var(--planner-sidebar-gap);
      width: var(--planner-sidebar-width);
@@ -5119,11 +5150,11 @@ body.is-single-page-viewport .planner-desk > .sticker-source {
      inline-size: 100% !important;
      min-width: 0 !important;
      max-width: none !important;
-     height: auto;
+     height: 100%;
      min-height: 0;
-     max-height: min(70vh, calc(100vh - 28px));
+     max-height: none;
      grid-template-columns: minmax(0, 1fr);
-     grid-template-rows: auto auto minmax(0, 1fr);
+     grid-template-rows: auto minmax(0, 1fr);
      align-content: start;
      gap: 6px;
      padding: 0;
@@ -5160,11 +5191,11 @@ body.is-single-page-viewport .planner-sidebar .control-panel:not(.is-open) {
      inline-size: 100% !important;
      min-width: 0 !important;
      max-width: none !important;
-     height: auto !important;
+     height: 100% !important;
      min-height: 0 !important;
-     max-height: min(70vh, calc(100vh - 28px)) !important;
+     max-height: none !important;
      grid-template-columns: minmax(0, 1fr);
-     grid-template-rows: auto auto minmax(0, 1fr);
+     grid-template-rows: auto minmax(0, 1fr);
      padding: 0;
 }
 
@@ -5180,6 +5211,9 @@ body.is-single-page-viewport .planner-sidebar .control-panel-tabs {
      grid-template-columns: minmax(0, 1fr);
      gap: 4px;
      width: 100%;
+     padding: 8px 0;
+     border-top: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
 }
 
 .planner-sidebar .control-panel-tab,
@@ -5202,9 +5236,9 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      grid-column: 1;
      grid-row: 2;
      width: 100%;
-     height: auto;
+     height: 100%;
      min-height: 0;
-     max-height: calc(100vh - 260px);
+     max-height: none;
      overflow: auto;
      padding: 0;
      border: 0;
@@ -5220,6 +5254,10 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 
 .planner-sidebar .control-panel.is-open .control-panel-page:not([hidden]) {
      display: block;
+}
+
+.planner-sidebar .control-panel.is-open .control-panel-page.add-panel:not([hidden]) {
+     display: grid;
 }
 
 .planner-sidebar .control-panel.is-resize-ns,

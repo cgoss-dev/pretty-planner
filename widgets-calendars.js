@@ -1412,6 +1412,7 @@ function renderPerpetualCalendar(item) {
      const titleCell = document.createElement("span");
 
      titleCell.className = "perpetual-calendar-title";
+     titleCell.style.gridRow = `span ${perpetualCalendarHeaderRows}`;
      titleCell.dataset.themePart = "monthTitle";
      titleCell.textContent = titleMonthText;
      calendar.append(titleCell);
@@ -1845,6 +1846,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      const displayDateModeSelect = controls.querySelector("[data-widget-control='display-date-mode']");
      const displayDaySelect = controls.querySelector("[data-widget-control='display-day']");
      const displayWeekNumberSelect = controls.querySelector("[data-widget-control='display-week-number']");
+     const displayTitleVisibleSelect = controls.querySelector("[data-widget-control='display-title-visible']");
      const displayWeekStartSelect = controls.querySelector("[data-widget-control='display-week-start']");
      const titleVisibleInput = controls.querySelector("[data-widget-control='calendar-title-visible']");
      const monthSelect = controls.querySelector("[data-widget-control='month']");
@@ -1865,6 +1867,10 @@ function setCalendarWidgetSettings(item, settings = {}) {
 
      if (displayWeekNumberSelect) {
           displayWeekNumberSelect.value = item.dataset.weekNumberFormat === "off" ? "off" : "on";
+     }
+
+     if (displayTitleVisibleSelect) {
+          displayTitleVisibleSelect.value = item.dataset.calendarTitleVisible !== "false" ? "true" : "false";
      }
 
      if (weekStartSelect) {

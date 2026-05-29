@@ -2301,6 +2301,8 @@ function makePlannerItem(type = "sticker") {
      const displayDaySelect = document.createElement("select");
      const displayWeekNumberLabel = document.createElement("label");
      const displayWeekNumberSelect = document.createElement("select");
+     const displayTitleVisibleLabel = document.createElement("label");
+     const displayTitleVisibleSelect = document.createElement("select");
      const displayWeekStartLabel = document.createElement("label");
      const displayWeekStartSelect = document.createElement("select");
      const designActionGroup = document.createElement("div");
@@ -2310,6 +2312,7 @@ function makePlannerItem(type = "sticker") {
      const designResizeButton = document.createElement("button");
      const layoutActionGroup = document.createElement("div");
      const layoutActionTitle = document.createElement("div");
+     const layoutTransformActions = document.createElement("div");
      const stylePanel = document.createElement("div");
      const textPanel = document.createElement("div");
      const widgetPanel = document.createElement("div");
@@ -2472,6 +2475,7 @@ function makePlannerItem(type = "sticker") {
      layoutActionGroup.setAttribute("aria-label", "Layout actions");
      layoutActionTitle.className = "item-actions-section-title section-title";
      layoutActionTitle.textContent = "Layout";
+     layoutTransformActions.className = "item-action-row";
      displayDateRow.className = "item-calendar-display-row";
      displayYearLabel.className = "item-calendar-display-control";
      displayYearLabel.textContent = "Year";
@@ -2527,6 +2531,20 @@ function makePlannerItem(type = "sticker") {
           option.value = value;
           option.textContent = label;
           displayWeekNumberSelect.append(option);
+     });
+     displayTitleVisibleLabel.className = "item-calendar-display-control";
+     displayTitleVisibleLabel.textContent = "Month/Year";
+     displayTitleVisibleSelect.dataset.widgetControl = "display-title-visible";
+     displayTitleVisibleSelect.setAttribute("aria-label", "Display month and year row");
+     [
+          ["true", "On"],
+          ["false", "Off"]
+     ].forEach(([value, label]) => {
+          const option = document.createElement("option");
+
+          option.value = value;
+          option.textContent = label;
+          displayTitleVisibleSelect.append(option);
      });
      displayWeekStartLabel.className = "item-calendar-display-control";
      displayWeekStartLabel.textContent = "Week Start";
@@ -3011,9 +3029,12 @@ function makePlannerItem(type = "sticker") {
      displayDateModeLabel.append(displayDateModeSelect);
      displayDayLabel.append(displayDaySelect);
      displayWeekNumberLabel.append(displayWeekNumberSelect);
+     displayTitleVisibleLabel.append(displayTitleVisibleSelect);
      displayWeekStartLabel.append(displayWeekStartSelect);
      if (isCalendarItemType(type)) {
-          if (type === "mini-month" || type === "full-month") {
+          if (type === "full-month") {
+               displayDateRow.append(displayDateModeLabel, displayTitleVisibleLabel, displayWeekNumberLabel, displayYearLabel, displayMonthLabel);
+          } else if (type === "mini-month") {
                displayDateRow.append(displayDateModeLabel, displayWeekNumberLabel, displayYearLabel, displayMonthLabel);
           } else if (type === "weekly-view" || type === "day-view" || type === "diary-view") {
                displayDateRow.append(displayDateModeLabel, displayDayLabel, displayYearLabel, displayMonthLabel);
@@ -3047,9 +3068,10 @@ function makePlannerItem(type = "sticker") {
      shareWeekendsLabel.append(shareWeekendsInput);
      controlTabs.append(styleTab);
      duplicateGroupActions.append(duplicateButton, groupButton);
+     layoutTransformActions.append(designRepositionButton, designResizeButton);
      layerButtonGroup.append(sendBackwardButton, bringForwardButton);
-     designActionGroup.append(designActionTitle, designUniqueButton, designRepositionButton, designResizeButton);
-     layoutActionGroup.append(layoutActionTitle, duplicateGroupActions, layerButtonGroup, deleteButton);
+     designActionGroup.append(designActionTitle, designUniqueButton);
+     layoutActionGroup.append(layoutActionTitle, layoutTransformActions, duplicateGroupActions, layerButtonGroup, deleteButton);
      actionsPanel.append(actionsWidgetType);
      if (isCalendarItemType(type)) {
           actionsPanel.append(displayDateRow);
@@ -3458,6 +3480,11 @@ function makePlannerItem(type = "sticker") {
      displayWeekNumberSelect.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
                weekNumberFormat: displayWeekNumberSelect.value === "on" ? "no-outlines" : "off"
+          });
+     });
+     displayTitleVisibleSelect.addEventListener("change", () => {
+          applyCalendarWidgetSettingsToActionItems(item, {
+               titleVisible: displayTitleVisibleSelect.value
           });
      });
      weekStartSelect.addEventListener("change", () => {
