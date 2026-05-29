@@ -2,6 +2,7 @@
 const pages = Array.from(document.querySelectorAll("[data-page]"));
 const plannerDesk = document.querySelector(".planner-desk");
 const plannerSidebar = document.querySelector("[data-planner-sidebar]");
+const plannerSidebarModeButtons = Array.from(document.querySelectorAll("[data-sidebar-mode]"));
 const controlPanel = document.querySelector(".control-panel");
 const notebook = document.querySelector(".notebook");
 const sourceItems = Array.from(document.querySelectorAll("[data-create-item]"));
@@ -329,7 +330,7 @@ function applyPlannerDefaultsToDateWidgets() {
 
 function applyHintPanelVisibility() {
      if (hintPanel) {
-          hintPanel.hidden = plannerDefaultSettings.hintPanel === "off";
+          hintPanel.hidden = plannerDefaultSettings.hintPanel === "off" && !plannerSidebar?.contains(hintPanel);
      }
 }
 
@@ -2529,6 +2530,25 @@ function syncKeyboardModeUi() {
      controlPanel.classList.toggle("is-interact-mode", keyboardMode === "interact");
      controlPanel.classList.toggle("is-design-mode", keyboardMode === "design");
      document.documentElement.dataset.keyboardMode = keyboardMode;
+     plannerSidebarModeButtons.forEach((button) => {
+          const isActive = button.dataset.sidebarMode === keyboardMode;
+
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", String(isActive));
+     });
+}
+
+function selectSidebarMode(mode) {
+     // NOTE: Lets the docked sidebar buttons switch between Interact and Design without keyboard shortcuts
+     if (mode === keyboardMode) {
+          return;
+     }
+
+     if (mode === "design") {
+          enterKeyboardDesignMode();
+     } else {
+          exitKeyboardDesignMode();
+     }
 }
 
 function enterKeyboardDesignMode() {
@@ -3403,14 +3423,19 @@ function renderKeyHints() {
 
      hintPanel.replaceChildren();
      const hintState = getKeyHintState();
-     const panelTitle = document.createElement("div");
      const modeRow = document.createElement("div");
 
-     panelTitle.className = "panel-title title hint-panel-title";
-     panelTitle.textContent = plannerSidebar?.contains(hintPanel) ? "Sidebar" : "Hint Panel";
      modeRow.className = "hint-mode subtitle";
      modeRow.textContent = hintState.mode;
-     hintPanel.append(panelTitle, modeRow);
+     if (plannerSidebar?.contains(hintPanel)) {
+          hintPanel.append(modeRow);
+     } else {
+          const panelTitle = document.createElement("div");
+
+          panelTitle.className = "panel-title title hint-panel-title";
+          panelTitle.textContent = "Hint Panel";
+          hintPanel.append(panelTitle, modeRow);
+     }
 
      if (hasUsedKeyboardCursor && !controlPanel.classList.contains("is-open")) {
           const coordinateRow = document.createElement("div");
@@ -3842,6 +3867,11 @@ controlPanelStepButtons.forEach((button) => {
                return;
           }
           stepControlPanelTab(Number(button.dataset.controlPanelStep) || 0);
+     });
+});
+plannerSidebarModeButtons.forEach((button) => {
+     button.addEventListener("click", () => {
+          selectSidebarMode(button.dataset.sidebarMode);
      });
 });
 controlPanel.addEventListener("pointerdown", (event) => {

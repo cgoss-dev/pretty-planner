@@ -403,7 +403,7 @@ function updateCalendarGridMetrics(item, page, box) {
           const metricsTarget = calendar || item;
           const fixedRowUnits = Math.max(1, Number(item.style.getPropertyValue("--mini-month-fixed-row-units")) || 3);
           const weekRowCount = Math.max(1, Number(item.style.getPropertyValue("--mini-month-week-row-count")) || 6);
-          const weekRowUnits = 6;
+          const weekRowUnits = getFullMonthWeekRowUnits();
 
           item.style.setProperty("--mini-month-week-row-units", String(weekRowUnits));
           metricsTarget.style.setProperty("--mini-month-week-row-units", String(weekRowUnits));
@@ -442,8 +442,16 @@ function getWeeklyVerticalMinGridColumns(item) {
 function getFullMonthGridUnits() {
      return {
           width: 31,
-          height: 32
+          height: 44
      };
+}
+
+function getFullMonthTitleRowUnits() {
+     return 1;
+}
+
+function getFullMonthWeekRowUnits() {
+     return 7;
 }
 
 function getPerpetualCalendarVisibleGridRows(item) {
@@ -1088,13 +1096,17 @@ function renderMiniMonth(item) {
      const weekNumbersEnabled = weekNumberFormat !== "off";
      const weekNumberOutlines = weekNumberFormat === "outlines";
      const weekStart = item.dataset.weekStart || "monday";
-     const weekdayLabelFormat = normalizeWeekdayLabelFormat(item.dataset.weekdayLabelFormat);
      const shareWeekends = item.dataset.shareWeekends === "true";
      const monthDisplay = item.dataset.monthDisplay || "full";
      const yearDisplay = item.dataset.yearDisplay || (item.dataset.yearVisible === "false" ? "none" : "full");
+     const dateFormats = getCalendarDateFormats(item);
      const { month, year } = getCalendarEffectiveMonthYear(item);
-     const titleMonthText = getCalendarMonthTitle(month, monthDisplay);
-     const titleYearText = getCalendarYearTitle(year, yearDisplay);
+     const titleMonthText = monthDisplay === "none"
+          ? ""
+          : getCalendarMonthTitle(month, dateFormats.monthFormat === "ddd" ? "short" : "full");
+     const titleYearText = yearDisplay === "none"
+          ? ""
+          : getCalendarYearTitle(year, dateFormats.yearFormat === "yy" ? "short" : "full");
      const monthVisible = titleMonthText !== "";
      const yearVisible = titleYearText !== "";
      const titleVisible = item.dataset.calendarTitleVisible !== "false" && (monthVisible || yearVisible);
@@ -1120,9 +1132,9 @@ function renderMiniMonth(item) {
           ...weekRows.map((weekIndex) => weekIndex + 2)
      ];
      const usesExpandedCalendarUnits = item.dataset.itemType === "full-month";
-     const titleRowUnits = usesExpandedCalendarUnits ? 2 : 1;
+     const titleRowUnits = usesExpandedCalendarUnits ? getFullMonthTitleRowUnits() : 1;
      const dayNameRowUnits = 1;
-     const weekRowUnits = usesExpandedCalendarUnits ? 6 : 1;
+     const weekRowUnits = usesExpandedCalendarUnits ? getFullMonthWeekRowUnits() : 1;
      const visibleColumnCount = 1 + displayColumns.length;
      const visibleRowCount = calendarRows.length;
      const visibleColumnUnits = usesExpandedCalendarUnits ? getFullMonthGridUnits().width : visibleColumnCount;
@@ -1147,6 +1159,7 @@ function renderMiniMonth(item) {
      calendar.style.setProperty("--mini-month-visible-row-units", String(visibleRowUnits));
      calendar.style.setProperty("--mini-month-max-row-units", String(maxVisibleRowUnits));
      calendar.style.setProperty("--mini-month-fixed-row-units", String(fixedRowUnits));
+     calendar.style.setProperty("--mini-month-title-row-units", String(titleRowUnits));
      calendar.style.setProperty("--mini-month-week-row-count", String(weekRows.length));
      calendar.style.setProperty("--mini-month-day-column-count", String(displayColumns.length));
      if (usesExpandedCalendarUnits) {
@@ -1163,6 +1176,7 @@ function renderMiniMonth(item) {
           calendar.style.gridTemplateRows = `repeat(${visibleRowCount}, calc(100% / ${visibleRowCount}))`;
      }
      item.style.setProperty("--mini-month-fixed-row-units", String(fixedRowUnits));
+     item.style.setProperty("--mini-month-title-row-units", String(titleRowUnits));
      item.style.setProperty("--mini-month-week-row-count", String(weekRows.length));
      for (let row = 0; row < calendarRows.length; row += 1) {
           const calendarRow = calendarRows[row];
@@ -1234,7 +1248,7 @@ function renderMiniMonth(item) {
                          cell.classList.add("mini-month-shared-weekend");
                          cell.textContent = "Wkd";
                     } else {
-                         cell.textContent = getWeekdayLabel(displayColumnInfo.days[0], weekdayLabelFormat);
+                         cell.textContent = getWeekdayLabel(displayColumnInfo.days[0], dateFormats.dayFormat === "full" ? "full" : "ddd");
                     }
                     if (displayColumnInfo.days.some((dayIndex) => dayIndex === 0 || dayIndex === 6)) {
                          cell.classList.add("mini-month-weekend");
@@ -1375,8 +1389,11 @@ function renderMiniMonth(item) {
 function renderPerpetualCalendar(item) {
      let calendar = item.querySelector(".perpetual-calendar");
      const monthDisplay = item.dataset.monthDisplay || "full";
+     const dateFormats = getCalendarDateFormats(item);
      const { month, year } = getCalendarEffectiveMonthYear(item);
-     const titleMonthText = getCalendarMonthTitle(month, monthDisplay);
+     const titleMonthText = monthDisplay === "none"
+          ? ""
+          : getCalendarMonthTitle(month, dateFormats.monthFormat === "ddd" ? "short" : "full");
      const daysInMonth = getCalendarDaysInMonth(year, month);
      const dayNotes = getCalendarDayNotes(item);
      const todayKey = getTodayCalendarDayKey();
@@ -1790,11 +1807,11 @@ function setCalendarWidgetSettings(item, settings = {}) {
      item.dataset.weekNumberFormat = weekNumberFormat;
      item.dataset.weekNumbers = weekNumberFormat === "off" ? "false" : "true";
      item.dataset.weekStart = settings.weekStart || item.dataset.weekStart || defaultDateSettings.weekStart || "monday";
-     item.dataset.weekdayLabelFormat = normalizeWeekdayLabelFormat(settings.weekdayLabelFormat || item.dataset.weekdayLabelFormat || "d");
      item.dataset.dateOrder = normalizeDateOrder(settings.dateOrder || item.dataset.dateOrder || defaultDateSettings.dateOrder).join(",");
      item.dataset.dateYearFormat = normalizeCalendarDateYearFormat(settings.yearFormat || settings.dateYearFormat || item.dataset.dateYearFormat || defaultDateSettings.yearFormat);
      item.dataset.dateMonthFormat = normalizeCalendarDateMonthFormat(settings.monthFormat || settings.dateMonthFormat || item.dataset.dateMonthFormat || defaultDateSettings.monthFormat);
      item.dataset.dateDayFormat = normalizeCalendarDateDayFormat(settings.dayFormat || settings.dateDayFormat || item.dataset.dateDayFormat || defaultDateSettings.dayFormat);
+     item.dataset.weekdayLabelFormat = item.dataset.dateDayFormat === "full" ? "full" : "ddd";
      item.dataset.dateMode = nextDateMode;
      item.dataset.dateUnit = getCalendarRelativeDateUnit(item);
      item.dataset.dateOffset = clampRelativeDateOffset(settings.dateOffset ?? (nextDateMode === "relative" && previousDateMode !== "relative" ? "0" : item.dataset.dateOffset ?? "0"), item.dataset.dateUnit);

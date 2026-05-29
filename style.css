@@ -3183,7 +3183,7 @@ body {
           var(--weekly-column-cell-width, 12px)
           repeat(var(--mini-month-day-column-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 5), 1fr));
      grid-template-rows:
-          calc(var(--weekly-row-cell-height, 12px) * 2)
+          calc(var(--weekly-row-cell-height, 12px) * var(--mini-month-title-row-units, 1))
           var(--weekly-row-cell-height, 12px)
           repeat(var(--mini-month-week-row-count, 6), var(--mini-month-week-row-height, var(--weekly-row-cell-height, 12px)));
 }
@@ -3771,6 +3771,15 @@ body {
      outline-offset: 3px;
 }
 
+.planner-item-full-month.is-selected {
+     outline: 0;
+}
+
+.planner-item-full-month.is-selected .mini-month {
+     outline: var(--border-md) solid var(--accent-ring);
+     outline-offset: 3px;
+}
+
 .planner-item.is-interact-focus {
      outline: var(--border-md) solid var(--accent-ring-strong);
      outline-offset: 3px;
@@ -3808,6 +3817,10 @@ body {
 .planner-item.is-selected:focus {
      outline: var(--border-md) solid var(--accent-ring);
      outline-offset: 3px;
+}
+
+.planner-item-full-month.is-selected:focus {
+     outline: 0;
 }
 
 .item-size-label {
@@ -5050,6 +5063,38 @@ body.is-single-page-viewport .planner-desk > .sticker-source {
      backdrop-filter: blur(8px);
 }
 
+.planner-sidebar-title {
+     margin: 0;
+}
+
+.planner-sidebar-mode-controls {
+     display: grid;
+     grid-template-columns: repeat(2, minmax(0, 1fr));
+     gap: 6px;
+}
+
+.planner-sidebar-mode-button {
+     min-height: var(--color-swatch-size);
+     padding: 3px 6px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
+     border-radius: 5px;
+     background: var(--color-white);
+     color: var(--color-gray1);
+     cursor: pointer;
+     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     line-height: 1;
+}
+
+.planner-sidebar-mode-button.is-active,
+.planner-sidebar-mode-button[aria-pressed="true"] {
+     background: var(--color-gray4);
+}
+
+.planner-sidebar-mode-button:focus-visible {
+     outline: var(--border-md) solid var(--accent-ring);
+     outline-offset: 2px;
+}
+
 .planner-sidebar .hint-panel {
      position: static;
      z-index: auto;
@@ -5095,6 +5140,14 @@ body.is-single-page-viewport .planner-desk > .sticker-source {
      display: none;
 }
 
+:root[data-keyboard-mode="design"] .planner-sidebar .hint-panel {
+     display: none;
+}
+
+:root[data-keyboard-mode="interact"] .planner-sidebar .hint-panel {
+     display: grid;
+}
+
 :root[data-keyboard-mode="design"] .planner-sidebar .control-panel {
      display: grid;
 }
@@ -5135,15 +5188,13 @@ body.is-single-page-viewport .planner-sidebar .control-panel-tabs {
      display: grid;
      width: 100%;
      min-width: 0;
-     grid-template-columns: 30px minmax(0, 1fr) 30px;
+     grid-template-columns: minmax(0, 1fr);
 }
 
 .planner-sidebar .control-panel-tab-step,
 .planner-sidebar .control-panel-tab[aria-selected="true"] .control-panel-tab-step,
 .planner-sidebar .control-panel:not(.is-open) .control-panel-tab[aria-selected="true"] .control-panel-tab-step {
-     width: 30px;
-     opacity: 1;
-     pointer-events: auto;
+     display: none;
 }
 
 .planner-sidebar .control-panel-page,
