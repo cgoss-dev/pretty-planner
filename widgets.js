@@ -173,6 +173,7 @@ function renderToc(item, entries = []) {
      list.className = "toc-list";
      toc.replaceChildren(list);
      tocTitle.className = "toc-title";
+     tocTitle.style.gridRow = "span 2";
      tocTitlePage.className = "toc-title-page";
      tocTitleName.className = "toc-title-name";
      tocTitlePage.textContent = "Page";
@@ -236,7 +237,7 @@ function updateTocGridMetrics(item, page, box) {
 
      const grid = page ? getGridSize(page) : null;
      const fallbackWidthUnits = itemGridUnits.toc?.width || 18;
-     const fallbackHeightUnits = itemGridUnits.toc?.height || 18;
+     const fallbackHeightUnits = itemGridUnits.toc?.height || 19;
      const columnWidth = grid ? grid.x : box.width / fallbackWidthUnits;
      const rowHeight = grid ? grid.y : box.height / fallbackHeightUnits;
      const rowCount = Math.max(1, Math.round(box.height / rowHeight));
@@ -707,6 +708,52 @@ function getTextYAlignValue(value = "top") {
      return "start";
 }
 
+function normalizeEditablePlainText(textElement) {
+     // NOTE: Strips pasted rich text markup while preserving the visible text
+     if (!textElement) {
+          return;
+     }
+
+     const text = textElement.textContent || "";
+
+     if (textElement.childNodes.length !== 1 || textElement.firstChild?.nodeType !== Node.TEXT_NODE) {
+          textElement.textContent = text;
+     }
+}
+
+function insertPlainTextAtSelection(text) {
+     // NOTE: Inserts clipboard text without carrying over HTML styles
+     const selection = window.getSelection();
+
+     if (!selection || !selection.rangeCount) {
+          return false;
+     }
+
+     selection.deleteFromDocument();
+
+     const range = selection.getRangeAt(0);
+     const textNode = document.createTextNode(text);
+
+     range.insertNode(textNode);
+     range.setStartAfter(textNode);
+     range.collapse(true);
+     selection.removeAllRanges();
+     selection.addRange(range);
+     return true;
+}
+
+function handlePlainTextPaste(event) {
+     // NOTE: Keeps pasted text from importing spans, backgrounds, or other source styling
+     const text = event.clipboardData?.getData("text/plain");
+
+     if (text === undefined || text === null) {
+          return;
+     }
+
+     event.preventDefault();
+     insertPlainTextAtSelection(text);
+}
+
 function updateTextToggleControl(control, isActive) {
      if (!control) {
           return;
@@ -936,6 +983,7 @@ function stopStickerTextEditing(item) {
      }
 
      textElement.setAttribute("contenteditable", "false");
+     normalizeEditablePlainText(textElement);
      item.classList.remove("is-editing-text");
      updateTextEditingState();
      renderKeyHints();
@@ -967,6 +1015,7 @@ function startStickerTextEditing(item) {
      item.classList.add("is-editing-text");
      textElement.hidden = false;
      textElement.setAttribute("contenteditable", "true");
+     textElement.addEventListener("paste", handlePlainTextPaste);
      updateTextEditingState();
      renderKeyHints();
 
@@ -1417,6 +1466,21 @@ function clearSelection() {
 function closeItemMenus(exceptItem = null) {
      document.querySelectorAll(".planner-item.is-widget-panel-open").forEach((item) => {
           if (item !== exceptItem) {
+               closeItemMenu(item);
+          }
+     });
+}
+
+function closeFloatingWidgetPanelsFromOutsidePointer(event) {
+     // NOTE: Dismisses right-click widget popups when the pointer starts outside the popup
+     if (event.target.closest(".widget-panel")) {
+          return;
+     }
+
+     document.querySelectorAll(".planner-item.is-widget-panel-open").forEach((item) => {
+          const controls = getWidgetPanel(item);
+
+          if (controls?.classList.contains("is-floating")) {
                closeItemMenu(item);
           }
      });
@@ -3278,7 +3342,6 @@ function makePlannerItem(type = "sticker") {
                          key: "widget-border"
                     });
                }
-               openItemActionsPopup(item, event, getSelectedOrGroupedActionItems(item));
           }
      });
      item.addEventListener("dblclick", (event) => {

@@ -442,7 +442,7 @@ function getWeeklyVerticalMinGridColumns(item) {
 function getFullMonthGridUnits() {
      return {
           width: 31,
-          height: 44
+          height: 38
      };
 }
 
@@ -451,7 +451,7 @@ function getFullMonthTitleRowUnits() {
 }
 
 function getFullMonthWeekRowUnits() {
-     return 7;
+     return 6;
 }
 
 function getPerpetualCalendarVisibleGridRows(item) {
@@ -1051,6 +1051,7 @@ function startCalendarDayTextEditing(textElement, item) {
 
      textElement.addEventListener("blur", () => {
           textElement.setAttribute("contenteditable", "false");
+          normalizeEditablePlainText(textElement);
           item.classList.remove("is-editing-day-text");
           updateTextEditingState();
           renderKeyHints();
@@ -1296,6 +1297,7 @@ function renderMiniMonth(item) {
                               dayText.textContent = dayNotes[dayKey] || "";
                               applyCalendarDayTextStyle(item, dayText);
                               dayText.addEventListener("input", () => updateCalendarDayTextOverflow(dayText));
+                              dayText.addEventListener("paste", handlePlainTextPaste);
                               dayText.addEventListener("dblclick", (event) => {
                                    event.preventDefault();
                                    event.stopPropagation();
@@ -1450,6 +1452,7 @@ function renderPerpetualCalendar(item) {
           dayText.textContent = dayNotes[dayKey] || "";
           applyCalendarDayTextStyle(item, dayText);
           dayText.addEventListener("input", () => updateCalendarDayTextOverflow(dayText));
+          dayText.addEventListener("paste", handlePlainTextPaste);
           dayText.addEventListener("pointerdown", (event) => {
                handleCalendarTextPointerDown(dayText, event);
           });
@@ -1531,6 +1534,7 @@ function renderDiaryView(item) {
           dayText.textContent = dayNotes[dayKey] || "";
           applyCalendarDayTextStyle(item, dayText);
           dayText.addEventListener("input", () => updateCalendarDayTextOverflow(dayText));
+          dayText.addEventListener("paste", handlePlainTextPaste);
           dayText.addEventListener("dblclick", (event) => {
                event.preventDefault();
                event.stopPropagation();
@@ -1716,6 +1720,7 @@ function renderWeeklyVertical(item) {
                          slotText.textContent = dayNotes[slotKey] || dayNotes[getWeeklySlotKey(primaryDate, slotMinutes)] || "";
                          applyCalendarDayTextStyle(item, slotText);
                          slotText.addEventListener("input", () => updateCalendarDayTextOverflow(slotText));
+                         slotText.addEventListener("paste", handlePlainTextPaste);
                          slotText.addEventListener("dblclick", (event) => {
                               event.preventDefault();
                               event.stopPropagation();

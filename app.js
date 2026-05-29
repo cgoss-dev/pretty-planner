@@ -3886,6 +3886,7 @@ sourceItems.forEach((sourceItem) => {
 });
 document.addEventListener("pointerdown", hideKeyboardCursorForPointer, true);
 document.addEventListener("pointerdown", closeColorMatrixFromOutsidePointer, true);
+document.addEventListener("pointerdown", closeFloatingWidgetPanelsFromOutsidePointer, true);
 plannerDesk.addEventListener("pointerdown", startMarquee);
 plannerDesk.addEventListener("pointermove", updateDeskResizeCursor);
 plannerDesk.addEventListener("pointerleave", () => {

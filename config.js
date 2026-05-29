@@ -50,7 +50,7 @@
                     },
                     toc: {
                          width: 18,
-                         height: 18
+                         height: 19
                     },
                     "mini-month": {
                          width: 10,
@@ -58,7 +58,7 @@
                     },
                     "full-month": {
                          width: 14,
-                         height: 44
+                         height: 38
                     },
                     "perpetual-calendar": {
                          width: perpetualCalendarLeftColumnGridUnits + perpetualCalendarRightColumnMinGridUnits,

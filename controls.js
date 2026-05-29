@@ -532,6 +532,13 @@ window.KeyboardControls = (() => {
                     { key: "Type", action: "Enter text normally" },
                     { key: "Enter / Delete", action: "Finish editing" }
                ]
+          },
+          {
+               title: "Smart Text",
+               controls: [
+                    { key: "[[...]]", action: "Use Smart Text codes that update outside Text Edit mode" },
+                    { key: "\\[[...]]", action: "Show a Smart Text code as regular text" }
+               ]
           }
      ];
 
