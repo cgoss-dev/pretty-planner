@@ -69,7 +69,7 @@
                          height: 14
                     },
                     "day-view": {
-                         width: 8,
+                         width: 7,
                          height: 14
                     },
                     "diary-view": {

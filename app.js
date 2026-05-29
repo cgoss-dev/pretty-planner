@@ -37,7 +37,6 @@ const defaultTextColorSwatches = document.querySelector("[data-default-text-colo
 const defaultGridColorSwatches = Array.from(document.querySelectorAll("[data-default-grid-color-swatches]"));
 const defaultGridFillSwatches = document.querySelector("[data-default-grid-fill-swatches]");
 const dateOrderPicker = document.querySelector("[data-date-order-picker]");
-const resetUniqueDefaultsButton = document.querySelector("[data-reset-unique-defaults]");
 const resetUniversalDefaultsButton = document.querySelector("[data-reset-universal-defaults]");
 const resetNotebookDefaultsButton = document.querySelector("[data-reset-notebook-defaults]");
 const pageGridCursor = document.querySelector("[data-page-grid-cursor]");
@@ -716,14 +715,6 @@ function resetItemsToPlannerDefaults(items) {
      notifyTemplateChanged();
 }
 
-function resetUniqueStylesToDefaults() {
-     if (!selectedItems.size) {
-          return;
-     }
-
-     resetItemsToPlannerDefaults(Array.from(selectedItems));
-}
-
 function resetUniversalStylesToDefaults() {
      if (!selectedItems.size) {
           return;
@@ -1029,10 +1020,7 @@ function getReferencePaperSizeInches() {
 }
 
 function getNotebookWidthFormula() {
-     const referencePaper = getReferencePaperSizeInches();
-     const spreadRatio = referencePaper.width * 2 / referencePaper.height;
-
-     return `min(var(--notebook-layout-width, ${notebookViewportWidth}vw), ${notebookMaxWidth}px, calc((100vh - ${notebookViewportHeightReserve}px) * (${spreadRatio})))`;
+     return `${notebookMaxWidth}px`;
 }
 
 function syncResponsiveViewportClass() {
@@ -3769,7 +3757,7 @@ function applyPlannerConfig() {
      }));
      syncGridSnapOrigins();
      setRootNumber("--notebook-width", getNotebookWidthFormula());
-     setRootNumber("--notebook-height", `min(calc(var(--notebook-width) / var(--notebook-screen-aspect)), 724px, calc(100vh - ${notebookViewportHeightReserve}px))`);
+     setRootNumber("--notebook-height", "calc(var(--notebook-width) / var(--notebook-screen-aspect))");
      setRootNumber("--source-sticker-size", `calc(var(--notebook-width) * ${sourceStickerRatio / 100})`);
      setRootNumber("--print-page-width", `${pageWidthInches}in`);
      setRootNumber("--print-page-height", `${pageHeightInches}in`);
@@ -3898,7 +3886,6 @@ function initializeDefaultControls() {
           }
      });
 
-     resetUniqueDefaultsButton?.addEventListener("click", resetUniqueStylesToDefaults);
      resetUniversalDefaultsButton?.addEventListener("click", resetUniversalStylesToDefaults);
      resetNotebookDefaultsButton?.addEventListener("click", resetNotebookStylesToDefaults);
      syncDefaultControls();

@@ -72,13 +72,7 @@ function serializePlannerItem(item) {
           id: item.dataset.templateId,
           type: item.dataset.itemType || "sticker",
           groupId: item.dataset.groupId || null,
-          style: {
-               fillColor: item.dataset.fillColor,
-               borderColor: item.dataset.borderColor,
-               borderWidth: Number(item.dataset.borderWidth),
-               dotGrid: item.dataset.dotGrid === "true",
-               themeMode: item.dataset.themeMode || ""
-          },
+          style: {},
           widget: isCalendarItem(item)
                ? {
                     weekNumbers: item.dataset.weekNumbers !== "false",
@@ -107,39 +101,14 @@ function serializePlannerItem(item) {
                     timeVisible: item.dataset.timeVisible !== "false",
                     shareWeekends: item.dataset.shareWeekends === "true",
                     weekNotes: item.dataset.weekNotes || "off",
-                    partStyles: getCalendarPartStyles(item),
                     dayNotes: isCalendarTextItem(item) ? getCalendarDayNotes(item) : null,
-                    dayText: isCalendarTextItem(item)
-                         ? {
-                              size: Number(item.dataset.dayTextSize) || 10,
-                              font: item.dataset.dayTextFont || "annotation-mono",
-                              color: item.dataset.dayTextColor || "var(--color-gray1)",
-                              bold: item.dataset.dayTextBold === "true",
-                              italic: item.dataset.dayTextItalic === "true",
-                              underline: item.dataset.dayTextUnderline === "true",
-                              strike: item.dataset.dayTextStrike === "true",
-                              align: item.dataset.dayTextAlign || "center",
-                              yAlign: item.dataset.dayTextYAlign || "center",
-                              lineHeight: Number(item.dataset.dayTextLineHeight) || 1,
-                              role: item.dataset.dayTextRole || "body"
-                         }
-                         : null
+                    dayText: null
           }
                : null,
           text: isTextItem
                ? {
                     enabled: item.dataset.textEnabled === "true",
                     content: isTocItem(item) ? "" : textElement ? textElement.textContent : "",
-                   size: Number(item.dataset.textSize) || 10,
-                   font: item.dataset.textFont || "annotation-mono",
-                   color: item.dataset.textColor || "var(--color-gray1)",
-                   bold: item.dataset.textBold === "true",
-                    italic: item.dataset.textItalic === "true",
-                    underline: item.dataset.textUnderline === "true",
-                    strike: item.dataset.textStrike === "true",
-                    align: item.dataset.textAlign || "center",
-                    yAlign: item.dataset.textYAlign || "center",
-                    lineHeight: Number(item.dataset.textLineHeight) || 1,
                     role: item.dataset.textRole || "body"
                }
                : null
@@ -468,48 +437,16 @@ function restorePlannerItemSettings(item, itemData) {
      const text = itemData.text || {};
      const widget = itemData.widget || {};
 
-     setItemStyle(item, {
-          fillColor: style.fillColor,
-          borderColor: style.borderColor,
-          borderWidth: style.borderWidth,
-          dotGrid: normalizeStoredBoolean(style.dotGrid)
-     });
-     if (style.themeMode === "custom") {
-          item.dataset.themeMode = "custom";
-     }
      if (isStickerTextItem(item)) {
           setStickerTextSettings(item, {
                enabled: normalizeStoredBoolean(text.enabled),
                content: isTocItem(item) ? undefined : text.content || "",
-               size: text.size,
-               font: text.font,
-               color: text.color,
-               bold: normalizeStoredBoolean(text.bold),
-               italic: normalizeStoredBoolean(text.italic),
-               underline: normalizeStoredBoolean(text.underline),
-               strike: normalizeStoredBoolean(text.strike),
-               align: text.align,
-               yAlign: text.yAlign,
-               lineHeight: text.lineHeight,
                role: text.role
           });
      }
      if (isCalendarItem(item)) {
           if (isCalendarTextItem(item)) {
                item.dataset.dayNotes = JSON.stringify(widget.dayNotes || {});
-               setCalendarDayTextSettings(item, {
-                    size: widget.dayText?.size,
-                    font: widget.dayText?.font,
-                    color: widget.dayText?.color,
-                    bold: normalizeStoredBoolean(widget.dayText?.bold),
-                    italic: normalizeStoredBoolean(widget.dayText?.italic),
-                    underline: normalizeStoredBoolean(widget.dayText?.underline),
-                    strike: normalizeStoredBoolean(widget.dayText?.strike),
-                    align: widget.dayText?.align,
-                    yAlign: widget.dayText?.yAlign,
-                    lineHeight: widget.dayText?.lineHeight,
-                    role: widget.dayText?.role
-               });
           }
           setCalendarWidgetSettings(item, {
                weekNumbers: normalizeStoredBoolean(widget.weekNumbers, "true"),
@@ -538,10 +475,6 @@ function restorePlannerItemSettings(item, itemData) {
                shareWeekends: normalizeStoredBoolean(widget.shareWeekends),
                weekNotes: widget.weekNotes
           });
-          if (widget.partStyles && typeof widget.partStyles === "object") {
-               setCalendarPartStyles(item, widget.partStyles);
-               applyCalendarPartStyles(item);
-          }
      }
      if (itemData.groupId) {
           item.dataset.groupId = itemData.groupId;

@@ -68,16 +68,12 @@ function applyThemeToWidget(item) {
      const theme = plannerThemesData?.themes?.[0];
      const widgetSlots = plannerWidgetThemeSlots?.widgets?.[item.dataset.itemType];
 
-     if (!theme || !widgetSlots || item.dataset.themeMode === "custom") {
+     if (!theme || !widgetSlots) {
           return;
      }
 
      Object.entries(widgetSlots.parts || {}).forEach(([partName, partSlots]) => {
           item.querySelectorAll(`[data-theme-part="${partName}"]`).forEach((part) => {
-               if (part.dataset.themeMode === "custom") {
-                    return;
-               }
-
                if (partSlots.textSlot) {
                     applyTextThemeToElement(part, theme.text?.[partSlots.textSlot] || {}, theme, {
                          textSlot: partSlots.textSlot,
@@ -332,6 +328,7 @@ function setItemStyle(item, style) {
      item.dataset.hasClearBorder = String(hasClearBorder);
      delete item.dataset.fillAlpha;
      delete item.dataset.borderAlpha;
+     applyDefaultGridLineStyles(item);
      item.style.setProperty("--sticker-fill", item.dataset.fillColor);
      item.style.setProperty("--sticker-fill-opaque", item.dataset.fillColor);
      item.style.setProperty("--widget-box-fill", item.dataset.fillColor);
@@ -342,7 +339,6 @@ function setItemStyle(item, style) {
      }
      item.style.setProperty("--sticker-border-color", item.dataset.borderColor);
      item.style.setProperty("--sticker-border-size", `${item.dataset.borderWidth}px`);
-     applyDefaultGridLineStyles(item);
 
      const controls = getWidgetPanel(item) || item;
      const fillInput = controls.querySelector("[data-style-control='fill']");
@@ -1184,8 +1180,8 @@ function updateActionsPopupTypeLabel(controls, items) {
 
 function enterItemDesignPopup(controls, item) {
      setControlsActionItems(controls, [item]);
-     controls.dataset.designScope = "unique";
-     controls.dataset.designScopeLabel = "Unique Design";
+     controls.dataset.designScope = "universal";
+     controls.dataset.designScopeLabel = "Universal Styling";
      controls.querySelector(".item-design-popup-title")?.replaceChildren(controls.dataset.designScopeLabel);
      controls.classList.remove("is-actions-popup");
      controls.classList.add("is-design-popup");
@@ -1619,35 +1615,59 @@ function moveActionItemsLayer(item, direction) {
 }
 
 function applyStyleToActionItems(item, style) {
-     const selectedCalendarStyleItem = getSelectedCalendarStyleItem(item);
-
-     if (selectedCalendarStyleItem && applyStyleToCalendarStyleTarget(selectedCalendarStyleItem, style)) {
-          notifyTemplateChanged();
-          return;
+     if (typeof setDefaultControlValue === "function") {
+          if (style.fillColor !== undefined) {
+               setDefaultControlValue("grid-fill", style.fillColor);
+          }
+          if (style.borderColor !== undefined) {
+               setDefaultControlValue("grid-line-perimeter-color", style.borderColor);
+          }
+          if (style.borderWidth !== undefined) {
+               setDefaultControlValue("grid-line-perimeter-weight", style.borderWidth);
+          }
+          if (style.dotGrid !== undefined) {
+               setDefaultControlValue("dot-grid", style.dotGrid);
+          }
+          if (typeof syncDefaultControls === "function") {
+               syncDefaultControls();
+          }
+          if (typeof savePlannerState === "function") {
+               savePlannerState();
+          }
      }
-
-     getActionItems(item).forEach((targetItem) => {
-          targetItem.dataset.themeMode = "custom";
-          setItemStyle(targetItem, style);
-     });
      notifyTemplateChanged();
 }
 
 function applyTextSettingsToActionItems(item, settings) {
-     const selectedCalendarStyleItem = getSelectedCalendarStyleItem(item);
-
-     if (selectedCalendarStyleItem && applyTextSettingsToCalendarStyleTarget(selectedCalendarStyleItem, settings)) {
-          notifyTemplateChanged();
-          return;
-     }
-
-     getActionItems(item).forEach((targetItem) => {
-          if (isCalendarTextItem(targetItem)) {
-               setCalendarDayTextSettings(targetItem, settings);
-          } else {
-               setStickerTextSettings(targetItem, settings);
+     if (typeof setDefaultControlValue === "function") {
+          if (settings.size !== undefined) {
+               setDefaultControlValue("body-text-size", settings.size);
           }
-     });
+          if (settings.font !== undefined) {
+               setDefaultControlValue("body-text-font", settings.font);
+          }
+          if (settings.color !== undefined) {
+               setDefaultControlValue("body-text-color", settings.color);
+          }
+     }
+     if (typeof plannerDefaultSettings !== "undefined") {
+          const textDefaults = plannerDefaultSettings.text;
+
+          ["bold", "italic", "underline", "strike", "align", "yAlign", "lineHeight", "role"].forEach((key) => {
+               if (settings[key] !== undefined) {
+                    textDefaults[key] = settings[key];
+               }
+          });
+          if (typeof applyPlannerDefaultsToThemeWidgets === "function") {
+               applyPlannerDefaultsToThemeWidgets();
+          }
+          if (typeof syncDefaultControls === "function") {
+               syncDefaultControls();
+          }
+          if (typeof savePlannerState === "function") {
+               savePlannerState();
+          }
+     }
      notifyTemplateChanged();
 }
 
@@ -1718,25 +1738,11 @@ function handleWidgetPanelButtonKey(event) {
 }
 
 function getCalendarPartStyles(item) {
-     try {
-          return JSON.parse(item.dataset.calendarPartStyles || "{}");
-     } catch {
-          return {};
-     }
+     return {};
 }
 
 function setCalendarPartStyles(item, styles) {
-     const keys = Object.keys(styles).filter((key) => styles[key] && Object.keys(styles[key]).length);
-
-     if (!keys.length) {
-          delete item.dataset.calendarPartStyles;
-          return;
-     }
-
-     item.dataset.calendarPartStyles = JSON.stringify(keys.reduce((nextStyles, key) => {
-          nextStyles[key] = styles[key];
-          return nextStyles;
-     }, {}));
+     delete item.dataset.calendarPartStyles;
 }
 
 function getCalendarStyleTarget(item) {
@@ -1931,10 +1937,6 @@ function selectCalendarCellStyleTarget(item, cell, event) {
      event.preventDefault();
      event.stopPropagation();
      selectItem(item);
-     setCalendarStyleTarget(item, {
-          type: "cell",
-          key: cell.dataset.calendarStyleKey
-     });
      openItemActionsPopup(item, event, [item]);
 }
 
@@ -2589,8 +2591,8 @@ function makePlannerItem(type = "sticker") {
      designActionTitle.textContent = "Design";
      designUniqueButton.className = "widget-panel-button";
      designUniqueButton.type = "button";
-     designUniqueButton.textContent = "Unique";
-     designUniqueButton.setAttribute("aria-label", "Design this unique widget");
+     designUniqueButton.textContent = "Universal";
+     designUniqueButton.setAttribute("aria-label", "Design universal widget styling");
      designRepositionButton.className = "widget-panel-button";
      designRepositionButton.type = "button";
      designRepositionButton.textContent = "Reposition";
@@ -3766,11 +3768,7 @@ function copyItemConfiguration(source, target) {
           borderWidth: source.dataset.borderWidth,
           dotGrid: source.dataset.dotGrid
      });
-     if (source.dataset.themeMode === "custom") {
-          target.dataset.themeMode = "custom";
-     } else {
-          delete target.dataset.themeMode;
-     }
+     delete target.dataset.themeMode;
      setStickerTextSettings(target, {
           enabled: source.dataset.textEnabled,
           content: isTocItem(source) ? undefined : getStickerTextElement(source) ? getStickerTextElement(source).textContent : "",
@@ -3830,7 +3828,6 @@ function copyItemConfiguration(source, target) {
                     role: source.dataset.dayTextRole
                });
           }
-          setCalendarPartStyles(target, getCalendarPartStyles(source));
           renderMiniMonth(target);
      }
 }

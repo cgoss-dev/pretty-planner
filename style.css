@@ -165,8 +165,8 @@
      --planner-sidebar-gap: 8px;
      --notebook-layout-width: 132vw;
 
-     --notebook-width: min(132vw, 1220px, calc((100vh - 68px) * var(--notebook-screen-aspect)));
-     --notebook-height: min(calc(var(--notebook-width) / var(--notebook-screen-aspect)), 724px, calc(100vh - 68px));
+     --notebook-width: 1220px;
+     --notebook-height: calc(var(--notebook-width) / var(--notebook-screen-aspect));
      
      --closed-control-panel-tabs-height: 34px;
      --notebook-stage-y: -17px; /* Centers notebook between viewport top and closed tabs. */
@@ -2920,9 +2920,13 @@ body {
      display: grid;
      grid-template-columns: minmax(0, 1fr);
      align-items: stretch;
+     box-sizing: border-box;
      min-width: 0;
      min-height: 0;
+     border-top: var(--widget-perimeter-line-width, var(--border-sm)) solid var(--widget-perimeter-line-color, var(--toc-grid-line-color));
+     border-right: var(--widget-perimeter-line-width, var(--border-sm)) solid var(--widget-perimeter-line-color, var(--toc-grid-line-color));
      border-bottom: var(--border-sm) solid var(--toc-grid-line-color);
+     border-left: var(--widget-perimeter-line-width, var(--border-sm)) solid var(--widget-perimeter-line-color, var(--toc-grid-line-color));
      background: var(--calendar-tint-background);
      color: var(--color-gray1);
 }
@@ -3649,9 +3653,24 @@ body {
      content: "";
      position: absolute;
      inset: 0;
-     z-index: 2;
+     z-index: 3;
      border-radius: inherit;
      border: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
+     pointer-events: none;
+}
+
+.planner-item-day-view .weekly-view::after {
+     content: "";
+     position: absolute;
+     inset: 0;
+     z-index: 2;
+     border-radius: inherit;
+     background:
+          radial-gradient(circle at 1px 1px, var(--dot-grid-color) 0 1px, transparent 1.35px);
+     background-position:
+          calc(var(--weekly-column-cell-width, 12px) - 1px) calc(var(--weekly-row-cell-height, 12px) - 1px);
+     background-size:
+          var(--weekly-column-cell-width, 12px) var(--weekly-row-cell-height, 12px);
      pointer-events: none;
 }
 
@@ -3784,6 +3803,11 @@ body {
 }
 
 .weekly-view-edge-bottom {
+     border-bottom: 0;
+}
+
+.planner-item-day-view .weekly-view-cell {
+     border-right: 0;
      border-bottom: 0;
 }
 

@@ -430,7 +430,7 @@ function updateCalendarGridMetrics(item, page, box) {
      }
 
      const visibleDays = clamp(Number(item.dataset.visibleDays) || 7, 1, 7);
-     const timeColumnUnits = isTimeGridCalendarType(item.dataset.itemType) && item.dataset.timeVisible !== "false" ? 1 : 0;
+     const timeColumnUnits = getWeeklyTimeColumnGridUnits(item);
      const dayColumnUnits = item.dataset.itemType === "day-view" ? 7 : visibleDays * 5;
      const columnUnits = item.dataset.itemType === "full-month" ? getFullMonthGridUnits(item).width : timeColumnUnits + dayColumnUnits + getWeekNotesColumnUnits(item);
      const rowUnits = item.dataset.itemType === "full-month"
@@ -480,10 +480,22 @@ function getWeeklyVerticalDisplayColumnCount(item) {
 }
 
 function getWeeklyVerticalMinGridColumns(item) {
-     const timeColumnUnits = item.dataset.timeVisible !== "false" ? 1 : 0;
+     const timeColumnUnits = getWeeklyTimeColumnGridUnits(item);
      const dayColumnUnits = item.dataset.itemType === "day-view" ? 7 : getWeeklyVerticalDisplayColumnCount(item) * 5;
 
      return timeColumnUnits + dayColumnUnits + getWeekNotesColumnUnits(item);
+}
+
+function getWeeklyTimeColumnGridUnits(item) {
+     if (!isTimeGridCalendarType(item.dataset.itemType) || item.dataset.timeVisible === "false") {
+          return 0;
+     }
+
+     return item.dataset.itemType === "day-view" ? 0 : 1;
+}
+
+function getWeeklyHeaderGridRows(item) {
+     return item.dataset.itemType === "day-view" ? 2 : 1;
 }
 
 function getFullMonthGridUnits(item) {
@@ -952,6 +964,7 @@ function getWeeklyVisibleSlotCount(item) {
      const timeIncrement = Number(item.dataset.timeIncrement) || 30;
      const startMinutes = parseTimeValue(item.dataset.startTime || "00:00");
      const maxSlotCount = Math.max(1, Math.ceil(((24 * 60) - startMinutes) / timeIncrement));
+     const headerRows = getWeeklyHeaderGridRows(item);
 
      if (!page) {
           return maxSlotCount;
@@ -961,7 +974,7 @@ function getWeeklyVisibleSlotCount(item) {
      const box = getItemBox(item);
      const rowCount = Math.max(1, Math.floor(box.height / grid.y));
 
-     return clamp(rowCount - 1, 1, maxSlotCount);
+     return clamp(rowCount - headerRows, 1, maxSlotCount);
 }
 
 function getCalendarWeekName(weekIndex, month, year) {
@@ -1712,6 +1725,9 @@ function renderWeeklyVertical(item) {
           : getWeeklyDisplayColumns(weekStartDate, visibleDays, shareWeekends);
      const weekNotesPosition = isDayView ? "off" : getWeekNotesPosition(item);
      const weekNotesEnabled = weekNotesPosition !== "off";
+     const headerRowUnits = getWeeklyHeaderGridRows(item);
+     const timeColumnUnits = getWeeklyTimeColumnGridUnits(item);
+     const hasTimeColumn = timeColumnUnits > 0 && timeVisible;
      const dayColumnSlots = displayColumns.map((displayColumn) => ({
           type: "day",
           displayColumn
@@ -1720,7 +1736,7 @@ function renderWeeklyVertical(item) {
           ? [{ type: "notes" }, ...dayColumnSlots]
           : [...dayColumnSlots, ...(weekNotesEnabled ? [{ type: "notes" }] : [])];
      const columnSlots = [
-          ...(timeVisible ? [{ type: "time" }] : []),
+          ...(hasTimeColumn ? [{ type: "time" }] : []),
           ...bodyColumnSlots
      ];
      const columnCount = columnSlots.length;
@@ -1735,18 +1751,22 @@ function renderWeeklyVertical(item) {
 
      calendar.replaceChildren();
      calendar.style.setProperty("--weekly-slot-count", String(slotCount));
-     calendar.style.setProperty("--weekly-row-count", String(slotCount + 1));
+     calendar.style.setProperty("--weekly-row-count", String(slotCount + headerRowUnits));
      calendar.style.setProperty("--weekly-day-count", String(displayColumns.length));
-     calendar.style.setProperty("--weekly-visible-column-units", String((timeVisible ? 1 : 0) + (isDayView ? 7 : displayColumns.length * 5) + (weekNotesEnabled ? 5 : 0)));
+     calendar.style.setProperty("--weekly-visible-column-units", String(timeColumnUnits + (isDayView ? 7 : displayColumns.length * 5) + (weekNotesEnabled ? 5 : 0)));
      calendar.style.gridTemplateColumns = columnSlots.map((slot) => {
           if (slot.type === "time") {
-               return "var(--weekly-column-cell-width, 12px)";
+               return `calc(var(--weekly-column-cell-width, 12px) * ${timeColumnUnits})`;
           }
 
           return `minmax(calc(var(--weekly-column-cell-width, 12px) * ${slot.type === "notes" ? 5 : isDayView ? 7 : 5}), 1fr)`;
      }).join(" ");
+     calendar.style.gridTemplateRows = [
+          `calc(var(--weekly-row-cell-height, 12px) * ${headerRowUnits})`,
+          `repeat(${slotCount}, var(--weekly-row-cell-height, 12px))`
+     ].join(" ");
      calendar.classList.remove("has-week-numbers", "has-week-number-outlines");
-     calendar.classList.toggle("has-time-column", timeVisible);
+     calendar.classList.toggle("has-time-column", hasTimeColumn);
      calendar.classList.remove("has-title-row");
      calendar.classList.add("no-title-row");
 
@@ -1760,7 +1780,9 @@ function renderWeeklyVertical(item) {
 
                cell.className = "weekly-view-cell";
                cell.dataset.themePart = "timeSlot";
-               cell.style.gridRow = String(row + 1);
+               cell.style.gridRow = calendarRow === 0
+                    ? "1"
+                    : String(calendarRow + 1);
                cell.style.gridColumn = String(displayColumn);
 
                if (calendarRow === 0 && columnSlot.type === "time") {
