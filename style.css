@@ -161,9 +161,12 @@
      --menu-fill: rgba(255, 255, 255, 0.95);
      --menu-width: clamp(250px, 30vw, 350px);
      --menu-width-safe: min(var(--menu-width), calc(100vw - 32px));
+     --planner-sidebar-width: clamp(220px, 24vw, 340px);
+     --planner-sidebar-gap: 8px;
+     --notebook-layout-width: 132vw;
 
      --notebook-width: min(132vw, 1220px, calc((100vh - 68px) * var(--notebook-screen-aspect)));
-     --notebook-height: min(50.47vw, 724px, calc(100vh - 68px));
+     --notebook-height: min(calc(var(--notebook-width) / var(--notebook-screen-aspect)), 724px, calc(100vh - 68px));
      
      --closed-control-panel-tabs-height: 34px;
      --notebook-stage-y: -17px; /* Centers notebook between viewport top and closed tabs. */
@@ -839,6 +842,17 @@ body {
      display: grid;
      grid-template-columns: repeat(4, minmax(0, 1fr));
      gap: 6px;
+}
+
+.date-format-defaults {
+     display: grid;
+     grid-template-columns: 112px minmax(0, 1fr);
+     align-items: center;
+     gap: 6px 8px;
+}
+
+.date-format-defaults .control-choice-group {
+     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .date-order-chip {
@@ -5013,6 +5027,172 @@ body.is-single-page-viewport .planner-desk > .sticker-source {
      display: none;
 }
 
+/* NOTE: Docked Planner Sidebar */
+.planner-sidebar {
+     position: absolute;
+     z-index: 260;
+     top: 14px;
+     left: 14px;
+     bottom: 14px;
+     display: grid;
+     grid-template-columns: minmax(0, 1fr);
+     grid-template-rows: auto minmax(0, auto);
+     align-content: start;
+     gap: var(--planner-sidebar-gap);
+     width: var(--planner-sidebar-width);
+     max-width: calc(100vw - 28px);
+     padding: 8px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-radius: 7px;
+     background: rgba(255, 255, 255, 0.86);
+     color: var(--color-gray1);
+     filter: drop-shadow(0 8px 12px rgba(17, 17, 17, 0.12));
+     backdrop-filter: blur(8px);
+}
+
+.planner-sidebar .hint-panel {
+     position: static;
+     z-index: auto;
+     width: 100%;
+     max-width: none;
+     padding: 0;
+     border: 0;
+     border-radius: 0;
+     background: transparent;
+     filter: none;
+     backdrop-filter: none;
+}
+
+.planner-sidebar .control-panel {
+     position: static;
+     z-index: auto;
+     left: auto;
+     top: auto;
+     bottom: auto;
+     display: grid;
+     width: 100% !important;
+     inline-size: 100% !important;
+     min-width: 0 !important;
+     max-width: none !important;
+     height: auto;
+     min-height: 0;
+     max-height: min(70vh, calc(100vh - 28px));
+     grid-template-columns: minmax(0, 1fr);
+     grid-template-rows: auto auto minmax(0, 1fr);
+     align-content: start;
+     gap: 6px;
+     padding: 0;
+     border: 0;
+     border-radius: 0;
+     background: transparent;
+     filter: none;
+     transform: none;
+     transition: none;
+     backdrop-filter: none;
+}
+
+:root[data-keyboard-mode="interact"] .planner-sidebar .control-panel {
+     display: none;
+}
+
+:root[data-keyboard-mode="design"] .planner-sidebar .control-panel {
+     display: grid;
+}
+
+.planner-sidebar .control-panel.is-open,
+.planner-sidebar .control-panel:not(.is-open),
+body.is-single-page-viewport .planner-sidebar .control-panel,
+body.is-single-page-viewport .planner-sidebar .control-panel:not(.is-open) {
+     width: 100% !important;
+     inline-size: 100% !important;
+     min-width: 0 !important;
+     max-width: none !important;
+     height: auto !important;
+     min-height: 0 !important;
+     max-height: min(70vh, calc(100vh - 28px)) !important;
+     grid-template-columns: minmax(0, 1fr);
+     grid-template-rows: auto auto minmax(0, 1fr);
+     padding: 0;
+}
+
+.planner-sidebar .control-panel-title {
+     display: none;
+}
+
+.planner-sidebar .control-panel-tabs,
+body.is-single-page-viewport .planner-sidebar .control-panel-tabs {
+     grid-column: 1;
+     grid-row: 1;
+     display: grid;
+     grid-template-columns: minmax(0, 1fr);
+     gap: 4px;
+     width: 100%;
+}
+
+.planner-sidebar .control-panel-tab,
+.planner-sidebar .control-panel-tab[aria-selected="true"],
+.planner-sidebar .control-panel:not(.is-open) .control-panel-tab[aria-selected="true"] {
+     display: grid;
+     width: 100%;
+     min-width: 0;
+     grid-template-columns: 30px minmax(0, 1fr) 30px;
+}
+
+.planner-sidebar .control-panel-tab-step,
+.planner-sidebar .control-panel-tab[aria-selected="true"] .control-panel-tab-step,
+.planner-sidebar .control-panel:not(.is-open) .control-panel-tab[aria-selected="true"] .control-panel-tab-step {
+     width: 30px;
+     opacity: 1;
+     pointer-events: auto;
+}
+
+.planner-sidebar .control-panel-page,
+body.is-single-page-viewport .planner-sidebar .control-panel-page {
+     grid-column: 1;
+     grid-row: 2;
+     width: 100%;
+     height: auto;
+     min-height: 0;
+     max-height: calc(100vh - 260px);
+     overflow: auto;
+     padding: 0;
+     border: 0;
+     border-radius: 0;
+     background: transparent;
+     filter: none;
+     backdrop-filter: none;
+}
+
+.planner-sidebar .control-panel:not(.is-open) .control-panel-page {
+     display: none !important;
+}
+
+.planner-sidebar .control-panel.is-open .control-panel-page:not([hidden]) {
+     display: block;
+}
+
+.planner-sidebar .control-panel.is-resize-ns,
+.planner-sidebar .control-panel.is-resizing,
+.planner-sidebar .control-panel.is-dragging {
+     cursor: default;
+}
+
+@media (max-width: 760px) {
+     :root {
+          --planner-sidebar-width: min(260px, calc(100vw - 28px));
+     }
+}
+
+@media (min-width: 900px) {
+     :root {
+          --notebook-layout-width: calc(100vw - var(--planner-sidebar-width) - 56px);
+     }
+
+     .notebook-stage {
+          transform: translateX(calc((var(--planner-sidebar-width) + 28px) / 2));
+     }
+}
+
 /* NOTE: Printing */
 @page {
      size: var(--print-spread-width) var(--print-page-height);
@@ -5054,6 +5234,7 @@ body.is-single-page-viewport .planner-desk > .sticker-source {
           border-radius: 0;
      }
 
+     .planner-sidebar,
      .control-panel,
      .sticker-source {
           display: none;

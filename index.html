@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-310">
+     <link rel="stylesheet" href="style.css?v=planner-storage-312">
 </head>
 <body>
      <main class="planner-desk">
@@ -22,8 +22,8 @@
           </div>
 
           <div class="zoom-toast" data-zoom-toast aria-live="polite" aria-atomic="true">100%</div>
+          <aside class="planner-sidebar" data-planner-sidebar aria-label="Planner sidebar">
           <aside class="hint-panel" data-hint-panel aria-label="Available keyboard controls" aria-live="polite"></aside>
-          <div class="page-grid-cursor" data-page-grid-cursor aria-hidden="true"></div>
 
           <form class="control-panel" aria-label="Planner settings panel">
                <div class="panel-title title control-panel-title">Settings Panel</div>
@@ -165,6 +165,41 @@
                          <div class="date-order-control">
                               <span class="widget-panel-title">Date Order</span>
                               <div class="date-order-picker" data-date-order-picker aria-label="Default date order"></div>
+                         </div>
+                         <div class="date-format-defaults">
+                              <span class="widget-panel-title">Year</span>
+                              <div class="control-choice-group" aria-label="Default year format">
+                                   <label class="control-choice">
+                                        <input type="radio" name="date-year-format-default" data-default-control="date-year-format" value="yyyy" checked>
+                                        <span>YYYY</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="date-year-format-default" data-default-control="date-year-format" value="yy">
+                                        <span>YY</span>
+                                   </label>
+                              </div>
+                              <span class="widget-panel-title">Month</span>
+                              <div class="control-choice-group" aria-label="Default month format">
+                                   <label class="control-choice">
+                                        <input type="radio" name="date-month-format-default" data-default-control="date-month-format" value="full" checked>
+                                        <span>Full Month</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="date-month-format-default" data-default-control="date-month-format" value="ddd">
+                                        <span>DDD</span>
+                                   </label>
+                              </div>
+                              <span class="widget-panel-title">Day</span>
+                              <div class="control-choice-group" aria-label="Default day format">
+                                   <label class="control-choice">
+                                        <input type="radio" name="date-day-format-default" data-default-control="date-day-format" value="full">
+                                        <span>Full Day</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="date-day-format-default" data-default-control="date-day-format" value="ddd" checked>
+                                        <span>DDD</span>
+                                   </label>
+                              </div>
                          </div>
                     </div>
 
@@ -341,6 +376,8 @@
                </div>
 
           </form>
+          </aside>
+          <div class="page-grid-cursor" data-page-grid-cursor aria-hidden="true"></div>
 
           <div class="color-panel-matrix-popover" data-color-panel-matrix hidden>
                <div class="color-panel-matrix-title">Color Panel</div>
@@ -385,10 +422,10 @@
 
      <script src="config.js?v=planner-storage-166"></script>
      <script src="ui.js?v=planner-storage-216"></script>
-     <script src="widgets-calendars.js?v=planner-storage-20"></script>
-     <script src="widgets.js?v=planner-storage-291"></script>
-     <script src="storage.js?v=planner-storage-26"></script>
+     <script src="widgets-calendars.js?v=planner-storage-21"></script>
+     <script src="widgets.js?v=planner-storage-292"></script>
+     <script src="storage.js?v=planner-storage-27"></script>
      <script src="controls.js?v=planner-storage-195"></script>
-     <script src="app.js?v=planner-storage-256"></script>
+     <script src="app.js?v=planner-storage-258"></script>
 </body>
 </html>

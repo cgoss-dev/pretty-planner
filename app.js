@@ -1,6 +1,7 @@
 // NOTE: Things The App Grabs From The HTML
 const pages = Array.from(document.querySelectorAll("[data-page]"));
 const plannerDesk = document.querySelector(".planner-desk");
+const plannerSidebar = document.querySelector("[data-planner-sidebar]");
 const controlPanel = document.querySelector(".control-panel");
 const notebook = document.querySelector(".notebook");
 const sourceItems = Array.from(document.querySelectorAll("[data-create-item]"));
@@ -197,7 +198,10 @@ const factoryPlannerDefaults = {
      date: {
           weekStart: "monday",
           timeFormat: "24",
-          dateOrder: ["month", "date", "year", "day"]
+          dateOrder: ["month", "date", "year", "day"],
+          yearFormat: "yyyy",
+          monthFormat: "full",
+          dayFormat: "ddd"
      }
 };
 
@@ -227,6 +231,18 @@ function normalizeDateOrder(order) {
      return uniqueKeys;
 }
 
+function normalizeDateYearFormat(format) {
+     return format === "yy" ? "yy" : "yyyy";
+}
+
+function normalizeDateMonthFormat(format) {
+     return format === "ddd" ? "ddd" : "full";
+}
+
+function normalizeDateDayFormat(format) {
+     return format === "full" ? "full" : "ddd";
+}
+
 let plannerDefaultSettings = getNormalizedPlannerDefaults();
 
 function getNormalizedPlannerDefaults(defaults = {}) {
@@ -245,7 +261,10 @@ function getNormalizedPlannerDefaults(defaults = {}) {
           date: {
                ...factoryPlannerDefaults.date,
                ...dateDefaults,
-               dateOrder: normalizeDateOrder(dateDefaults.dateOrder || factoryPlannerDefaults.date.dateOrder)
+               dateOrder: normalizeDateOrder(dateDefaults.dateOrder || factoryPlannerDefaults.date.dateOrder),
+               yearFormat: normalizeDateYearFormat(dateDefaults.yearFormat || factoryPlannerDefaults.date.yearFormat),
+               monthFormat: normalizeDateMonthFormat(dateDefaults.monthFormat || factoryPlannerDefaults.date.monthFormat),
+               dayFormat: normalizeDateDayFormat(dateDefaults.dayFormat || factoryPlannerDefaults.date.dayFormat)
           }
      };
 }
@@ -334,7 +353,10 @@ function setDefaultControlValue(controlName, value) {
      };
      const dateMap = {
           "date-week-start": "weekStart",
-          "date-time-format": "timeFormat"
+          "date-time-format": "timeFormat",
+          "date-year-format": "yearFormat",
+          "date-month-format": "monthFormat",
+          "date-day-format": "dayFormat"
      };
 
      if (textMap[controlName]) {
@@ -403,6 +425,12 @@ function syncDefaultControls() {
           } else if (name === "date-time-format") {
                control.value = plannerDefaultSettings.date.timeFormat;
                updateCustomSelectDisplay(control);
+          } else if (name === "date-year-format") {
+               control.checked = control.value === plannerDefaultSettings.date.yearFormat;
+          } else if (name === "date-month-format") {
+               control.checked = control.value === plannerDefaultSettings.date.monthFormat;
+          } else if (name === "date-day-format") {
+               control.checked = control.value === plannerDefaultSettings.date.dayFormat;
           } else if (name.startsWith("text-")) {
                const styleName = name.replace("text-", "");
                const key = styleName === "strike" ? "strike" : styleName;
@@ -827,7 +855,7 @@ function getNotebookWidthFormula() {
      const referencePaper = getReferencePaperSizeInches();
      const spreadRatio = referencePaper.width * 2 / referencePaper.height;
 
-     return `min(${notebookViewportWidth}vw, ${notebookMaxWidth}px, calc((100vh - ${notebookViewportHeightReserve}px) * (${spreadRatio})))`;
+     return `min(var(--notebook-layout-width, ${notebookViewportWidth}vw), ${notebookMaxWidth}px, calc((100vh - ${notebookViewportHeightReserve}px) * (${spreadRatio})))`;
 }
 
 function syncResponsiveViewportClass() {
@@ -3379,7 +3407,7 @@ function renderKeyHints() {
      const modeRow = document.createElement("div");
 
      panelTitle.className = "panel-title title hint-panel-title";
-     panelTitle.textContent = "Hint Panel";
+     panelTitle.textContent = plannerSidebar?.contains(hintPanel) ? "Sidebar" : "Hint Panel";
      modeRow.className = "hint-mode subtitle";
      modeRow.textContent = hintState.mode;
      hintPanel.append(panelTitle, modeRow);
@@ -3412,6 +3440,10 @@ function renderKeyHints() {
 function syncControlPanelHintAnchor() {
      // NOTE: Attaches the control panel position to the bottom-left of the hint panel
      if (!hintPanel || !controlPanel || !plannerDesk) {
+          return;
+     }
+
+     if (plannerSidebar?.contains(controlPanel)) {
           return;
      }
 
@@ -3521,8 +3553,6 @@ function applyPlannerConfig() {
      const pageWidthInches = convertLength(plannerConfig.pageWidth, plannerConfig.grid.unit, "in");
      const pageHeightInches = convertLength(plannerConfig.pageHeight, plannerConfig.grid.unit, "in");
      const referencePaper = getReferencePaperSizeInches();
-     const referenceSpreadRatio = referencePaper.width * 2 / referencePaper.height;
-     const notebookHeightRatio = Math.min(50.47, 78 / referenceSpreadRatio);
      const sourceStickerRatio = 50 / plannerConfig.gridColumns * stickerGridUnits;
      const pageViewScale = paperViewScales[plannerConfig.paperKey] || 1;
      const screenPageWidthInches = pageWidthInches * pageViewScale;
@@ -3560,7 +3590,7 @@ function applyPlannerConfig() {
      }));
      syncGridSnapOrigins();
      setRootNumber("--notebook-width", getNotebookWidthFormula());
-     setRootNumber("--notebook-height", `min(${notebookHeightRatio}vw, 724px, calc(100vh - ${notebookViewportHeightReserve}px))`);
+     setRootNumber("--notebook-height", `min(calc(var(--notebook-width) / var(--notebook-screen-aspect)), 724px, calc(100vh - ${notebookViewportHeightReserve}px))`);
      setRootNumber("--source-sticker-size", `calc(var(--notebook-width) * ${sourceStickerRatio / 100})`);
      setRootNumber("--print-page-width", `${pageWidthInches}in`);
      setRootNumber("--print-page-height", `${pageHeightInches}in`);

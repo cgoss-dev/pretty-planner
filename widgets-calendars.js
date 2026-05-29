@@ -933,9 +933,34 @@ function getCalendarDateOrder(item) {
      return order;
 }
 
+function normalizeCalendarDateYearFormat(format) {
+     return format === "yy" ? "yy" : "yyyy";
+}
+
+function normalizeCalendarDateMonthFormat(format) {
+     return format === "ddd" ? "ddd" : "full";
+}
+
+function normalizeCalendarDateDayFormat(format) {
+     return format === "full" ? "full" : "ddd";
+}
+
+function getCalendarDateFormats(item) {
+     const defaultDateSettings = typeof getPlannerDefaultDateSettings === "function" ? getPlannerDefaultDateSettings() : {};
+
+     return {
+          yearFormat: normalizeCalendarDateYearFormat(item?.dataset?.dateYearFormat || defaultDateSettings.yearFormat),
+          monthFormat: normalizeCalendarDateMonthFormat(item?.dataset?.dateMonthFormat || defaultDateSettings.monthFormat),
+          dayFormat: normalizeCalendarDateDayFormat(item?.dataset?.dateDayFormat || defaultDateSettings.dayFormat)
+     };
+}
+
 function createCalendarDatePart(part, date, {
      weekdayLabelFormat = "d",
      monthDisplay = "full",
+     yearFormat = "yyyy",
+     monthFormat = "full",
+     dayFormat = "ddd",
      todayKey = getTodayCalendarDayKey()
 } = {}) {
      const element = document.createElement("span");
@@ -943,25 +968,30 @@ function createCalendarDatePart(part, date, {
 
      if (part === "day") {
           element.className = "calendar-date-part calendar-date-day weekly-view-day-name";
-          element.textContent = getWeekdayLabel(date.getDay(), weekdayLabelFormat);
+          element.textContent = getWeekdayLabel(date.getDay(), dayFormat === "full" ? "full" : "ddd");
      } else if (part === "date") {
           element.className = "calendar-date-part calendar-date-number dayNumber";
           element.textContent = String(date.getDate()).padStart(2, "0");
           markCurrentCalendarDayNumber(element, dayKey, todayKey);
      } else if (part === "year") {
           element.className = "calendar-date-part calendar-date-year";
-          element.textContent = String(date.getFullYear());
+          element.textContent = yearFormat === "yy" ? String(date.getFullYear()).slice(-2) : String(date.getFullYear());
      } else {
           element.className = "calendar-date-part calendar-date-month weekly-view-month-name";
-          element.textContent = getCalendarMonthTitle(date.getMonth(), monthDisplay);
+          element.textContent = getCalendarMonthTitle(date.getMonth(), monthFormat === "ddd" ? "short" : monthDisplay);
      }
 
      return element;
 }
 
 function appendCalendarDateParts(container, item, date, options = {}) {
+     const dateFormats = getCalendarDateFormats(item);
+
      getCalendarDateOrder(item).forEach((part) => {
-          container.append(createCalendarDatePart(part, date, options));
+          container.append(createCalendarDatePart(part, date, {
+               ...options,
+               ...dateFormats
+          }));
      });
 }
 
@@ -1762,6 +1792,9 @@ function setCalendarWidgetSettings(item, settings = {}) {
      item.dataset.weekStart = settings.weekStart || item.dataset.weekStart || defaultDateSettings.weekStart || "monday";
      item.dataset.weekdayLabelFormat = normalizeWeekdayLabelFormat(settings.weekdayLabelFormat || item.dataset.weekdayLabelFormat || "d");
      item.dataset.dateOrder = normalizeDateOrder(settings.dateOrder || item.dataset.dateOrder || defaultDateSettings.dateOrder).join(",");
+     item.dataset.dateYearFormat = normalizeCalendarDateYearFormat(settings.yearFormat || settings.dateYearFormat || item.dataset.dateYearFormat || defaultDateSettings.yearFormat);
+     item.dataset.dateMonthFormat = normalizeCalendarDateMonthFormat(settings.monthFormat || settings.dateMonthFormat || item.dataset.dateMonthFormat || defaultDateSettings.monthFormat);
+     item.dataset.dateDayFormat = normalizeCalendarDateDayFormat(settings.dayFormat || settings.dateDayFormat || item.dataset.dateDayFormat || defaultDateSettings.dayFormat);
      item.dataset.dateMode = nextDateMode;
      item.dataset.dateUnit = getCalendarRelativeDateUnit(item);
      item.dataset.dateOffset = clampRelativeDateOffset(settings.dateOffset ?? (nextDateMode === "relative" && previousDateMode !== "relative" ? "0" : item.dataset.dateOffset ?? "0"), item.dataset.dateUnit);

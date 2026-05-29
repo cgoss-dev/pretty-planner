@@ -2171,6 +2171,7 @@ function getMovedControlPanelBox(clientX, clientY) {
 
 function startControlPanelMove(event) {
      if (
+          controlPanel.closest("[data-planner-sidebar]") ||
           keyboardMode !== "design" ||
           activeAction ||
           event.button !== 0 ||
