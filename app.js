@@ -986,7 +986,14 @@ function syncViewTargetCenter(zoomAnchor = null) {
                return;
           }
 
-          const deskCenter = deskRect.left + deskRect.width / 2;
+          const sidebarRect = plannerSidebar && getComputedStyle(plannerSidebar).display !== "none"
+               ? plannerSidebar.getBoundingClientRect()
+               : null;
+          const sidebarClearance = sidebarRect ? Math.max(0, sidebarRect.left - deskRect.left) : 0;
+          const contentLeft = sidebarRect && sidebarRect.right > deskRect.left
+               ? Math.min(sidebarRect.right + sidebarClearance, deskRect.right)
+               : deskRect.left;
+          const deskCenter = contentLeft + Math.max(0, deskRect.right - contentLeft) / 2;
           const deskMiddle = deskRect.top + deskRect.height / 2 + notebookStageY;
           const basePanX = deskCenter - (targetX - currentPanX);
           const basePanY = deskMiddle - (targetY - currentPanY);
