@@ -152,7 +152,7 @@ async function loadPlannerThemeData() {
 
           plannerThemesData = await themesResponse.json();
           plannerWidgetThemeSlots = await slotsResponse.json();
-          getPlannerItems()
+          getAllPlannerItems()
                .filter((item) => Boolean(plannerWidgetThemeSlots?.widgets?.[item.dataset.itemType]))
                .forEach((item) => {
                     applyThemeToWidget(item);
@@ -652,6 +652,10 @@ function refreshPageItemViews() {
      getPlannerItems().forEach((item) => {
           if (getItemPage(item)) {
                setItemBox(item, getItemBox(item));
+               applyThemeToWidget(item);
+               if (isCalendarItem(item)) {
+                    applyCalendarPartStyles(item);
+               }
                positionWidgetPanel(item);
           }
      });
