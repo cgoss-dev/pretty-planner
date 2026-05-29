@@ -2144,7 +2144,6 @@ body {
      left: 0;
 }
 
-/* SECTION: Page Numbers And Page Corner Folds */
 .page-number,
 .page-behind-number,
 .page-corner-fold,
@@ -2467,7 +2466,6 @@ body {
      left: 35%;
      transform: translate(-50%, -50%) rotate(90deg);
 }
-/* !SECTION */
 
 .page.can-turn-page.is-corner-hover .page-number {
      opacity: 0;
