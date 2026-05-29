@@ -3825,9 +3825,11 @@ body {
 .diary-view-date-label {
      display: grid;
      grid-template-columns: repeat(2, minmax(0, 1fr));
-     grid-template-rows: repeat(2, minmax(0, 1fr));
+     grid-template-rows: repeat(2, min-content);
+     place-content: center;
      place-items: center;
-     gap: 0.35em;
+     column-gap: 0.35em;
+     row-gap: 0.08em;
      min-width: 0;
      min-height: 0;
      padding: 3px;

@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-329">
+     <link rel="stylesheet" href="style.css?v=planner-storage-330">
 </head>
 <body>
      <main class="planner-desk">
@@ -55,6 +55,48 @@
                <div class="control-panel-page controls-panel defaults-panel" id="defaults-panel" role="tabpanel" data-control-panel-page="defaults" hidden>
                     <div class="keyboard-control-section defaults-section">
                          <div class="keyboard-control-title">Text Defaults</div>
+                         <div class="widget-panel-section-title">Page Title Text</div>
+                         <label class="widget-panel-row text-panel-control">
+                              <span class="widget-panel-title">Typeface</span>
+                              <select class="native-select" data-default-control="page-title-text-font" aria-label="Default page title text font">
+                                   <option value="annotation-mono" selected>Annotation Mono</option>
+                                   <option value="bungee">Bungee</option>
+                                   <option value="bungee-outline">Bungee Outline</option>
+                                   <option value="bungee-shade">Bungee Shade</option>
+                                   <option value="caveat">Caveat</option>
+                                   <option value="dancing">Dancing Script</option>
+                                   <option value="miltonian">Miltonian</option>
+                                   <option value="noto-sans-mono">Noto Sans Mono</option>
+                                   <option value="permanent-marker">Permanent Marker</option>
+                                   <option value="rock-salt">Rock Salt</option>
+                                   <option value="sedgwick-ave-display">Sedgwick Ave Display</option>
+                                   <option value="serif">Standard Serif</option>
+                                   <option value="sans">Standard Sans</option>
+                                   <option value="sofia-sans-ec">Sofia Sans EC</option>
+                              </select>
+                         </label>
+                         <label class="widget-panel-row text-panel-control">
+                              <span class="widget-panel-title">Text Size</span>
+                              <select class="native-select" data-default-control="page-title-text-size" aria-label="Default page title text size">
+                                   <option value="10" selected>SM: 10px</option>
+                                   <option value="20">MD: 20px</option>
+                                   <option value="40">LG: 40px</option>
+                                   <option value="80">1L: 80px</option>
+                                   <option value="160">2X: 160px</option>
+                              </select>
+                         </label>
+                         <label class="widget-panel-row text-panel-control color-panel-control">
+                              <span class="widget-panel-title">Text Color</span>
+                              <select class="native-select" data-default-control="page-title-text-color" aria-label="Default page title text color"></select>
+                              <div class="color-panel-swatches" data-default-page-title-text-color-swatches></div>
+                         </label>
+                         <div class="text-panel-format text-panel-control" aria-label="Default page title text style">
+                              <span class="widget-panel-title">Text Style</span>
+                              <button class="text-panel-toggle text-panel-toggle-bold" type="button" data-default-control="page-title-text-bold" aria-pressed="false">Bold</button>
+                              <button class="text-panel-toggle text-panel-toggle-italic" type="button" data-default-control="page-title-text-italic" aria-pressed="false">Italic</button>
+                              <button class="text-panel-toggle text-panel-toggle-underline" type="button" data-default-control="page-title-text-underline" aria-pressed="false">Underline</button>
+                              <button class="text-panel-toggle text-panel-toggle-strike" type="button" data-default-control="page-title-text-strike" aria-pressed="false">Strike</button>
+                         </div>
                          <div class="widget-panel-section-title">Title Text</div>
                          <label class="widget-panel-row text-panel-control">
                               <span class="widget-panel-title">Typeface</span>
@@ -504,11 +546,11 @@
      </main>
 
      <script src="config.js?v=planner-storage-176"></script>
-     <script src="ui.js?v=planner-storage-217"></script>
+     <script src="ui.js?v=planner-storage-218"></script>
      <script src="widgets-calendars.js?v=planner-storage-36"></script>
-     <script src="widgets.js?v=planner-storage-305"></script>
+     <script src="widgets.js?v=planner-storage-306"></script>
      <script src="storage.js?v=planner-storage-28"></script>
      <script src="controls.js?v=planner-storage-200"></script>
-     <script src="app.js?v=planner-storage-269"></script>
+     <script src="app.js?v=planner-storage-270"></script>
 </body>
 </html>

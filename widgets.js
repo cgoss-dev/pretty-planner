@@ -46,7 +46,9 @@ function applyTextThemeToElement(element, textTheme = {}, theme = null, override
           ...textTheme,
           ...overrides
      };
-     const defaultRole = nextTextTheme.textSlot === "title" ? "title" : "body";
+     const defaultRole = nextTextTheme.textSlot === "page-title"
+          ? "page-title"
+          : (nextTextTheme.textSlot === "title" ? "title" : "body");
      const defaultText = typeof getPlannerDefaultTextSettings === "function" ? getPlannerDefaultTextSettings({}, defaultRole) : null;
 
      element.style.fontFamily = getStickerTextFont(defaultText?.font || nextTextTheme.typeface || "annotation-mono");
@@ -76,8 +78,8 @@ function applyThemeToWidget(item) {
                     return;
                }
 
-               if (partSlots.textSlot && theme.text?.[partSlots.textSlot]) {
-                    applyTextThemeToElement(part, theme.text[partSlots.textSlot], theme, {
+               if (partSlots.textSlot) {
+                    applyTextThemeToElement(part, theme.text?.[partSlots.textSlot] || {}, theme, {
                          textSlot: partSlots.textSlot,
                          sizeMultiplier: partSlots.sizeMultiplier
                     });
@@ -3276,7 +3278,7 @@ function makePlannerItem(type = "sticker") {
      setStickerTextSettings(item, typeof getPlannerDefaultTextSettings === "function"
           ? getPlannerDefaultTextSettings({
                enabled: isPageTitleItemType(type) || isTocItemType(type) ? "true" : "false"
-          }, isPageTitleItemType(type) ? "title" : "body")
+          }, isPageTitleItemType(type) ? "page-title" : "body")
           : (isPageTitleItemType(type) ? {
                enabled: "true",
                size: "80",

@@ -14,7 +14,7 @@
       "label": "Page Title",
       "parts": {
         "text": {
-          "textSlot": "title",
+          "textSlot": "page-title",
           "fillSlot": null,
           "borderSlot": null,
           "gridSlot": null
