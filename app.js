@@ -691,9 +691,13 @@ function resetItemsToPlannerDefaults(items) {
      const uniqueItems = Array.from(new Set(items)).filter(Boolean);
 
      uniqueItems.forEach((item) => {
+          delete item.dataset.themeMode;
           setItemStyle(item, getPlannerDefaultItemStyle(item.dataset.itemType));
           if (isCalendarItem(item)) {
                setCalendarPartStyles(item, {});
+               item.querySelectorAll("[data-theme-mode='custom']").forEach((part) => {
+                    delete part.dataset.themeMode;
+               });
           }
           applyThemeToWidget(item);
           if (isCalendarItem(item)) {

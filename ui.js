@@ -835,10 +835,12 @@ function buildCustomSelectOptions(select, dropdown) {
           option.addEventListener("click", (event) => {
                event.preventDefault();
                event.stopPropagation();
+               rememberSelectPanelScroll(dropdown);
                select.value = selectOption.value;
                select.dispatchEvent(new Event("change", { bubbles: true }));
                updateCustomSelectDisplay(select);
                dropdown.removeAttribute("open");
+               restoreSelectPanelScroll(dropdown);
           });
           optionsBox.append(option);
      });
@@ -1131,6 +1133,46 @@ function getSelectFocusRow(dropdown) {
      return dropdown.closest(".control-section") || dropdown.closest("label, .control-field, .palette-preview, .widget-panel-row");
 }
 
+function rememberSelectPanelScroll(dropdown) {
+     const panel = getSelectFocusPanel(dropdown);
+
+     if (!panel) {
+          return;
+     }
+
+     dropdown.dataset.selectScrollTop = String(panel.scrollTop);
+     dropdown.dataset.selectScrollLeft = String(panel.scrollLeft);
+}
+
+function restoreSelectPanelScroll(dropdown) {
+     const panel = getSelectFocusPanel(dropdown);
+     const hasTop = Object.prototype.hasOwnProperty.call(dropdown.dataset, "selectScrollTop");
+     const hasLeft = Object.prototype.hasOwnProperty.call(dropdown.dataset, "selectScrollLeft");
+
+     if (!panel || !hasTop || !hasLeft) {
+          return;
+     }
+
+     const scrollTop = Number(dropdown.dataset.selectScrollTop);
+     const scrollLeft = Number(dropdown.dataset.selectScrollLeft);
+
+     if (!Number.isFinite(scrollTop) || !Number.isFinite(scrollLeft)) {
+          return;
+     }
+
+     panel.scrollTop = scrollTop;
+     panel.scrollLeft = scrollLeft;
+     requestAnimationFrame(() => {
+          panel.scrollTop = scrollTop;
+          panel.scrollLeft = scrollLeft;
+     });
+}
+
+function clearRememberedSelectPanelScroll(dropdown) {
+     delete dropdown.dataset.selectScrollTop;
+     delete dropdown.dataset.selectScrollLeft;
+}
+
 function animateSelectFocusRow(row, fromRect) {
      if (!row || !fromRect || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
           return;
@@ -1255,20 +1297,33 @@ function makeCustomSelect(select) {
      select.after(dropdown);
      buildCustomSelectOptions(select, dropdown);
      updateCustomSelectDisplay(select);
+     summary.addEventListener("pointerdown", () => {
+          rememberSelectPanelScroll(dropdown);
+     });
+     summary.addEventListener("keydown", (event) => {
+          if (["Enter", " ", "ArrowDown", "ArrowUp"].includes(event.key)) {
+               rememberSelectPanelScroll(dropdown);
+          }
+     });
      dropdown.addEventListener("toggle", () => {
           if (dropdown.open) {
+               if (!Object.prototype.hasOwnProperty.call(dropdown.dataset, "selectScrollTop")) {
+                    rememberSelectPanelScroll(dropdown);
+               }
                customSelectDetails.forEach((details) => {
                     if (details !== dropdown) {
                          details.removeAttribute("open");
                     }
                });
                updateSelectFocusSpace(dropdown);
+               restoreSelectPanelScroll(dropdown);
           } else {
                const menu = getSelectFocusMenu(dropdown);
 
                if (!menu || !menu.querySelector(".custom-select[open]")) {
                     clearSelectFocus(menu || document);
                }
+               clearRememberedSelectPanelScroll(dropdown);
           }
      });
 

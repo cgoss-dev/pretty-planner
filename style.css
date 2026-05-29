@@ -1678,6 +1678,10 @@ body {
      z-index: 380;
 }
 
+.planner-sidebar .control-panel-page:has(.custom-select[open]) {
+     overflow: auto;
+}
+
 .control-panel-page > label,
 .control-panel-page > .palette-preview,
 .control-panel-page > .control-field,

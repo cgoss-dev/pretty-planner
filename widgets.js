@@ -1626,7 +1626,10 @@ function applyStyleToActionItems(item, style) {
           return;
      }
 
-     getActionItems(item).forEach((targetItem) => setItemStyle(targetItem, style));
+     getActionItems(item).forEach((targetItem) => {
+          targetItem.dataset.themeMode = "custom";
+          setItemStyle(targetItem, style);
+     });
      notifyTemplateChanged();
 }
 
@@ -1807,7 +1810,13 @@ function applyCalendarPartStyles(item) {
 
      item.querySelectorAll("[data-calendar-style-key]").forEach((cell) => {
           const style = styles[cell.dataset.calendarStyleKey] || {};
+          const hasCustomStyle = Object.keys(style).length > 0;
 
+          if (hasCustomStyle) {
+               cell.dataset.themeMode = "custom";
+          } else {
+               delete cell.dataset.themeMode;
+          }
           cell.style.background = style.fillColor || "";
           if (style.textColor) {
                cell.style.color = style.textColor;
@@ -1841,6 +1850,7 @@ function applyStyleToCalendarStyleTarget(item, style) {
 
      if (target.type === "border") {
           getCalendarStyleScopeItems(item).forEach((targetItem) => {
+               targetItem.dataset.themeMode = "custom";
                setItemStyle(targetItem, {
                     borderColor: style.borderColor,
                     borderWidth: style.borderWidth
@@ -2093,6 +2103,26 @@ function getResizedPerpetualCalendarBox(item, page, clientX, current, mode, grid
      });
 }
 
+function getItemMinGridHeight(item, pageTitleMinGridUnits = null) {
+     if (pageTitleMinGridUnits) {
+          return pageTitleMinGridUnits.height;
+     }
+
+     if (item.dataset.itemType === "perpetual-calendar") {
+          return getPerpetualCalendarMaxGridRows();
+     }
+
+     if (item.dataset.itemType === "diary-view") {
+          return getDiaryViewMinGridRows(item);
+     }
+
+     if (isFullPageCalendarType(item.dataset.itemType)) {
+          return 14;
+     }
+
+     return 2;
+}
+
 function getResizedBox(item, page, clientX, clientY, mode) {
      const current = getItemBox(item);
 
@@ -2138,9 +2168,7 @@ function getResizedBox(item, page, clientX, clientY, mode) {
      const minGridWidth = pageTitleMinGridUnits
           ? pageTitleMinGridUnits.width
           : (isTocItem(item) ? getTocMinGridColumns() : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMinGridColumns() : (isTimeGridCalendarType(item.dataset.itemType) ? getWeeklyVerticalMinGridColumns(item) : (isFullPageCalendarType(item.dataset.itemType) ? 16 : 2))));
-     const minGridHeight = pageTitleMinGridUnits
-          ? pageTitleMinGridUnits.height
-          : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMaxGridRows() : (isFullPageCalendarType(item.dataset.itemType) ? 14 : 2));
+     const minGridHeight = getItemMinGridHeight(item, pageTitleMinGridUnits);
      const minWidth = grid.x * minGridWidth;
      const minHeight = grid.y * minGridHeight;
      const maxHeight = item.dataset.itemType === "perpetual-calendar" ? grid.y * getPerpetualCalendarMaxGridRows() : Infinity;
@@ -3621,6 +3649,7 @@ function makePlannerItem(type = "sticker") {
      });
      monthSelect.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
+               dateMode: "fixed",
                month: monthSelect.value
           });
      });
@@ -3651,6 +3680,7 @@ function makePlannerItem(type = "sticker") {
      });
      yearSelect.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
+               dateMode: "fixed",
                year: yearSelect.value
           });
      });
@@ -3675,6 +3705,7 @@ function makePlannerItem(type = "sticker") {
      });
      startDaySelect.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
+               dateMode: "fixed",
                startDay: startDaySelect.value
           });
      });
@@ -3735,6 +3766,11 @@ function copyItemConfiguration(source, target) {
           borderWidth: source.dataset.borderWidth,
           dotGrid: source.dataset.dotGrid
      });
+     if (source.dataset.themeMode === "custom") {
+          target.dataset.themeMode = "custom";
+     } else {
+          delete target.dataset.themeMode;
+     }
      setStickerTextSettings(target, {
           enabled: source.dataset.textEnabled,
           content: isTocItem(source) ? undefined : getStickerTextElement(source) ? getStickerTextElement(source).textContent : "",
@@ -3794,6 +3830,7 @@ function copyItemConfiguration(source, target) {
                     role: source.dataset.dayTextRole
                });
           }
+          setCalendarPartStyles(target, getCalendarPartStyles(source));
           renderMiniMonth(target);
      }
 }

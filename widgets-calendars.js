@@ -503,6 +503,12 @@ function getFullMonthWeekRowUnits() {
      return 5;
 }
 
+function getDiaryViewMinGridRows(item) {
+     const visibleDays = clamp(Number(item?.dataset?.visibleDays) || 7, 1, 7);
+
+     return visibleDays * 5;
+}
+
 function getPerpetualCalendarVisibleGridRows(item) {
      const { month, year } = getCalendarEffectiveMonthYear(item);
 
@@ -1975,7 +1981,9 @@ function setCalendarWidgetSettings(item, settings = {}) {
      const today = new Date();
      const defaultDateSettings = typeof getPlannerDefaultDateSettings === "function" ? getPlannerDefaultDateSettings() : {};
      const previousDateMode = item.dataset.dateMode || "fixed";
-     const nextDateMode = (settings.dateMode || item.dataset.dateMode) === "relative" ? "relative" : "fixed";
+     const hasFixedDateSetting = ["month", "year", "startDay"].some((key) => Object.prototype.hasOwnProperty.call(settings, key));
+     const requestedDateMode = settings.dateMode || (hasFixedDateSetting ? "fixed" : item.dataset.dateMode);
+     const nextDateMode = requestedDateMode === "relative" ? "relative" : "fixed";
      const weekNumberFormat = getWeekNumberFormatFromSettings(settings, item);
      const titleVisible = settings.titleVisible !== undefined
           ? normalizeCalendarTitleVisible(settings.titleVisible)

@@ -76,7 +76,8 @@ function serializePlannerItem(item) {
                fillColor: item.dataset.fillColor,
                borderColor: item.dataset.borderColor,
                borderWidth: Number(item.dataset.borderWidth),
-               dotGrid: item.dataset.dotGrid === "true"
+               dotGrid: item.dataset.dotGrid === "true",
+               themeMode: item.dataset.themeMode || ""
           },
           widget: isCalendarItem(item)
                ? {
@@ -473,6 +474,9 @@ function restorePlannerItemSettings(item, itemData) {
           borderWidth: style.borderWidth,
           dotGrid: normalizeStoredBoolean(style.dotGrid)
      });
+     if (style.themeMode === "custom") {
+          item.dataset.themeMode = "custom";
+     }
      if (isStickerTextItem(item)) {
           setStickerTextSettings(item, {
                enabled: normalizeStoredBoolean(text.enabled),
