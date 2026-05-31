@@ -3986,7 +3986,7 @@ body {
      display: block;
 }
 
-/* NOTE: Widget Panels And Docked Controls */
+/* NOTE: Selection Controls And Action Popups */
 .widget-panel {
      position: absolute;
      z-index: 45;

@@ -1082,45 +1082,6 @@ function initializeNotebookControlSections() {
      initializeControlSections(pagePanel);
 }
 
-function getWidgetPanelSectionTitle(element) {
-     const directTitle = element.querySelector?.(":scope > .widget-panel-title, :scope > .widget-option-group-title");
-
-     if (directTitle?.textContent.trim()) {
-          return directTitle.textContent.trim();
-     }
-
-     const nestedTitle = element.querySelector?.(".widget-panel-title, .widget-option-group-title");
-
-     if (nestedTitle?.textContent.trim()) {
-          return nestedTitle.textContent.trim();
-     }
-
-     const text = Array.from(element.childNodes)
-          .filter((node) => node.nodeType === Node.TEXT_NODE)
-          .map((node) => node.textContent.trim())
-          .find(Boolean);
-
-     return text || "Options";
-}
-
-// NOTE: Converts object Appearance/Text/Options panels into section buttons that reveal their controls.
-function initializeWidgetPanelPageSections(panel) {
-     if (!panel || panel.dataset.controlSectionsWrapped === "true" || panel.dataset.widgetPanelPage === "actions") {
-          return;
-     }
-
-     const controls = Array.from(panel.children).filter((child) => {
-          return !child.matches("[data-control-section], .widget-panel-section-title");
-     });
-
-     controls.forEach((control) => {
-          panel.append(createControlSection(getWidgetPanelSectionTitle(control), [control], false));
-     });
-
-     panel.dataset.controlSectionsWrapped = "true";
-     initializeControlSections(panel);
-}
-
 function getSelectFocusMenu(dropdown) {
      return dropdown.closest(".control-panel, .widget-panel");
 }

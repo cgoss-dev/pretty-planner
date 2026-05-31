@@ -2551,6 +2551,7 @@ function makePlannerItem(type = "sticker") {
      const weekNotesLabel = document.createElement("label");
      const weekNotesSelect = document.createElement("select");
      const deleteButton = document.createElement("button");
+     const hasTextControls = isStickerTextItemType(type);
 
      item.className = `planner-item planner-item-${type}`;
      item.dataset.itemType = type;
@@ -3246,8 +3247,14 @@ function makePlannerItem(type = "sticker") {
      if (hasWidgetControls) {
           controlTabs.append(widgetTab);
      }
-     controlTabs.append(styleTab, textTab);
-     controls.append(widgetPanelTitle, controlTabs, actionsPanel, stylePanel, textPanel);
+     controlTabs.append(styleTab);
+     if (hasTextControls) {
+          controlTabs.append(textTab);
+     }
+     controls.append(widgetPanelTitle, controlTabs, actionsPanel, stylePanel);
+     if (hasTextControls) {
+          controls.append(textPanel);
+     }
      if (hasWidgetControls) {
           controls.append(widgetPanel);
      }
