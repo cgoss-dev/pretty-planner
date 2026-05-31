@@ -44,10 +44,6 @@
                          width: 12,
                          height: 12
                     },
-                    "page-title": {
-                         width: 18,
-                         height: 3
-                    },
                     toc: {
                          width: 18,
                          height: 19

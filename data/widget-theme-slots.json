@@ -10,17 +10,6 @@
     ]
   },
   "widgets": {
-    "page-title": {
-      "label": "Page Title",
-      "parts": {
-        "text": {
-          "textSlot": "page-title",
-          "fillSlot": null,
-          "borderSlot": null,
-          "gridSlot": null
-        }
-      }
-    },
     "sticker": {
       "label": "Sticker",
       "parts": {

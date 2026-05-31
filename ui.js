@@ -849,7 +849,7 @@ function buildCustomSelectOptions(select, dropdown) {
 function getCustomSelectOptionFont(select, value) {
      const normalizedValue = value === "noto" ? "noto-sans-mono" : value;
 
-     if (select.dataset.textControl !== "font" && !["text-font", "body-text-font", "title-text-font", "page-title-text-font"].includes(select.dataset.defaultControl)) {
+     if (select.dataset.textControl !== "font" && !["text-font", "body-text-font", "title-text-font"].includes(select.dataset.defaultControl)) {
           return "";
      }
 

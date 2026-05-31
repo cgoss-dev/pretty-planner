@@ -176,7 +176,7 @@ function serializePlannerTemplate() {
                thirds: plannerConfig.guides.thirds,
                fourths: plannerConfig.guides.fourths
           },
-          pageTitles: getPageTitleEntries(),
+          tocEntries: getTocTitleEntries(),
           items: getAllPlannerItems().map(serializePlannerItem)
      };
 }
@@ -489,15 +489,15 @@ function restorePlannerItem(itemData) {
      const type = normalizePlannerItemType(itemData.type || "sticker");
      const isPagePlacement = itemData.placement === "page" || itemData.page;
 
+     if (type === "page-title") {
+          return null;
+     }
+
      if (!itemGridUnits[type]) {
           return null;
      }
 
      if (isPagePlacement && !isPageNumberAvailable(getStoredItemPageNumber(itemData))) {
-          return null;
-     }
-
-     if (type === "page-title" && isPagePlacement && getPageTitleItemForPageNumber(getStoredItemPageNumber(itemData))) {
           return null;
      }
 
@@ -576,6 +576,7 @@ function getStoredPageCount(book) {
 
 function restorePlannerBook(paperKey = plannerConfig.paperKey) {
      const book = getStoredBook(paperKey);
+     let removedUnsupportedItems = false;
 
      try {
           isRestoringPlannerState = true;
@@ -588,7 +589,11 @@ function restorePlannerBook(paperKey = plannerConfig.paperKey) {
           if (book && Array.isArray(book.items)) {
                book.items.forEach((itemData) => {
                     try {
-                         restorePlannerItem(itemData);
+                         const restoredItem = restorePlannerItem(itemData);
+
+                         if (!restoredItem && normalizePlannerItemType(itemData.type || "sticker") === "page-title") {
+                              removedUnsupportedItems = true;
+                         }
                     } catch (error) {
                          console.warn("Skipped saved planner item that could not be restored.", error);
                     }
@@ -604,6 +609,9 @@ function restorePlannerBook(paperKey = plannerConfig.paperKey) {
      } finally {
           isRestoringPlannerState = false;
           syncNextGroupId();
+          if (removedUnsupportedItems) {
+               savePlannerState();
+          }
      }
 }
 
