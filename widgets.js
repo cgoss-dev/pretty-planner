@@ -235,7 +235,7 @@ function renderToc(item, entries = []) {
           row.setAttribute("aria-label", `Go to page ${entry.pageNumber}`);
           row.addEventListener("click", (event) => {
                event.stopPropagation();
-               if (typeof keyboardMode !== "undefined" && keyboardMode !== "interact") {
+               if (typeof activeAction !== "undefined" && activeAction) {
                     return;
                }
                if (typeof setFocusedPageNumber === "function") {
@@ -690,6 +690,8 @@ function setItemBox(item, box) {
      }
      item.style.width = `${box.width}px`;
      item.style.height = `${box.height}px`;
+     item.style.setProperty("--item-width", `${box.width}px`);
+     item.style.setProperty("--item-height", `${box.height}px`);
      updateStickerDotGrid(item, page, box);
      updateItemSizeLabel(item);
      if (item.dataset.itemType === "full-month" || isTimeGridCalendarType(item.dataset.itemType)) {
@@ -1017,7 +1019,7 @@ function stopStickerTextEditing(item) {
 }
 
 function startStickerTextEditing(item) {
-     if (typeof keyboardMode !== "undefined" && keyboardMode !== "interact") {
+     if (typeof activeAction !== "undefined" && activeAction) {
           return;
      }
 
@@ -1253,7 +1255,6 @@ function getMovedFloatingControlsBox(clientX, clientY) {
 
 function startFloatingControlsMove(controls, event) {
      if (
-          keyboardMode !== "design" ||
           activeAction ||
           event.button !== 0 ||
           !controls.classList.contains("is-floating") ||
@@ -1335,16 +1336,20 @@ function openItemMenu(item) {
           return;
      }
 
+     closeWidgetActionPopovers();
      closeItemMenu(item);
      closeItemMenus();
      objectControlsShell.append(controls);
-     controls.querySelectorAll("[data-widget-panel-page]").forEach((panel) => initializeWidgetPanelPageSections(panel));
      setControlsActionItems(controls, actionItems);
      controls.classList.remove("is-floating", "is-actions-popup");
      controls.classList.add("is-docked");
      setWidgetPanelTab(controls, "style");
      item.classList.add("is-widget-panel-open");
      updateObjectControlsState();
+     if (typeof selectControlPanelTab === "function") {
+          selectControlPanelTab("object-style");
+          openControlPanel();
+     }
      updateClipboardControls();
 }
 
@@ -1355,19 +1360,75 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
           return;
      }
 
-     closeControlPanel();
-     closeItemMenus();
-     plannerDesk.append(controls);
      setControlsActionItems(controls, actionItems);
-     updateActionsPopupTypeLabel(controls, actionItems);
-     controls.classList.remove("is-docked");
-     updateGroupButton(controls.querySelector("[data-widget-action='group']"), actionItems);
-     controls.classList.add("is-floating", "is-actions-popup");
-     item.classList.add("is-widget-panel-open");
-     setWidgetPanelTab(controls, "actions");
-     positionItemActionsPopup(controls, event);
+     closeWidgetActionPopovers();
+     const popup = document.createElement("div");
+     const widgetType = document.createElement("div");
+     const layoutGroup = document.createElement("div");
+     const duplicateGroup = document.createElement("div");
+     const layerGroup = document.createElement("div");
+     const makeButton = (label, action, className = "") => {
+          const button = document.createElement("button");
+
+          button.className = `widget-panel-button${className ? ` ${className}` : ""}`;
+          button.type = "button";
+          button.textContent = label;
+          button.addEventListener("click", (clickEvent) => {
+               clickEvent.stopPropagation();
+               action(button);
+          });
+          return button;
+     };
+     const closeAfter = (action) => (button) => {
+          action(button);
+          closeWidgetActionPopovers();
+     };
+
+     popup.className = "widget-action-popover widget-panel is-floating is-actions-popup";
+     popup.dataset.ownerId = item.dataset.templateId;
+     popup.setAttribute("role", "menu");
+     widgetType.className = "item-actions-widget-type subtitle";
+     widgetType.textContent = getActionItemsTypeLabel(actionItems);
+     layoutGroup.className = "item-layout-action-group";
+     duplicateGroup.className = "item-action-row";
+     layerGroup.className = "item-layer-actions";
+
+     const moveButton = makeButton("Move", closeAfter(() => {
+          if (typeof startKeyboardMoveFromPopup === "function") {
+               startKeyboardMoveFromPopup(item);
+          }
+     }));
+     const resizeButton = makeButton("Resize", closeAfter(() => {
+          if (typeof startKeyboardResizeFromPopup === "function") {
+               startKeyboardResizeFromPopup(item);
+          }
+     }));
+     const duplicateButton = makeButton("Duplicate", closeAfter(() => duplicateItem(item)));
+     const groupButton = makeButton(itemsHaveGroup(actionItems) ? "Ungroup" : "Group", closeAfter(() => {
+          const nextItems = getActionItems(item);
+
+          if (itemsHaveGroup(nextItems)) {
+               ungroupItems(nextItems);
+          } else {
+               groupItems(nextItems, item);
+          }
+     }), itemsHaveGroup(actionItems) ? "is-grouped" : "");
+     const sendBackwardButton = makeButton("Send Bwd", closeAfter(() => moveActionItemsLayer(item, "backward")));
+     const bringForwardButton = makeButton("Bring Fwd", closeAfter(() => moveActionItemsLayer(item, "forward")));
+     const deleteButton = makeButton("Delete", closeAfter(() => deleteItem(item)), "widget-panel-danger");
+
+     layoutGroup.append(moveButton, resizeButton);
+     duplicateGroup.append(duplicateButton, groupButton);
+     layerGroup.append(sendBackwardButton, bringForwardButton);
+     popup.append(widgetType, layoutGroup, duplicateGroup, layerGroup, deleteButton);
+     plannerDesk.append(popup);
+     positionItemActionsPopup(popup, event);
      updateObjectControlsState();
      updateClipboardControls();
+}
+
+function closeWidgetActionPopovers() {
+     document.querySelectorAll(".widget-action-popover").forEach((popup) => popup.remove());
 }
 
 function closeItemMenu(item) {
@@ -1401,12 +1462,22 @@ function clearItemSelectionClasses(item) {
      item.classList.remove("is-selected", "is-resizing", "is-resize-ew", "is-resize-ns", "is-resize-nwse", "is-resize-nesw");
 }
 
+function isWidgetContentTarget(target) {
+     return Boolean(target?.closest?.("button, input, select, textarea, [contenteditable='true'], .custom-select, .calendar-day-text, .dayCell, .toc-row, .sticker-text"));
+}
+
 function setItemSelected(item, isSelected) {
      item.classList.toggle("is-selected", isSelected);
+     item.setAttribute("aria-selected", String(isSelected));
 
      if (isSelected) {
           selectedItems.add(item);
           selectedItem = item;
+          if (document.activeElement !== item) {
+               item.focus({
+                    preventScroll: true
+               });
+          }
           renderKeyHints();
           return;
      }
@@ -1446,6 +1517,7 @@ function selectItem(item, shouldAdd = false) {
 }
 
 function clearSelection() {
+     closeWidgetActionPopovers();
      selectedItems.forEach((item) => clearItemSelectionClasses(item));
      selectedItems = new Set();
      selectedItem = null;
@@ -1462,10 +1534,11 @@ function closeItemMenus(exceptItem = null) {
 
 function closeFloatingWidgetPanelsFromOutsidePointer(event) {
      // NOTE: Dismisses right-click widget popups when the pointer starts outside the popup
-     if (event.target.closest(".widget-panel")) {
+     if (event.target.closest(".widget-panel, .widget-action-popover")) {
           return;
      }
 
+     closeWidgetActionPopovers();
      document.querySelectorAll(".planner-item.is-widget-panel-open").forEach((item) => {
           const controls = getWidgetPanel(item);
 
@@ -1881,7 +1954,7 @@ function applyTextSettingsToCalendarStyleTarget(item, settings) {
 }
 
 function selectCalendarCellStyleTarget(item, cell, event) {
-     if (keyboardMode !== "design" || !cell?.dataset.calendarStyleKey) {
+     if (!cell?.dataset.calendarStyleKey) {
           return;
      }
 
@@ -2198,7 +2271,7 @@ function clearSelectedResizeCursors() {
 }
 
 function updateDeskResizeCursor(event) {
-     if (keyboardMode !== "design" || activeAction || !selectedItem || selectedItems.size !== 1 || event.target.closest(".control-panel, .widget-panel, .page-snap-controls")) {
+     if (activeAction || !selectedItem || selectedItems.size !== 1 || event.target.closest(".control-panel, .widget-panel, .page-snap-controls")) {
           plannerDesk.style.cursor = "";
           clearSelectedResizeCursors();
           return;
@@ -2252,7 +2325,6 @@ function getMovedControlPanelBox(clientX, clientY) {
 function startControlPanelMove(event) {
      if (
           controlPanel.closest("[data-planner-sidebar]") ||
-          keyboardMode !== "design" ||
           activeAction ||
           event.button !== 0 ||
           event.target.closest("button, input, select, textarea, [contenteditable='true'], .custom-select")
@@ -2382,8 +2454,8 @@ function makePlannerItem(type = "sticker") {
      const displayTitleVisibleSelect = document.createElement("select");
      const displayWeekStartLabel = document.createElement("label");
      const displayWeekStartSelect = document.createElement("select");
-     const designRepositionButton = document.createElement("button");
-     const designResizeButton = document.createElement("button");
+     const layoutMoveButton = document.createElement("button");
+     const layoutResizeButton = document.createElement("button");
      const layoutActionGroup = document.createElement("div");
      const layoutActionTitle = document.createElement("div");
      const layoutTransformActions = document.createElement("div");
@@ -2494,7 +2566,7 @@ function makePlannerItem(type = "sticker") {
      controls.dataset.ownerId = item.dataset.templateId;
      controls.setAttribute("role", "menu");
      widgetPanelTitle.className = "panel-title title widget-panel-name";
-     widgetPanelTitle.textContent = "Widget Panel";
+     widgetPanelTitle.textContent = "Selection";
      controlTabs.className = "widget-panel-tabs";
      controlTabs.setAttribute("role", "tablist");
      actionsTab.className = "widget-panel-tab";
@@ -2523,14 +2595,14 @@ function makePlannerItem(type = "sticker") {
      actionsWidgetType.className = "item-actions-widget-type subtitle";
      actionsWidgetType.dataset.actionsWidgetType = "true";
      actionsWidgetType.textContent = getItemTypeLabel(type);
-     designRepositionButton.className = "widget-panel-button";
-     designRepositionButton.type = "button";
-     designRepositionButton.textContent = "Reposition";
-     designRepositionButton.setAttribute("aria-label", "Reposition this widget with keys");
-     designResizeButton.className = "widget-panel-button";
-     designResizeButton.type = "button";
-     designResizeButton.textContent = "Resize";
-     designResizeButton.setAttribute("aria-label", "Resize this widget with keys");
+     layoutMoveButton.className = "widget-panel-button";
+     layoutMoveButton.type = "button";
+     layoutMoveButton.textContent = "Move";
+     layoutMoveButton.setAttribute("aria-label", "Move this widget with keys");
+     layoutResizeButton.className = "widget-panel-button";
+     layoutResizeButton.type = "button";
+     layoutResizeButton.textContent = "Resize";
+     layoutResizeButton.setAttribute("aria-label", "Resize this widget with keys");
      layoutActionGroup.className = "item-layout-action-group";
      layoutActionGroup.setAttribute("aria-label", "Layout actions");
      layoutActionTitle.className = "item-actions-section-title section-title";
@@ -3086,6 +3158,8 @@ function makePlannerItem(type = "sticker") {
      textAlignLabel.append(textAlignTitle, textAlignmentGrid);
      textLineHeightLabel.append(textLineHeightSelect);
      textControlsRow.append(textToggleLabel, textSizeLabel, textFormatGroup, textAlignLabel);
+     stylePanel.append(stylePanelTitle, fillLabel, borderColorLabel, borderSizeField);
+     textPanel.append(textPanelTitle, textControlsRow, textColorLabel, textRoleLabel, textLineHeightLabel);
      monthLabel.append(monthSelect);
      monthDisplayLabel.append(monthDisplaySelect);
      yearLabel.append(yearSelect);
@@ -3136,7 +3210,7 @@ function makePlannerItem(type = "sticker") {
      shareWeekendsLabel.append(shareWeekendsInput);
      weekNotesLabel.append(weekNotesSelect);
      duplicateGroupActions.append(duplicateButton, groupButton);
-     layoutTransformActions.append(designRepositionButton, designResizeButton);
+     layoutTransformActions.append(layoutMoveButton, layoutResizeButton);
      layerButtonGroup.append(sendBackwardButton, bringForwardButton);
      layoutActionGroup.append(layoutActionTitle, layoutTransformActions, duplicateGroupActions, layerButtonGroup, deleteButton);
      actionsPanel.append(actionsWidgetType);
@@ -3172,8 +3246,8 @@ function makePlannerItem(type = "sticker") {
      if (hasWidgetControls) {
           controlTabs.append(widgetTab);
      }
-     initializeWidgetPanelPageSections(widgetPanel);
-     controls.append(widgetPanelTitle, controlTabs, actionsPanel);
+     controlTabs.append(styleTab, textTab);
+     controls.append(widgetPanelTitle, controlTabs, actionsPanel, stylePanel, textPanel);
      if (hasWidgetControls) {
           controls.append(widgetPanel);
      }
@@ -3226,7 +3300,7 @@ function makePlannerItem(type = "sticker") {
                return;
           }
 
-          if (keyboardMode !== "design") {
+          if (isWidgetContentTarget(event.target)) {
                return;
           }
 
@@ -3261,11 +3335,6 @@ function makePlannerItem(type = "sticker") {
           startMove(item, event);
      });
      item.addEventListener("pointermove", (event) => {
-          if (keyboardMode !== "design") {
-               setResizeCursor(item, "");
-               return;
-          }
-
           const resizeMode = getResizeMode(item, event);
 
           setResizeCursor(item, resizeMode);
@@ -3274,10 +3343,6 @@ function makePlannerItem(type = "sticker") {
           setResizeCursor(item, "");
      });
      item.addEventListener("click", (event) => {
-          if (keyboardMode !== "design") {
-               return;
-          }
-
           if (event.target.closest("[data-calendar-style-key], .calendar-border-hit-target")) {
                return;
           }
@@ -3310,19 +3375,42 @@ function makePlannerItem(type = "sticker") {
           startStickerTextEditing(item);
      });
      item.addEventListener("focus", () => {
-          if (keyboardMode !== "design") {
-               return;
-          }
-
           if (!item.classList.contains("is-widget-panel-open") && !selectedItems.has(item)) {
                selectItem(item);
           }
      });
-     item.addEventListener("contextmenu", (event) => {
-          if (keyboardMode !== "design") {
+     item.addEventListener("keydown", (event) => {
+          if (
+               event.defaultPrevented ||
+               activeAction ||
+               event.key !== "Enter" ||
+               event.altKey ||
+               event.ctrlKey ||
+               event.metaKey ||
+               event.shiftKey ||
+               event.target !== item
+          ) {
                return;
           }
 
+          if (!selectedItems.has(item)) {
+               selectItem(item);
+          }
+
+          event.preventDefault();
+          if (isStickerTextItem(item) || isPageTitleItem(item)) {
+               startStickerTextEditing(item);
+               return;
+          }
+
+          const rect = item.getBoundingClientRect();
+
+          openItemActionsPopup(item, {
+               clientX: rect.left + (rect.width / 2),
+               clientY: rect.top + Math.min(rect.height / 2, 36)
+          });
+     });
+     item.addEventListener("contextmenu", (event) => {
           event.preventDefault();
           event.stopPropagation();
           if (!selectedItems.has(item)) {
@@ -3356,13 +3444,13 @@ function makePlannerItem(type = "sticker") {
           event.stopPropagation();
           duplicateItem(item);
      });
-     designRepositionButton.addEventListener("click", (event) => {
+     layoutMoveButton.addEventListener("click", (event) => {
           event.stopPropagation();
-          if (typeof startKeyboardRepositionFromPopup === "function") {
-               startKeyboardRepositionFromPopup(item);
+          if (typeof startKeyboardMoveFromPopup === "function") {
+               startKeyboardMoveFromPopup(item);
           }
      });
-     designResizeButton.addEventListener("click", (event) => {
+     layoutResizeButton.addEventListener("click", (event) => {
           event.stopPropagation();
           if (typeof startKeyboardResizeFromPopup === "function") {
                startKeyboardResizeFromPopup(item);
@@ -3463,11 +3551,6 @@ function makePlannerItem(type = "sticker") {
      });
      textElement.addEventListener("blur", () => stopStickerTextEditing(item));
      textElement.addEventListener("pointerdown", (event) => {
-          if (textElement.isContentEditable && typeof keyboardMode !== "undefined" && keyboardMode === "design") {
-               textElement.blur();
-               return;
-          }
-
           if (textElement.isContentEditable) {
                event.stopPropagation();
           }
@@ -4134,10 +4217,6 @@ function updateMarqueeSelection(selectionBox) {
 }
 
 function startMarquee(event) {
-     if (keyboardMode !== "design") {
-          return;
-     }
-
      if (event.button !== 0) {
           return;
      }
@@ -4177,10 +4256,6 @@ function startMarquee(event) {
 }
 
 function startMove(item, event) {
-     if (keyboardMode !== "design") {
-          return;
-     }
-
      const page = getItemPage(item);
      const itemRect = item.getBoundingClientRect();
 
@@ -4254,10 +4329,6 @@ function startSourceMove(event) {
 }
 
 function startResize(item, event, mode) {
-     if (keyboardMode !== "design") {
-          return;
-     }
-
      if (selectedItems.size !== 1 || item.dataset.groupId || item.dataset.itemType === "mini-month") {
           return;
      }

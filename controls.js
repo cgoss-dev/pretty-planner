@@ -474,7 +474,7 @@ window.KeyboardControls = (() => {
                     { key: "Enter", action: "Pick up, place, or confirm the widget" },
                     { key: "WASD / Arrows", action: "Move one grid cell, or resize from the upper-left anchor" },
                     { key: "X", action: "Toggle gridlines" },
-                    { key: "Delete / Esc", action: "Cancel placement, reposition, or resize" }
+                    { key: "Delete / Esc", action: "Cancel placement, move, or resize" }
                ]
           },
           {
@@ -488,7 +488,7 @@ window.KeyboardControls = (() => {
                ]
           },
           {
-               title: "Text Edit Mode",
+               title: "Text Editing",
                controls: [
                     { key: "Type", action: "Enter text normally" },
                     { key: "Enter / Delete", action: "Finish editing" }
@@ -497,7 +497,7 @@ window.KeyboardControls = (() => {
           {
                title: "Smart Text",
                controls: [
-                    { key: "[[...]]", action: "Use Smart Text codes that update outside Text Edit mode" },
+                    { key: "[[...]]", action: "Use Smart Text codes that update outside text editing" },
                     { key: "\\[[...]]", action: "Show a Smart Text code as regular text" }
                ]
           }

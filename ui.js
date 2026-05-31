@@ -1352,7 +1352,11 @@ function syncObjectControlsTab(tabName) {
 }
 
 function getObjectControlWidgetPanelPageNames(tabName) {
-     return [];
+     return {
+          "object-style": ["style"],
+          "object-text": ["text"],
+          "object-widget": ["widget"]
+     }[tabName] || [];
 }
 
 function setWidgetPanelVisiblePanels(controls, panelNames) {

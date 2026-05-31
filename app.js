@@ -2,7 +2,6 @@
 const pages = Array.from(document.querySelectorAll("[data-page]"));
 const plannerDesk = document.querySelector(".planner-desk");
 const plannerSidebar = document.querySelector("[data-planner-sidebar]");
-const plannerSidebarModeButtons = Array.from(document.querySelectorAll("[data-sidebar-mode]"));
 const controlPanel = document.querySelector(".control-panel");
 const notebook = document.querySelector(".notebook");
 const sourceItems = Array.from(document.querySelectorAll("[data-create-item]"));
@@ -150,8 +149,8 @@ let selectedItems = new Set();
 let nextTemplateItemId = 1;
 let nextGroupId = 1;
 let plannerClipboard = null;
-let keyboardMode = "interact";
-let designBranch = "root";
+let plannerAction = "browse";
+let sidebarContext = "root";
 let lastMousePageTurnButton = null;
 let lastMousePageTurnTime = 0;
 let shouldSkipNextClear = false;
@@ -166,8 +165,8 @@ let keyboardCursor = {
 let keyboardCursorIdleTimer = 0;
 let isKeyboardCursorActive = false;
 let hasUsedKeyboardCursor = false;
-let interactFocusItem = null;
-let interactFocusTarget = null;
+let widgetFocusItem = null;
+let widgetFocusTarget = null;
 
 pageCornerFoldOverlay.className = "page-corner-fold-overlay";
 pageCornerFoldOverlayNumber.className = "page-corner-fold-overlay-number";
@@ -1500,21 +1499,6 @@ function closeColorMatrixFromOutsidePointer(event) {
      setColorMatrixOpen(false);
 }
 
-function handleMainMenuToggleKey(event) {
-     // NOTE: Legacy no-op; numeric keyboard mode handling owns Design/Interact transitions
-     if (
-          event.defaultPrevented ||
-          activeAction ||
-          event.altKey ||
-          event.ctrlKey ||
-          event.metaKey ||
-          event.shiftKey ||
-          isTextInputShortcutTarget(event.target)
-     ) {
-          return;
-     }
-}
-
 function isTypingFieldShortcutTarget(target) {
      // NOTE: Detects fields where letter or arrow shortcuts should not interrupt text entry
      const input = target?.closest?.("textarea, [contenteditable='true'], input");
@@ -1589,7 +1573,7 @@ function getKeyboardDirection(event) {
 }
 
 function isCancelKey(event) {
-     // NOTE: Treats Delete as the right-hand companion to Escape for backing out of modes
+     // NOTE: Treats Delete as the right-hand companion to Escape for backing out of actions
      return event.key === "Escape" || event.key === "Delete";
 }
 
@@ -1722,7 +1706,7 @@ function wakeKeyboardCursor() {
 }
 
 function hideKeyboardCursorForPointer() {
-     // NOTE: Leaves keyboard navigation mode when the user goes back to pointer navigation
+     // NOTE: Leaves keyboard navigation when the user goes back to pointer navigation
      if (!hasUsedKeyboardCursor) {
           return;
      }
@@ -1912,31 +1896,31 @@ function chooseSpatialElement(elements, currentElement, direction) {
           : orderedElements[(currentIndex + 1) % orderedElements.length];
 }
 
-function getInteractFocusItems() {
+function getWidgetFocusItems() {
      return getPlannerItems().filter((item) => getItemPage(item) && isElementVisibleForFocus(item));
 }
 
-function clearInteractFocusTarget() {
-     document.querySelectorAll(".is-interact-target").forEach((element) => element.classList.remove("is-interact-target"));
-     interactFocusTarget = null;
+function clearWidgetFocusTarget() {
+     document.querySelectorAll(".is-widget-target").forEach((element) => element.classList.remove("is-widget-target"));
+     widgetFocusTarget = null;
 }
 
-function clearInteractFocus() {
-     clearInteractFocusTarget();
-     document.querySelectorAll(".is-interact-focus").forEach((element) => element.classList.remove("is-interact-focus"));
-     interactFocusItem = null;
+function clearWidgetFocus() {
+     clearWidgetFocusTarget();
+     document.querySelectorAll(".is-widget-focus").forEach((element) => element.classList.remove("is-widget-focus"));
+     widgetFocusItem = null;
 }
 
-function setInteractFocusItem(item) {
-     clearInteractFocus();
+function setWidgetFocusItem(item) {
+     clearWidgetFocus();
 
      if (!item) {
           renderKeyHints();
           return false;
      }
 
-     interactFocusItem = item;
-     item.classList.add("is-interact-focus");
+     widgetFocusItem = item;
+     item.classList.add("is-widget-focus");
      item.scrollIntoView({
           block: "nearest",
           inline: "nearest"
@@ -1945,18 +1929,18 @@ function setInteractFocusItem(item) {
      return true;
 }
 
-function setInteractFocusTarget(item, target) {
-     clearInteractFocusTarget();
+function setWidgetFocusTarget(item, target) {
+     clearWidgetFocusTarget();
 
      if (!item || !target) {
           renderKeyHints();
           return false;
      }
 
-     interactFocusItem = item;
-     item.classList.add("is-interact-focus");
-     interactFocusTarget = target;
-     target.classList.add("is-interact-target");
+     widgetFocusItem = item;
+     item.classList.add("is-widget-focus");
+     widgetFocusTarget = target;
+     target.classList.add("is-widget-target");
      target.scrollIntoView({
           block: "nearest",
           inline: "nearest"
@@ -1965,7 +1949,7 @@ function setInteractFocusTarget(item, target) {
      return true;
 }
 
-function getInteractWidgetTargets(item) {
+function getWidgetFocusTargets(item) {
      if (!item) {
           return [];
      }
@@ -1995,31 +1979,31 @@ function getInteractWidgetTargets(item) {
      return stickerText ? [stickerText] : [];
 }
 
-function moveInteractFocus(direction) {
-     if (keyboardMode !== "interact") {
+function moveWidgetFocus(direction) {
+     if (plannerAction !== "browse") {
           return false;
      }
 
-     if (interactFocusTarget && interactFocusItem) {
-          const targets = getInteractWidgetTargets(interactFocusItem);
-          const nextTarget = chooseSpatialElement(targets, interactFocusTarget, direction);
+     if (widgetFocusTarget && widgetFocusItem) {
+          const targets = getWidgetFocusTargets(widgetFocusItem);
+          const nextTarget = chooseSpatialElement(targets, widgetFocusTarget, direction);
 
           if (nextTarget) {
-               return setInteractFocusTarget(interactFocusItem, nextTarget);
+               return setWidgetFocusTarget(widgetFocusItem, nextTarget);
           }
      }
 
-     const nextItem = chooseSpatialElement(getInteractFocusItems(), interactFocusItem, direction);
+     const nextItem = chooseSpatialElement(getWidgetFocusItems(), widgetFocusItem, direction);
 
-     return setInteractFocusItem(nextItem);
+     return setWidgetFocusItem(nextItem);
 }
 
-function enterInteractWidgetFocus(item = interactFocusItem) {
+function enterWidgetContentFocus(item = widgetFocusItem) {
      if (!item) {
           return false;
      }
 
-     const targets = getInteractWidgetTargets(item);
+     const targets = getWidgetFocusTargets(item);
 
      if (!targets.length) {
           return false;
@@ -2030,43 +2014,43 @@ function enterInteractWidgetFocus(item = interactFocusItem) {
           return true;
      }
 
-     return setInteractFocusTarget(item, targets[0]);
+     return setWidgetFocusTarget(item, targets[0]);
 }
 
-function activateInteractFocus() {
-     if (keyboardMode !== "interact") {
+function activateWidgetFocus() {
+     if (plannerAction !== "browse") {
           return false;
      }
 
-     if (!interactFocusItem) {
-          return setInteractFocusItem(selectedItem || getInteractFocusItems()[0]);
+     if (!widgetFocusItem) {
+          return setWidgetFocusItem(selectedItem || getWidgetFocusItems()[0]);
      }
 
-     if (!interactFocusTarget) {
-          return enterInteractWidgetFocus(interactFocusItem);
+     if (!widgetFocusTarget) {
+          return enterWidgetContentFocus(widgetFocusItem);
      }
 
-     const textElement = interactFocusTarget.matches(".calendar-day-text")
-          ? interactFocusTarget
-          : interactFocusTarget.querySelector(".calendar-day-text");
+     const textElement = widgetFocusTarget.matches(".calendar-day-text")
+          ? widgetFocusTarget
+          : widgetFocusTarget.querySelector(".calendar-day-text");
 
      if (textElement) {
-          startCalendarDayTextEditing(textElement, interactFocusItem);
+          startCalendarDayTextEditing(textElement, widgetFocusItem);
           return true;
      }
 
      return false;
 }
 
-function stepBackInteractFocus() {
-     if (interactFocusTarget) {
-          clearInteractFocusTarget();
+function stepBackWidgetFocus() {
+     if (widgetFocusTarget) {
+          clearWidgetFocusTarget();
           renderKeyHints();
           return true;
      }
 
-     if (interactFocusItem) {
-          clearInteractFocus();
+     if (widgetFocusItem) {
+          clearWidgetFocus();
           renderKeyHints();
           return true;
      }
@@ -2079,7 +2063,6 @@ function handleKeyboardCursorActivateKey(event) {
      if (
           event.defaultPrevented ||
           activeAction ||
-          controlPanel.classList.contains("is-open") ||
           event.altKey ||
           event.ctrlKey ||
           event.metaKey ||
@@ -2094,10 +2077,10 @@ function handleKeyboardCursorActivateKey(event) {
           return;
      }
 
-     if (keyboardMode === "interact") {
-          const hadInteractFocus = Boolean(interactFocusItem);
+     if (plannerAction === "browse") {
+          const hadWidgetFocus = Boolean(widgetFocusItem);
 
-          if (activateInteractFocus() || hadInteractFocus) {
+          if (activateWidgetFocus() || hadWidgetFocus) {
                event.preventDefault();
           }
           return;
@@ -2177,7 +2160,7 @@ function placeKeyboardPlacementItemAtCursor(item, page) {
 }
 
 function startKeyboardSourcePlacement(source) {
-     // NOTE: Creates a widget from the menu and enters keyboard placement mode
+     // NOTE: Creates a widget from the menu and starts keyboard placement
      if (activeAction || !source?.matches?.("[data-create-item]")) {
           return false;
      }
@@ -2333,7 +2316,7 @@ function handleKeyboardPlacementKey(event) {
 }
 
 function getKeyboardTransformItems(item) {
-     // NOTE: Gets selected page widgets that should move together in explicit Reposition mode
+     // NOTE: Gets selected page widgets that should move together in explicit Move
      if (!item || !getItemPage(item)) {
           return [];
      }
@@ -2345,9 +2328,9 @@ function getKeyboardTransformItems(item) {
      return Array.from(selectedItems).filter((selected) => getPlannerItems().includes(selected) && getItemPage(selected));
 }
 
-function startKeyboardRepositionFromPopup(item = selectedItem) {
-     // NOTE: Enters popup-triggered Reposition mode for grid-cell keyboard movement
-     if (activeAction || keyboardMode !== "design" || !item) {
+function startKeyboardMoveFromPopup(item = selectedItem) {
+     // NOTE: Starts popup-triggered Move for grid-cell keyboard movement
+     if (activeAction || !item) {
           return false;
      }
 
@@ -2360,7 +2343,7 @@ function startKeyboardRepositionFromPopup(item = selectedItem) {
      closeItemMenus();
      selectItem(item);
      activeAction = {
-          type: "keyboard-reposition",
+          type: "keyboard-move",
           item,
           items: movingItems.map((movingItem) => ({
                item: movingItem,
@@ -2374,8 +2357,8 @@ function startKeyboardRepositionFromPopup(item = selectedItem) {
      return true;
 }
 
-function getKeyboardRepositionDelta(direction) {
-     // NOTE: Calculates one clamped grid-cell move for the active Reposition selection
+function getKeyboardMoveDelta(direction) {
+     // NOTE: Calculates one clamped grid-cell move for the active Move selection
      const primary = activeAction?.items?.find(({ item }) => item === activeAction.item) || activeAction?.items?.[0];
 
      if (!primary?.page) {
@@ -2411,13 +2394,13 @@ function getKeyboardRepositionDelta(direction) {
      }, rawDelta);
 }
 
-function moveKeyboardRepositionItems(direction) {
-     // NOTE: Moves popup-triggered Reposition items by one grid cell
-     if (activeAction?.type !== "keyboard-reposition") {
+function moveKeyboardMoveItems(direction) {
+     // NOTE: Moves popup-triggered Move items by one grid cell
+     if (activeAction?.type !== "keyboard-move") {
           return;
      }
 
-     const delta = getKeyboardRepositionDelta(direction);
+     const delta = getKeyboardMoveDelta(direction);
 
      if (!delta) {
           return;
@@ -2435,9 +2418,9 @@ function moveKeyboardRepositionItems(direction) {
      renderKeyHints();
 }
 
-function finishKeyboardReposition() {
-     // NOTE: Confirms popup-triggered Reposition mode and saves the planner state
-     if (activeAction?.type !== "keyboard-reposition") {
+function finishKeyboardMove() {
+     // NOTE: Confirms popup-triggered Move and saves the planner state
+     if (activeAction?.type !== "keyboard-move") {
           return;
      }
 
@@ -2452,9 +2435,9 @@ function finishKeyboardReposition() {
      renderKeyHints();
 }
 
-function cancelKeyboardReposition() {
-     // NOTE: Restores original positions when popup-triggered Reposition mode is cancelled
-     if (activeAction?.type !== "keyboard-reposition") {
+function cancelKeyboardMove() {
+     // NOTE: Restores original positions when popup-triggered Move is cancelled
+     if (activeAction?.type !== "keyboard-move") {
           return;
      }
 
@@ -2472,7 +2455,7 @@ function cancelKeyboardReposition() {
 }
 
 function canKeyboardResizeItem(item = selectedItem) {
-     // NOTE: Checks whether popup-triggered Resize mode can change this widget
+     // NOTE: Checks whether popup-triggered Resize can change this widget
      return Boolean(
           item &&
           selectedItems.size === 1 &&
@@ -2485,8 +2468,8 @@ function canKeyboardResizeItem(item = selectedItem) {
 }
 
 function startKeyboardResizeFromPopup(item = selectedItem) {
-     // NOTE: Enters popup-triggered Resize mode from the widget's upper-left anchor
-     if (activeAction || keyboardMode !== "design" || !canKeyboardResizeItem(item)) {
+     // NOTE: Starts popup-triggered Resize from the widget's upper-left anchor
+     if (activeAction || !canKeyboardResizeItem(item)) {
           return false;
      }
 
@@ -2538,7 +2521,7 @@ function moveKeyboardResizeItem(direction) {
 }
 
 function finishKeyboardResize() {
-     // NOTE: Confirms popup-triggered Resize mode and saves the planner state
+     // NOTE: Confirms popup-triggered Resize and saves the planner state
      if (activeAction?.type !== "keyboard-resize") {
           return;
      }
@@ -2554,7 +2537,7 @@ function finishKeyboardResize() {
 }
 
 function cancelKeyboardResize() {
-     // NOTE: Restores original size when popup-triggered Resize mode is cancelled
+     // NOTE: Restores original size when popup-triggered Resize is cancelled
      if (activeAction?.type !== "keyboard-resize") {
           return;
      }
@@ -2570,10 +2553,10 @@ function cancelKeyboardResize() {
 }
 
 function handleKeyboardTransformKey(event) {
-     // NOTE: Handles popup-triggered Reposition and Resize keyboard modes
+     // NOTE: Handles popup-triggered Move and Resize current actions
      if (
           event.defaultPrevented ||
-          (activeAction?.type !== "keyboard-reposition" && activeAction?.type !== "keyboard-resize") ||
+          (activeAction?.type !== "keyboard-move" && activeAction?.type !== "keyboard-resize") ||
           event.altKey ||
           event.ctrlKey ||
           event.metaKey ||
@@ -2586,8 +2569,8 @@ function handleKeyboardTransformKey(event) {
 
      if (direction) {
           event.preventDefault();
-          if (activeAction.type === "keyboard-reposition") {
-               moveKeyboardRepositionItems(direction);
+          if (activeAction.type === "keyboard-move") {
+               moveKeyboardMoveItems(direction);
           } else {
                moveKeyboardResizeItem(direction);
           }
@@ -2596,8 +2579,8 @@ function handleKeyboardTransformKey(event) {
 
      if (event.key === "Enter") {
           event.preventDefault();
-          if (activeAction.type === "keyboard-reposition") {
-               finishKeyboardReposition();
+          if (activeAction.type === "keyboard-move") {
+               finishKeyboardMove();
           } else {
                finishKeyboardResize();
           }
@@ -2606,8 +2589,8 @@ function handleKeyboardTransformKey(event) {
 
      if (isCancelKey(event)) {
           event.preventDefault();
-          if (activeAction.type === "keyboard-reposition") {
-               cancelKeyboardReposition();
+          if (activeAction.type === "keyboard-move") {
+               cancelKeyboardMove();
           } else {
                cancelKeyboardResize();
           }
@@ -2647,7 +2630,7 @@ function startSelectedItemTextEditing(item) {
 }
 
 function handleSelectedTextEditKey(event) {
-     // NOTE: Uses Enter to open selected object design actions in Design Mode
+     // NOTE: Uses Enter to edit selected text widgets or open selected widget actions
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -2666,132 +2649,73 @@ function handleSelectedTextEditKey(event) {
           return;
      }
 
-     if (keyboardMode === "design") {
-          const actionItem = getItemForMenuKeyboardToggle(event.target);
-
-          if (!actionItem) {
-               return;
-          }
-
-          const rect = actionItem.getBoundingClientRect();
-
-          event.preventDefault();
-          if (!selectedItems.has(actionItem)) {
-               selectItem(actionItem);
-          }
-          openItemActionsPopup(actionItem, {
-               clientX: rect.left + (rect.width / 2),
-               clientY: rect.top + Math.min(rect.height / 2, 36)
-          });
-          return;
-     }
-
      const item = getSelectedTextEditItem();
 
-     if (!item) {
+     if (item) {
+          event.preventDefault();
+          startSelectedItemTextEditing(item);
           return;
      }
 
+     const actionItem = getItemForMenuKeyboardToggle(event.target) || selectedItem;
+
+     if (!actionItem) {
+          return;
+     }
+
+     const rect = actionItem.getBoundingClientRect();
+
      event.preventDefault();
-     startSelectedItemTextEditing(item);
-}
-
-function syncKeyboardModeUi() {
-     // NOTE: Reflects Interact/Design mode on the menu so unavailable tabs look unavailable
-     controlPanel.classList.toggle("is-interact-mode", keyboardMode === "interact");
-     controlPanel.classList.toggle("is-design-mode", keyboardMode === "design");
-     document.documentElement.dataset.keyboardMode = keyboardMode;
-     plannerSidebarModeButtons.forEach((button) => {
-          const isActive = button.dataset.sidebarMode === keyboardMode;
-
-          button.classList.toggle("is-active", isActive);
-          button.setAttribute("aria-pressed", String(isActive));
+     if (!selectedItems.has(actionItem)) {
+          selectItem(actionItem);
+     }
+     openItemActionsPopup(actionItem, {
+          clientX: rect.left + (rect.width / 2),
+          clientY: rect.top + Math.min(rect.height / 2, 36)
      });
 }
 
-function selectSidebarMode(mode) {
-     // NOTE: Lets the docked sidebar buttons switch between Interact and Design without keyboard shortcuts
-     if (mode === keyboardMode) {
-          return;
-     }
-
-     if (mode === "design") {
-          enterKeyboardDesignMode();
-     } else {
-          exitKeyboardDesignMode();
-     }
+function syncCurrentActionUi() {
+     // NOTE: Reflects the current action on shared UI hooks
+     controlPanel.classList.toggle("is-browse-context", plannerAction === "browse");
+     document.documentElement.dataset.plannerAction = plannerAction;
 }
 
-function enterKeyboardDesignMode() {
-     // NOTE: Enters the top-level keyboard Design Mode without opening a specific panel
-     finishAllTextEditing();
-     keyboardMode = "design";
-     designBranch = "root";
-     clearInteractFocus();
-     syncKeyboardModeUi();
+function enterBrowseAction() {
+     // NOTE: Returns to the base planner action and closes any sidebar panel
+     plannerAction = "browse";
+     sidebarContext = "root";
+     syncCurrentActionUi();
      closeControlPanel();
      renderKeyHints();
-}
-
-function exitKeyboardDesignMode() {
-     // NOTE: Returns keyboard mode to Interact and closes any design panel
-     keyboardMode = "interact";
-     designBranch = "root";
-     syncKeyboardModeUi();
-     closeControlPanel();
-     renderKeyHints();
-}
-
-function handleModeToggleKey(event) {
-     // NOTE: Uses Tab as the single-key switch between Interact and Design modes
-     if (
-          event.defaultPrevented ||
-          activeAction ||
-          event.key !== "Tab" ||
-          event.altKey ||
-          event.ctrlKey ||
-          event.metaKey ||
-          isTypingFieldShortcutTarget(event.target)
-     ) {
-          return;
-     }
-
-     event.preventDefault();
-     if (keyboardMode === "design") {
-          exitKeyboardDesignMode();
-     } else {
-          enterKeyboardDesignMode();
-     }
 }
 
 function enterKeyboardMenuBranch(branch, tabName) {
-     // NOTE: Opens a numbered Design branch backed by a control panel tab
-     keyboardMode = "design";
-     designBranch = branch;
-     syncKeyboardModeUi();
+     // NOTE: Opens a numbered sidebar context backed by a control panel tab
+     sidebarContext = branch;
+     syncCurrentActionUi();
      selectControlPanelTab(tabName);
      openControlPanel();
      renderKeyHints();
 }
 
-function returnToKeyboardDesignRoot() {
-     // NOTE: Goes one level up from a Design branch to the top-level Design choices
-     designBranch = "root";
+function returnToSidebarRoot() {
+     // NOTE: Goes one level up from a sidebar context to the top-level sidebar choices
+     sidebarContext = "root";
      closeControlPanel();
      renderKeyHints();
 }
 
 function openSelectedObjectActionsFromKeyboard() {
-     // NOTE: Opens selected object actions popup from Design > Object via number key
+     // NOTE: Opens selected object actions popup from actions > Object via number key
      if (!selectedItem || !selectedItems.size) {
           return false;
      }
 
      const rect = selectedItem.getBoundingClientRect();
 
-     keyboardMode = "design";
-     designBranch = "object";
-     syncKeyboardModeUi();
+     sidebarContext = "object";
+     syncCurrentActionUi();
      closeControlPanel();
      openItemActionsPopup(selectedItem, {
           clientX: rect.left + (rect.width / 2),
@@ -2802,7 +2726,7 @@ function openSelectedObjectActionsFromKeyboard() {
 }
 
 function toggleSelectedGroupFromKeyboard() {
-     // NOTE: Groups or ungroups selected objects from Design > Object via number key
+     // NOTE: Groups or ungroups selected objects from actions > Object via number key
      const items = getKeyboardGroupItems();
 
      if (!items.length) {
@@ -2819,19 +2743,19 @@ function toggleSelectedGroupFromKeyboard() {
 }
 
 function deleteSelectedItemsFromKeyboard() {
-     // NOTE: Deletes selected objects from Design > Object via number key
+     // NOTE: Deletes selected objects from actions > Object via number key
      if (!selectedItem || !selectedItems.size) {
           return false;
      }
 
      deleteItem(selectedItem);
-     designBranch = "root";
+     sidebarContext = "root";
      renderKeyHints();
      return true;
 }
 
-function handleKeyboardModeNumberKey(event) {
-     // NOTE: Uses number keys for the keyboard mode stack and mode-specific choices
+function handleSidebarNumberKey(event) {
+     // NOTE: Uses number keys for the current action stack and context-specific choices
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -2848,17 +2772,7 @@ function handleKeyboardModeNumberKey(event) {
           return;
      }
 
-     if (keyboardMode !== "design") {
-          if (event.key !== "1") {
-               return;
-          }
-
-          event.preventDefault();
-          enterKeyboardDesignMode();
-          return;
-     }
-
-     if (designBranch === "root") {
+     if (sidebarContext === "root") {
           event.preventDefault();
           if (event.key === "1") {
                enterKeyboardMenuBranch("controls", "controls");
@@ -2866,29 +2780,53 @@ function handleKeyboardModeNumberKey(event) {
                enterKeyboardMenuBranch("defaults", "defaults");
           } else if (event.key === "3") {
                enterKeyboardMenuBranch("menu", "add");
+          } else if (event.key === "4" && !controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "object-style")?.disabled) {
+               enterKeyboardMenuBranch("object-style", "object-style");
+          } else if (event.key === "5" && !controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "object-text")?.disabled) {
+               enterKeyboardMenuBranch("object-text", "object-text");
+          } else if (event.key === "6" && !controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "object-widget")?.disabled) {
+               enterKeyboardMenuBranch("object-widget", "object-widget");
           }
           return;
      }
 
-     if (designBranch === "controls" && event.key === "1") {
+     if (sidebarContext === "controls" && event.key === "1") {
           event.preventDefault();
-          returnToKeyboardDesignRoot();
+          returnToSidebarRoot();
           return;
      }
 
-     if (designBranch === "defaults" && event.key === "2") {
+     if (sidebarContext === "defaults" && event.key === "2") {
           event.preventDefault();
-          returnToKeyboardDesignRoot();
+          returnToSidebarRoot();
           return;
      }
 
-     if (designBranch === "menu" && event.key === "3") {
+     if (sidebarContext === "menu" && event.key === "3") {
           event.preventDefault();
-          returnToKeyboardDesignRoot();
+          returnToSidebarRoot();
           return;
      }
 
-     if (designBranch === "controls" || designBranch === "defaults" || designBranch === "menu") {
+     if (sidebarContext === "object-style" && event.key === "4") {
+          event.preventDefault();
+          returnToSidebarRoot();
+          return;
+     }
+
+     if (sidebarContext === "object-text" && event.key === "5") {
+          event.preventDefault();
+          returnToSidebarRoot();
+          return;
+     }
+
+     if (sidebarContext === "object-widget" && event.key === "6") {
+          event.preventDefault();
+          returnToSidebarRoot();
+          return;
+     }
+
+     if (sidebarContext === "controls" || sidebarContext === "defaults" || sidebarContext === "menu" || sidebarContext === "object-style" || sidebarContext === "object-text" || sidebarContext === "object-widget") {
           const tab = controlPanelTabs[Number(event.key) - 1];
 
           if (!tab || tab.disabled) {
@@ -2902,10 +2840,10 @@ function handleKeyboardModeNumberKey(event) {
           return;
      }
 
-     if (designBranch === "object") {
+     if (sidebarContext === "object") {
           event.preventDefault();
           if (event.key === "4") {
-               returnToKeyboardDesignRoot();
+               returnToSidebarRoot();
           } else if (event.key === "1") {
                openSelectedObjectActionsFromKeyboard();
           } else if (event.key === "2") {
@@ -2919,12 +2857,37 @@ function handleKeyboardModeNumberKey(event) {
 }
 
 function handleNumberedMenuTabKey(event) {
-     // NOTE: Backward wrapper for the numeric keyboard mode stack
-     handleKeyboardModeNumberKey(event);
+     // NOTE: Backward wrapper for the numeric current action stack
+     handleSidebarNumberKey(event);
+}
+
+function handleSelectedDeleteKey(event) {
+     // NOTE: Deletes an explicit widget selection without treating Delete as a generic back key
+     if (
+          event.defaultPrevented ||
+          activeAction ||
+          (event.key !== "Delete" && event.key !== "Backspace") ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTypingFieldShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (!selectedItem || !selectedItems.size) {
+          return;
+     }
+
+     event.preventDefault();
+     deleteItem(selectedItem);
+     sidebarContext = "root";
+     renderKeyHints();
 }
 
 function handleCancelKey(event) {
-     // NOTE: Uses Delete/Escape as the same keyboard cancel key for open planner UI
+     // NOTE: Uses Escape to step back through open planner UI without deleting selection
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -2937,16 +2900,26 @@ function handleCancelKey(event) {
           return;
      }
 
-     if (!isCancelKey(event)) {
+     if (event.key !== "Escape") {
           return;
      }
 
      event.preventDefault();
-     if (keyboardMode === "design") {
+     if (document.querySelector(".widget-action-popover")) {
+          if (typeof closeWidgetActionPopovers === "function") {
+               closeWidgetActionPopovers();
+          }
+          renderKeyHints();
           return;
      }
 
-     if (keyboardMode === "interact" && stepBackInteractFocus()) {
+     if (document.querySelector(".widget-panel.is-floating")) {
+          closeItemMenus();
+          renderKeyHints();
+          return;
+     }
+
+     if (stepBackWidgetFocus()) {
           return;
      }
 
@@ -3006,7 +2979,7 @@ function finishTextEditingFromOutsidePointer(event) {
 }
 
 function finishAllTextEditing() {
-     // NOTE: Ends any active widget text entry before Design interactions such as dragging.
+     // NOTE: Ends any active widget text entry before layout actions such as dragging.
      document.querySelectorAll("[contenteditable='true']").forEach((editingTarget) => editingTarget.blur());
 }
 
@@ -3290,7 +3263,7 @@ function handleViewZoomKey(event) {
 }
 
 function handlePageFocusNavigationKey(event) {
-     // NOTE: Moves Interact focus between real widgets/targets, falling back to the legacy grid cursor outside Interact
+     // NOTE: Moves widget focus between real widgets/targets, falling back to the legacy grid cursor outside widget
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -3311,8 +3284,8 @@ function handlePageFocusNavigationKey(event) {
      }
 
      event.preventDefault();
-     if (keyboardMode === "interact") {
-          moveInteractFocus(direction);
+     if (plannerAction === "browse") {
+          moveWidgetFocus(direction);
           return;
      }
 
@@ -3424,10 +3397,10 @@ function toggleGuidesFromKeyboard(event) {
 }
 
 function getKeyHintState() {
-     // NOTE: Chooses the visible keyboard hint mode label and actions for the current planner state
+     // NOTE: Chooses the visible current-action label and keyboard actions for the planner state
      if (activeAction?.type === "keyboard-source") {
           return {
-               mode: "Design Mode > Place Widget",
+               mode: "Current Action > Place Widget",
                entries: [
                ["Enter", "Place"],
                ["X", "Gridlines"],
@@ -3436,9 +3409,9 @@ function getKeyHintState() {
           };
      }
 
-     if (activeAction?.type === "keyboard-reposition") {
+     if (activeAction?.type === "keyboard-move") {
           return {
-               mode: "Design Mode > Reposition",
+               mode: "Current Action > Move",
                entries: [
                ["Enter", "Place"],
                ["X", "Gridlines"],
@@ -3449,7 +3422,7 @@ function getKeyHintState() {
 
      if (activeAction?.type === "keyboard-resize") {
           return {
-               mode: "Design Mode > Resize",
+               mode: "Current Action > Resize",
                entries: [
                ["Enter", "Confirm"],
                ["X", "Gridlines"],
@@ -3460,7 +3433,7 @@ function getKeyHintState() {
 
      if (document.querySelector("[contenteditable='true']")) {
           return {
-               mode: "Interact Mode > Text Edit",
+               mode: "Current Action > Text Edit",
                entries: [
                ["Type", "Enter text"],
                ["Enter / Delete", "Finish editing"]
@@ -3468,9 +3441,9 @@ function getKeyHintState() {
           };
      }
 
-     if (keyboardMode === "design" && designBranch === "controls") {
+     if (sidebarContext === "controls") {
           return {
-               mode: "Design Mode > Controls",
+               mode: "Current Action > Controls",
                entries: [
                ["2", "Back"],
                ["1-3", "Tabs"],
@@ -3480,9 +3453,9 @@ function getKeyHintState() {
           };
      }
 
-     if (keyboardMode === "design" && designBranch === "defaults") {
+     if (sidebarContext === "defaults") {
           return {
-               mode: "Design Mode > Guide",
+               mode: "Current Action > Guide",
                entries: [
                ["1", "Back"],
                ["1-3", "Tabs"],
@@ -3492,9 +3465,9 @@ function getKeyHintState() {
           };
      }
 
-     if (keyboardMode === "design" && designBranch === "menu") {
+     if (sidebarContext === "menu") {
           return {
-               mode: "Design Mode > Widgets",
+               mode: "Current Action > Widgets",
                entries: [
                ["3", "Back"],
                ["1-3", "Tabs"],
@@ -3504,9 +3477,9 @@ function getKeyHintState() {
           };
      }
 
-     if (keyboardMode === "design" && designBranch === "object") {
+     if (sidebarContext === "object") {
           return {
-               mode: "Design Mode > Object",
+               mode: "Current Action > Object",
                entries: [
                ["4", "Back"],
                ["1 / Enter", "Actions"],
@@ -3517,46 +3490,94 @@ function getKeyHintState() {
           };
      }
 
-     if (keyboardMode === "design") {
+     if (sidebarContext === "object-style") {
           return {
-               mode: "Design Mode",
+               mode: "Current Action > Widget Style",
                entries: [
-               ["Tab", "Toggle Mode"],
-               ["Enter", "Edit"],
-               ["Q / E", "Last / Next Page"],
-               ["Z", "Zoom"],
-               ["X", "Gridlines"],
-               ["C", "Center"]
+               ["4", "Back"],
+               ["4-6", "Widget tabs"],
+               ["Enter", "Select"],
+               ["Esc", "Clear selection"]
                ]
           };
      }
 
-     if (interactFocusTarget) {
+     if (sidebarContext === "object-text") {
           return {
-               mode: "Interact Mode > Widget Navigate",
+               mode: "Current Action > Widget Text",
+               entries: [
+               ["5", "Back"],
+               ["4-6", "Widget tabs"],
+               ["Enter", "Select"],
+               ["Esc", "Clear selection"]
+               ]
+          };
+     }
+
+     if (sidebarContext === "object-widget") {
+          return {
+               mode: "Current Action > Widget Options",
+               entries: [
+               ["6", "Back"],
+               ["4-6", "Widget tabs"],
+               ["Enter", "Select"],
+               ["Esc", "Clear selection"]
+               ]
+          };
+     }
+
+     if (selectedItems.size > 1) {
+          return {
+               mode: "Current Action > Selection",
+               entries: [
+               ["Enter", "Actions"],
+               ["Delete", "Delete selected"],
+               ["Esc", "Clear selection"],
+               ["X", "Gridlines"]
+               ]
+          };
+     }
+
+     if (selectedItem && getPlannerItems().includes(selectedItem)) {
+          const canEditText = Boolean(selectedItem.querySelector(".sticker-text, .calendar-day-text"));
+
+          return {
+               mode: "Current Action > Widget Selected",
+               entries: [
+               ["Enter", canEditText ? "Edit text" : "Actions"],
+               ["Delete", "Delete widget"],
+               ["Esc", "Clear selection"],
+               ["X", "Gridlines"]
+               ]
+          };
+     }
+
+     if (widgetFocusTarget) {
+          return {
+               mode: "Current Action > Widget Navigate",
                entries: [
                ["Enter", "Open"],
                ["Delete / Esc", "Back"],
-               ["Tab", "Toggle Mode"]
+               ["Tab", "Next focus"]
                ]
           };
      }
 
-     if (interactFocusItem) {
+     if (widgetFocusItem) {
           return {
-               mode: "Interact Mode > Widget Focus",
+               mode: "Current Action > Widget Focus",
                entries: [
                ["Enter", "Open"],
                ["Delete / Esc", "Clear focus"],
-               ["Tab", "Toggle Mode"]
+               ["Tab", "Next focus"]
                ]
           };
      }
 
      return {
-          mode: "Interact Mode",
+          mode: "Current Action",
           entries: [
-          ["Tab", "Toggle Mode"],
+          ["Tab", "Next focus"],
           ["Enter", "Edit"],
           ["Q / E", "Last / Next Page"],
           ["Z", "Zoom"],
@@ -3920,7 +3941,7 @@ updateControlPanelSteps();
 updateObjectControlsState();
 updateControlPanelFocusState();
 syncResponsiveViewportClass();
-syncKeyboardModeUi();
+syncCurrentActionUi();
 applyPlannerConfig();
 restorePlannerBook(plannerConfig.paperKey);
 syncNotebookSpread();
@@ -3994,11 +4015,6 @@ PageControls.bindPageTurnControls({
 });
 controlPanelTabs.forEach((tab) => {
      tab.addEventListener("click", (event) => {
-          if (keyboardMode === "interact") {
-               event.preventDefault();
-               return;
-          }
-
           if (shouldSkipNextTabClick) {
                shouldSkipNextTabClick = false;
                return;
@@ -4022,11 +4038,6 @@ controlPanel.addEventListener("pointerdown", (event) => {
           return;
      }
 
-     if (keyboardMode === "interact") {
-          event.preventDefault();
-          return;
-     }
-
      selectControlPanelTab(tab.dataset.controlPanelTab);
      openControlPanel();
      shouldSkipNextTabClick = true;
@@ -4039,11 +4050,6 @@ controlPanelStepButtons.forEach((button) => {
                return;
           }
           stepControlPanelTab(Number(button.dataset.controlPanelStep) || 0);
-     });
-});
-plannerSidebarModeButtons.forEach((button) => {
-     button.addEventListener("click", () => {
-          selectSidebarMode(button.dataset.sidebarMode);
      });
 });
 controlPanel.addEventListener("pointerdown", (event) => {
@@ -4140,18 +4146,17 @@ document.addEventListener("keydown", (event) => {
      handleClipboardShortcut(event);
      handleTextEditFinishKey(event);
      blockSpacebarShortcut(event);
-     handleModeToggleKey(event);
      handleKeyboardPlacementKey(event);
      handleKeyboardTransformKey(event);
      handleMainMenuArrowKey(event);
      handleMainMenuWasdKey(event);
      handlePageTurnKey(event);
      handleMenuEnterKey(event);
-     handleKeyboardCursorActivateKey(event);
      handleSelectedTextEditKey(event);
+     handleKeyboardCursorActivateKey(event);
      handleObjectControlKey(event);
      handleNumberedMenuTabKey(event);
-     handleMainMenuToggleKey(event);
+     handleSelectedDeleteKey(event);
      handleCancelKey(event);
      handleViewZoomKey(event);
      handlePageFocusNavigationKey(event);

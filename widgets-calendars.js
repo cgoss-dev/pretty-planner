@@ -922,6 +922,24 @@ function getCalendarFixedNumber(value, fallback) {
      return Number.isFinite(number) ? number : fallback;
 }
 
+function addCalendarMonthsClamped(date, offset) {
+     const targetYear = date.getFullYear();
+     const targetMonth = date.getMonth() + offset;
+     const target = new Date(targetYear, targetMonth, 1);
+     const targetDay = Math.min(date.getDate(), getCalendarDaysInMonth(target.getFullYear(), target.getMonth()));
+
+     target.setDate(targetDay);
+     return target;
+}
+
+function addCalendarYearsClamped(date, offset) {
+     const targetYear = date.getFullYear() + offset;
+     const targetMonth = date.getMonth();
+     const targetDay = Math.min(date.getDate(), getCalendarDaysInMonth(targetYear, targetMonth));
+
+     return new Date(targetYear, targetMonth, targetDay);
+}
+
 function getCalendarEffectiveDate(item) {
      const today = new Date();
 
@@ -942,9 +960,9 @@ function getCalendarEffectiveDate(item) {
      } else if (unit === "week") {
           date.setDate(date.getDate() + (offset * 7));
      } else if (unit === "month") {
-          date.setMonth(date.getMonth() + offset);
+          return addCalendarMonthsClamped(date, offset);
      } else if (unit === "year") {
-          date.setFullYear(date.getFullYear() + offset);
+          return addCalendarYearsClamped(date, offset);
      }
 
      return date;
@@ -1099,7 +1117,7 @@ function getMonthCalendarColumns(weekStart = "monday", shareWeekends = false) {
 }
 
 function startCalendarDayTextEditing(textElement, item) {
-     if (typeof keyboardMode !== "undefined" && keyboardMode !== "interact") {
+     if (typeof activeAction !== "undefined" && activeAction) {
           return;
      }
 
@@ -1136,11 +1154,6 @@ function startCalendarDayTextEditing(textElement, item) {
 
 function handleCalendarTextPointerDown(textElement, event) {
      if (!textElement.isContentEditable) {
-          return;
-     }
-
-     if (typeof keyboardMode !== "undefined" && keyboardMode === "design") {
-          textElement.blur();
           return;
      }
 
@@ -1579,7 +1592,7 @@ function renderPerpetualCalendar(item) {
                }
           });
           row.addEventListener("click", (event) => {
-               if (typeof keyboardMode !== "undefined" && keyboardMode !== "interact") {
+               if (typeof activeAction !== "undefined" && activeAction) {
                     return;
                }
 
@@ -1668,7 +1681,7 @@ function renderDiaryView(item) {
                }
           });
           row.addEventListener("click", (event) => {
-               if (typeof keyboardMode !== "undefined" && keyboardMode !== "interact") {
+               if (typeof activeAction !== "undefined" && activeAction) {
                     return;
                }
 

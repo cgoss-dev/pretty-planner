@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-338">
+     <link rel="stylesheet" href="style.css?v=planner-storage-343">
 </head>
 <body>
      <main class="planner-desk">
@@ -24,10 +24,6 @@
           <div class="zoom-toast" data-zoom-toast aria-live="polite" aria-atomic="true">100%</div>
           <aside class="planner-sidebar" data-planner-sidebar aria-label="Planner sidebar">
                <div class="panel-title title planner-sidebar-title">Sidebar</div>
-               <div class="planner-sidebar-mode-controls" aria-label="Mode select">
-                    <button class="planner-sidebar-mode-button" type="button" data-sidebar-mode="interact" aria-pressed="true">Interact Mode</button>
-                    <button class="planner-sidebar-mode-button" type="button" data-sidebar-mode="design" aria-pressed="false">Design Mode</button>
-               </div>
                <aside class="hint-panel" data-hint-panel aria-label="Available keyboard controls" aria-live="polite"></aside>
 
           <form class="control-panel" aria-label="Planner settings panel">
@@ -46,6 +42,21 @@
                     <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Widgets" aria-controls="add-panel" data-control-panel-tab="add">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
                          <span class="control-panel-tab-label">3 Widgets</span>
+                         <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
+                    </button>
+                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Widget style" aria-controls="object-panel" data-control-panel-tab="object-style" disabled aria-disabled="true">
+                         <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
+                         <span class="control-panel-tab-label">4 Style</span>
+                         <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
+                    </button>
+                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Widget text" aria-controls="object-panel" data-control-panel-tab="object-text" disabled aria-disabled="true">
+                         <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
+                         <span class="control-panel-tab-label">5 Text</span>
+                         <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
+                    </button>
+                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Widget options" aria-controls="object-panel" data-control-panel-tab="object-widget" disabled aria-disabled="true">
+                         <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
+                         <span class="control-panel-tab-label">6 Options</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
                </div>
@@ -495,7 +506,7 @@
 
                <div class="control-panel-page object-control-panel-page" id="object-panel" role="tabpanel" data-control-panel-page="object" hidden>
                     <div class="control-object-shell is-inactive" data-object-controls-shell>
-                         <div class="control-object-empty" data-object-controls-empty>Select an object</div>
+                         <div class="control-object-empty" data-object-controls-empty>Select a widget</div>
                     </div>
                </div>
 
@@ -545,11 +556,11 @@
      </main>
 
      <script src="config.js?v=planner-storage-179"></script>
-     <script src="ui.js?v=planner-storage-219"></script>
-     <script src="widgets-calendars.js?v=planner-storage-39"></script>
-     <script src="widgets.js?v=planner-storage-313"></script>
+     <script src="ui.js?v=planner-storage-220"></script>
+     <script src="widgets-calendars.js?v=planner-storage-40"></script>
+     <script src="widgets.js?v=planner-storage-318"></script>
      <script src="storage.js?v=planner-storage-30"></script>
-     <script src="controls.js?v=planner-storage-200"></script>
-     <script src="app.js?v=planner-storage-274"></script>
+     <script src="controls.js?v=planner-storage-201"></script>
+     <script src="app.js?v=planner-storage-277"></script>
 </body>
 </html>
