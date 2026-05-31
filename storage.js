@@ -102,6 +102,7 @@ function serializePlannerItem(item) {
                     shareWeekends: item.dataset.shareWeekends === "true",
                     weekNotes: item.dataset.weekNotes || "off",
                     dayNotes: isCalendarTextItem(item) ? getCalendarDayNotes(item) : null,
+                    dayTextAppearsInToc: item.dataset.dayTextAppearsInToc === "true",
                     dayText: null
           }
                : null,
@@ -109,7 +110,8 @@ function serializePlannerItem(item) {
                ? {
                     enabled: item.dataset.textEnabled === "true",
                     content: isTocItem(item) ? "" : textElement ? textElement.textContent : "",
-                    role: item.dataset.textRole || "body"
+                    role: item.dataset.textRole || "body",
+                    appearsInToc: item.dataset.textAppearsInToc === "true"
                }
                : null
      };
@@ -443,10 +445,12 @@ function restorePlannerItemSettings(item, itemData) {
                content: isTocItem(item) ? undefined : text.content || "",
                role: text.role
           });
+          item.dataset.textAppearsInToc = normalizeStoredBoolean(text.appearsInToc) || "false";
      }
      if (isCalendarItem(item)) {
           if (isCalendarTextItem(item)) {
                item.dataset.dayNotes = JSON.stringify(widget.dayNotes || {});
+               item.dataset.dayTextAppearsInToc = normalizeStoredBoolean(widget.dayTextAppearsInToc) || "false";
           }
           setCalendarWidgetSettings(item, {
                weekNumbers: normalizeStoredBoolean(widget.weekNumbers, "true"),

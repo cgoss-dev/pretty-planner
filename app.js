@@ -190,6 +190,19 @@ const factoryPlannerDefaults = {
           lineHeight: "1",
           role: "title"
      },
+     subtitleText: {
+          size: "10",
+          font: "annotation-mono",
+          color: "var(--color-gray1)",
+          bold: "false",
+          italic: "false",
+          underline: "false",
+          strike: "false",
+          align: "center",
+          yAlign: "center",
+          lineHeight: "1",
+          role: "subtitle"
+     },
      pageTitleText: {
           size: "10",
           font: "annotation-mono",
@@ -249,7 +262,9 @@ const factoryPlannerDefaults = {
           yearFormat: "yyyy",
           monthFormat: "full",
           dayFormat: "ddd"
-     }
+     },
+     widgetTextRoles: {},
+     widgetTextToc: {}
 };
 
 const dateOrderParts = [
@@ -304,6 +319,7 @@ function getNormalizedPlannerDefaults(defaults = {}) {
      const dateDefaults = defaults.date && typeof defaults.date === "object" ? defaults.date : {};
      const bodyTextDefaults = defaults.bodyText && typeof defaults.bodyText === "object" ? defaults.bodyText : defaults.text;
      const titleTextDefaults = defaults.titleText && typeof defaults.titleText === "object" ? defaults.titleText : {};
+     const subtitleTextDefaults = defaults.subtitleText && typeof defaults.subtitleText === "object" ? defaults.subtitleText : {};
      const pageTitleTextDefaults = defaults.pageTitleText && typeof defaults.pageTitleText === "object" ? defaults.pageTitleText : {};
 
      return {
@@ -312,6 +328,11 @@ function getNormalizedPlannerDefaults(defaults = {}) {
                ...factoryPlannerDefaults.titleText,
                ...titleTextDefaults,
                role: "title"
+          },
+          subtitleText: {
+               ...factoryPlannerDefaults.subtitleText,
+               ...subtitleTextDefaults,
+               role: "subtitle"
           },
           pageTitleText: {
                ...factoryPlannerDefaults.pageTitleText,
@@ -347,7 +368,9 @@ function getNormalizedPlannerDefaults(defaults = {}) {
                yearFormat: normalizeDateYearFormat(dateDefaults.yearFormat || factoryPlannerDefaults.date.yearFormat),
                monthFormat: normalizeDateMonthFormat(dateDefaults.monthFormat || factoryPlannerDefaults.date.monthFormat),
                dayFormat: normalizeDateDayFormat(dateDefaults.dayFormat || factoryPlannerDefaults.date.dayFormat)
-          }
+          },
+          widgetTextRoles: defaults.widgetTextRoles && typeof defaults.widgetTextRoles === "object" ? defaults.widgetTextRoles : {},
+          widgetTextToc: defaults.widgetTextToc && typeof defaults.widgetTextToc === "object" ? defaults.widgetTextToc : {}
      };
 }
 
@@ -363,13 +386,47 @@ function getPlannerDefaultTextSettings(overrides = {}, role = "body") {
      const textRole = overrides.role || role;
      const defaults = textRole === "page-title"
           ? plannerDefaultSettings.pageTitleText
-          : (textRole === "title" ? plannerDefaultSettings.titleText : plannerDefaultSettings.text);
+          : (textRole === "title" ? plannerDefaultSettings.titleText : (textRole === "subtitle" ? plannerDefaultSettings.subtitleText : plannerDefaultSettings.text));
 
      return {
           ...defaults,
           ...overrides
      };
 }
+
+function getPlannerWidgetTextPartRole(type, partName) {
+     return plannerDefaultSettings.widgetTextRoles?.[type]?.[partName] || "";
+}
+
+function setPlannerWidgetTextPartRole(type, partName, role) {
+     if (!plannerDefaultSettings.widgetTextRoles || typeof plannerDefaultSettings.widgetTextRoles !== "object") {
+          plannerDefaultSettings.widgetTextRoles = {};
+     }
+     if (!plannerDefaultSettings.widgetTextRoles[type]) {
+          plannerDefaultSettings.widgetTextRoles[type] = {};
+     }
+     plannerDefaultSettings.widgetTextRoles[type][partName] = role;
+}
+
+function getPlannerWidgetTextPartToc(type, partName) {
+     return plannerDefaultSettings.widgetTextToc?.[type]?.[partName] || "";
+}
+
+function setPlannerWidgetTextPartToc(type, partName, appearsInToc) {
+     if (!plannerDefaultSettings.widgetTextToc || typeof plannerDefaultSettings.widgetTextToc !== "object") {
+          plannerDefaultSettings.widgetTextToc = {};
+     }
+     if (!plannerDefaultSettings.widgetTextToc[type]) {
+          plannerDefaultSettings.widgetTextToc[type] = {};
+     }
+     plannerDefaultSettings.widgetTextToc[type][partName] = appearsInToc ? "true" : "false";
+}
+
+window.getPlannerDefaultTextSettings = getPlannerDefaultTextSettings;
+window.getPlannerWidgetTextPartRole = getPlannerWidgetTextPartRole;
+window.setPlannerWidgetTextPartRole = setPlannerWidgetTextPartRole;
+window.getPlannerWidgetTextPartToc = getPlannerWidgetTextPartToc;
+window.setPlannerWidgetTextPartToc = setPlannerWidgetTextPartToc;
 
 function getPlannerDefaultItemStyle(type = "sticker") {
      const perimeter = plannerDefaultSettings.grid.perimeter;
@@ -2782,9 +2839,7 @@ function handleSidebarNumberKey(event) {
                enterKeyboardMenuBranch("menu", "add");
           } else if (event.key === "4" && !controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "object-style")?.disabled) {
                enterKeyboardMenuBranch("object-style", "object-style");
-          } else if (event.key === "5" && !controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "object-text")?.disabled) {
-               enterKeyboardMenuBranch("object-text", "object-text");
-          } else if (event.key === "6" && !controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "object-widget")?.disabled) {
+          } else if (event.key === "5" && !controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "object-widget")?.disabled) {
                enterKeyboardMenuBranch("object-widget", "object-widget");
           }
           return;
@@ -2814,19 +2869,13 @@ function handleSidebarNumberKey(event) {
           return;
      }
 
-     if (sidebarContext === "object-text" && event.key === "5") {
+     if (sidebarContext === "object-widget" && event.key === "5") {
           event.preventDefault();
           returnToSidebarRoot();
           return;
      }
 
-     if (sidebarContext === "object-widget" && event.key === "6") {
-          event.preventDefault();
-          returnToSidebarRoot();
-          return;
-     }
-
-     if (sidebarContext === "controls" || sidebarContext === "defaults" || sidebarContext === "menu" || sidebarContext === "object-style" || sidebarContext === "object-text" || sidebarContext === "object-widget") {
+     if (sidebarContext === "controls" || sidebarContext === "defaults" || sidebarContext === "menu" || sidebarContext === "object-style" || sidebarContext === "object-widget") {
           const tab = controlPanelTabs[Number(event.key) - 1];
 
           if (!tab || tab.disabled) {
@@ -3495,19 +3544,7 @@ function getKeyHintState() {
                mode: "Current Action > Widget Style",
                entries: [
                ["4", "Back"],
-               ["4-6", "Widget tabs"],
-               ["Enter", "Select"],
-               ["Esc", "Clear selection"]
-               ]
-          };
-     }
-
-     if (sidebarContext === "object-text") {
-          return {
-               mode: "Current Action > Widget Text",
-               entries: [
-               ["5", "Back"],
-               ["4-6", "Widget tabs"],
+               ["4-5", "Widget tabs"],
                ["Enter", "Select"],
                ["Esc", "Clear selection"]
                ]
@@ -3518,8 +3555,8 @@ function getKeyHintState() {
           return {
                mode: "Current Action > Widget Options",
                entries: [
-               ["6", "Back"],
-               ["4-6", "Widget tabs"],
+               ["5", "Back"],
+               ["4-5", "Widget tabs"],
                ["Enter", "Select"],
                ["Esc", "Clear selection"]
                ]

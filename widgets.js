@@ -64,6 +64,53 @@ function applyTextThemeToElement(element, textTheme = {}, theme = null, override
      element.style.alignContent = getTextYAlignValue(defaultText?.yAlign || "center");
 }
 
+function getWidgetTypeTextParts(type) {
+     return plannerWidgetThemeSlots?.widgets?.[type]?.parts || {};
+}
+
+function getWidgetTextPartSlots(type, partName) {
+     return getWidgetTypeTextParts(type)?.[partName] || null;
+}
+
+function getWidgetTextPartRole(type, partName) {
+     const storedRole = typeof getPlannerWidgetTextPartRole === "function" ? getPlannerWidgetTextPartRole(type, partName) : "";
+     const slotRole = getWidgetTextPartSlots(type, partName)?.textSlot;
+
+     return storedRole || slotRole || "body";
+}
+
+function getDefaultWidgetTextPartToc(type, partName) {
+     return false;
+}
+
+function getWidgetTextPartToc(type, partName) {
+     if (typeof getPlannerWidgetTextPartToc === "function") {
+          const storedValue = getPlannerWidgetTextPartToc(type, partName);
+
+          if (storedValue === "true" || storedValue === "false") {
+               return storedValue === "true";
+          }
+     }
+
+     return getDefaultWidgetTextPartToc(type, partName);
+}
+
+function setWidgetTextPartToc(type, partName, appearsInToc) {
+     if (typeof setPlannerWidgetTextPartToc !== "function") {
+          return;
+     }
+
+     setPlannerWidgetTextPartToc(type, partName, appearsInToc);
+}
+
+function setWidgetTextPartRole(type, partName, role) {
+     if (typeof setPlannerWidgetTextPartRole !== "function") {
+          return;
+     }
+
+     setPlannerWidgetTextPartRole(type, partName, role);
+}
+
 function applyThemeToWidget(item) {
      const theme = plannerThemesData?.themes?.[0];
      const widgetSlots = plannerWidgetThemeSlots?.widgets?.[item.dataset.itemType];
@@ -76,9 +123,10 @@ function applyThemeToWidget(item) {
           item.querySelectorAll(`[data-theme-part="${partName}"]`).forEach((part) => {
                if (partSlots.textSlot) {
                     applyTextThemeToElement(part, theme.text?.[partSlots.textSlot] || {}, theme, {
-                         textSlot: partSlots.textSlot,
+                         textSlot: getWidgetTextPartRole(item.dataset.itemType, partName),
                          sizeMultiplier: partSlots.sizeMultiplier
                     });
+                    part.dataset.textRole = getWidgetTextPartRole(item.dataset.itemType, partName);
                }
                if (partSlots.fillSlot && theme.widget?.[partSlots.fillSlot]) {
                     if (isCalendarItem(item) && partSlots.fillSlot !== "fillColor1") {
@@ -398,6 +446,47 @@ function getPageTitleText(item) {
      return text || "Page Title";
 }
 
+function isFullMonthItem(item) {
+     return item?.dataset?.itemType === "full-month";
+}
+
+function getFullMonthTocTitle(item) {
+     if (!isFullMonthItem(item)) {
+          return "";
+     }
+
+     const monthDisplay = item.dataset.monthDisplay || "full";
+     const yearDisplay = item.dataset.yearDisplay || (item.dataset.yearVisible === "false" ? "none" : "full");
+     const dateFormats = typeof getCalendarDateFormats === "function" ? getCalendarDateFormats(item) : {};
+     const { month, year } = typeof getCalendarEffectiveMonthYear === "function"
+          ? getCalendarEffectiveMonthYear(item)
+          : {
+               month: Number(item.dataset.month) || 0,
+               year: Number(item.dataset.year) || new Date().getFullYear()
+          };
+     const monthText = monthDisplay === "none" || typeof getCalendarMonthTitle !== "function"
+          ? ""
+          : getCalendarMonthTitle(month, dateFormats.monthFormat === "ddd" ? "short" : "full");
+     const yearText = yearDisplay === "none" || typeof getCalendarYearTitle !== "function"
+          ? ""
+          : getCalendarYearTitle(year, dateFormats.yearFormat === "yy" ? "short" : "full");
+     const title = [monthText, yearText].filter(Boolean).join(" ").trim();
+
+     return title || "Full Month";
+}
+
+function getWidgetTextPartTocTitle(item, partName) {
+     if (isFullMonthItem(item) && partName === "monthTitle") {
+          return getFullMonthTocTitle(item);
+     }
+
+     const text = Array.from(item.querySelectorAll(`[data-theme-part="${partName}"]`))
+          .map((element) => element.textContent.trim())
+          .find(Boolean);
+
+     return text || getReadableTextPartName(partName);
+}
+
 function getPageTitleItemForPageNumber(pageNumber, exceptItem = null) {
      return getAllPlannerItems().find((item) => (
           item !== exceptItem &&
@@ -408,14 +497,48 @@ function getPageTitleItemForPageNumber(pageNumber, exceptItem = null) {
 }
 
 function getPageTitleEntries() {
-     return getAllPlannerItems()
+     const pageTitleEntries = getAllPlannerItems()
           .filter((item) => isPageTitleItem(item) && item.dataset.pageId && isPageNumberAvailable(getItemPageNumber(item)))
           .map((item) => ({
                pageNumber: getItemPageNumber(item),
                title: getPageTitleText(item)
           }))
-          .filter((entry) => entry.title !== "")
+          .filter((entry) => entry.title !== "");
+     const widgetTextEntries = getAllPlannerItems()
+          .filter((item) => item.dataset.pageId && isPageNumberAvailable(getItemPageNumber(item)))
+          .flatMap((item) => Array.from(new Set(Array.from(item.querySelectorAll("[data-theme-part]")).map((part) => part.dataset.themePart).filter(Boolean)))
+               .filter((partName) => getWidgetTextPartToc(item.dataset.itemType, partName))
+               .map((partName) => ({
+                    pageNumber: getItemPageNumber(item),
+                    title: getWidgetTextPartTocTitle(item, partName),
+                    sourceId: `${item.dataset.templateId}:${partName}`
+               })))
+          .filter((entry) => entry.title !== "");
+     const uniqueEntries = [...pageTitleEntries, ...widgetTextEntries, ...getManualTocEntries()]
+          .filter((entry, index, entries) => entries.findIndex((candidate) => candidate.pageNumber === entry.pageNumber && getTocDisplayTitle(candidate.title) === getTocDisplayTitle(entry.title)) === index);
+
+     return uniqueEntries
           .sort((first, second) => first.pageNumber - second.pageNumber);
+}
+
+function getManualTocEntries() {
+     const stickerEntries = getAllPlannerItems()
+          .filter((item) => isStickerTextItem(item) && item.dataset.pageId && item.dataset.textAppearsInToc === "true" && isPageNumberAvailable(getItemPageNumber(item)))
+          .map((item) => ({
+               pageNumber: getItemPageNumber(item),
+               title: getStickerTextElement(item)?.textContent?.trim() || getReadableTextPartName(item.dataset.itemType)
+          }))
+          .filter((entry) => entry.title !== "");
+     const calendarTextEntries = getAllPlannerItems()
+          .filter((item) => typeof isCalendarTextItem === "function" && isCalendarTextItem(item) && item.dataset.pageId && item.dataset.dayTextAppearsInToc === "true" && isPageNumberAvailable(getItemPageNumber(item)))
+          .flatMap((item) => Array.from(item.querySelectorAll(".calendar-day-text"))
+               .map((textElement) => ({
+                    pageNumber: getItemPageNumber(item),
+                    title: textElement.textContent.trim()
+               })))
+          .filter((entry) => entry.title !== "");
+
+     return [...stickerEntries, ...calendarTextEntries];
 }
 
 function renderTocWidgets() {
@@ -1353,6 +1476,136 @@ function openItemMenu(item) {
      updateClipboardControls();
 }
 
+function getTextRoleLabel(role) {
+     return {
+          title: "Title",
+          subtitle: "Subtitle",
+          body: "Body",
+          "page-title": "Page Title"
+     }[role] || "Body";
+}
+
+function getReadableTextPartName(partName) {
+     return String(partName || "Text")
+          .replace(/([a-z])([A-Z])/g, "$1 $2")
+          .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function getPopupEventElement(event) {
+     const target = event?.target || null;
+
+     return target?.nodeType === Node.TEXT_NODE ? target.parentElement : target;
+}
+
+function getWidgetTextPopupTarget(item, event) {
+     const type = item?.dataset?.itemType || "";
+     const eventElement = getPopupEventElement(event);
+     const partElement = eventElement?.closest?.("[data-theme-part]");
+     const partName = partElement?.dataset?.themePart;
+
+     if (!item || !partName) {
+          return null;
+     }
+
+     const partSlots = getWidgetTextPartSlots(type, partName);
+
+     if (!partSlots?.textSlot) {
+          return null;
+     }
+
+     if (type === "sticker" && partName === "text") {
+         return {
+               label: "Sticky Text",
+               appearsInToc: item.dataset.textAppearsInToc === "true",
+               role: item.dataset.textRole || "body",
+               scope: "item",
+               type: "sticker"
+          };
+     }
+
+     if (partName === "dayNotes") {
+         return {
+               label: "Body Text",
+               appearsInToc: item.dataset.dayTextAppearsInToc === "true",
+               role: item.dataset.dayTextRole || "body",
+               scope: "item",
+               type: "calendar-day"
+          };
+     }
+
+     return {
+          label: getReadableTextPartName(partName),
+          appearsInToc: getWidgetTextPartToc(type, partName),
+          partName,
+          role: getWidgetTextPartRole(type, partName),
+          scope: "type",
+          type
+     };
+}
+
+function applyPopupTextRole(item, textTarget, role) {
+     const settings = typeof getPlannerDefaultTextSettings === "function"
+          ? getPlannerDefaultTextSettings({
+               role
+          }, role)
+          : {
+               role
+          };
+
+     if (textTarget.scope === "type") {
+          setWidgetTextPartRole(textTarget.type, textTarget.partName, role);
+          getAllPlannerItems()
+               .filter((plannerItem) => plannerItem.dataset.itemType === textTarget.type)
+               .forEach((plannerItem) => {
+                    applyThemeToWidget(plannerItem);
+                    if (isCalendarItem(plannerItem)) {
+                         applyCalendarPartStyles(plannerItem);
+                    }
+               });
+          notifyTemplateChanged();
+          return;
+     }
+
+     if (textTarget.type === "sticker") {
+          setStickerTextSettings(item, {
+               ...settings,
+               enabled: item.dataset.textEnabled ?? "true"
+          });
+          notifyTemplateChanged();
+          return;
+     }
+
+     if (textTarget.type === "calendar-day") {
+          setCalendarDayTextSettings(item, settings);
+          notifyTemplateChanged();
+     }
+}
+
+function applyPopupTextToc(item, textTarget, appearsInToc) {
+     if (textTarget.scope === "type") {
+          setWidgetTextPartToc(textTarget.type, textTarget.partName, appearsInToc);
+          getAllPlannerItems()
+               .filter((plannerItem) => plannerItem.dataset.itemType === textTarget.type)
+               .forEach((plannerItem) => {
+                    applyThemeToWidget(plannerItem);
+                    if (isCalendarItem(plannerItem)) {
+                         applyCalendarPartStyles(plannerItem);
+                    }
+               });
+          renderTocWidgets();
+          notifyTemplateChanged();
+          return;
+     }
+
+     if (textTarget.type === "sticker") {
+          item.dataset.textAppearsInToc = appearsInToc ? "true" : "false";
+     } else if (textTarget.type === "calendar-day") {
+          item.dataset.dayTextAppearsInToc = appearsInToc ? "true" : "false";
+     }
+     renderTocWidgets();
+     notifyTemplateChanged();
+}
+
 function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedActionItems(item)) {
      const controls = getWidgetPanel(item);
 
@@ -1364,19 +1617,35 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      closeWidgetActionPopovers();
      const popup = document.createElement("div");
      const widgetType = document.createElement("div");
+     const textGroup = document.createElement("div");
+     const textGroupTitle = document.createElement("div");
      const layoutGroup = document.createElement("div");
      const duplicateGroup = document.createElement("div");
      const layerGroup = document.createElement("div");
+     const textTarget = getWidgetTextPopupTarget(item, event);
      const makeButton = (label, action, className = "") => {
           const button = document.createElement("button");
+          const runAction = (buttonEvent) => {
+               buttonEvent.preventDefault();
+               buttonEvent.stopPropagation();
+               if (button.dataset.actionHandled === "true") {
+                    return;
+               }
+
+               button.dataset.actionHandled = "true";
+               action(button);
+               requestAnimationFrame(() => {
+                    delete button.dataset.actionHandled;
+               });
+          };
 
           button.className = `widget-panel-button${className ? ` ${className}` : ""}`;
           button.type = "button";
           button.textContent = label;
-          button.addEventListener("click", (clickEvent) => {
-               clickEvent.stopPropagation();
-               action(button);
-          });
+          button.addEventListener("pointerdown", runAction);
+          button.addEventListener("mousedown", runAction);
+          button.addEventListener("pointerup", runAction);
+          button.addEventListener("click", runAction);
           return button;
      };
      const closeAfter = (action) => (button) => {
@@ -1389,6 +1658,8 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      popup.setAttribute("role", "menu");
      widgetType.className = "item-actions-widget-type subtitle";
      widgetType.textContent = getActionItemsTypeLabel(actionItems);
+     textGroup.className = "item-text-role-action-group";
+     textGroupTitle.className = "item-actions-section-title";
      layoutGroup.className = "item-layout-action-group";
      duplicateGroup.className = "item-action-row";
      layerGroup.className = "item-layer-actions";
@@ -1417,10 +1688,24 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      const bringForwardButton = makeButton("Bring Fwd", closeAfter(() => moveActionItemsLayer(item, "forward")));
      const deleteButton = makeButton("Delete", closeAfter(() => deleteItem(item)), "widget-panel-danger");
 
+     if (textTarget) {
+          textGroupTitle.textContent = textTarget.scope === "type"
+               ? `${textTarget.label}: all ${getActionItemsTypeLabel([item])}`
+               : `${textTarget.label}: this widget`;
+          textGroup.append(textGroupTitle);
+          ["title", "subtitle", "body"].forEach((role) => {
+               textGroup.append(makeButton(getTextRoleLabel(role), closeAfter(() => applyPopupTextRole(item, textTarget, role)), textTarget.role === role ? "is-active" : ""));
+          });
+          textGroup.append(makeButton("Appears in ToC", closeAfter(() => applyPopupTextToc(item, textTarget, !textTarget.appearsInToc)), textTarget.appearsInToc ? "is-active" : ""));
+     }
      layoutGroup.append(moveButton, resizeButton);
      duplicateGroup.append(duplicateButton, groupButton);
      layerGroup.append(sendBackwardButton, bringForwardButton);
-     popup.append(widgetType, layoutGroup, duplicateGroup, layerGroup, deleteButton);
+     popup.append(widgetType);
+     if (textTarget) {
+          popup.append(textGroup);
+     }
+     popup.append(layoutGroup, duplicateGroup, layerGroup, deleteButton);
      plannerDesk.append(popup);
      positionItemActionsPopup(popup, event);
      updateObjectControlsState();
@@ -2551,7 +2836,6 @@ function makePlannerItem(type = "sticker") {
      const weekNotesLabel = document.createElement("label");
      const weekNotesSelect = document.createElement("select");
      const deleteButton = document.createElement("button");
-     const hasTextControls = isStickerTextItemType(type);
 
      item.className = `planner-item planner-item-${type}`;
      item.dataset.itemType = type;
@@ -3248,13 +3532,7 @@ function makePlannerItem(type = "sticker") {
           controlTabs.append(widgetTab);
      }
      controlTabs.append(styleTab);
-     if (hasTextControls) {
-          controlTabs.append(textTab);
-     }
      controls.append(widgetPanelTitle, controlTabs, actionsPanel, stylePanel);
-     if (hasTextControls) {
-          controls.append(textPanel);
-     }
      if (hasWidgetControls) {
           controls.append(widgetPanel);
      }
