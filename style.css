@@ -2532,7 +2532,6 @@ body {
      touch-action: none;
 }
 
-.page-title-source,
 .toc-source {
      display: grid;
      place-items: center;
@@ -2631,7 +2630,6 @@ body {
 }
 
 .add-panel .sticker-source,
-.add-panel .page-title-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
 .add-panel .full-month-source,
@@ -2653,7 +2651,6 @@ body {
 }
 
 .add-panel .sticker-source,
-.add-panel .page-title-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
 .add-panel .full-month-source,
@@ -2668,8 +2665,6 @@ body {
 
 .add-panel .sticker-source:hover,
 .add-panel .sticker-source:focus-visible,
-.add-panel .page-title-source:hover,
-.add-panel .page-title-source:focus-visible,
 .add-panel .toc-source:hover,
 .add-panel .toc-source:focus-visible,
 .add-panel .mini-month-source:hover,
@@ -2710,7 +2705,6 @@ body {
      content: "Table of Contents";
 }
 
-.add-panel .page-title-source > span,
 .add-panel .mini-month-source > span:not(.calendar-source-preview),
 .add-panel .full-month-source > span:not(.calendar-source-preview) > span:not(.calendar-source-preview),
 .add-panel .perpetual-calendar-source > span:not(.calendar-source-preview),
@@ -2760,16 +2754,6 @@ body {
      border-color: transparent;
 }
 
-.planner-item-page-title {
-     z-index: 29;
-     overflow: visible;
-}
-
-.planner-item-page-title[data-has-clear-fill="true"],
-.planner-item-page-title[data-has-clear-fill="true"] .sticker-text {
-     background: transparent;
-}
-
 .planner-item-toc {
      padding: 0;
      overflow: visible;
@@ -2797,6 +2781,7 @@ body {
      cursor: text;
      outline: 0;
      pointer-events: none;
+     user-select: text;
      white-space: pre-wrap;
      word-break: break-word;
      scrollbar-width: none;
@@ -2809,23 +2794,6 @@ body {
 
 .planner-item-sticker .sticker-text {
      overflow: visible;
-}
-
-.planner-item-page-title .sticker-text {
-     inset: -3px 6px -5px;
-     display: grid;
-     align-items: center;
-     overflow: visible;
-}
-
-.planner-item-page-title .sticker-text:empty::before {
-     content: "Page Title";
-     color: var(--color-gray4);
-}
-
-.planner-item-page-title.is-editing-text .sticker-text {
-     overflow-y: visible;
-     pointer-events: auto;
 }
 
 .toc-widget {
@@ -3072,7 +3040,6 @@ body {
      aspect-ratio: 1;
 }
 
-.add-panel .page-title-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
 .add-panel .full-month-source,
@@ -3081,11 +3048,6 @@ body {
 .add-panel .day-view-source,
 .add-panel .diary-view-source {
      min-height: 100px;
-}
-
-.add-panel .page-title-source {
-     min-height: 33px;
-     aspect-ratio: 3;
 }
 
 .add-panel .full-month-source {

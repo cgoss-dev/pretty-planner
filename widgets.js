@@ -46,9 +46,7 @@ function applyTextThemeToElement(element, textTheme = {}, theme = null, override
           ...textTheme,
           ...overrides
      };
-     const defaultRole = nextTextTheme.textSlot === "page-title"
-          ? "page-title"
-          : (nextTextTheme.textSlot === "title" ? "title" : "body");
+     const defaultRole = nextTextTheme.textSlot === "title" ? "title" : "body";
      const defaultText = typeof getPlannerDefaultTextSettings === "function" ? getPlannerDefaultTextSettings({}, defaultRole) : null;
 
      element.style.fontFamily = getStickerTextFont(defaultText?.font || nextTextTheme.typeface || "annotation-mono");
@@ -185,17 +183,15 @@ function applyDefaultGridLineStyles(item) {
      item.style.setProperty("--widget-body-v-line-width", bodyVertical.width);
      item.style.setProperty("--widget-body-h-line-color", bodyHorizontal.color);
      item.style.setProperty("--widget-body-h-line-width", bodyHorizontal.width);
-     if (!isPageTitleItem(item)) {
-          item.style.setProperty("--sticker-border-color", perimeter.color);
-          item.style.setProperty("--sticker-border-size", perimeter.width);
-     }
+     item.style.setProperty("--sticker-border-color", perimeter.color);
+     item.style.setProperty("--sticker-border-size", perimeter.width);
 }
 
 async function loadPlannerThemeData() {
      try {
           const [themesResponse, slotsResponse] = await Promise.all([
                fetch("data/themes.json?v=planner-storage-8"),
-               fetch("data/widget-theme-slots.json?v=planner-storage-7")
+               fetch("data/widget-theme-slots.json?v=planner-storage-8")
           ]);
 
           plannerThemesData = await themesResponse.json();
@@ -350,20 +346,6 @@ function clampTocBox(item, page, box) {
      };
 }
 
-function getPageTitleGridUnits() {
-     return {
-          width: Math.max(1, plannerConfig.gridColumns - 2),
-          height: 5
-     };
-}
-
-function getPageTitleMinGridUnits() {
-     return {
-          width: plannerConfig.halfColumn,
-          height: 3
-     };
-}
-
 function setItemStyle(item, style) {
      item.dataset.fillColor = style.fillColor || item.dataset.fillColor || "var(--color-white)";
      item.dataset.borderColor = style.borderColor || item.dataset.borderColor || "var(--color-gray4)";
@@ -415,21 +397,13 @@ function setItemStyle(item, style) {
      controls.querySelectorAll("select").forEach(updateCustomSelectDisplay);
 }
 
-// NOTE: Page Titles, Table Of Contents, And Page Ins/Rmv Rules
+// NOTE: Table Of Contents, And Page Ins/Rmv Rules
 function getClearPageSides() {
      return PageControls.getClearPageSides({ viewFocusPoints, viewFocusIndex });
 }
 
-function isPageTitleItemType(type) {
-     return type === "page-title";
-}
-
-function isPageTitleItem(item) {
-     return isPageTitleItemType(item?.dataset?.itemType);
-}
-
 function isStickerTextItemType(type) {
-     return type === "sticker" || type === "page-title" || type === "toc";
+     return type === "sticker" || type === "toc";
 }
 
 function isStickerTextItem(item) {
@@ -438,12 +412,6 @@ function isStickerTextItem(item) {
 
 function getPageNumberForPage(page) {
      return getCurrentSpreadPageNumber(getPageId(page));
-}
-
-function getPageTitleText(item) {
-     const text = getStickerTextElement(item)?.textContent?.trim() || "";
-
-     return text || "Page Title";
 }
 
 function isFullMonthItem(item) {
@@ -487,23 +455,7 @@ function getWidgetTextPartTocTitle(item, partName) {
      return text || getReadableTextPartName(partName);
 }
 
-function getPageTitleItemForPageNumber(pageNumber, exceptItem = null) {
-     return getAllPlannerItems().find((item) => (
-          item !== exceptItem &&
-          isPageTitleItem(item) &&
-          item.dataset.pageId &&
-          getItemPageNumber(item) === pageNumber
-     )) || null;
-}
-
-function getPageTitleEntries() {
-     const pageTitleEntries = getAllPlannerItems()
-          .filter((item) => isPageTitleItem(item) && item.dataset.pageId && isPageNumberAvailable(getItemPageNumber(item)))
-          .map((item) => ({
-               pageNumber: getItemPageNumber(item),
-               title: getPageTitleText(item)
-          }))
-          .filter((entry) => entry.title !== "");
+function getTocTitleEntries() {
      const widgetTextEntries = getAllPlannerItems()
           .filter((item) => item.dataset.pageId && isPageNumberAvailable(getItemPageNumber(item)))
           .flatMap((item) => Array.from(new Set(Array.from(item.querySelectorAll("[data-theme-part]")).map((part) => part.dataset.themePart).filter(Boolean)))
@@ -514,7 +466,7 @@ function getPageTitleEntries() {
                     sourceId: `${item.dataset.templateId}:${partName}`
                })))
           .filter((entry) => entry.title !== "");
-     const uniqueEntries = [...pageTitleEntries, ...widgetTextEntries, ...getManualTocEntries()]
+     const uniqueEntries = [...widgetTextEntries, ...getManualTocEntries()]
           .filter((entry, index, entries) => entries.findIndex((candidate) => candidate.pageNumber === entry.pageNumber && getTocDisplayTitle(candidate.title) === getTocDisplayTitle(entry.title)) === index);
 
      return uniqueEntries
@@ -542,38 +494,15 @@ function getManualTocEntries() {
 }
 
 function renderTocWidgets() {
-     renderTocWidgetsForItems(getAllPlannerItems(), getPageTitleEntries);
+     renderTocWidgetsForItems(getAllPlannerItems(), getTocTitleEntries);
 }
 
 function canPlaceItemOnPage(item, page) {
-     if (!page || !isPageTitleItem(item)) {
-          return true;
-     }
-
-     const pageNumber = getPageNumberForPage(page);
-
-     return isPageNumberAvailable(pageNumber) && !getPageTitleItemForPageNumber(pageNumber, item);
+     return true;
 }
 
 function canPlaceActiveMoveItemsOnPage(page) {
-     if (!page || activeAction?.type !== "move") {
-          return true;
-     }
-
-     const pageNumber = getPageNumberForPage(page);
-     const pageTitleItems = activeAction.items.filter(({ item }) => isPageTitleItem(item));
-
-     if (!pageTitleItems.length) {
-          return true;
-     }
-
-     if (!isPageNumberAvailable(pageNumber) || pageTitleItems.length > 1) {
-          return false;
-     }
-
-     const existingTitleItem = getPageTitleItemForPageNumber(pageNumber);
-
-     return !existingTitleItem || pageTitleItems.some(({ item }) => item === existingTitleItem);
+     return true;
 }
 
 function clearItems(items) {
@@ -824,7 +753,7 @@ function setItemBox(item, box) {
      updatePerpetualCalendarGridMetrics(item, page, box);
      updateItemTextLineHeight(item);
      updateStickerTextOverflow(item);
-     renderToc(item, getPageTitleEntries());
+     renderToc(item, getTocTitleEntries());
      if (isTimeGridCalendarType(item.dataset.itemType)) {
           renderWeeklyVertical(item);
      }
@@ -974,7 +903,7 @@ function setStickerTextSettings(item, settings = {}) {
 
      const textElement = getStickerTextElement(item);
      const controls = getWidgetPanel(item) || item;
-     const isGeneratedTextItem = isPageTitleItem(item) || isTocItem(item);
+     const isGeneratedTextItem = isTocItem(item);
      const isEnabled = isGeneratedTextItem ? "true" : settings.enabled ?? item.dataset.textEnabled ?? "false";
 
      item.dataset.textEnabled = String(isEnabled);
@@ -989,7 +918,7 @@ function setStickerTextSettings(item, settings = {}) {
      item.dataset.textAlign = settings.align || item.dataset.textAlign || "center";
      item.dataset.textYAlign = settings.yAlign || item.dataset.textYAlign || "center";
      item.dataset.textLineHeight = settings.lineHeight || item.dataset.textLineHeight || "1";
-     item.dataset.textRole = settings.role || item.dataset.textRole || (isPageTitleItem(item) ? "title" : "body");
+     item.dataset.textRole = settings.role || item.dataset.textRole || "body";
 
      if (textElement) {
           if (!isTocItem(item) && settings.content !== undefined) {
@@ -1156,6 +1085,11 @@ function startStickerTextEditing(item) {
           return;
      }
 
+     if (textElement.isContentEditable) {
+          textElement.focus();
+          return;
+     }
+
      if (item.dataset.textEnabled !== "true") {
           setStickerTextSettings(item, {
                enabled: "true"
@@ -1236,10 +1170,6 @@ function getGridSnappedSize(item, page) {
 }
 
 function getItemGridUnits(item) {
-     if (item.dataset.itemType === "page-title") {
-          return getPageTitleGridUnits();
-     }
-
      if (item.dataset.itemType === "mini-month") {
           return getMiniMonthGridUnits(item);
      }
@@ -1274,7 +1204,6 @@ function getWidgetPanel(item) {
 function getItemTypeLabel(type) {
      return {
           sticker: "Sticker",
-          "page-title": "Page Title",
           toc: "Table of Contents",
           "mini-month": "Mini Month",
           "full-month": "Full Month",
@@ -1480,8 +1409,7 @@ function getTextRoleLabel(role) {
      return {
           title: "Title",
           subtitle: "Subtitle",
-          body: "Body",
-          "page-title": "Page Title"
+          body: "Body"
      }[role] || "Body";
 }
 
@@ -2414,11 +2342,7 @@ function getResizedPerpetualCalendarBox(item, page, clientX, current, mode, grid
      });
 }
 
-function getItemMinGridHeight(item, pageTitleMinGridUnits = null) {
-     if (pageTitleMinGridUnits) {
-          return pageTitleMinGridUnits.height;
-     }
-
+function getItemMinGridHeight(item) {
      if (item.dataset.itemType === "perpetual-calendar") {
           return getPerpetualCalendarMaxGridRows();
      }
@@ -2475,11 +2399,8 @@ function getResizedBox(item, page, clientX, clientY, mode) {
           return getResizedPerpetualCalendarBox(item, page, clientX, current, mode, grid, origin, pageRect, viewZoom);
      }
 
-     const pageTitleMinGridUnits = item.dataset.itemType === "page-title" ? getPageTitleMinGridUnits() : null;
-     const minGridWidth = pageTitleMinGridUnits
-          ? pageTitleMinGridUnits.width
-          : (isTocItem(item) ? getTocMinGridColumns() : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMinGridColumns() : (isTimeGridCalendarType(item.dataset.itemType) ? getWeeklyVerticalMinGridColumns(item) : (isFullPageCalendarType(item.dataset.itemType) ? 16 : 2))));
-     const minGridHeight = getItemMinGridHeight(item, pageTitleMinGridUnits);
+     const minGridWidth = isTocItem(item) ? getTocMinGridColumns() : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMinGridColumns() : (isTimeGridCalendarType(item.dataset.itemType) ? getWeeklyVerticalMinGridColumns(item) : (isFullPageCalendarType(item.dataset.itemType) ? 16 : 2)));
+     const minGridHeight = getItemMinGridHeight(item);
      const minWidth = grid.x * minGridWidth;
      const minHeight = grid.y * minGridHeight;
      const maxHeight = item.dataset.itemType === "perpetual-calendar" ? grid.y * getPerpetualCalendarMaxGridRows() : Infinity;
@@ -3550,25 +3471,15 @@ function makePlannerItem(type = "sticker") {
      }
      item.append(controls);
      setItemStyle(item, typeof getPlannerDefaultItemStyle === "function" ? getPlannerDefaultItemStyle(type) : {
-          fillColor: isPageTitleItemType(type) ? "transparent" : "var(--color-white)",
-          borderColor: isPageTitleItemType(type) ? "transparent" : "var(--color-gray4)",
+          fillColor: "var(--color-white)",
+          borderColor: "var(--color-gray4)",
           borderWidth: borderWidthSelect.value,
           dotGrid: "false"
      });
      setStickerTextSettings(item, typeof getPlannerDefaultTextSettings === "function"
           ? getPlannerDefaultTextSettings({
-               enabled: isPageTitleItemType(type) || isTocItemType(type) ? "true" : "false"
-          }, isPageTitleItemType(type) ? "page-title" : "body")
-          : (isPageTitleItemType(type) ? {
-               enabled: "true",
-               size: "80",
-               font: "annotation-mono",
-               color: "var(--color-gray1)",
-               bold: "false",
-               strike: "false",
-               align: "center",
-               yAlign: "center"
-          } : {}));
+               enabled: isTocItemType(type) ? "true" : "false"
+          }) : {});
      setCalendarDayTextSettings(item, typeof getPlannerDefaultTextSettings === "function" ? getPlannerDefaultTextSettings() : {});
      if (isCalendarItemType(type)) {
           setCalendarWidgetSettings(item);
@@ -3656,6 +3567,10 @@ function makePlannerItem(type = "sticker") {
                return;
           }
 
+          if (event.target.closest(".sticker-text[contenteditable='true']")) {
+               return;
+          }
+
           event.preventDefault();
           startStickerTextEditing(item);
      });
@@ -3683,7 +3598,7 @@ function makePlannerItem(type = "sticker") {
           }
 
           event.preventDefault();
-          if (isStickerTextItem(item) || isPageTitleItem(item)) {
+          if (isStickerTextItem(item)) {
                startStickerTextEditing(item);
                return;
           }
@@ -3830,9 +3745,6 @@ function makePlannerItem(type = "sticker") {
      });
      textElement.addEventListener("input", () => {
           updateStickerTextOverflow(item);
-          if (isPageTitleItem(item)) {
-               renderTocWidgets();
-          }
      });
      textElement.addEventListener("blur", () => stopStickerTextEditing(item));
      textElement.addEventListener("pointerdown", (event) => {
@@ -4167,7 +4079,7 @@ function pasteClipboardItem(entry, copiedGroupIds) {
      if (entry.data.placement === "page" || entry.sourcePageId) {
           const page = getClipboardTargetPage(entry);
 
-          if (!page || (isPageTitleItem(duplicate) && !canPlaceItemOnPage(duplicate, page))) {
+          if (!page) {
                duplicate.remove();
                return null;
           }
@@ -4251,10 +4163,6 @@ function duplicateItem(item) {
 
      const page = getItemPage(item);
 
-     if (page && isPageTitleItem(item)) {
-          return;
-     }
-
      const box = getItemBox(item);
      const duplicate = makePlannerItem(item.dataset.itemType || "sticker");
      const parent = plannerDesk;
@@ -4284,10 +4192,6 @@ function duplicateSelectedItems() {
 
      selectedItems.forEach((item) => {
           const page = getItemPage(item);
-
-          if (page && isPageTitleItem(item)) {
-               return;
-          }
 
           const box = getItemBox(item);
           const duplicate = makePlannerItem(item.dataset.itemType || "sticker");

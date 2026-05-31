@@ -407,6 +407,11 @@ function createCalendarWeekNotesText(item, noteKey, className) {
      text.addEventListener("input", () => updateCalendarDayTextOverflow(text));
      text.addEventListener("paste", handlePlainTextPaste);
      text.addEventListener("dblclick", (event) => {
+          if (isEditableCalendarTextEvent(event)) {
+               event.stopPropagation();
+               return;
+          }
+
           event.preventDefault();
           event.stopPropagation();
           startCalendarDayTextEditing(text, item);
@@ -1121,6 +1126,11 @@ function startCalendarDayTextEditing(textElement, item) {
           return;
      }
 
+     if (textElement.isContentEditable) {
+          textElement.focus();
+          return;
+     }
+
      textElement.setAttribute("contenteditable", "true");
      item.classList.add("is-editing-day-text");
      updateTextEditingState();
@@ -1158,6 +1168,10 @@ function handleCalendarTextPointerDown(textElement, event) {
      }
 
      event.stopPropagation();
+}
+
+function isEditableCalendarTextEvent(event) {
+     return Boolean(event.target?.closest?.(".calendar-day-text[contenteditable='true']"));
 }
 
 function renderMiniMonth(item) {
@@ -1364,6 +1378,10 @@ function renderMiniMonth(item) {
                          cell.dataset.dayKey = noteKey;
                          cell.append(notesText);
                          cell.addEventListener("dblclick", (event) => {
+                              if (isEditableCalendarTextEvent(event)) {
+                                   return;
+                              }
+
                               event.preventDefault();
                               event.stopPropagation();
                               startCalendarDayTextEditing(notesText, item);
@@ -1429,6 +1447,11 @@ function renderMiniMonth(item) {
                               dayText.addEventListener("input", () => updateCalendarDayTextOverflow(dayText));
                               dayText.addEventListener("paste", handlePlainTextPaste);
                               dayText.addEventListener("dblclick", (event) => {
+                                   if (isEditableCalendarTextEvent(event)) {
+                                        event.stopPropagation();
+                                        return;
+                                   }
+
                                    event.preventDefault();
                                    event.stopPropagation();
                                    startCalendarDayTextEditing(dayText, item);
@@ -1442,6 +1465,10 @@ function renderMiniMonth(item) {
                                    }
                               });
                               cell.addEventListener("dblclick", (event) => {
+                                   if (isEditableCalendarTextEvent(event)) {
+                                        return;
+                                   }
+
                                    event.preventDefault();
                                    event.stopPropagation();
                                    startCalendarDayTextEditing(dayText, item);
@@ -1596,6 +1623,10 @@ function renderPerpetualCalendar(item) {
                     return;
                }
 
+               if (isEditableCalendarTextEvent(event)) {
+                    return;
+               }
+
                event.preventDefault();
                event.stopPropagation();
                startCalendarDayTextEditing(dayText, item);
@@ -1668,6 +1699,11 @@ function renderDiaryView(item) {
           dayText.addEventListener("input", () => updateCalendarDayTextOverflow(dayText));
           dayText.addEventListener("paste", handlePlainTextPaste);
           dayText.addEventListener("dblclick", (event) => {
+               if (isEditableCalendarTextEvent(event)) {
+                    event.stopPropagation();
+                    return;
+               }
+
                event.preventDefault();
                event.stopPropagation();
                startCalendarDayTextEditing(dayText, item);
@@ -1682,6 +1718,10 @@ function renderDiaryView(item) {
           });
           row.addEventListener("click", (event) => {
                if (typeof activeAction !== "undefined" && activeAction) {
+                    return;
+               }
+
+               if (isEditableCalendarTextEvent(event)) {
                     return;
                }
 
@@ -1819,6 +1859,10 @@ function renderWeeklyVertical(item) {
                          cell.dataset.dayKey = weekNoteKey;
                          cell.append(notesText);
                          cell.addEventListener("dblclick", (event) => {
+                              if (isEditableCalendarTextEvent(event)) {
+                                   return;
+                              }
+
                               event.preventDefault();
                               event.stopPropagation();
                               startCalendarDayTextEditing(notesText, item);
@@ -1904,6 +1948,11 @@ function renderWeeklyVertical(item) {
                          slotText.addEventListener("input", () => updateCalendarDayTextOverflow(slotText));
                          slotText.addEventListener("paste", handlePlainTextPaste);
                          slotText.addEventListener("dblclick", (event) => {
+                              if (isEditableCalendarTextEvent(event)) {
+                                   event.stopPropagation();
+                                   return;
+                              }
+
                               event.preventDefault();
                               event.stopPropagation();
                               startCalendarDayTextEditing(slotText, item);
