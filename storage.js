@@ -72,7 +72,13 @@ function serializePlannerItem(item) {
           id: item.dataset.templateId,
           type: item.dataset.itemType || "sticker",
           groupId: item.dataset.groupId || null,
-          style: {},
+          style: {
+               fillColor: item.dataset.fillColor || null,
+               borderColor: item.dataset.borderColor || null,
+               borderWidth: item.dataset.borderWidth || null,
+               dotGrid: item.dataset.dotGrid || null,
+               themeMode: item.dataset.themeMode || null
+          },
           widget: isCalendarItem(item)
                ? {
                     weekNumbers: item.dataset.weekNumbers !== "false",
@@ -226,6 +232,32 @@ function writePlannerState(state) {
      }
 }
 
+let plannerUndoState = null;
+let isApplyingPlannerUndo = false;
+
+function getCurrentPlannerStateForStorage() {
+     const currentState = readPlannerState();
+
+     return {
+          schemaVersion: plannerStateSchemaVersion,
+          settings: serializePlannerSettings(),
+          books: {
+               ...currentState.books,
+               [plannerConfig.paperKey]: serializePlannerBook()
+          }
+     };
+}
+
+function rememberPlannerUndoState(previousState, nextState) {
+     if (isRestoringPlannerState || isApplyingPlannerUndo) {
+          return;
+     }
+
+     if (JSON.stringify(previousState) !== JSON.stringify(nextState)) {
+          plannerUndoState = previousState;
+     }
+}
+
 function setSelectValue(select, value) {
      if (!select || value === undefined || value === null) {
           return;
@@ -332,9 +364,16 @@ function savePlannerBook(paperKey = plannerConfig.paperKey) {
      }
 
      const state = readPlannerState();
+     const nextState = {
+          ...state,
+          books: {
+               ...state.books,
+               [paperKey]: serializePlannerBook()
+          }
+     };
 
-     state.books[paperKey] = serializePlannerBook();
-     writePlannerState(state);
+     rememberPlannerUndoState(state, nextState);
+     writePlannerState(nextState);
 }
 
 function savePlannerState() {
@@ -343,11 +382,38 @@ function savePlannerState() {
      }
 
      const state = readPlannerState();
+     const nextState = getCurrentPlannerStateForStorage();
 
-     state.settings = serializePlannerSettings();
-     state.books[plannerConfig.paperKey] = serializePlannerBook();
-     writePlannerState(state);
+     rememberPlannerUndoState(state, nextState);
+     writePlannerState(nextState);
 }
+
+function restorePlannerUndoState() {
+     if (!plannerUndoState) {
+          return false;
+     }
+
+     try {
+          isApplyingPlannerUndo = true;
+          writePlannerState(plannerUndoState);
+          restorePlannerSettings(plannerUndoState.settings || null);
+          plannerConfig = buildPlannerConfig();
+          applyPlannerConfig();
+          restorePlannerBook(plannerConfig.paperKey);
+          plannerUndoState = null;
+          syncNotebookSpread();
+          applyViewControls();
+          renderTocWidgets();
+          window.dispatchEvent(new CustomEvent("perfectplanner:templatechange", {
+               detail: serializePlannerTemplate()
+          }));
+          return true;
+     } finally {
+          isApplyingPlannerUndo = false;
+     }
+}
+
+window.restorePlannerUndoState = restorePlannerUndoState;
 
 function getStoredBook(paperKey) {
      return readPlannerState().books?.[paperKey] || null;
@@ -438,6 +504,18 @@ function restorePlannerItemSettings(item, itemData) {
      const style = itemData.style || {};
      const text = itemData.text || {};
      const widget = itemData.widget || {};
+
+     if (style.fillColor || style.borderColor || style.borderWidth || style.dotGrid) {
+          if (style.themeMode) {
+               item.dataset.themeMode = style.themeMode;
+          }
+          setItemStyle(item, {
+               fillColor: style.fillColor || item.dataset.fillColor,
+               borderColor: style.borderColor || item.dataset.borderColor,
+               borderWidth: style.borderWidth || item.dataset.borderWidth,
+               dotGrid: style.dotGrid || item.dataset.dotGrid
+          });
+     }
 
      if (isStickerTextItem(item)) {
           setStickerTextSettings(item, {

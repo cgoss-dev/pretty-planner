@@ -2896,6 +2896,27 @@ function handleSelectedDeleteKey(event) {
      renderKeyHints();
 }
 
+function handleUndoShortcut(event) {
+     if (
+          event.defaultPrevented ||
+          event.altKey ||
+          event.shiftKey ||
+          event.key.toLowerCase() !== "z" ||
+          !(event.metaKey || event.ctrlKey) ||
+          isTypingFieldShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     const restoreUndo = typeof restorePlannerUndoState === "function"
+          ? restorePlannerUndoState
+          : window.restorePlannerUndoState;
+
+     if (typeof restoreUndo === "function" && restoreUndo()) {
+          event.preventDefault();
+     }
+}
+
 function handleCancelKey(event) {
      // NOTE: Uses Escape to step back through open planner UI without deleting selection
      if (
@@ -4134,6 +4155,7 @@ document.addEventListener("pointerdown", closeHexPopoverFromOutsidePointer, true
 document.addEventListener("mousedown", handleMousePageTurnButton, true);
 document.addEventListener("auxclick", handleMousePageTurnButton, true);
 document.addEventListener("keydown", (event) => {
+     handleUndoShortcut(event);
      handleClipboardShortcut(event);
      handleTextEditFinishKey(event);
      blockSpacebarShortcut(event);

@@ -227,18 +227,6 @@
                          color: "#8d6243",
                          image: "url('images/desk/desk-wood-brown.png')",
                          size: "cover"
-                    },
-                    "hot-springs-playa": {
-                         label: "Playa",
-                         color: "#e8d8d5",
-                         image: "url('images/desk/desk-hot-springs-playa.jpg')",
-                         size: "cover"
-                    },
-                    "valencia": {
-                         label: "Valencia",
-                         color: "#d8ae5c",
-                         image: "url('images/desk/desk-valencia.jpg')",
-                         size: "cover"
                     }
                }
           },

@@ -1,4 +1,29 @@
 // NOTE: Shared Planner UI Modules
+const paletteSelectionHandlers = new WeakMap();
+
+function setPaletteSelectionHandler(target, handler) {
+     if (target && typeof handler === "function") {
+          paletteSelectionHandlers.set(target, handler);
+     }
+}
+
+function getPaletteSelectionHandler(target) {
+     return target ? paletteSelectionHandlers.get(target) || null : null;
+}
+
+function dispatchPaletteColorSelection(target, colorValue) {
+     if (!target) {
+          return;
+     }
+
+     target.dispatchEvent(new CustomEvent("palettecolorselect", {
+          bubbles: true,
+          detail: {
+               color: colorValue
+          }
+     }));
+}
+
 function getPalette(paletteKey) {
      return colorPalettes[paletteKey] || colorPalettes.tertiary;
 }
@@ -147,6 +172,30 @@ function normalizeHexInput(value, fallback = "#FFFFFF") {
      return fallback;
 }
 
+function getThreeDigitHexSwatchLabel(color = {}) {
+     const explicitLabel = String(color.display || color.label || "").trim();
+
+     if (/^[0-9a-f]{3}$/i.test(explicitLabel)) {
+          return explicitLabel.toUpperCase();
+     }
+
+     const cleanValue = String(color.value || "").trim().replace(/^#/, "");
+
+     if (/^[0-9a-f]{3}$/i.test(cleanValue)) {
+          return cleanValue.toUpperCase();
+     }
+
+     if (/^[0-9a-f]{6}$/i.test(cleanValue)) {
+          const [r1, r2, g1, g2, b1, b2] = cleanValue;
+
+          if (r1 === r2 && g1 === g2 && b1 === b2) {
+               return `${r1}${g1}${b1}`.toUpperCase();
+          }
+     }
+
+     return "";
+}
+
 function appendColorSwatches(swatches, colors, selectedColor = "", onSelect = null, swatchClass = "palette-swatch") {
      if (!swatches) {
           return;
@@ -158,7 +207,7 @@ function appendColorSwatches(swatches, colors, selectedColor = "", onSelect = nu
           swatch.className = swatchClass;
           swatch.style.setProperty("--swatch", color.value);
           swatch.style.setProperty("--swatch-ink", getSwatchInk(color));
-          swatch.textContent = color.label;
+          swatch.textContent = getThreeDigitHexSwatchLabel(color);
           swatch.dataset.colorValue = color.value;
           swatch.classList.toggle("is-clear", Boolean(color.isClear));
           swatch.classList.toggle("is-selected", color.value === selectedColor);
@@ -170,6 +219,10 @@ function appendColorSwatches(swatches, colors, selectedColor = "", onSelect = nu
                     event.preventDefault();
                     event.stopPropagation();
                     onSelect(color.value);
+                    dispatchPaletteColorSelection(
+                         activeColorMatrixToggle?.closest(".palette-swatches, .color-panel-swatches") || swatch.closest(".palette-swatches, .color-panel-swatches"),
+                         color.value
+                    );
                     closeControlSection(swatch.closest("[data-control-section]"));
                });
           }
@@ -214,7 +267,7 @@ function appendColorMatrixToggle(swatches, onSelect = null) {
 
      const button = createColorMatrixToggle();
 
-     button.onPaletteColorSelect = onSelect;
+     setPaletteSelectionHandler(button, onSelect);
      swatches.append(button);
 }
 
@@ -223,7 +276,7 @@ function appendPaletteUtilityControls(swatches, onSelect = null, swatchClass = "
           return;
      }
 
-     swatches.onPaletteColorSelect = onSelect;
+     setPaletteSelectionHandler(swatches, onSelect);
      appendColorMatrixToggle(swatches, onSelect);
 }
 
@@ -234,18 +287,21 @@ function renderColorPanelOpenControl(swatches, selectedColor = "", onSelect = nu
 
      swatches.replaceChildren();
      swatches.dataset.colorPanelPalette = paletteMode;
-     swatches.onPaletteColorSelect = onSelect;
+     setPaletteSelectionHandler(swatches, onSelect);
 
      const button = createColorMatrixToggle();
 
-     button.onPaletteColorSelect = onSelect;
+     setPaletteSelectionHandler(button, onSelect);
      button.dataset.colorPanelPalette = paletteMode;
      button.dataset.colorValue = selectedColor || "";
      button.style.setProperty("--swatch", selectedColor || "var(--color-white)");
      button.style.setProperty("--swatch-ink", getSwatchInk({
           value: selectedColor || "var(--color-white)"
      }));
-     button.textContent = getPaletteLabelForColor(selectedColor) || "Color";
+     button.textContent = getThreeDigitHexSwatchLabel({
+          label: getPaletteLabelForColor(selectedColor),
+          value: selectedColor
+     });
      button.classList.toggle("is-clear", selectedColor === "transparent");
      swatches.append(button);
 }
@@ -544,7 +600,14 @@ function renderColorMatrix() {
 
      const colors = getPalette("tertiary").colors;
      const activeSwatches = activeColorMatrixToggle?.closest(".palette-swatches, .color-panel-swatches");
-     const onSelect = activeColorMatrixToggle?.onPaletteColorSelect || activeSwatches?.onPaletteColorSelect;
+     const onSelect = getPaletteSelectionHandler(activeColorMatrixToggle) || getPaletteSelectionHandler(activeSwatches);
+     const selectColor = (nextColor) => {
+          if (typeof onSelect === "function") {
+               onSelect(nextColor);
+          }
+          dispatchPaletteColorSelection(activeSwatches, nextColor);
+          setColorMatrixOpen(false);
+     };
 
      colorMatrixGrid.replaceChildren();
      getColorMatrixRows().forEach((row) => {
@@ -555,25 +618,26 @@ function renderColorMatrix() {
           colorMatrixGrid.append(label);
 
           colors.forEach((color) => {
-               const swatch = document.createElement(typeof onSelect === "function" ? "button" : "span");
+               const swatch = document.createElement("button");
                const swatchValue = getColorMatrixSwatchValue(color.value, row.mode, row.step);
+               const swatchLabel = row.mode === "base" ? getThreeDigitHexSwatchLabel({
+                    ...color,
+                    value: swatchValue
+               }) : "";
 
                swatch.className = `color-panel-matrix-swatch${row.mode === "base" ? " is-base" : ""}`;
                swatch.style.setProperty("--swatch", swatchValue);
                swatch.style.setProperty("--swatch-ink", getSwatchInk(color, row.mode !== "tint"));
-               swatch.textContent = row.mode === "base" ? color.label : "";
+               swatch.textContent = swatchLabel;
                swatch.dataset.colorValue = swatchValue;
 
-               if (typeof onSelect === "function") {
-                    swatch.type = "button";
-                    swatch.setAttribute("aria-label", `${row.label} ${color.label} color`);
-                    swatch.addEventListener("click", (event) => {
-                         event.preventDefault();
-                         event.stopPropagation();
-                         onSelect(swatchValue);
-                         setColorMatrixOpen(false);
-                    });
-               }
+               swatch.type = "button";
+               swatch.setAttribute("aria-label", `${row.label} ${color.label} color`);
+               swatch.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    selectColor(swatchValue);
+               });
 
                colorMatrixGrid.append(swatch);
           });
@@ -583,7 +647,14 @@ function renderColorMatrix() {
 function renderColorPanelPopupRow() {
      const row = colorMatrixPopover?.querySelector("[data-color-panel-popup-row]");
      const activeSwatches = activeColorMatrixToggle?.closest(".palette-swatches, .color-panel-swatches");
-     const onSelect = activeColorMatrixToggle?.onPaletteColorSelect || activeSwatches?.onPaletteColorSelect;
+     const onSelect = getPaletteSelectionHandler(activeColorMatrixToggle) || getPaletteSelectionHandler(activeSwatches);
+     const selectColor = (nextColor) => {
+          if (typeof onSelect === "function") {
+               onSelect(nextColor);
+          }
+          dispatchPaletteColorSelection(activeSwatches, nextColor);
+          setColorMatrixOpen(false);
+     };
 
      if (!row) {
           return;
@@ -595,28 +666,15 @@ function renderColorPanelPopupRow() {
      label.className = "color-panel-matrix-label color-panel-popup-label";
      label.textContent = "Grayscale";
      row.append(label);
-     appendColorSwatches(row, getColorPanelPopupColors(), activeColorMatrixToggle?.dataset.colorValue || "", (nextColor) => {
-          if (typeof onSelect === "function") {
-               onSelect(nextColor);
-          }
-          setColorMatrixOpen(false);
-     }, "color-panel-swatch");
+     appendColorSwatches(row, getColorPanelPopupColors(), activeColorMatrixToggle?.dataset.colorValue || "", selectColor, "color-panel-swatch");
      const spacer = document.createElement("span");
 
      spacer.className = "color-panel-swatch color-panel-swatch-spacer";
      spacer.setAttribute("aria-hidden", "true");
      row.append(spacer);
-     appendColorSwatches(row, getColorPanelUtilityColors(), activeColorMatrixToggle?.dataset.colorValue || "", (nextColor) => {
-          if (typeof onSelect === "function") {
-               onSelect(nextColor);
-          }
-          setColorMatrixOpen(false);
-     }, "color-panel-swatch");
+     appendColorSwatches(row, getColorPanelUtilityColors(), activeColorMatrixToggle?.dataset.colorValue || "", selectColor, "color-panel-swatch");
      row.append(createHexButton((nextColor) => {
-          if (typeof onSelect === "function") {
-               onSelect(nextColor);
-          }
-          setColorMatrixOpen(false);
+          selectColor(nextColor);
      }, "color-panel-swatch"));
 }
 
@@ -759,12 +817,14 @@ function setPaletteControlValue(select, swatches, colorValue) {
 
      select.dataset.currentColor = colorValue;
      select.value = getPaletteKeyForColor(colorValue);
+     const onSelect = getPaletteSelectionHandler(select);
+
      renderPaletteControl(
           swatches,
           colorValue,
           (nextColor) => {
-               if (typeof select.onPaletteColorSelect === "function") {
-                    select.onPaletteColorSelect(nextColor);
+               if (typeof onSelect === "function") {
+                    onSelect(nextColor);
                }
           },
           "color-panel-swatch"
@@ -778,20 +838,20 @@ function initializePaletteColorControl(select, swatches, defaultColor, onSelect)
 
      populatePaletteSelect(select, getPaletteKeyForColor(defaultColor));
      select.dataset.currentColor = defaultColor;
-     select.onPaletteColorSelect = (nextColor) => {
+     setPaletteSelectionHandler(select, (nextColor) => {
           select.dataset.currentColor = nextColor;
           onSelect(nextColor);
           setPaletteControlValue(select, swatches, nextColor);
-     };
+     });
      select.addEventListener("change", () => {
           renderPaletteControl(
                swatches,
                select.dataset.currentColor,
-               select.onPaletteColorSelect,
+               getPaletteSelectionHandler(select),
                "color-panel-swatch"
           );
      });
-     renderPaletteControl(swatches, defaultColor, select.onPaletteColorSelect, "color-panel-swatch");
+     renderPaletteControl(swatches, defaultColor, getPaletteSelectionHandler(select), "color-panel-swatch");
 }
 
 function updateCustomSelectDisplay(select) {

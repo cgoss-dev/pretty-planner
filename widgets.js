@@ -112,6 +112,7 @@ function setWidgetTextPartRole(type, partName, role) {
 function applyThemeToWidget(item) {
      const theme = plannerThemesData?.themes?.[0];
      const widgetSlots = plannerWidgetThemeSlots?.widgets?.[item.dataset.itemType];
+     const hasCustomItemStyle = item.dataset.themeMode === "custom";
 
      if (!theme || !widgetSlots) {
           return;
@@ -119,6 +120,13 @@ function applyThemeToWidget(item) {
 
      Object.entries(widgetSlots.parts || {}).forEach(([partName, partSlots]) => {
           item.querySelectorAll(`[data-theme-part="${partName}"]`).forEach((part) => {
+               const isCustomBackgroundFill = hasCustomItemStyle
+                    && partSlots.fillSlot
+                    && partSlots.fillSlot === widgetSlots.parts?.background?.fillSlot;
+               const isCustomBackgroundBorder = hasCustomItemStyle
+                    && partSlots.borderSlot
+                    && partSlots.borderSlot === widgetSlots.parts?.background?.borderSlot;
+
                if (partSlots.textSlot) {
                     applyTextThemeToElement(part, theme.text?.[partSlots.textSlot] || {}, theme, {
                          textSlot: getWidgetTextPartRole(item.dataset.itemType, partName),
@@ -126,14 +134,14 @@ function applyThemeToWidget(item) {
                     });
                     part.dataset.textRole = getWidgetTextPartRole(item.dataset.itemType, partName);
                }
-               if (partSlots.fillSlot && theme.widget?.[partSlots.fillSlot]) {
+               if (!isCustomBackgroundFill && partSlots.fillSlot && theme.widget?.[partSlots.fillSlot]) {
                     if (isCalendarItem(item) && partSlots.fillSlot !== "fillColor1") {
                          part.style.background = "";
                     } else {
                          part.style.background = getThemeFillValue(theme, partSlots.fillSlot);
                     }
                }
-               if (partSlots.borderSlot && theme.widget?.[partSlots.borderSlot]) {
+               if (!isCustomBackgroundBorder && partSlots.borderSlot && theme.widget?.[partSlots.borderSlot]) {
                     part.style.borderColor = typeof getPlannerDefaultGridSettings === "function"
                          ? getPlannerDefaultGridSettings().color
                          : getThemeColorValue(theme.widget[partSlots.borderSlot]);
@@ -143,16 +151,18 @@ function applyThemeToWidget(item) {
 
      const backgroundSlots = widgetSlots.parts?.background;
 
-     if (backgroundSlots?.fillSlot && theme.widget?.[backgroundSlots.fillSlot]) {
+     if (!hasCustomItemStyle && backgroundSlots?.fillSlot && theme.widget?.[backgroundSlots.fillSlot]) {
           item.style.setProperty("--sticker-fill", getThemeFillValue(theme, backgroundSlots.fillSlot));
           item.style.setProperty("--widget-box-fill", getThemeFillValue(theme, backgroundSlots.fillSlot));
      }
-     if (backgroundSlots?.borderSlot && theme.widget?.[backgroundSlots.borderSlot]) {
+     if (!hasCustomItemStyle && backgroundSlots?.borderSlot && theme.widget?.[backgroundSlots.borderSlot]) {
           item.style.setProperty("--sticker-border-color", typeof getPlannerDefaultGridSettings === "function"
                ? getPlannerDefaultGridSettings().perimeter?.color || getPlannerDefaultGridSettings().color
                : getThemeColorValue(theme.widget[backgroundSlots.borderSlot]));
      }
-     applyDefaultGridLineStyles(item);
+     if (!hasCustomItemStyle) {
+          applyDefaultGridLineStyles(item);
+     }
 }
 
 function getGridLineStyle(lineSettings = {}) {
@@ -1544,6 +1554,7 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      setControlsActionItems(controls, actionItems);
      closeWidgetActionPopovers();
      const popup = document.createElement("div");
+     const popupTitle = document.createElement("div");
      const widgetType = document.createElement("div");
      const textGroup = document.createElement("div");
      const textGroupTitle = document.createElement("div");
@@ -1584,11 +1595,13 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      popup.className = "widget-action-popover widget-panel is-floating is-actions-popup";
      popup.dataset.ownerId = item.dataset.templateId;
      popup.setAttribute("role", "menu");
+     popupTitle.className = "item-actions-menu-title title";
+     popupTitle.textContent = "Popup Menu";
      widgetType.className = "item-actions-widget-type subtitle";
      widgetType.textContent = getActionItemsTypeLabel(actionItems);
      textGroup.className = "item-text-role-action-group";
      textGroupTitle.className = "item-actions-section-title";
-     layoutGroup.className = "item-layout-action-group";
+     layoutGroup.className = "item-action-row item-layout-action-group";
      duplicateGroup.className = "item-action-row";
      layerGroup.className = "item-layer-actions";
 
@@ -1629,11 +1642,11 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      layoutGroup.append(moveButton, resizeButton);
      duplicateGroup.append(duplicateButton, groupButton);
      layerGroup.append(sendBackwardButton, bringForwardButton);
-     popup.append(widgetType);
+     popup.append(popupTitle, widgetType);
      if (textTarget) {
           popup.append(textGroup);
      }
-     popup.append(layoutGroup, duplicateGroup, layerGroup, deleteButton);
+     popup.append(layoutGroup, layerGroup, duplicateGroup, deleteButton);
      plannerDesk.append(popup);
      positionItemActionsPopup(popup, event);
      updateObjectControlsState();
@@ -1869,26 +1882,20 @@ function moveActionItemsLayer(item, direction) {
 }
 
 function applyStyleToActionItems(item, style) {
-     if (typeof setDefaultControlValue === "function") {
-          if (style.fillColor !== undefined) {
-               setDefaultControlValue("grid-fill", style.fillColor);
-          }
-          if (style.borderColor !== undefined) {
-               setDefaultControlValue("grid-line-perimeter-color", style.borderColor);
-          }
-          if (style.borderWidth !== undefined) {
-               setDefaultControlValue("grid-line-perimeter-weight", style.borderWidth);
-          }
-          if (style.dotGrid !== undefined) {
-               setDefaultControlValue("dot-grid", style.dotGrid);
-          }
-          if (typeof syncDefaultControls === "function") {
-               syncDefaultControls();
-          }
-          if (typeof savePlannerState === "function") {
-               savePlannerState();
-          }
+     if (applyStyleToCalendarStyleTarget(item, style)) {
+          notifyTemplateChanged();
+          return;
      }
+
+     getActionItems(item).forEach((targetItem) => {
+          targetItem.dataset.themeMode = "custom";
+          setItemStyle(targetItem, {
+               fillColor: style.fillColor ?? targetItem.dataset.fillColor,
+               borderColor: style.borderColor ?? targetItem.dataset.borderColor,
+               borderWidth: style.borderWidth ?? targetItem.dataset.borderWidth,
+               dotGrid: style.dotGrid ?? targetItem.dataset.dotGrid
+          });
+     });
      notifyTemplateChanged();
 }
 
@@ -3461,6 +3468,46 @@ function makePlannerItem(type = "sticker") {
           makeCustomSelect(select);
           select.addEventListener("change", () => updateCustomSelectDisplay(select));
      });
+     setPaletteSelectionHandler(fillInput, (nextColor) => {
+          fillInput.dataset.currentColor = nextColor;
+          applyStyleToActionItems(item, {
+               fillColor: nextColor
+          });
+          setPaletteControlValue(fillInput, fillSwatches, nextColor);
+     });
+     fillSwatches.addEventListener("palettecolorselect", (event) => {
+          const nextColor = event.detail?.color;
+
+          if (!nextColor) {
+               return;
+          }
+
+          fillInput.dataset.currentColor = nextColor;
+          applyStyleToActionItems(item, {
+               fillColor: nextColor
+          });
+          setPaletteControlValue(fillInput, fillSwatches, nextColor);
+     });
+     setPaletteSelectionHandler(borderColorInput, (nextColor) => {
+          borderColorInput.dataset.currentColor = nextColor;
+          applyStyleToActionItems(item, {
+               borderColor: nextColor
+          });
+          setPaletteControlValue(borderColorInput, borderColorSwatches, nextColor);
+     });
+     borderColorSwatches.addEventListener("palettecolorselect", (event) => {
+          const nextColor = event.detail?.color;
+
+          if (!nextColor) {
+               return;
+          }
+
+          borderColorInput.dataset.currentColor = nextColor;
+          applyStyleToActionItems(item, {
+               borderColor: nextColor
+          });
+          setPaletteControlValue(borderColorInput, borderColorSwatches, nextColor);
+     });
      setWidgetPanelTab(controls, "actions");
      item.append(sizeLabel);
      if (isStickerTextItemType(type)) {
@@ -3921,7 +3968,9 @@ function copyItemConfiguration(source, target) {
           borderWidth: source.dataset.borderWidth,
           dotGrid: source.dataset.dotGrid
      });
-     delete target.dataset.themeMode;
+     if (source.dataset.themeMode) {
+          target.dataset.themeMode = source.dataset.themeMode;
+     }
      setStickerTextSettings(target, {
           enabled: source.dataset.textEnabled,
           content: isTocItem(source) ? undefined : getStickerTextElement(source) ? getStickerTextElement(source).textContent : "",
