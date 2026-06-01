@@ -898,31 +898,6 @@ body {
      outline-offset: 1px;
 }
 
-.sidebar-visibility-list {
-     display: grid;
-     gap: 8px;
-}
-
-.sidebar-visibility-group {
-     display: grid;
-     gap: 6px;
-}
-
-.sidebar-visibility-option {
-     display: grid;
-     grid-template-columns: auto 1fr;
-     align-items: center;
-     gap: 8px;
-     min-height: 24px;
-     font-size: var(--font-size-sm);
-}
-
-.sidebar-visibility-option input {
-     width: 14px;
-     height: 14px;
-     margin: 0;
-}
-
 .defaults-panel .color-panel-control {
      grid-template-columns: 112px var(--color-swatch-size);
      align-items: center;
@@ -4013,7 +3988,7 @@ body {
 }
 
 .control-object-shell .widget-panel-tabs {
-     display: grid;
+     display: flex;
 }
 
 .widget-panel.is-floating {
@@ -4110,22 +4085,23 @@ body {
 
 .widget-panel-tabs {
      display: flex;
-     align-items: end;
+     align-items: center;
+     justify-content: start;
+     gap: 6px;
      width: 100%;
-     margin-bottom: -1px;
+     margin-bottom: 6px;
      overflow: visible;
 }
 
 .widget-panel-tab {
      position: relative;
-     flex: 1 1 0;
+     flex: 0 1 auto;
      width: auto;
      min-width: 0;
-     min-height: 34px;
-     padding: 4px 5px 5px;
+     min-height: var(--color-swatch-size);
+     padding: 4px 8px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-     border-radius: 7px 7px 0 0;
-     border-bottom-color: rgba(17, 17, 17, 0.22);
+     border-radius: 6px;
      background: var(--menu-fill);
      color: var(--color-gray1);
      cursor: pointer;
@@ -4135,13 +4111,14 @@ body {
 }
 
 .widget-panel-tab + .widget-panel-tab {
-     margin-left: -1px;
+     margin-left: 0;
 }
 
 .widget-panel-tab.is-active,
 .widget-panel-tab[aria-selected="true"] {
      z-index: 1;
-     border-bottom-color: transparent;
+     border-color: rgba(17, 17, 17, 0.34);
+     background: var(--color-gray4);
      color: var(--color-gray1);
 }
 
@@ -4568,7 +4545,7 @@ body {
 .widget-panel-tab {
      min-height: var(--color-swatch-size);
      border-color: rgba(17, 17, 17, 0.2);
-     border-radius: 7px 7px 0 0;
+     border-radius: 6px;
      background: rgba(255, 255, 255, 0.82);
      color: var(--color-gray1);
      font-weight: 400;
@@ -4578,8 +4555,8 @@ body {
 .control-panel-tab[aria-selected="true"],
 .widget-panel-tab.is-active,
 .widget-panel-tab[aria-selected="true"] {
-     background: var(--color-white);
-     border-bottom-color: transparent;
+     background: var(--color-gray4);
+     border-color: rgba(17, 17, 17, 0.34);
 }
 
 .control-panel-page,
@@ -5265,6 +5242,11 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      justify-content: start;
 }
 
+.planner-sidebar .defaults-panel .text-panel-format {
+     grid-template-columns: 76px repeat(2, minmax(0, 96px));
+     column-gap: 8px;
+}
+
 .planner-sidebar .text-panel-format .widget-panel-title {
      grid-row: 1 / span 2;
      align-self: center;
@@ -5344,6 +5326,11 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
           grid-template-columns: 70px repeat(2, minmax(0, 96px));
           column-gap: 15px;
           justify-content: start;
+     }
+
+     .planner-sidebar .defaults-panel .text-panel-format {
+          grid-template-columns: 76px repeat(2, minmax(0, 96px));
+          column-gap: 8px;
      }
 }
 

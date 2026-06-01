@@ -31,11 +31,7 @@ const zoomToast = document.querySelector("[data-zoom-toast]");
 const hintPanel = document.querySelector("[data-hint-panel]");
 const defaultControls = Array.from(document.querySelectorAll("[data-default-control]"));
 const defaultTextColorSwatches = document.querySelector("[data-default-text-color-swatches]");
-const defaultGridColorSwatches = Array.from(document.querySelectorAll("[data-default-grid-color-swatches]"));
-const defaultGridFillSwatches = document.querySelector("[data-default-grid-fill-swatches]");
 const dateOrderPicker = document.querySelector("[data-date-order-picker]");
-const sidebarVisibilityTypeSelect = document.querySelector("[data-sidebar-visibility-type]");
-const sidebarVisibilityControls = document.querySelector("[data-sidebar-visibility-controls]");
 const resetUniversalDefaultsButton = document.querySelector("[data-reset-universal-defaults]");
 const resetNotebookDefaultsButton = document.querySelector("[data-reset-notebook-defaults]");
 const pageGridCursor = document.querySelector("[data-page-grid-cursor]");
@@ -144,79 +140,6 @@ const deskColors = colorControls.deskColors;
 const textLineHeightCellOptions = textControls.lineHeightCellOptions;
 const fixedWidgetLineColor = "#ccc";
 const fixedWidgetLineWeight = "1";
-const sidebarVisibilityWidgetTypes = [
-     "sticker",
-     "toc",
-     "mini-month",
-     "full-month",
-     "perpetual-calendar",
-     "weekly-view",
-     "day-view",
-     "diary-view"
-];
-const sidebarControlVisibilityGroups = [
-     {
-          label: "Actions",
-          controls: [
-               ["actions.move", "Move"],
-               ["actions.resize", "Resize"],
-               ["actions.duplicate", "Duplicate"],
-               ["actions.group", "Group"],
-               ["actions.send-backward", "Send Backward"],
-               ["actions.bring-forward", "Bring Forward"],
-               ["actions.delete", "Delete"]
-          ]
-     },
-     {
-          label: "Appearance",
-          controls: [
-               ["style.fill", "Fill"]
-          ]
-     },
-     {
-          label: "Text",
-          controls: [
-               ["text.appears-in-toc", "Appears in ToC"],
-               ["text.font", "Typeface"],
-               ["text.size", "Text Size"],
-               ["text.format", "Text Style"],
-               ["text.align", "Alignment"],
-               ["text.color", "Text Color"],
-               ["text.line-height", "Line Height"]
-          ]
-     },
-     {
-          label: "Options",
-          controls: [
-               ["options.display-date-mode", "Date Mode"],
-               ["options.display-title-visible", "Month/Year"],
-               ["options.display-week-number", "Week Number"],
-               ["options.display-year", "Display Year"],
-               ["options.display-month", "Display Month"],
-               ["options.display-day", "Display Day"],
-               ["options.display-week-start", "Display Week Start"],
-               ["options.weekday-label-format", "Weekday Labels"],
-               ["options.share-weekends", "Share Weekends"],
-               ["options.week-notes", "Week Notes"],
-               ["options.date-mode", "Date Mode Option"],
-               ["options.date-offset", "Date Offset"],
-               ["options.calendar-title-visible", "Calendar Title"],
-               ["options.month", "Month"],
-               ["options.year", "Year"],
-               ["options.week-number-format", "Week Number Format"],
-               ["options.month-display", "Month Display"],
-               ["options.year-display", "Year Display"],
-               ["options.week-start", "Week Start"],
-               ["options.start-day", "Start Day"],
-               ["options.visible-days", "Visible Days"],
-               ["options.time-visible", "Time Visible"],
-               ["options.start-time", "Start Time"],
-               ["options.time-increment", "Time Increment"],
-               ["options.time-format", "Time Format"],
-               ["options.dot-grid", "Dot Grid"]
-          ]
-     }
-];
 
 let activeAction = null;
 let selectedItem = null;
@@ -299,8 +222,7 @@ const factoryPlannerDefaults = {
           dayFormat: "ddd"
      },
      widgetTextStyles: {},
-     widgetTextToc: {},
-     widgetControlVisibility: {}
+     widgetTextToc: {}
 };
 
 const dateOrderParts = [
@@ -351,19 +273,6 @@ function normalizeGridLineDefaults(lineDefaults = {}, fallback = {}) {
      };
 }
 
-function normalizeWidgetControlVisibility(visibility = {}) {
-     if (!visibility || typeof visibility !== "object") {
-          return {};
-     }
-
-     return Object.fromEntries(Object.entries(visibility).map(([type, controls]) => [
-          type,
-          controls && typeof controls === "object"
-               ? Object.fromEntries(Object.entries(controls).map(([key, value]) => [key, value === "false" ? "false" : "true"]))
-               : {}
-     ]));
-}
-
 function getNormalizedPlannerDefaults(defaults = {}) {
      const dateDefaults = defaults.date && typeof defaults.date === "object" ? defaults.date : {};
      const bodyTextDefaults = defaults.bodyText && typeof defaults.bodyText === "object" ? defaults.bodyText : defaults.text;
@@ -403,8 +312,7 @@ function getNormalizedPlannerDefaults(defaults = {}) {
                dayFormat: normalizeDateDayFormat(dateDefaults.dayFormat || factoryPlannerDefaults.date.dayFormat)
           },
           widgetTextStyles,
-          widgetTextToc: defaults.widgetTextToc && typeof defaults.widgetTextToc === "object" ? defaults.widgetTextToc : {},
-          widgetControlVisibility: normalizeWidgetControlVisibility(defaults.widgetControlVisibility)
+          widgetTextToc: defaults.widgetTextToc && typeof defaults.widgetTextToc === "object" ? defaults.widgetTextToc : {}
      };
 }
 
@@ -455,32 +363,11 @@ function setPlannerWidgetTextPartToc(type, partName, appearsInToc) {
 }
 
 function getPlannerWidgetControlVisibility(type) {
-     return plannerDefaultSettings.widgetControlVisibility?.[type] || {};
+     return widgetPanel.sidebarControlVisibility?.[type] || {};
 }
 
 function isPlannerWidgetControlVisible(type, controlKey) {
-     return getPlannerWidgetControlVisibility(type)[controlKey] !== "false";
-}
-
-function setPlannerWidgetControlVisibility(type, controlKey, isVisible) {
-     if (!plannerDefaultSettings.widgetControlVisibility || typeof plannerDefaultSettings.widgetControlVisibility !== "object") {
-          plannerDefaultSettings.widgetControlVisibility = {};
-     }
-     if (!plannerDefaultSettings.widgetControlVisibility[type]) {
-          plannerDefaultSettings.widgetControlVisibility[type] = {};
-     }
-     plannerDefaultSettings.widgetControlVisibility[type][controlKey] = isVisible ? "true" : "false";
-}
-
-function applySidebarControlVisibilityForType(type) {
-     getAllPlannerItems()
-          .filter((item) => item.dataset.itemType === type)
-          .forEach((item) => {
-               if (typeof applySidebarControlVisibility === "function") {
-                    applySidebarControlVisibility(item);
-               }
-          });
-     updateObjectControlsState();
+     return getPlannerWidgetControlVisibility(type)[controlKey] !== false;
 }
 
 window.getPlannerDefaultTextSettings = getPlannerDefaultTextSettings;
@@ -490,7 +377,6 @@ window.getPlannerWidgetTextPartToc = getPlannerWidgetTextPartToc;
 window.setPlannerWidgetTextPartToc = setPlannerWidgetTextPartToc;
 window.getPlannerWidgetControlVisibility = getPlannerWidgetControlVisibility;
 window.isPlannerWidgetControlVisible = isPlannerWidgetControlVisible;
-window.setPlannerWidgetControlVisibility = setPlannerWidgetControlVisibility;
 
 function getPlannerDefaultItemStyle(type = "sticker") {
      return {
@@ -556,12 +442,6 @@ function setDefaultControlValue(controlName, value) {
           "body-text-size": ["text", "size"],
           "body-text-color": ["text", "color"]
      };
-     const gridMap = {
-          "grid-color": "color",
-          "grid-weight": "weight",
-          "grid-fill": "fill",
-          "dot-grid": "dotGrid"
-     };
      const dateMap = {
           "date-week-start": "weekStart",
           "date-time-format": "timeFormat",
@@ -574,20 +454,6 @@ function setDefaultControlValue(controlName, value) {
           const [groupName, key] = textMap[controlName];
 
           plannerDefaultSettings[groupName][key] = value;
-     } else if (controlName.startsWith("grid-line-")) {
-          const [, , lineName, key] = controlName.split("-");
-          const normalizedLineName = {
-               perimeter: "perimeter",
-               title: "title",
-               bodyVertical: "bodyVertical",
-               bodyHorizontal: "bodyHorizontal"
-          }[lineName];
-
-          if (normalizedLineName && key) {
-               plannerDefaultSettings.grid[normalizedLineName][key] = value;
-          }
-     } else if (gridMap[controlName]) {
-          plannerDefaultSettings.grid[gridMap[controlName]] = value;
      } else if (dateMap[controlName]) {
           plannerDefaultSettings.date[dateMap[controlName]] = value;
           applyPlannerDefaultsToDateWidgets();
@@ -634,8 +500,6 @@ function syncDefaultControls() {
 
           if (name === "hint-panel") {
                control.checked = control.value === plannerDefaultSettings.hintPanel;
-          } else if (name === "dot-grid") {
-               control.checked = control.value === plannerDefaultSettings.grid.dotGrid;
           } else if (name === "text-size" || name === "body-text-size") {
                control.value = plannerDefaultSettings.text.size;
           } else if (name === "text-font" || name === "body-text-font") {
@@ -643,35 +507,6 @@ function syncDefaultControls() {
                updateCustomSelectDisplay(control);
           } else if (name === "text-color" || name === "body-text-color") {
                setPaletteControlValue(control, defaultTextColorSwatches, plannerDefaultSettings.text.color);
-          } else if (name === "grid-color") {
-               setPaletteControlValue(control, defaultGridColorSwatches[0], plannerDefaultSettings.grid.color);
-          } else if (name === "grid-weight") {
-               control.value = plannerDefaultSettings.grid.weight;
-          } else if (name === "grid-fill") {
-               setPaletteControlValue(control, defaultGridFillSwatches, plannerDefaultSettings.grid.fill);
-          } else if (name.startsWith("grid-line-")) {
-               const [, , lineName, key] = name.split("-");
-               const normalizedLineName = {
-                    perimeter: "perimeter",
-                    title: "title",
-                    bodyVertical: "bodyVertical",
-                    bodyHorizontal: "bodyHorizontal"
-               }[lineName];
-               const line = normalizedLineName ? plannerDefaultSettings.grid[normalizedLineName] : null;
-
-               if (!line) {
-                    return;
-               }
-               if (key === "enabled") {
-                    control.checked = control.value === line.enabled;
-               } else if (key === "color") {
-                    const swatches = document.querySelector(`[data-default-grid-color-swatches="${lineName}"]`);
-
-                    setPaletteControlValue(control, swatches, line.color);
-               } else if (key === "weight") {
-                    control.value = line.weight;
-                    updateCustomSelectDisplay(control);
-               }
           } else if (name === "date-week-start") {
                control.value = plannerDefaultSettings.date.weekStart;
                updateCustomSelectDisplay(control);
@@ -770,76 +605,6 @@ function renderDateOrderPicker() {
           });
           dateOrderPicker.append(button);
      });
-}
-
-function getSidebarVisibilityTypeLabel(type) {
-     if (typeof getItemTypeLabel === "function") {
-          return getItemTypeLabel(type);
-     }
-
-     return type
-          .split("-")
-          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-          .join(" ");
-}
-
-function renderSidebarVisibilityControls() {
-     if (!sidebarVisibilityTypeSelect || !sidebarVisibilityControls) {
-          return;
-     }
-
-     const type = sidebarVisibilityTypeSelect.value || sidebarVisibilityWidgetTypes[0];
-
-     sidebarVisibilityControls.replaceChildren();
-     sidebarControlVisibilityGroups.forEach((group) => {
-          const groupElement = document.createElement("div");
-          const groupTitle = document.createElement("div");
-
-          groupElement.className = "sidebar-visibility-group";
-          groupTitle.className = "widget-panel-section-title sidebar-visibility-title";
-          groupTitle.textContent = group.label;
-          groupElement.append(groupTitle);
-          group.controls.forEach(([key, label]) => {
-               const option = document.createElement("label");
-               const input = document.createElement("input");
-               const labelText = document.createElement("span");
-
-               option.className = "sidebar-visibility-option";
-               input.type = "checkbox";
-               input.checked = isPlannerWidgetControlVisible(type, key);
-               input.dataset.sidebarVisibilityControl = key;
-               labelText.textContent = label;
-               input.addEventListener("change", () => {
-                    setPlannerWidgetControlVisibility(type, key, input.checked);
-                    applySidebarControlVisibilityForType(type);
-                    savePlannerState();
-               });
-               option.append(input, labelText);
-               groupElement.append(option);
-          });
-          sidebarVisibilityControls.append(groupElement);
-     });
-}
-
-function initializeSidebarVisibilityControls() {
-     if (!sidebarVisibilityTypeSelect || !sidebarVisibilityControls) {
-          return;
-     }
-
-     sidebarVisibilityTypeSelect.replaceChildren();
-     sidebarVisibilityWidgetTypes.forEach((type) => {
-          const option = document.createElement("option");
-
-          option.value = type;
-          option.textContent = getSidebarVisibilityTypeLabel(type);
-          sidebarVisibilityTypeSelect.append(option);
-     });
-     makeCustomSelect(sidebarVisibilityTypeSelect);
-     sidebarVisibilityTypeSelect.addEventListener("change", () => {
-          updateCustomSelectDisplay(sidebarVisibilityTypeSelect);
-          renderSidebarVisibilityControls();
-     });
-     renderSidebarVisibilityControls();
 }
 
 function resetItemsToPlannerDefaults(items) {
@@ -3998,8 +3763,6 @@ function applyPlannerConfig() {
 
 function initializeDefaultControls() {
      const bodyTextColorSelect = document.querySelector("[data-default-control='body-text-color'], [data-default-control='text-color']");
-     const gridLineColorSelects = Array.from(document.querySelectorAll("[data-default-control$='-color']")).filter((select) => select.dataset.defaultControl.startsWith("grid-line-"));
-     const gridFillSelect = document.querySelector("[data-default-control='grid-fill']");
 
      if (bodyTextColorSelect) {
           initializePaletteColorControl(bodyTextColorSelect, defaultTextColorSwatches, plannerDefaultSettings.text.color, (nextColor) => {
@@ -4007,32 +3770,10 @@ function initializeDefaultControls() {
                savePlannerState();
           });
      }
-     gridLineColorSelects.forEach((gridColorSelect) => {
-          const [, , lineName] = gridColorSelect.dataset.defaultControl.split("-");
-          const normalizedLineName = {
-               perimeter: "perimeter",
-               title: "title",
-               bodyVertical: "bodyVertical",
-               bodyHorizontal: "bodyHorizontal"
-          }[lineName];
-          const swatches = document.querySelector(`[data-default-grid-color-swatches="${lineName}"]`);
-          const defaultColor = normalizedLineName ? plannerDefaultSettings.grid[normalizedLineName].color : plannerDefaultSettings.grid.color;
-
-          initializePaletteColorControl(gridColorSelect, swatches, defaultColor, (nextColor) => {
-               setDefaultControlValue(gridColorSelect.dataset.defaultControl, nextColor);
-               savePlannerState();
-          });
-     });
-     if (gridFillSelect) {
-          initializePaletteColorControl(gridFillSelect, defaultGridFillSwatches, plannerDefaultSettings.grid.fill, (nextColor) => {
-               setDefaultControlValue("grid-fill", nextColor);
-               savePlannerState();
-          });
-     }
 
      defaultControls.forEach((control) => {
           if (control.matches("select")) {
-               if (["text-color", "body-text-color", "grid-fill"].includes(control.dataset.defaultControl) || control.dataset.defaultControl.startsWith("grid-line-") && control.dataset.defaultControl.endsWith("-color")) {
+               if (["text-color", "body-text-color"].includes(control.dataset.defaultControl)) {
                     return;
                }
                makeCustomSelect(control);
@@ -4059,7 +3800,6 @@ function initializeDefaultControls() {
      resetUniversalDefaultsButton?.addEventListener("click", resetUniversalStylesToDefaults);
      resetNotebookDefaultsButton?.addEventListener("click", resetNotebookStylesToDefaults);
      syncDefaultControls();
-     initializeSidebarVisibilityControls();
 }
 
 // NOTE: Start The App And Connect The Buttons
