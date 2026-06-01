@@ -623,11 +623,10 @@ body {
      margin-left: 0;
 }
 
-.control-panel-tab.is-active,
-.control-panel-tab[aria-selected="true"] {
+.control-panel.is-open .control-panel-tab.is-active,
+.control-panel.is-open .control-panel-tab[aria-selected="true"] {
      z-index: 1;
      border-bottom-color: transparent;
-     background: var(--active-controls-color);
      color: var(--color-gray1);
 }
 
@@ -910,9 +909,10 @@ body {
 }
 
 .defaults-panel .text-panel-format {
-     grid-template-columns: 112px repeat(2, minmax(0, 1fr));
+     grid-template-columns: 112px repeat(2, minmax(0, 104px));
      align-items: center;
-     gap: 6px;
+     gap: 6px 8px;
+     justify-content: start;
 }
 
 .defaults-panel .text-panel-format .widget-panel-title {
@@ -4840,10 +4840,10 @@ body {
      background: rgba(255, 255, 255, 0.82);
 }
 
-.control-panel-tab.is-active,
-.control-panel-tab[aria-selected="true"] {
+.control-panel.is-open .control-panel-tab.is-active,
+.control-panel.is-open .control-panel-tab[aria-selected="true"] {
      border-color: rgba(17, 17, 17, 0.22);
-     background: var(--color-white);
+     background: var(--color-gray4);
 }
 
 .control-panel-page {
@@ -4982,7 +4982,7 @@ body.is-single-page-viewport .control-panel-page {
      }
 
      .defaults-panel .text-panel-format {
-          grid-template-columns: 96px repeat(2, minmax(0, 1fr));
+          grid-template-columns: 96px repeat(2, minmax(0, 96px));
      }
 
      .defaults-panel .widget-panel-row,
@@ -5235,8 +5235,9 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 }
 
 .planner-sidebar .text-panel-format {
-     grid-template-columns: minmax(76px, max-content) repeat(2, minmax(0, 1fr));
+     grid-template-columns: minmax(76px, max-content) repeat(2, minmax(0, 96px));
      align-items: center;
+     justify-content: start;
 }
 
 .planner-sidebar .text-panel-format .widget-panel-title {
@@ -5310,9 +5311,14 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 
      .planner-sidebar .widget-panel-row,
      .planner-sidebar .color-panel-control,
-     .planner-sidebar .text-panel-format,
      .planner-sidebar .text-panel-align-control {
           grid-template-columns: minmax(70px, max-content) minmax(0, 1fr);
+     }
+
+     .planner-sidebar .text-panel-format {
+          grid-template-columns: 70px repeat(2, minmax(0, 96px));
+          column-gap: 15px;
+          justify-content: start;
      }
 }
 

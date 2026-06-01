@@ -3429,7 +3429,7 @@ function getKeyHintState() {
 
      if (sidebarContext === "add") {
           return {
-               mode: "Current Action > Add Widgets",
+               mode: "Current Action > Widgets",
                entries: [
                ["2", "Back"],
                ["1-5", "Tabs"],

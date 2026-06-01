@@ -461,7 +461,7 @@ window.KeyboardControls = (() => {
           {
                title: "Control Panel",
                controls: [
-                    { key: "1-5", action: "Choose Guide, Add Widgets, Notebook, Defaults, or Selected" },
+                    { key: "1-5", action: "Choose Guide, Widgets, Notebook, Defaults, or Selected" },
                     { key: "Q / E", action: "Last or next panel tab" },
                     { key: "WASD / Arrows", action: "Move spatially through panel controls; up/down scroll at edges" },
                     { key: "Enter", action: "Activate selected control" },
