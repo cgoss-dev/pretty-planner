@@ -3979,6 +3979,8 @@ body {
      right: auto;
      top: auto;
      display: grid;
+     align-content: start;
+     gap: 6px;
      width: 100% !important;
      inline-size: 100% !important;
      min-width: 0 !important;
@@ -3989,6 +3991,8 @@ body {
 
 .control-object-shell .widget-panel-tabs {
      display: flex;
+     justify-content: center;
+     margin-bottom: 2px;
 }
 
 .widget-panel.is-floating {
@@ -5189,8 +5193,18 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      min-width: 0;
      max-height: none;
      overflow: visible;
-     gap: 8px;
+     gap: 6px;
      padding: 0;
+}
+
+.planner-sidebar .object-control-panel-page,
+.planner-sidebar .control-object-shell {
+     min-height: 0;
+}
+
+.planner-sidebar .control-object-shell {
+     align-content: start;
+     gap: 6px;
 }
 
 .planner-sidebar .widget-panel.is-docked .widget-panel-page[hidden] {
