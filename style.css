@@ -2853,7 +2853,7 @@ body {
 .toc-list::after {
      content: "";
      position: absolute;
-     top: calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * 2);
+     top: calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 4));
      bottom: 0;
      left: var(--toc-left-column-width, 22.222222%);
      z-index: 3;
@@ -3750,6 +3750,11 @@ body {
      border-bottom: 0;
 }
 
+.planner-item-day-view .weekly-view-date,
+.planner-item-day-view .weekly-view-time-heading {
+     border-bottom: var(--widget-title-line-width, var(--border-sm)) solid var(--widget-title-line-color, #ccc);
+}
+
 .diary-view {
      position: relative;
      display: grid;
@@ -3777,7 +3782,7 @@ body {
      position: relative;
      display: grid;
      grid-template-columns:
-          calc(var(--diary-column-cell-width, var(--weekly-column-cell-width, 12px)) * 5)
+          calc(var(--diary-column-cell-width, var(--weekly-column-cell-width, 12px)) * 7)
           minmax(calc(var(--diary-column-cell-width, var(--weekly-column-cell-width, 12px)) * 10), 1fr);
      min-width: 0;
      min-height: 0;
@@ -3791,10 +3796,11 @@ body {
 
 .diary-view-date-label {
      display: grid;
-     grid-template-columns: minmax(0, 1fr);
+     grid-template-columns: repeat(2, minmax(0, max-content));
      grid-auto-rows: min-content;
      place-content: center;
      place-items: center;
+     column-gap: 0.35em;
      row-gap: 0.08em;
      min-width: 0;
      min-height: 0;
@@ -4482,9 +4488,16 @@ body {
 
 .text-panel-alignment-button {
      display: grid;
+     place-items: center;
+     min-width: var(--color-swatch-size);
      width: var(--color-swatch-size);
+     max-width: var(--color-swatch-size);
+     min-height: var(--color-swatch-size);
      height: var(--color-swatch-size);
-     min-height: 0;
+     max-height: var(--color-swatch-size);
+     padding: 3px;
+     border: var(--palette-swatch-border);
+     border-radius: var(--palette-swatch-radius);
 }
 
 .text-panel-alignment-glyph {
@@ -5170,6 +5183,11 @@ body.is-single-page-viewport .planner-sidebar .control-panel-tabs {
      display: grid;
 }
 
+.planner-sidebar .control-panel.is-open .control-panel-tab.is-active,
+.planner-sidebar .control-panel.is-open .control-panel-tab[aria-selected="true"] {
+     border-color: rgba(17, 17, 17, 0.2);
+}
+
 .planner-sidebar .control-panel-tab-step,
 .planner-sidebar .control-panel-tab[aria-selected="true"] .control-panel-tab-step,
 .planner-sidebar .control-panel:not(.is-open) .control-panel-tab[aria-selected="true"] .control-panel-tab-step {
@@ -5280,6 +5298,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 
 .planner-sidebar .text-panel-control-row {
      grid-template-columns: minmax(0, 1fr);
+     max-height: none;
 }
 
 .planner-sidebar .text-panel-settings-control {
@@ -5309,7 +5328,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 .planner-sidebar .text-panel-align-control {
      grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
      align-items: center;
-     min-height: calc((var(--color-swatch-size) * 3) + 20px);
+     min-height: calc((var(--color-swatch-size) * 3) + 30px);
 }
 
 .planner-sidebar .text-panel-alignment-grid {

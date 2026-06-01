@@ -72,6 +72,14 @@ function getWidgetTextPartSlots(type, partName) {
      return getWidgetTypeTextParts(type)?.[partName] || null;
 }
 
+function getWidgetSharedTextPartName(type, partName) {
+     if ((type === "weekly-view" || type === "day-view" || type === "diary-view") && partName === "weekendDayHeader") {
+          return "dayHeader";
+     }
+
+     return partName;
+}
+
 function getDefaultWidgetTextPartToc(type, partName) {
      return false;
 }
@@ -123,10 +131,12 @@ function applyThemeToWidget(item) {
                     && partSlots.borderSlot === widgetSlots.parts?.background?.borderSlot;
 
                if (partSlots.textSlot) {
+                    const textPartName = getWidgetSharedTextPartName(item.dataset.itemType, partName);
+
                     applyTextThemeToElement(part, theme.text?.[partSlots.textSlot] || {}, theme, {
                          textSlot: partSlots.textSlot,
                          widgetType: item.dataset.itemType,
-                         partName,
+                         partName: textPartName,
                          sizeMultiplier: partSlots.sizeMultiplier
                     });
                }
@@ -236,6 +246,7 @@ function renderToc(item, entries = []) {
      }
 
      const tocEntries = Array.isArray(entries) ? entries : [];
+     const tocTitleGridRows = 4;
      let toc = item.querySelector(".toc-widget");
 
      if (!toc) {
@@ -249,9 +260,10 @@ function renderToc(item, entries = []) {
      const tocTitleName = document.createElement("span");
 
      list.className = "toc-list";
+     list.style.setProperty("--toc-title-row-span", String(tocTitleGridRows));
      toc.replaceChildren(list);
      tocTitle.className = "toc-title";
-     tocTitle.style.gridRow = "span 2";
+     tocTitle.style.gridRow = `span ${tocTitleGridRows}`;
      tocTitle.dataset.themePart = "heading";
      tocTitleName.className = "toc-title-name";
      tocTitleName.textContent = "Table of Contents";
@@ -1075,7 +1087,50 @@ function stopStickerTextEditing(item) {
      notifyTemplateChanged();
 }
 
-function startStickerTextEditing(item) {
+function selectStickerTextWordAtPoint(textElement, clientX, clientY) {
+     const selection = window.getSelection();
+     let range = null;
+
+     if (!selection) {
+          return false;
+     }
+     if (typeof document.caretRangeFromPoint === "function") {
+          range = document.caretRangeFromPoint(clientX, clientY);
+     } else if (typeof document.caretPositionFromPoint === "function") {
+          const position = document.caretPositionFromPoint(clientX, clientY);
+
+          if (position) {
+               range = document.createRange();
+               range.setStart(position.offsetNode, position.offset);
+               range.collapse(true);
+          }
+     }
+     if (!range || !textElement.contains(range.startContainer)) {
+          range = document.createRange();
+          range.selectNodeContents(textElement);
+     } else if (range.startContainer.nodeType === Node.TEXT_NODE) {
+          const text = range.startContainer.textContent || "";
+          let start = range.startOffset;
+          let end = range.startOffset;
+
+          while (start > 0 && !/\s/.test(text[start - 1])) {
+               start -= 1;
+          }
+          while (end < text.length && !/\s/.test(text[end])) {
+               end += 1;
+          }
+          range.setStart(range.startContainer, start);
+          range.setEnd(range.startContainer, Math.max(start, end));
+     } else {
+          range.selectNodeContents(textElement);
+     }
+
+     selection.removeAllRanges();
+     selection.addRange(range);
+     return true;
+}
+
+function startStickerTextEditing(item, options = {}) {
      if (typeof activeAction !== "undefined" && activeAction) {
           return;
      }
@@ -1092,6 +1147,9 @@ function startStickerTextEditing(item) {
 
      if (textElement.isContentEditable) {
           textElement.focus();
+          if (options.selectWordAtPoint) {
+               selectStickerTextWordAtPoint(textElement, options.clientX, options.clientY);
+          }
           return;
      }
 
@@ -1110,6 +1168,10 @@ function startStickerTextEditing(item) {
 
      requestAnimationFrame(() => {
           textElement.focus();
+
+          if (options.selectWordAtPoint && selectStickerTextWordAtPoint(textElement, options.clientX, options.clientY)) {
+               return;
+          }
 
           const selection = window.getSelection();
           const range = document.createRange();
@@ -1428,13 +1490,14 @@ function getWidgetTextPopupTarget(item, event) {
      const type = item?.dataset?.itemType || "";
      const eventElement = getPopupEventElement(event);
      const partElement = eventElement?.closest?.("[data-theme-part]");
-     const partName = partElement?.dataset?.themePart;
+     const rawPartName = partElement?.dataset?.themePart;
+     const partName = getWidgetSharedTextPartName(type, rawPartName);
 
      if (!item || !partName) {
           return null;
      }
 
-     const partSlots = getWidgetTextPartSlots(type, partName);
+     const partSlots = getWidgetTextPartSlots(type, rawPartName);
 
      if (!partSlots?.textSlot) {
           return null;
@@ -2537,11 +2600,13 @@ function getResizedBox(item, page, clientX, clientY, mode) {
           return getResizedPerpetualCalendarBox(item, page, clientX, current, mode, grid, origin, pageRect, viewZoom);
      }
 
-     const minGridWidth = isTocItem(item) ? getTocMinGridColumns() : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMinGridColumns() : (isTimeGridCalendarType(item.dataset.itemType) ? getWeeklyVerticalMinGridColumns(item) : (isFullPageCalendarType(item.dataset.itemType) ? 16 : 2)));
+     const minGridWidth = isTocItem(item) ? getTocMinGridColumns() : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMinGridColumns() : (item.dataset.itemType === "diary-view" ? getDiaryViewMinGridColumns() : (isTimeGridCalendarType(item.dataset.itemType) ? getWeeklyVerticalMinGridColumns(item) : (isFullPageCalendarType(item.dataset.itemType) ? 16 : 2))));
      const minGridHeight = getItemMinGridHeight(item);
      const minWidth = grid.x * minGridWidth;
      const minHeight = grid.y * minGridHeight;
-     const maxHeight = item.dataset.itemType === "perpetual-calendar" ? grid.y * getPerpetualCalendarMaxGridRows() : Infinity;
+     const maxHeight = item.dataset.itemType === "perpetual-calendar"
+          ? grid.y * getPerpetualCalendarMaxGridRows()
+          : (item.dataset.itemType === "diary-view" ? grid.y * getDiaryViewMaxGridRows() : Infinity);
      const right = current.x + current.width;
      const bottom = current.y + current.height;
      const pointerX = snapToGridOrigin((clientX - pageRect.left) / viewZoom, origin.x, grid.x);
@@ -3502,9 +3567,9 @@ function makePlannerItem(type = "sticker") {
      textFormatGroup.append(textFormatTitle, textBoldInput, textItalicInput, textUnderlineInput, textStrikeInput);
      textAlignLabel.append(textAlignTitle, textAlignmentGrid);
      textLineHeightLabel.append(textLineHeightSelect);
-     textControlsRow.append(textToggleLabel, textSizeLabel, textFormatGroup, textAlignLabel);
+     textControlsRow.append(textColorLabel, textToggleLabel, textLineHeightLabel, textSizeLabel, textFormatGroup, textAlignLabel);
      stylePanel.append(stylePanelTitle, fillLabel);
-     textPanel.append(textPanelTitle, textTocLabel, textControlsRow, textColorLabel, textLineHeightLabel);
+     textPanel.append(textPanelTitle, textTocLabel, textControlsRow);
      monthLabel.append(monthSelect);
      monthDisplayLabel.append(monthDisplaySelect);
      yearLabel.append(yearSelect);
@@ -3751,6 +3816,18 @@ function makePlannerItem(type = "sticker") {
           }
 
           if (event.target.closest(".sticker-text[contenteditable='true']")) {
+               return;
+          }
+
+          if (event.target.closest(".sticker-text")) {
+               event.preventDefault();
+               event.stopPropagation();
+               selectItem(item);
+               startStickerTextEditing(item, {
+                    selectWordAtPoint: true,
+                    clientX: event.clientX,
+                    clientY: event.clientY
+               });
                return;
           }
 
@@ -4478,7 +4555,9 @@ function snapItemToPage(item, page, event) {
                width: Math.max(grid.x, snappedSize.width - (grid.x * 2)),
                height: Math.max(grid.y, Math.min(
                     snappedSize.height - (grid.y * 2),
-                    item.dataset.itemType === "perpetual-calendar" ? grid.y * getPerpetualCalendarMaxGridRows() : Infinity
+                    item.dataset.itemType === "perpetual-calendar"
+                         ? grid.y * getPerpetualCalendarMaxGridRows()
+                         : (item.dataset.itemType === "diary-view" ? grid.y * getDiaryViewMaxGridRows() : Infinity)
                ))
           });
           return true;

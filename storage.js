@@ -116,7 +116,17 @@ function serializePlannerItem(item) {
                ? {
                     enabled: item.dataset.textEnabled === "true",
                     content: isTocItem(item) ? "" : textElement ? textElement.textContent : "",
-                    appearsInToc: item.dataset.textAppearsInToc === "true"
+                    appearsInToc: item.dataset.textAppearsInToc === "true",
+                    size: item.dataset.textSize || null,
+                    font: item.dataset.textFont || null,
+                    color: item.dataset.textColor || null,
+                    bold: item.dataset.textBold || null,
+                    italic: item.dataset.textItalic || null,
+                    underline: item.dataset.textUnderline || null,
+                    strike: item.dataset.textStrike || null,
+                    align: item.dataset.textAlign || null,
+                    yAlign: item.dataset.textYAlign || null,
+                    lineHeight: item.dataset.textLineHeight || null
                }
                : null
      };
@@ -307,9 +317,7 @@ function serializePlannerSettings() {
      };
 }
 
-function restoreSavedSettings() {
-     const settings = readPlannerState().settings;
-
+function restorePlannerSettings(settings) {
      if (!settings) {
           return;
      }
@@ -342,6 +350,10 @@ function restoreSavedSettings() {
           viewFocusIndex = normalizeStoredViewFocusIndex(settings.view.focusSide ?? settings.view.focusIndex);
           viewVerticalFocusIndex = clamp(Number(settings.view.verticalFocusIndex) || 1, 0, viewVerticalFocusPoints.length - 1);
      }
+}
+
+function restoreSavedSettings() {
+     restorePlannerSettings(readPlannerState().settings);
 }
 
 function serializePlannerBook() {
@@ -519,7 +531,17 @@ function restorePlannerItemSettings(item, itemData) {
      if (isStickerTextItem(item)) {
           setStickerTextSettings(item, {
                enabled: normalizeStoredBoolean(text.enabled),
-               content: isTocItem(item) ? undefined : text.content || ""
+               content: isTocItem(item) ? undefined : text.content || "",
+               size: text.size,
+               font: text.font,
+               color: text.color,
+               bold: normalizeStoredBoolean(text.bold),
+               italic: normalizeStoredBoolean(text.italic),
+               underline: normalizeStoredBoolean(text.underline),
+               strike: normalizeStoredBoolean(text.strike),
+               align: text.align,
+               yAlign: text.yAlign,
+               lineHeight: text.lineHeight
           });
           item.dataset.textAppearsInToc = normalizeStoredBoolean(text.appearsInToc) || "false";
      }

@@ -513,7 +513,7 @@ function getFullMonthGridUnits(item) {
 }
 
 function getFullMonthTitleRowUnits() {
-     return 2;
+     return 4;
 }
 
 function getFullMonthWeekRowUnits() {
@@ -524,6 +524,14 @@ function getDiaryViewMinGridRows(item) {
      const visibleDays = clamp(Number(item?.dataset?.visibleDays) || 7, 1, 7);
 
      return visibleDays * 5;
+}
+
+function getDiaryViewMinGridColumns() {
+     return 17;
+}
+
+function getDiaryViewMaxGridRows() {
+     return 35;
 }
 
 function getPerpetualCalendarVisibleGridRows(item) {

@@ -178,7 +178,7 @@ const factoryPlannerDefaults = {
      text: {
           size: "10",
           font: "annotation-mono",
-          color: "var(--color-gray1)",
+          color: "var(--color-black)",
           bold: "false",
           italic: "false",
           underline: "false",
@@ -275,15 +275,11 @@ function normalizeGridLineDefaults(lineDefaults = {}, fallback = {}) {
 
 function getNormalizedPlannerDefaults(defaults = {}) {
      const dateDefaults = defaults.date && typeof defaults.date === "object" ? defaults.date : {};
-     const bodyTextDefaults = defaults.bodyText && typeof defaults.bodyText === "object" ? defaults.bodyText : defaults.text;
      const widgetTextStyles = defaults.widgetTextStyles && typeof defaults.widgetTextStyles === "object" ? defaults.widgetTextStyles : {};
 
      return {
           hintPanel: defaults.hintPanel === "off" ? "off" : factoryPlannerDefaults.hintPanel,
-          text: {
-               ...factoryPlannerDefaults.text,
-               ...(bodyTextDefaults && typeof bodyTextDefaults === "object" ? bodyTextDefaults : {})
-          },
+          text: { ...factoryPlannerDefaults.text },
           grid: (() => {
                const gridDefaults = defaults.grid && typeof defaults.grid === "object" ? defaults.grid : {};
                const fallbackLine = {
@@ -2869,7 +2865,7 @@ function handleCancelKey(event) {
 }
 
 function handleTextEditFinishKey(event) {
-     // NOTE: Uses Enter/Delete/Escape to finish active text editing by leaving the editable text field
+     // NOTE: Uses Escape to finish active text editing by leaving the editable text field.
      if (
           event.defaultPrevented ||
           event.altKey ||
@@ -2880,7 +2876,7 @@ function handleTextEditFinishKey(event) {
           return;
      }
 
-     if (event.key !== "Escape" && event.key !== "Delete" && event.key !== "Enter") {
+     if (event.key !== "Escape") {
           return;
      }
 
@@ -3369,7 +3365,8 @@ function getKeyHintState() {
                mode: "Current Action > Text Edit",
                entries: [
                ["Type", "Enter text"],
-               ["Enter / Delete", "Finish editing"]
+               ["Enter", "New line"],
+               ["Esc", "Finish editing"]
                ]
           };
      }
@@ -3412,7 +3409,7 @@ function getKeyHintState() {
 
      if (sidebarContext === "defaults") {
           return {
-               mode: "Current Action > Defaults",
+               mode: "Current Action > Dates",
                entries: [
                ["4", "Back"],
                ["1-5", "Tabs"],
