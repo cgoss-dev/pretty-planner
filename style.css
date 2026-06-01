@@ -4067,6 +4067,11 @@ body {
      border-top: 0;
 }
 
+.widget-panel.is-actions-popup > .item-text-role-action-group {
+     padding-top: 0;
+     border-top: 0;
+}
+
 .item-actions-section-title {
      grid-column: 1 / -1;
      color: var(--color-gray2);
@@ -4414,7 +4419,7 @@ body {
      grid-template-columns: minmax(0, 1fr);
      gap: 4px;
      padding: 7px;
-     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
      border-radius: 6px;
      background: var(--color-white);
 }
@@ -5139,7 +5144,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-tabs {
      gap: 4px;
      width: 100%;
      padding: 8px 0;
-     border-top: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     border-top: 0;
      border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
 }
 
@@ -5233,6 +5238,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 .planner-sidebar .widget-panel-row {
      width: 100%;
      min-width: 0;
+     min-height: calc(var(--color-swatch-size) + 16px);
      grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
      align-items: center;
      gap: 8px;
@@ -5267,6 +5273,14 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 
 .planner-sidebar .text-panel-control-row {
      grid-template-columns: minmax(0, 1fr);
+}
+
+.planner-sidebar .text-panel-settings-control {
+     min-height: 42px;
+}
+
+.planner-sidebar .text-panel-size-control {
+     min-height: 44px;
 }
 
 .planner-sidebar .text-panel-format {
@@ -5304,6 +5318,28 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 .planner-sidebar .item-calendar-attributes-grid {
      grid-template-columns: minmax(0, 1fr);
      gap: 8px;
+}
+
+.planner-sidebar .item-calendar-attributes-grid .widget-option-control {
+     min-height: calc(var(--color-swatch-size) + 16px);
+     grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
+     align-items: center;
+     gap: 8px;
+     padding: 7px;
+}
+
+.planner-sidebar .item-calendar-attributes-grid .widget-option-control .custom-select,
+.planner-sidebar .item-calendar-attributes-grid .widget-option-control select {
+     grid-column: 2;
+     justify-self: stretch;
+     width: 100%;
+}
+
+.planner-sidebar .item-calendar-attributes-grid .widget-option-control input[type="checkbox"] {
+     grid-column: 2;
+     justify-self: end;
+     width: var(--color-swatch-size);
+     height: var(--color-swatch-size);
 }
 
 @media (max-width: 760px) {

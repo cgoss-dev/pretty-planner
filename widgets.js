@@ -1713,7 +1713,6 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      const popupTitle = document.createElement("div");
      const widgetType = document.createElement("div");
      const textGroup = document.createElement("div");
-     const textGroupTitle = document.createElement("div");
      const layoutGroup = document.createElement("div");
      const duplicateGroup = document.createElement("div");
      const layerGroup = document.createElement("div");
@@ -1759,7 +1758,6 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      widgetType.className = "item-actions-widget-type subtitle";
      widgetType.textContent = getActionItemsTypeLabel(actionItems);
      textGroup.className = "item-text-role-action-group";
-     textGroupTitle.className = "item-actions-section-title";
      layoutGroup.className = "item-action-row item-layout-action-group";
      duplicateGroup.className = "item-action-row";
      layerGroup.className = "item-layer-actions";
@@ -1789,10 +1787,6 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      const deleteButton = makeButton("Delete", closeAfter(() => deleteItem(item)), "widget-panel-danger");
 
      if (textTarget) {
-          textGroupTitle.textContent = textTarget.scope === "type"
-               ? `${textTarget.label}: all ${getActionItemsTypeLabel([item])}`
-               : `${textTarget.label}: this widget`;
-          textGroup.append(textGroupTitle);
           textGroup.append(makeButton("Appears in ToC", closeAfter(() => applyPopupTextToc(item, textTarget, !textTarget.appearsInToc)), textTarget.appearsInToc ? "is-active" : ""));
      }
      layoutGroup.append(moveButton, resizeButton);
