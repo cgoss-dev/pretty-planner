@@ -4745,6 +4745,11 @@ body {
      text-align: center;
 }
 
+.widget-panel.is-actions-popup .item-actions-widget-type {
+     padding-bottom: 0;
+     border-bottom: 0;
+}
+
 .item-actions-section-title {
      justify-self: stretch;
      padding: 0;
@@ -5047,6 +5052,8 @@ body.is-single-page-viewport .planner-desk > .sticker-source {
 
 .planner-sidebar-title {
      margin: 0;
+     padding-bottom: 0;
+     border-bottom: 0;
 }
 
 .planner-sidebar .hint-panel {
