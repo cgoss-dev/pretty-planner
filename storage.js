@@ -116,7 +116,6 @@ function serializePlannerItem(item) {
                ? {
                     enabled: item.dataset.textEnabled === "true",
                     content: isTocItem(item) ? "" : textElement ? textElement.textContent : "",
-                    role: item.dataset.textRole || "body",
                     appearsInToc: item.dataset.textAppearsInToc === "true"
                }
                : null
@@ -520,8 +519,7 @@ function restorePlannerItemSettings(item, itemData) {
      if (isStickerTextItem(item)) {
           setStickerTextSettings(item, {
                enabled: normalizeStoredBoolean(text.enabled),
-               content: isTocItem(item) ? undefined : text.content || "",
-               role: text.role
+               content: isTocItem(item) ? undefined : text.content || ""
           });
           item.dataset.textAppearsInToc = normalizeStoredBoolean(text.appearsInToc) || "false";
      }

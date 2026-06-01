@@ -46,8 +46,10 @@ function applyTextThemeToElement(element, textTheme = {}, theme = null, override
           ...textTheme,
           ...overrides
      };
-     const defaultRole = nextTextTheme.textSlot === "title" ? "title" : "body";
-     const defaultText = typeof getPlannerDefaultTextSettings === "function" ? getPlannerDefaultTextSettings({}, defaultRole) : null;
+     const partStyle = typeof getPlannerWidgetTextPartStyle === "function"
+          ? getPlannerWidgetTextPartStyle(nextTextTheme.widgetType, nextTextTheme.partName)
+          : null;
+     const defaultText = typeof getPlannerDefaultTextSettings === "function" ? getPlannerDefaultTextSettings(partStyle || {}) : (partStyle || null);
 
      element.style.fontFamily = getStickerTextFont(defaultText?.font || nextTextTheme.typeface || "annotation-mono");
      element.style.fontSize = `${defaultText?.size || getThemeTextSize(theme, nextTextTheme)}px`;
@@ -68,13 +70,6 @@ function getWidgetTypeTextParts(type) {
 
 function getWidgetTextPartSlots(type, partName) {
      return getWidgetTypeTextParts(type)?.[partName] || null;
-}
-
-function getWidgetTextPartRole(type, partName) {
-     const storedRole = typeof getPlannerWidgetTextPartRole === "function" ? getPlannerWidgetTextPartRole(type, partName) : "";
-     const slotRole = getWidgetTextPartSlots(type, partName)?.textSlot;
-
-     return storedRole || slotRole || "body";
 }
 
 function getDefaultWidgetTextPartToc(type, partName) {
@@ -101,12 +96,12 @@ function setWidgetTextPartToc(type, partName, appearsInToc) {
      setPlannerWidgetTextPartToc(type, partName, appearsInToc);
 }
 
-function setWidgetTextPartRole(type, partName, role) {
-     if (typeof setPlannerWidgetTextPartRole !== "function") {
+function setWidgetTextPartStyle(type, partName, style) {
+     if (typeof setPlannerWidgetTextPartStyle !== "function") {
           return;
      }
 
-     setPlannerWidgetTextPartRole(type, partName, role);
+     setPlannerWidgetTextPartStyle(type, partName, style);
 }
 
 function applyThemeToWidget(item) {
@@ -129,10 +124,11 @@ function applyThemeToWidget(item) {
 
                if (partSlots.textSlot) {
                     applyTextThemeToElement(part, theme.text?.[partSlots.textSlot] || {}, theme, {
-                         textSlot: getWidgetTextPartRole(item.dataset.itemType, partName),
+                         textSlot: partSlots.textSlot,
+                         widgetType: item.dataset.itemType,
+                         partName,
                          sizeMultiplier: partSlots.sizeMultiplier
                     });
-                    part.dataset.textRole = getWidgetTextPartRole(item.dataset.itemType, partName);
                }
                if (!isCustomBackgroundFill && partSlots.fillSlot && theme.widget?.[partSlots.fillSlot]) {
                     if (isCalendarItem(item) && partSlots.fillSlot !== "fillColor1") {
@@ -928,7 +924,6 @@ function setStickerTextSettings(item, settings = {}) {
      item.dataset.textAlign = settings.align || item.dataset.textAlign || "center";
      item.dataset.textYAlign = settings.yAlign || item.dataset.textYAlign || "center";
      item.dataset.textLineHeight = settings.lineHeight || item.dataset.textLineHeight || "1";
-     item.dataset.textRole = settings.role || item.dataset.textRole || "body";
 
      if (textElement) {
           if (!isTocItem(item) && settings.content !== undefined) {
@@ -957,7 +952,6 @@ function setStickerTextSettings(item, settings = {}) {
      const alignSelect = controls.querySelector("[data-text-control='align']");
      const yAlignSelect = controls.querySelector("[data-text-control='y-align']");
      const lineHeightSelect = controls.querySelector("[data-text-control='line-height']");
-     const roleSelect = controls.querySelector("[data-text-control='role']");
 
      updateTextSizeControls(controls, item.dataset.textSize);
 
@@ -997,10 +991,6 @@ function setStickerTextSettings(item, settings = {}) {
 
      if (lineHeightSelect) {
           lineHeightSelect.value = item.dataset.textLineHeight;
-     }
-
-     if (roleSelect) {
-          roleSelect.value = item.dataset.textRole;
      }
 
      controls.querySelectorAll("select").forEach(updateCustomSelectDisplay);
@@ -1415,19 +1405,13 @@ function openItemMenu(item) {
      updateClipboardControls();
 }
 
-function getTextRoleLabel(role) {
-     return {
-          title: "Title",
-          subtitle: "Subtitle",
-          body: "Body"
-     }[role] || "Body";
-}
-
 function getReadableTextPartName(partName) {
      return String(partName || "Text")
           .replace(/([a-z])([A-Z])/g, "$1 $2")
           .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
+
+let selectedTextStyleTarget = null;
 
 function getPopupEventElement(event) {
      const target = event?.target || null;
@@ -1455,7 +1439,7 @@ function getWidgetTextPopupTarget(item, event) {
          return {
                label: "Sticky Text",
                appearsInToc: item.dataset.textAppearsInToc === "true",
-               role: item.dataset.textRole || "body",
+               partName,
                scope: "item",
                type: "sticker"
           };
@@ -1463,9 +1447,9 @@ function getWidgetTextPopupTarget(item, event) {
 
      if (partName === "dayNotes") {
          return {
-               label: "Body Text",
+               label: "Freeform Text",
                appearsInToc: item.dataset.dayTextAppearsInToc === "true",
-               role: item.dataset.dayTextRole || "body",
+               partName,
                scope: "item",
                type: "calendar-day"
           };
@@ -1475,23 +1459,190 @@ function getWidgetTextPopupTarget(item, event) {
           label: getReadableTextPartName(partName),
           appearsInToc: getWidgetTextPartToc(type, partName),
           partName,
-          role: getWidgetTextPartRole(type, partName),
           scope: "type",
           type
      };
 }
 
-function applyPopupTextRole(item, textTarget, role) {
-     const settings = typeof getPlannerDefaultTextSettings === "function"
-          ? getPlannerDefaultTextSettings({
-               role
-          }, role)
-          : {
-               role
-          };
+function getSelectedTextTargetFromRange() {
+     const selection = window.getSelection();
+
+     if (!selection || selection.isCollapsed || !selection.rangeCount) {
+          return null;
+     }
+
+     const range = selection.getRangeAt(0);
+     const container = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+          ? range.commonAncestorContainer.parentElement
+          : range.commonAncestorContainer;
+     const item = container?.closest?.(".planner-item");
+     const partElement = container?.closest?.("[data-theme-part]") || range.startContainer.parentElement?.closest?.("[data-theme-part]");
+
+     if (!item || !partElement || !item.contains(partElement)) {
+          return null;
+     }
+
+     const textTarget = getWidgetTextPopupTarget(item, {
+          target: partElement
+     });
+
+     return textTarget ? {
+          item,
+          textTarget
+     } : null;
+}
+
+let selectedTextRangeFrame = 0;
+
+function syncSelectedTextTargetFromSelection() {
+     cancelAnimationFrame(selectedTextRangeFrame);
+     selectedTextRangeFrame = requestAnimationFrame(() => {
+          const target = getSelectedTextTargetFromRange();
+
+          if (!target) {
+               return;
+          }
+
+          if (!selectedItems.has(target.item) || selectedItems.size !== 1) {
+               selectItem(target.item);
+          }
+
+          setSelectedTextStyleTarget(target.item, target.textTarget);
+          openItemMenu(target.item);
+          const controls = getWidgetPanel(target.item);
+
+          if (controls) {
+               setWidgetPanelTab(controls, "text");
+          }
+     });
+}
+
+function setSelectedTextStyleTarget(item, textTarget) {
+     selectedTextStyleTarget = item && textTarget ? {
+          item,
+          ...textTarget
+     } : null;
+     syncSelectedTextStyleControls(item || selectedItem);
+}
+
+function getSelectedTextStyleTarget(item = selectedItem) {
+     if (selectedTextStyleTarget?.item && getAllPlannerItems().includes(selectedTextStyleTarget.item)) {
+          return selectedTextStyleTarget;
+     }
+
+     if (!item) {
+          return null;
+     }
+
+     return isCalendarTextItem(item)
+          ? {
+               item,
+               label: "Freeform Text",
+               appearsInToc: item.dataset.dayTextAppearsInToc === "true",
+               partName: "dayNotes",
+               scope: "item",
+               type: "calendar-day"
+          }
+          : (isStickerTextItem(item) ? {
+               item,
+               label: "Sticky Text",
+               appearsInToc: item.dataset.textAppearsInToc === "true",
+               partName: "text",
+               scope: "item",
+               type: "sticker"
+          } : null);
+}
+
+function getTextSettingsForTarget(textTarget) {
+     if (!textTarget) {
+          return typeof getPlannerDefaultTextSettings === "function" ? getPlannerDefaultTextSettings() : {};
+     }
 
      if (textTarget.scope === "type") {
-          setWidgetTextPartRole(textTarget.type, textTarget.partName, role);
+          const partStyle = typeof getPlannerWidgetTextPartStyle === "function"
+               ? getPlannerWidgetTextPartStyle(textTarget.type, textTarget.partName)
+               : null;
+
+          return typeof getPlannerDefaultTextSettings === "function" ? getPlannerDefaultTextSettings(partStyle || {}) : (partStyle || {});
+     }
+
+     if (textTarget.type === "calendar-day") {
+          const item = textTarget.item;
+
+          return {
+               size: item.dataset.dayTextSize || "10",
+               font: item.dataset.dayTextFont || "annotation-mono",
+               color: item.dataset.dayTextColor || "var(--color-gray1)",
+               bold: item.dataset.dayTextBold || "false",
+               italic: item.dataset.dayTextItalic || "false",
+               underline: item.dataset.dayTextUnderline || "false",
+               strike: item.dataset.dayTextStrike || "false",
+               align: item.dataset.dayTextAlign || "center",
+               yAlign: item.dataset.dayTextYAlign || "center",
+               lineHeight: item.dataset.dayTextLineHeight || "1"
+          };
+     }
+
+     const item = textTarget.item;
+
+     return {
+          size: item.dataset.textSize || "10",
+          font: item.dataset.textFont || "annotation-mono",
+          color: item.dataset.textColor || "var(--color-gray1)",
+          bold: item.dataset.textBold || "false",
+          italic: item.dataset.textItalic || "false",
+          underline: item.dataset.textUnderline || "false",
+          strike: item.dataset.textStrike || "false",
+          align: item.dataset.textAlign || "center",
+          yAlign: item.dataset.textYAlign || "center",
+          lineHeight: item.dataset.textLineHeight || "1"
+     };
+}
+
+function syncSelectedTextStyleControls(item = selectedItem) {
+     const controls = item ? getWidgetPanel(item) : null;
+     const textTarget = getSelectedTextStyleTarget(item);
+
+     if (!controls || !textTarget) {
+          return;
+     }
+
+     const settings = getTextSettingsForTarget(textTarget);
+     const tocInput = controls.querySelector("[data-text-control='appears-in-toc']");
+     const fontSelect = controls.querySelector("[data-text-control='font']");
+     const colorInput = controls.querySelector("[data-text-control='color']");
+     const colorSwatches = controls.querySelector("[data-text-swatches='color']");
+     const lineHeightSelect = controls.querySelector("[data-text-control='line-height']");
+
+     updateTextSizeControls(controls, settings.size);
+     if (fontSelect) {
+          fontSelect.value = settings.font;
+     }
+     if (colorInput) {
+          setPaletteControlValue(colorInput, colorSwatches, settings.color);
+     }
+     updateTextToggleControl(controls.querySelector("[data-text-control='bold']"), settings.bold === "true");
+     updateTextToggleControl(controls.querySelector("[data-text-control='italic']"), settings.italic === "true");
+     updateTextToggleControl(controls.querySelector("[data-text-control='underline']"), settings.underline === "true");
+     updateTextToggleControl(controls.querySelector("[data-text-control='strike']"), settings.strike === "true");
+     updateTextAlignmentControls(controls, settings.align, settings.yAlign);
+     if (lineHeightSelect) {
+          lineHeightSelect.value = settings.lineHeight;
+     }
+
+     if (tocInput) {
+          tocInput.checked = textTarget.appearsInToc === true || textTarget.appearsInToc === "true";
+     }
+     controls.querySelectorAll("select").forEach(updateCustomSelectDisplay);
+}
+
+function applyTextSettingsToTarget(textTarget, settings) {
+     if (!textTarget) {
+          return false;
+     }
+
+     if (textTarget.scope === "type") {
+          setWidgetTextPartStyle(textTarget.type, textTarget.partName, settings);
           getAllPlannerItems()
                .filter((plannerItem) => plannerItem.dataset.itemType === textTarget.type)
                .forEach((plannerItem) => {
@@ -1505,16 +1656,16 @@ function applyPopupTextRole(item, textTarget, role) {
      }
 
      if (textTarget.type === "sticker") {
-          setStickerTextSettings(item, {
+          setStickerTextSettings(textTarget.item, {
                ...settings,
-               enabled: item.dataset.textEnabled ?? "true"
+               enabled: textTarget.item.dataset.textEnabled ?? "true"
           });
           notifyTemplateChanged();
           return;
      }
 
      if (textTarget.type === "calendar-day") {
-          setCalendarDayTextSettings(item, settings);
+          setCalendarDayTextSettings(textTarget.item, settings);
           notifyTemplateChanged();
      }
 }
@@ -1562,6 +1713,9 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      const duplicateGroup = document.createElement("div");
      const layerGroup = document.createElement("div");
      const textTarget = getWidgetTextPopupTarget(item, event);
+     if (textTarget) {
+          setSelectedTextStyleTarget(item, textTarget);
+     }
      const makeButton = (label, action, className = "") => {
           const button = document.createElement("button");
           const runAction = (buttonEvent) => {
@@ -1634,9 +1788,6 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
                ? `${textTarget.label}: all ${getActionItemsTypeLabel([item])}`
                : `${textTarget.label}: this widget`;
           textGroup.append(textGroupTitle);
-          ["title", "subtitle", "body"].forEach((role) => {
-               textGroup.append(makeButton(getTextRoleLabel(role), closeAfter(() => applyPopupTextRole(item, textTarget, role)), textTarget.role === role ? "is-active" : ""));
-          });
           textGroup.append(makeButton("Appears in ToC", closeAfter(() => applyPopupTextToc(item, textTarget, !textTarget.appearsInToc)), textTarget.appearsInToc ? "is-active" : ""));
      }
      layoutGroup.append(moveButton, resizeButton);
@@ -1900,35 +2051,14 @@ function applyStyleToActionItems(item, style) {
 }
 
 function applyTextSettingsToActionItems(item, settings) {
-     if (typeof setDefaultControlValue === "function") {
-          if (settings.size !== undefined) {
-               setDefaultControlValue("body-text-size", settings.size);
-          }
-          if (settings.font !== undefined) {
-               setDefaultControlValue("body-text-font", settings.font);
-          }
-          if (settings.color !== undefined) {
-               setDefaultControlValue("body-text-color", settings.color);
-          }
-     }
-     if (typeof plannerDefaultSettings !== "undefined") {
-          const textDefaults = plannerDefaultSettings.text;
+     const textTarget = getSelectedTextStyleTarget(item);
 
-          ["bold", "italic", "underline", "strike", "align", "yAlign", "lineHeight", "role"].forEach((key) => {
-               if (settings[key] !== undefined) {
-                    textDefaults[key] = settings[key];
-               }
-          });
-          if (typeof applyPlannerDefaultsToThemeWidgets === "function") {
-               applyPlannerDefaultsToThemeWidgets();
-          }
-          if (typeof syncDefaultControls === "function") {
-               syncDefaultControls();
-          }
-          if (typeof savePlannerState === "function") {
-               savePlannerState();
-          }
+     if (textTarget) {
+          applyTextSettingsToTarget(textTarget, settings);
+          syncSelectedTextStyleControls(textTarget.item);
+          return;
      }
+
      notifyTemplateChanged();
 }
 
@@ -2711,9 +2841,8 @@ function makePlannerItem(type = "sticker") {
      const textColorTitle = document.createElement("span");
      const textColorInput = document.createElement("select");
      const textColorSwatches = document.createElement("div");
-     const textRoleLabel = document.createElement("label");
-     const textRoleTitle = document.createElement("span");
-     const textRoleSelect = document.createElement("select");
+     const textTocLabel = document.createElement("label");
+     const textTocInput = document.createElement("input");
      const textFormatGroup = document.createElement("div");
      const textFormatTitle = document.createElement("span");
      const textBoldInput = document.createElement("button");
@@ -3044,23 +3173,11 @@ function makePlannerItem(type = "sticker") {
      textColorInput.setAttribute("aria-label", "Sticker text palette");
      textColorSwatches.className = "color-panel-swatches";
      textColorSwatches.dataset.textSwatches = "color";
-     textRoleLabel.className = "widget-panel-row text-panel-control text-panel-role-control";
-     textRoleTitle.className = "widget-panel-title";
-     textRoleTitle.textContent = "Role";
-     textRoleSelect.dataset.textControl = "role";
-     textRoleSelect.setAttribute("aria-label", "Text role");
-     [
-          ["body", "Body"],
-          ["subtitle", "Subtitle"],
-          ["title", "Title"],
-          ["custom", "Custom"]
-     ].forEach(([value, label]) => {
-          const option = document.createElement("option");
-
-          option.value = value;
-          option.textContent = label;
-          textRoleSelect.append(option);
-     });
+     textTocLabel.className = "widget-panel-row text-panel-control text-panel-toc-control";
+     textTocLabel.textContent = "Appears in ToC";
+     textTocInput.type = "checkbox";
+     textTocInput.dataset.textControl = "appears-in-toc";
+     textTocInput.setAttribute("aria-label", "Selected text appears in Table of Contents");
      textControlsRow.className = "text-panel-control-row";
      textFormatGroup.className = "text-panel-format text-panel-control";
      textFormatTitle.className = "widget-panel-title";
@@ -3366,13 +3483,13 @@ function makePlannerItem(type = "sticker") {
      textToggleLabel.append(textTitle, textFontSelect);
      textSizeLabel.append(textSizeTitle, textSizeGroup);
      textColorLabel.append(textColorTitle, textColorInput, textColorSwatches);
-     textRoleLabel.append(textRoleTitle, textRoleSelect);
+     textTocLabel.append(textTocInput);
      textFormatGroup.append(textFormatTitle, textBoldInput, textItalicInput, textUnderlineInput, textStrikeInput);
      textAlignLabel.append(textAlignTitle, textAlignmentGrid);
      textLineHeightLabel.append(textLineHeightSelect);
      textControlsRow.append(textToggleLabel, textSizeLabel, textFormatGroup, textAlignLabel);
      stylePanel.append(stylePanelTitle, fillLabel, borderColorLabel, borderSizeField);
-     textPanel.append(textPanelTitle, textControlsRow, textColorLabel, textRoleLabel, textLineHeightLabel);
+     textPanel.append(textPanelTitle, textTocLabel, textControlsRow, textColorLabel, textLineHeightLabel);
      monthLabel.append(monthSelect);
      monthDisplayLabel.append(monthDisplaySelect);
      yearLabel.append(yearSelect);
@@ -3456,11 +3573,11 @@ function makePlannerItem(type = "sticker") {
           dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid, visibleDaysLabel);
           widgetPanel.append(dateWidgetGroup);
      }
+     controlTabs.append(styleTab, textTab);
      if (hasWidgetControls) {
           controlTabs.append(widgetTab);
      }
-     controlTabs.append(styleTab);
-     controls.append(widgetPanelTitle, controlTabs, actionsPanel, stylePanel);
+     controls.append(widgetPanelTitle, controlTabs, actionsPanel, stylePanel, textPanel);
      if (hasWidgetControls) {
           controls.append(widgetPanel);
      }
@@ -3507,6 +3624,26 @@ function makePlannerItem(type = "sticker") {
                borderColor: nextColor
           });
           setPaletteControlValue(borderColorInput, borderColorSwatches, nextColor);
+     });
+     setPaletteSelectionHandler(textColorInput, (nextColor) => {
+          textColorInput.dataset.currentColor = nextColor;
+          applyTextSettingsToActionItems(item, {
+               color: nextColor
+          });
+          setPaletteControlValue(textColorInput, textColorSwatches, nextColor);
+     });
+     textColorSwatches.addEventListener("palettecolorselect", (event) => {
+          const nextColor = event.detail?.color;
+
+          if (!nextColor) {
+               return;
+          }
+
+          textColorInput.dataset.currentColor = nextColor;
+          applyTextSettingsToActionItems(item, {
+               color: nextColor
+          });
+          setPaletteControlValue(textColorInput, textColorSwatches, nextColor);
      });
      setWidgetPanelTab(controls, "actions");
      item.append(sizeLabel);
@@ -3744,10 +3881,16 @@ function makePlannerItem(type = "sticker") {
                font: textFontSelect.value
           });
      });
-     textRoleSelect.addEventListener("change", () => {
-          applyTextSettingsToActionItems(item, {
-               role: textRoleSelect.value
-          });
+     textTocInput.addEventListener("change", () => {
+          const textTarget = getSelectedTextStyleTarget(item);
+
+          if (textTarget) {
+               applyPopupTextToc(textTarget.item, textTarget, textTocInput.checked);
+               setSelectedTextStyleTarget(textTarget.item, {
+                    ...textTarget,
+                    appearsInToc: textTocInput.checked
+               });
+          }
      });
      textBoldInput.addEventListener("click", () => {
           const isActive = textBoldInput.getAttribute("aria-pressed") === "true";
@@ -3983,8 +4126,7 @@ function copyItemConfiguration(source, target) {
           strike: source.dataset.textStrike,
           align: source.dataset.textAlign,
           yAlign: source.dataset.textYAlign,
-          lineHeight: source.dataset.textLineHeight,
-          role: source.dataset.textRole
+          lineHeight: source.dataset.textLineHeight
      });
      if (isCalendarItem(source)) {
           setCalendarWidgetSettings(target, {
@@ -4026,8 +4168,7 @@ function copyItemConfiguration(source, target) {
                     strike: source.dataset.dayTextStrike,
                     align: source.dataset.dayTextAlign,
                     yAlign: source.dataset.dayTextYAlign,
-                    lineHeight: source.dataset.dayTextLineHeight,
-                    role: source.dataset.dayTextRole
+                    lineHeight: source.dataset.dayTextLineHeight
                });
           }
           renderMiniMonth(target);
@@ -4834,3 +4975,5 @@ function endActiveItem(event) {
      activeAction = null;
      clearDragOver();
 }
+
+document.addEventListener("selectionchange", syncSelectedTextTargetFromSelection);

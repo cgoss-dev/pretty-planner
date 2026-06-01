@@ -645,7 +645,6 @@ function setCalendarDayTextSettings(item, settings = {}) {
      item.dataset.dayTextAlign = settings.align || item.dataset.dayTextAlign || "center";
      item.dataset.dayTextYAlign = settings.yAlign || item.dataset.dayTextYAlign || "center";
      item.dataset.dayTextLineHeight = settings.lineHeight || item.dataset.dayTextLineHeight || "1";
-     item.dataset.dayTextRole = settings.role || item.dataset.dayTextRole || "body";
 
      item.querySelectorAll(".calendar-day-text").forEach((textElement) => {
           applyCalendarDayTextStyle(item, textElement);
@@ -662,7 +661,6 @@ function setCalendarDayTextSettings(item, settings = {}) {
      const alignSelect = controls.querySelector("[data-text-control='align']");
      const yAlignSelect = controls.querySelector("[data-text-control='y-align']");
      const lineHeightSelect = controls.querySelector("[data-text-control='line-height']");
-     const roleSelect = controls.querySelector("[data-text-control='role']");
 
      updateTextSizeControls(controls, item.dataset.dayTextSize);
 
@@ -702,10 +700,6 @@ function setCalendarDayTextSettings(item, settings = {}) {
 
      if (lineHeightSelect) {
           lineHeightSelect.value = item.dataset.dayTextLineHeight;
-     }
-
-     if (roleSelect) {
-          roleSelect.value = item.dataset.dayTextRole;
      }
 
      controls.querySelectorAll("select").forEach(updateCustomSelectDisplay);
