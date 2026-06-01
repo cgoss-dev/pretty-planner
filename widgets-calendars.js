@@ -1511,7 +1511,7 @@ function renderMiniMonth(item) {
 
                if (cell.dataset.calendarStyleKey) {
                     cell.addEventListener("click", (event) => {
-                         if (shouldSkipNextItemClick) {
+                         if (shouldSkipNextItemClick || hasActiveWidgetTextSelection()) {
                               return;
                          }
                          selectCalendarCellStyleTarget(item, cell, event);
@@ -1527,7 +1527,7 @@ function renderMiniMonth(item) {
           borderTarget.className = `calendar-border-hit-target is-${edge}`;
           borderTarget.setAttribute("aria-hidden", "true");
           borderTarget.addEventListener("click", (event) => {
-               if (shouldSkipNextItemClick) {
+               if (shouldSkipNextItemClick || hasActiveWidgetTextSelection()) {
                     return;
                }
 
@@ -1617,7 +1617,7 @@ function renderPerpetualCalendar(item) {
                     return;
                }
 
-               if (isEditableCalendarTextEvent(event)) {
+               if (isEditableCalendarTextEvent(event) || hasActiveWidgetTextSelection()) {
                     return;
                }
 
@@ -1715,7 +1715,7 @@ function renderDiaryView(item) {
                     return;
                }
 
-               if (isEditableCalendarTextEvent(event)) {
+               if (isEditableCalendarTextEvent(event) || hasActiveWidgetTextSelection()) {
                     return;
                }
 
@@ -1724,7 +1724,7 @@ function renderDiaryView(item) {
                startCalendarDayTextEditing(dayText, item);
           });
           row.addEventListener("click", (event) => {
-               if (shouldSkipNextItemClick) {
+               if (shouldSkipNextItemClick || hasActiveWidgetTextSelection()) {
                     return;
                }
                selectCalendarCellStyleTarget(item, row, event);
@@ -1740,7 +1740,7 @@ function renderDiaryView(item) {
           borderTarget.className = `calendar-border-hit-target is-${edge}`;
           borderTarget.setAttribute("aria-hidden", "true");
           borderTarget.addEventListener("click", (event) => {
-               if (shouldSkipNextItemClick) {
+               if (shouldSkipNextItemClick || hasActiveWidgetTextSelection()) {
                     return;
                }
 

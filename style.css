@@ -2780,11 +2780,16 @@ body {
      color: var(--color-gray1);
      cursor: text;
      outline: 0;
-     pointer-events: none;
+     pointer-events: auto;
      user-select: text;
      white-space: pre-wrap;
      word-break: break-word;
      scrollbar-width: none;
+}
+
+.planner-item [data-theme-part] {
+     cursor: text;
+     user-select: text;
 }
 
 .planner-item-sticker.is-editing-text .sticker-text {

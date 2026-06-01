@@ -1840,7 +1840,13 @@ function clearItemSelectionClasses(item) {
 }
 
 function isWidgetContentTarget(target) {
-     return Boolean(target?.closest?.("button, input, select, textarea, [contenteditable='true'], .custom-select, .calendar-day-text, .dayCell, .toc-row, .sticker-text"));
+     return Boolean(target?.closest?.("button, input, select, textarea, [contenteditable='true'], .custom-select, [data-theme-part], .calendar-day-text, .dayCell, .toc-row, .sticker-text"));
+}
+
+function hasActiveWidgetTextSelection() {
+     const selection = window.getSelection?.();
+
+     return Boolean(selection && !selection.isCollapsed && String(selection).trim());
 }
 
 function setItemSelected(item, isSelected) {
@@ -2308,10 +2314,8 @@ function selectCalendarCellStyleTarget(item, cell, event) {
           return;
      }
 
-     event.preventDefault();
      event.stopPropagation();
      selectItem(item);
-     openItemActionsPopup(item, event, [item]);
 }
 
 function isCalendarBorderStylePointer(item, event) {
@@ -2338,14 +2342,12 @@ function isCalendarBorderStylePointer(item, event) {
 }
 
 function selectCalendarBorderStyleTarget(item, event) {
-     event.preventDefault();
      event.stopPropagation();
      selectItem(item);
      setCalendarStyleTarget(item, {
           type: "border",
           key: "widget-border"
      });
-     openItemActionsPopup(item, event, [item]);
 }
 
 // NOTE: Drag Items, Resize Items, And Move The Control Panel
@@ -3723,6 +3725,10 @@ function makePlannerItem(type = "sticker") {
           setResizeCursor(item, "");
      });
      item.addEventListener("click", (event) => {
+          if (hasActiveWidgetTextSelection()) {
+               return;
+          }
+
           if (event.target.closest("[data-calendar-style-key], .calendar-border-hit-target")) {
                return;
           }
