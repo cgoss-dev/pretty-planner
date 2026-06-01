@@ -698,7 +698,7 @@ body {
      display: none;
 }
 
-.controls-panel {
+.sidebar-menu-panel {
      grid-template-columns: 1fr;
 }
 
@@ -3983,7 +3983,7 @@ body {
 }
 
 .control-object-shell .widget-panel-tabs {
-     display: none;
+     display: grid;
 }
 
 .widget-panel.is-floating {

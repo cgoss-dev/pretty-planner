@@ -1409,7 +1409,7 @@ function openItemMenu(item) {
      item.classList.add("is-widget-panel-open");
      updateObjectControlsState();
      if (typeof selectControlPanelTab === "function") {
-          selectControlPanelTab("object-style");
+          selectControlPanelTab("object-selected");
           openControlPanel();
      }
      updateClipboardControls();

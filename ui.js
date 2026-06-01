@@ -1374,8 +1374,7 @@ function syncObjectControlsTab(tabName) {
 
 function getObjectControlWidgetPanelPageNames(tabName) {
      return {
-          "object-style": ["style"],
-          "object-widget": ["widget"]
+          "object-selected": ["style"]
      }[tabName] || [];
 }
 
@@ -1505,7 +1504,7 @@ function updateObjectControlsState() {
 
      if (activeTab && isObjectControlTab(activeTab.dataset.controlPanelTab || "") && activeTab.disabled) {
           const fallbackObjectTab = controlPanelTabs.find((tab) => isObjectControlTab(tab.dataset.controlPanelTab || "") && !tab.disabled);
-          const fallbackTab = fallbackObjectTab || controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "defaults");
+          const fallbackTab = fallbackObjectTab || controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "guide");
 
           if (fallbackTab) {
                selectControlPanelTab(fallbackTab.dataset.controlPanelTab);

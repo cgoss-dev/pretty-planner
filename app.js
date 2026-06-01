@@ -2793,50 +2793,50 @@ function handleSidebarNumberKey(event) {
      if (sidebarContext === "root") {
           event.preventDefault();
           if (event.key === "1") {
-               enterKeyboardMenuBranch("controls", "controls");
+               enterKeyboardMenuBranch("guide", "guide");
           } else if (event.key === "2") {
-               enterKeyboardMenuBranch("defaults", "defaults");
+               enterKeyboardMenuBranch("add", "add");
           } else if (event.key === "3") {
-               enterKeyboardMenuBranch("menu", "add");
-          } else if (event.key === "4" && !controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "object-style")?.disabled) {
-               enterKeyboardMenuBranch("object-style", "object-style");
-          } else if (event.key === "5" && !controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "object-widget")?.disabled) {
-               enterKeyboardMenuBranch("object-widget", "object-widget");
+               enterKeyboardMenuBranch("notebook", "notebook");
+          } else if (event.key === "4") {
+               enterKeyboardMenuBranch("defaults", "defaults");
+          } else if (event.key === "5" && !controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "object-selected")?.disabled) {
+               enterKeyboardMenuBranch("object-selected", "object-selected");
           }
           return;
      }
 
-     if (sidebarContext === "controls" && event.key === "1") {
+     if (sidebarContext === "guide" && event.key === "1") {
           event.preventDefault();
           returnToSidebarRoot();
           return;
      }
 
-     if (sidebarContext === "defaults" && event.key === "2") {
+     if (sidebarContext === "add" && event.key === "2") {
           event.preventDefault();
           returnToSidebarRoot();
           return;
      }
 
-     if (sidebarContext === "menu" && event.key === "3") {
+     if (sidebarContext === "notebook" && event.key === "3") {
           event.preventDefault();
           returnToSidebarRoot();
           return;
      }
 
-     if (sidebarContext === "object-style" && event.key === "4") {
+     if (sidebarContext === "defaults" && event.key === "4") {
           event.preventDefault();
           returnToSidebarRoot();
           return;
      }
 
-     if (sidebarContext === "object-widget" && event.key === "5") {
+     if (sidebarContext === "object-selected" && event.key === "5") {
           event.preventDefault();
           returnToSidebarRoot();
           return;
      }
 
-     if (sidebarContext === "controls" || sidebarContext === "defaults" || sidebarContext === "menu" || sidebarContext === "object-style" || sidebarContext === "object-widget") {
+     if (sidebarContext === "guide" || sidebarContext === "add" || sidebarContext === "notebook" || sidebarContext === "defaults" || sidebarContext === "object-selected") {
           const tab = controlPanelTabs[Number(event.key) - 1];
 
           if (!tab || tab.disabled) {
@@ -3472,12 +3472,36 @@ function getKeyHintState() {
           };
      }
 
-     if (sidebarContext === "controls") {
+     if (sidebarContext === "guide") {
           return {
-               mode: "Current Action > Controls",
+               mode: "Current Action > Guide",
+               entries: [
+               ["1", "Back"],
+               ["1-5", "Tabs"],
+               ["Q / E", "Last / Next Tab"],
+               ["Enter", "Select"]
+               ]
+          };
+     }
+
+     if (sidebarContext === "add") {
+          return {
+               mode: "Current Action > Add Widgets",
                entries: [
                ["2", "Back"],
-               ["1-3", "Tabs"],
+               ["1-5", "Tabs"],
+               ["Q / E", "Last / Next Tab"],
+               ["Enter", "Select"]
+               ]
+          };
+     }
+
+     if (sidebarContext === "notebook") {
+          return {
+               mode: "Current Action > Notebook",
+               entries: [
+               ["3", "Back"],
+               ["1-5", "Tabs"],
                ["Q / E", "Last / Next Tab"],
                ["Enter", "Select"]
                ]
@@ -3486,22 +3510,10 @@ function getKeyHintState() {
 
      if (sidebarContext === "defaults") {
           return {
-               mode: "Current Action > Guide",
+               mode: "Current Action > Defaults",
                entries: [
-               ["1", "Back"],
-               ["1-3", "Tabs"],
-               ["Q / E", "Last / Next Tab"],
-               ["Enter", "Select"]
-               ]
-          };
-     }
-
-     if (sidebarContext === "menu") {
-          return {
-               mode: "Current Action > Widgets",
-               entries: [
-               ["3", "Back"],
-               ["1-3", "Tabs"],
+               ["4", "Back"],
+               ["1-5", "Tabs"],
                ["Q / E", "Last / Next Tab"],
                ["Enter", "Select"]
                ]
@@ -3521,24 +3533,12 @@ function getKeyHintState() {
           };
      }
 
-     if (sidebarContext === "object-style") {
+     if (sidebarContext === "object-selected") {
           return {
-               mode: "Current Action > Widget Style",
-               entries: [
-               ["4", "Back"],
-               ["4-5", "Widget tabs"],
-               ["Enter", "Select"],
-               ["Esc", "Clear selection"]
-               ]
-          };
-     }
-
-     if (sidebarContext === "object-widget") {
-          return {
-               mode: "Current Action > Widget Options",
+               mode: "Current Action > Selected",
                entries: [
                ["5", "Back"],
-               ["4-5", "Widget tabs"],
+               ["1-5", "Tabs"],
                ["Enter", "Select"],
                ["Esc", "Clear selection"]
                ]
