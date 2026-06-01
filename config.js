@@ -69,8 +69,8 @@
                          height: 14
                     },
                     "diary-view": {
-                         width: 15,
-                         height: 14
+                         width: 20,
+                         height: 42
                     }
                },
                sidebarControlVisibility: {

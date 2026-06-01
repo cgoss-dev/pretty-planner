@@ -3766,7 +3766,7 @@ body {
      outline: 0;
      background: transparent;
      align-content: start;
-     grid-template-rows: repeat(var(--diary-row-count, 7), calc(var(--diary-row-cell-height, var(--weekly-row-cell-height, 12px)) * 5));
+     grid-template-rows: repeat(var(--diary-row-count, 7), calc(var(--diary-row-cell-height, var(--weekly-row-cell-height, 12px)) * 6));
 }
 
 .diary-view::before {
@@ -3783,7 +3783,7 @@ body {
      position: relative;
      display: grid;
      grid-template-columns:
-          calc(var(--diary-column-cell-width, var(--weekly-column-cell-width, 12px)) * 7)
+          calc(var(--diary-column-cell-width, var(--weekly-column-cell-width, 12px)) * 10)
           minmax(calc(var(--diary-column-cell-width, var(--weekly-column-cell-width, 12px)) * 10), 1fr);
      min-width: 0;
      min-height: 0;
@@ -5340,18 +5340,21 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 .planner-sidebar .widget-options-panel .widget-option-group {
      display: grid;
      gap: 8px;
+     max-height: none;
 }
 
 .planner-sidebar .item-calendar-attributes-grid {
      grid-template-columns: minmax(0, 1fr);
+     grid-auto-rows: minmax(calc(var(--color-swatch-size) + 22px), auto);
      gap: 8px;
+     max-height: none;
 }
 
 .planner-sidebar .item-calendar-attributes-grid .widget-option-control {
-     min-height: calc(var(--color-swatch-size) + 22px);
      grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
      align-items: center;
      gap: 8px;
+     min-height: calc(var(--color-swatch-size) + 22px);
      padding: 9px 7px;
      overflow: visible;
 }

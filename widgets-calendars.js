@@ -438,9 +438,10 @@ function updateCalendarGridMetrics(item, page, box) {
      const timeColumnUnits = getWeeklyTimeColumnGridUnits(item);
      const dayColumnUnits = item.dataset.itemType === "day-view" ? 7 : visibleDays * 5;
      const columnUnits = item.dataset.itemType === "full-month" ? getFullMonthGridUnits(item).width : timeColumnUnits + dayColumnUnits + getWeekNotesColumnUnits(item);
+     const bodyRowUnits = getWeeklyBodyGridRows(item);
      const rowUnits = item.dataset.itemType === "full-month"
           ? getFullMonthGridUnits(item).height
-          : Math.max(1, Number(item.style.getPropertyValue("--weekly-row-count")) || 14);
+          : getWeeklyHeaderGridRows(item) + (Math.max(1, Number(item.style.getPropertyValue("--weekly-slot-count")) || 1) * bodyRowUnits);
      const fallbackCellWidth = box.width / columnUnits;
      const fallbackCellHeight = box.height / rowUnits;
      const grid = page ? getGridSize(page) : null;
@@ -503,6 +504,10 @@ function getWeeklyHeaderGridRows(item) {
      return 5;
 }
 
+function getWeeklyBodyGridRows(item) {
+     return 1;
+}
+
 function getFullMonthGridUnits(item) {
      const titleRowUnits = item?.dataset?.calendarTitleVisible === "false" ? 0 : getFullMonthTitleRowUnits();
 
@@ -523,15 +528,15 @@ function getFullMonthWeekRowUnits() {
 function getDiaryViewMinGridRows(item) {
      const visibleDays = clamp(Number(item?.dataset?.visibleDays) || 7, 1, 7);
 
-     return visibleDays * 5;
+     return visibleDays * 6;
 }
 
 function getDiaryViewMinGridColumns() {
-     return 17;
+     return 20;
 }
 
 function getDiaryViewMaxGridRows() {
-     return 35;
+     return 42;
 }
 
 function getPerpetualCalendarVisibleGridRows(item) {
@@ -990,6 +995,7 @@ function getWeeklyVisibleSlotCount(item) {
      const startMinutes = parseTimeValue(item.dataset.startTime || "00:00");
      const maxSlotCount = Math.max(1, Math.ceil(((24 * 60) - startMinutes) / timeIncrement));
      const headerRows = getWeeklyHeaderGridRows(item);
+     const bodyRows = getWeeklyBodyGridRows(item);
 
      if (!page) {
           return maxSlotCount;
@@ -999,7 +1005,7 @@ function getWeeklyVisibleSlotCount(item) {
      const box = getItemBox(item);
      const rowCount = Math.max(1, Math.floor(box.height / grid.y));
 
-     return clamp(rowCount - headerRows, 1, maxSlotCount);
+     return clamp(Math.floor((rowCount - headerRows) / bodyRows), 1, maxSlotCount);
 }
 
 function getCalendarWeekName(weekIndex, month, year) {
@@ -1781,6 +1787,7 @@ function renderWeeklyVertical(item) {
      const weekNotesPosition = isDayView ? "off" : getWeekNotesPosition(item);
      const weekNotesEnabled = weekNotesPosition !== "off";
      const headerRowUnits = getWeeklyHeaderGridRows(item);
+     const bodyRowUnits = getWeeklyBodyGridRows(item);
      const timeColumnUnits = getWeeklyTimeColumnGridUnits(item);
      const hasTimeColumn = timeColumnUnits > 0 && timeVisible;
      const dayColumnSlots = displayColumns.map((displayColumn) => ({
@@ -1806,7 +1813,8 @@ function renderWeeklyVertical(item) {
 
      calendar.replaceChildren();
      calendar.style.setProperty("--weekly-slot-count", String(slotCount));
-     calendar.style.setProperty("--weekly-row-count", String(slotCount + headerRowUnits));
+     calendar.style.setProperty("--weekly-row-count", String(headerRowUnits + (slotCount * bodyRowUnits)));
+     calendar.style.setProperty("--weekly-body-row-units", String(bodyRowUnits));
      calendar.style.setProperty("--weekly-day-count", String(displayColumns.length));
      calendar.style.setProperty("--weekly-visible-column-units", String(timeColumnUnits + (isDayView ? 7 : displayColumns.length * 5) + (weekNotesEnabled ? 5 : 0)));
      calendar.style.gridTemplateColumns = columnSlots.map((slot) => {
@@ -1818,7 +1826,7 @@ function renderWeeklyVertical(item) {
      }).join(" ");
      calendar.style.gridTemplateRows = [
           `calc(var(--weekly-row-cell-height, 12px) * ${headerRowUnits})`,
-          `repeat(${slotCount}, var(--weekly-row-cell-height, 12px))`
+          `repeat(${slotCount}, calc(var(--weekly-row-cell-height, 12px) * ${bodyRowUnits}))`
      ].join(" ");
      calendar.classList.remove("has-week-numbers", "has-week-number-outlines");
      calendar.classList.toggle("has-time-column", hasTimeColumn);
@@ -2107,7 +2115,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      updatePerpetualCalendarGridMetrics(item, getItemPage(item), getItemBox(item));
 
      const controls = getWidgetPanel(item) || item;
-     const weekNumberSelect = controls.querySelector("[data-widget-control='week-number-format']");
+     const weekNumberControl = controls.querySelector("[data-widget-control='week-number-format']");
      const weekStartSelect = controls.querySelector("[data-widget-control='week-start']");
      const weekdayLabelSelect = controls.querySelector("[data-widget-control='weekday-label-format']");
      const dateModeSelect = controls.querySelector("[data-widget-control='date-mode']");
@@ -2121,6 +2129,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      const displayWeekStartSelect = controls.querySelector("[data-widget-control='display-week-start']");
      const titleVisibleInput = controls.querySelector("[data-widget-control='calendar-title-visible']");
      const monthSelect = controls.querySelector("[data-widget-control='month']");
+     const monthLabel = monthSelect ? monthSelect.closest(".widget-option-control") : null;
      const monthDisplaySelect = controls.querySelector("[data-widget-control='month-display']");
      const yearSelect = controls.querySelector("[data-widget-control='year']");
      const yearDisplaySelect = controls.querySelector("[data-widget-control='year-display']");
@@ -2133,8 +2142,12 @@ function setCalendarWidgetSettings(item, settings = {}) {
      const shareWeekendsInput = controls.querySelector("[data-widget-control='share-weekends']");
      const weekNotesSelect = controls.querySelector("[data-widget-control='week-notes']");
 
-     if (weekNumberSelect) {
-          weekNumberSelect.value = item.dataset.weekNumberFormat;
+     if (weekNumberControl) {
+          if (weekNumberControl.type === "checkbox") {
+               weekNumberControl.checked = item.dataset.weekNumberFormat !== "off";
+          } else {
+               weekNumberControl.value = item.dataset.weekNumberFormat;
+          }
      }
 
      if (displayWeekNumberSelect) {
@@ -2175,6 +2188,10 @@ function setCalendarWidgetSettings(item, settings = {}) {
 
      if (monthSelect) {
           monthSelect.value = item.dataset.month;
+     }
+
+     if (monthLabel) {
+          monthLabel.hidden = item.dataset.dateMode === "relative";
      }
 
      if (monthDisplaySelect) {

@@ -2919,7 +2919,7 @@ function makePlannerItem(type = "sticker") {
      const textLineHeightLabel = document.createElement("label");
      const textLineHeightSelect = document.createElement("select");
      const weekNumberLabel = document.createElement("label");
-     const weekNumberSelect = document.createElement("select");
+     const weekNumberInput = document.createElement("input");
      const weekStartLabel = document.createElement("label");
      const weekStartSelect = document.createElement("select");
      const weekdayLabelLabel = document.createElement("label");
@@ -3343,19 +3343,9 @@ function makePlannerItem(type = "sticker") {
      weekNumberLabel.className = "widget-panel-row widget-option-control";
      weekNumberLabel.dataset.sidebarControl = "options.week-number-format";
      weekNumberLabel.textContent = "Week #";
-     weekNumberSelect.dataset.widgetControl = "week-number-format";
-     weekNumberSelect.setAttribute("aria-label", "Week number column formatting");
-     [
-          ["off", "Off"],
-          ["outlines", "Outlines"],
-          ["no-outlines", "No Outlines"]
-     ].forEach(([value, label]) => {
-          const option = document.createElement("option");
-
-          option.value = value;
-          option.textContent = label;
-          weekNumberSelect.append(option);
-     });
+     weekNumberInput.type = "checkbox";
+     weekNumberInput.dataset.widgetControl = "week-number-format";
+     weekNumberInput.setAttribute("aria-label", "Show week number column");
      weekStartLabel.className = "widget-panel-row widget-option-control";
      weekStartLabel.dataset.sidebarControl = "options.week-start";
      weekStartLabel.textContent = "Week Start";
@@ -3599,7 +3589,7 @@ function makePlannerItem(type = "sticker") {
      dateModeLabel.append(dateModeSelect);
      dateOffsetLabel.append(dateOffsetSelect);
      titleVisibleLabel.append(titleVisibleInput);
-     weekNumberLabel.append(weekNumberSelect);
+     weekNumberLabel.append(weekNumberInput);
      if (type === "perpetual-calendar") {
           calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, monthDisplayLabel);
      } else if (type === "weekly-view") {
@@ -4020,9 +4010,9 @@ function makePlannerItem(type = "sticker") {
                event.stopPropagation();
           }
      });
-     weekNumberSelect.addEventListener("change", () => {
+     weekNumberInput.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
-               weekNumberFormat: weekNumberSelect.value
+               weekNumberFormat: weekNumberInput.checked ? "no-outlines" : "off"
           });
      });
      displayWeekNumberSelect.addEventListener("change", () => {
