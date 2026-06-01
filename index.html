@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-359">
+     <link rel="stylesheet" href="style.css?v=planner-storage-363">
 </head>
 <body>
      <main class="planner-desk">
@@ -24,39 +24,41 @@
           <div class="zoom-toast" data-zoom-toast aria-live="polite" aria-atomic="true">100%</div>
           <aside class="planner-sidebar" data-planner-sidebar aria-label="Planner sidebar">
                <div class="panel-title title planner-sidebar-title">Sidebar Menu</div>
-               <aside class="hint-panel" data-hint-panel aria-label="Available keyboard controls" aria-live="polite"></aside>
 
           <form class="control-panel" aria-label="Planner settings panel">
                <div class="panel-title title control-panel-title">Settings Panel</div>
                <div class="control-panel-tabs" role="tablist" aria-label="Planner settings panel tabs">
                     <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Guide" aria-controls="guide-panel" data-control-panel-tab="guide">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">1 Guide</span>
+                         <span class="control-panel-tab-label">Guide</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
                     <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Widgets" aria-controls="add-panel" data-control-panel-tab="add">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">2 Widgets</span>
+                         <span class="control-panel-tab-label">Widgets</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
                     <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Notebook" aria-controls="notebook-panel" data-control-panel-tab="notebook">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">3 Notebook</span>
+                         <span class="control-panel-tab-label">Notebook</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
                     <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Defaults" aria-controls="defaults-panel" data-control-panel-tab="defaults">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">4 Defaults</span>
+                         <span class="control-panel-tab-label">Defaults</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
                     <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Selected widget" aria-controls="object-panel" data-control-panel-tab="object-selected" disabled aria-disabled="true">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">5 Selected</span>
+                         <span class="control-panel-tab-label">Selected</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
                </div>
 
-               <div class="control-panel-page sidebar-menu-panel" id="guide-panel" role="tabpanel" data-control-panel-page="guide" data-keyboard-controls hidden></div>
+               <div class="control-panel-page sidebar-menu-panel guide-panel" id="guide-panel" role="tabpanel" data-control-panel-page="guide" hidden>
+                    <aside class="hint-panel" data-hint-panel aria-label="Available keyboard controls" aria-live="polite"></aside>
+                    <div data-keyboard-controls></div>
+               </div>
 
                <div class="control-panel-page sidebar-menu-panel defaults-panel" id="defaults-panel" role="tabpanel" data-control-panel-page="defaults" hidden>
                     <div class="keyboard-control-section defaults-section">

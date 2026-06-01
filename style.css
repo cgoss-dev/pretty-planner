@@ -4416,7 +4416,7 @@ body {
      padding: 7px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
      border-radius: 6px;
-     background: rgba(255, 255, 255, 0.3);
+     background: var(--color-white);
 }
 
 .text-panel-toggle {
@@ -4460,6 +4460,7 @@ body {
      grid-template-columns: minmax(0, 1fr);
      align-items: start;
      gap: 5px;
+     min-height: auto;
 }
 
 .text-panel-align-control .widget-panel-title {
@@ -4469,6 +4470,7 @@ body {
 .text-panel-alignment-grid {
      display: grid;
      grid-template-columns: repeat(3, var(--color-swatch-size));
+     grid-template-rows: repeat(3, var(--color-swatch-size));
      gap: 3px;
      justify-content: center;
 }
@@ -5024,7 +5026,7 @@ body.is-single-page-viewport .planner-desk > .sticker-source {
      bottom: 14px;
      display: grid;
      grid-template-columns: minmax(0, 1fr);
-     grid-template-rows: auto auto minmax(0, 1fr);
+     grid-template-rows: auto minmax(0, 1fr);
      align-content: start;
      gap: var(--planner-sidebar-gap);
      width: var(--planner-sidebar-width);
@@ -5059,6 +5061,11 @@ body.is-single-page-viewport .planner-desk > .sticker-source {
      background: transparent;
      filter: none;
      backdrop-filter: none;
+}
+
+.planner-sidebar .guide-panel .hint-panel {
+     padding-bottom: 8px;
+     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
 }
 
 .planner-sidebar .control-panel {
@@ -5128,7 +5135,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-tabs {
      grid-column: 1;
      grid-row: 1;
      display: grid;
-     grid-template-columns: minmax(0, 1fr);
+     grid-template-columns: repeat(5, minmax(0, 1fr));
      gap: 4px;
      width: 100%;
      padding: 8px 0;
@@ -5142,13 +5149,25 @@ body.is-single-page-viewport .planner-sidebar .control-panel-tabs {
      display: grid;
      width: 100%;
      min-width: 0;
+     min-height: 30px;
+     padding: 4px;
      grid-template-columns: minmax(0, 1fr);
+}
+
+.planner-sidebar .control-panel-tab[data-control-panel-tab^="object-"]:disabled {
+     display: grid;
 }
 
 .planner-sidebar .control-panel-tab-step,
 .planner-sidebar .control-panel-tab[aria-selected="true"] .control-panel-tab-step,
 .planner-sidebar .control-panel:not(.is-open) .control-panel-tab[aria-selected="true"] .control-panel-tab-step {
      display: none;
+}
+
+.planner-sidebar .control-panel-tab-label {
+     overflow: hidden;
+     text-overflow: ellipsis;
+     white-space: nowrap;
 }
 
 .planner-sidebar .control-panel-page,
@@ -5268,10 +5287,13 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 
 .planner-sidebar .text-panel-align-control {
      grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
+     align-items: center;
+     min-height: calc((var(--color-swatch-size) * 3) + 20px);
 }
 
 .planner-sidebar .text-panel-alignment-grid {
      justify-content: start;
+     align-self: center;
 }
 
 .planner-sidebar .widget-options-panel .widget-option-group {
@@ -5299,11 +5321,11 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
           width: auto;
           max-width: none;
           max-height: min(70vh, calc(100vh - 24px));
-          grid-template-rows: auto minmax(0, auto) minmax(0, 1fr);
+          grid-template-rows: auto minmax(0, 1fr);
      }
 
      .planner-sidebar .hint-panel {
-          max-height: 18vh;
+          max-height: none;
           overflow: auto;
      }
 
@@ -5327,7 +5349,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      }
 
      .planner-sidebar .control-panel-tab-label {
-          white-space: normal;
+          white-space: nowrap;
      }
 
      .planner-sidebar .widget-panel-row,
