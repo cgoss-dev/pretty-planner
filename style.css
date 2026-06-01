@@ -898,6 +898,31 @@ body {
      outline-offset: 1px;
 }
 
+.sidebar-visibility-list {
+     display: grid;
+     gap: 8px;
+}
+
+.sidebar-visibility-group {
+     display: grid;
+     gap: 6px;
+}
+
+.sidebar-visibility-option {
+     display: grid;
+     grid-template-columns: auto 1fr;
+     align-items: center;
+     gap: 8px;
+     min-height: 24px;
+     font-size: var(--font-size-sm);
+}
+
+.sidebar-visibility-option input {
+     width: 14px;
+     height: 14px;
+     margin: 0;
+}
+
 .defaults-panel .color-panel-control {
      grid-template-columns: 112px var(--color-swatch-size);
      align-items: center;

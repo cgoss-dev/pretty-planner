@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-353">
+     <link rel="stylesheet" href="style.css?v=planner-storage-354">
 </head>
 <body>
      <main class="planner-desk">
@@ -106,75 +106,6 @@
 
                     <div class="keyboard-control-section defaults-section">
                          <div class="keyboard-control-title">Grid Defaults</div>
-                         <div class="widget-panel-section-title">Perimeter Box</div>
-                         <label class="widget-panel-row text-panel-control color-panel-control">
-                              <span class="widget-panel-title">Color</span>
-                              <select class="native-select" data-default-control="grid-line-perimeter-color" aria-label="Default perimeter line color"></select>
-                              <div class="color-panel-swatches" data-default-grid-color-swatches="perimeter"></div>
-                         </label>
-                         <label class="widget-panel-row text-panel-control">
-                              <span class="widget-panel-title">Weight</span>
-                              <select class="native-select" data-default-control="grid-line-perimeter-weight" aria-label="Default perimeter line weight">
-                                   <option value="0">0px</option>
-                                   <option value="1" selected>1px</option>
-                                   <option value="2">2px</option>
-                                   <option value="3">3px</option>
-                                   <option value="4">4px</option>
-                              </select>
-                         </label>
-
-                         <div class="widget-panel-section-title">Title Box</div>
-                         <label class="widget-panel-row text-panel-control color-panel-control">
-                              <span class="widget-panel-title">Color</span>
-                              <select class="native-select" data-default-control="grid-line-title-color" aria-label="Default title box line color"></select>
-                              <div class="color-panel-swatches" data-default-grid-color-swatches="title"></div>
-                         </label>
-                         <label class="widget-panel-row text-panel-control">
-                              <span class="widget-panel-title">Weight</span>
-                              <select class="native-select" data-default-control="grid-line-title-weight" aria-label="Default title box line weight">
-                                   <option value="0">0px</option>
-                                   <option value="1" selected>1px</option>
-                                   <option value="2">2px</option>
-                                   <option value="3">3px</option>
-                                   <option value="4">4px</option>
-                              </select>
-                         </label>
-
-                         <div class="widget-panel-section-title">Body Box Vertical</div>
-                         <label class="widget-panel-row text-panel-control color-panel-control">
-                              <span class="widget-panel-title">Color</span>
-                              <select class="native-select" data-default-control="grid-line-bodyVertical-color" aria-label="Default body vertical line color"></select>
-                              <div class="color-panel-swatches" data-default-grid-color-swatches="bodyVertical"></div>
-                         </label>
-                         <label class="widget-panel-row text-panel-control">
-                              <span class="widget-panel-title">Weight</span>
-                              <select class="native-select" data-default-control="grid-line-bodyVertical-weight" aria-label="Default body vertical line weight">
-                                   <option value="0">0px</option>
-                                   <option value="1" selected>1px</option>
-                                   <option value="2">2px</option>
-                                   <option value="3">3px</option>
-                                   <option value="4">4px</option>
-                              </select>
-                         </label>
-
-                         <div class="widget-panel-section-title">Body Box Horizontal</div>
-                         <label class="widget-panel-row text-panel-control color-panel-control">
-                              <span class="widget-panel-title">Color</span>
-                              <select class="native-select" data-default-control="grid-line-bodyHorizontal-color" aria-label="Default body horizontal line color"></select>
-                              <div class="color-panel-swatches" data-default-grid-color-swatches="bodyHorizontal"></div>
-                         </label>
-                         <label class="widget-panel-row text-panel-control">
-                              <span class="widget-panel-title">Weight</span>
-                              <select class="native-select" data-default-control="grid-line-bodyHorizontal-weight" aria-label="Default body horizontal line weight">
-                                   <option value="0">0px</option>
-                                   <option value="1" selected>1px</option>
-                                   <option value="2">2px</option>
-                                   <option value="3">3px</option>
-                                   <option value="4">4px</option>
-                              </select>
-                         </label>
-
-                         <div class="widget-panel-section-title">Body Fill</div>
                          <label class="widget-panel-row text-panel-control color-panel-control">
                               <span class="widget-panel-title">Grid Fill</span>
                               <select class="native-select" data-default-control="grid-fill" aria-label="Default grid fill"></select>
@@ -244,10 +175,19 @@
                                    <label class="control-choice">
                                         <input type="radio" name="date-day-format-default" data-default-control="date-day-format" value="ddd" checked>
                                         <span>DDD</span>
-                                   </label>
-                              </div>
+                              </label>
                          </div>
                     </div>
+
+                    <div class="keyboard-control-section defaults-section sidebar-visibility-section">
+                         <div class="keyboard-control-title">Sidebar Controls</div>
+                         <label class="widget-panel-row text-panel-control">
+                              <span class="widget-panel-title">Widget</span>
+                              <select class="native-select" data-sidebar-visibility-type aria-label="Widget sidebar controls"></select>
+                         </label>
+                         <div class="sidebar-visibility-list" data-sidebar-visibility-controls></div>
+                    </div>
+               </div>
                </div>
 
                <div class="control-panel-page sidebar-menu-panel notebook-panel" id="notebook-panel" role="tabpanel" data-control-panel-page="notebook" hidden>
@@ -457,9 +397,9 @@
      <script src="config.js?v=planner-storage-181"></script>
      <script src="ui.js?v=planner-storage-229"></script>
      <script src="widgets-calendars.js?v=planner-storage-43"></script>
-     <script src="widgets.js?v=planner-storage-339"></script>
+     <script src="widgets.js?v=planner-storage-340"></script>
      <script src="storage.js?v=planner-storage-37"></script>
      <script src="controls.js?v=planner-storage-203"></script>
-     <script src="app.js?v=planner-storage-288"></script>
+     <script src="app.js?v=planner-storage-289"></script>
 </body>
 </html>
