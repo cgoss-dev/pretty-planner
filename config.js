@@ -36,7 +36,7 @@
                tocLeftColumnGridUnits: 2,
                tocRightColumnMinGridUnits: 8,
                perpetualCalendarMaxDayRows: 31,
-               perpetualCalendarHeaderRows: 2,
+               perpetualCalendarHeaderRows: 5,
                perpetualCalendarLeftColumnGridUnits,
                perpetualCalendarRightColumnMinGridUnits,
                itemGridUnits: {

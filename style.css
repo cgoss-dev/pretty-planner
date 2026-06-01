@@ -5348,11 +5348,12 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 }
 
 .planner-sidebar .item-calendar-attributes-grid .widget-option-control {
-     min-height: calc(var(--color-swatch-size) + 16px);
+     min-height: calc(var(--color-swatch-size) + 22px);
      grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
      align-items: center;
      gap: 8px;
-     padding: 7px;
+     padding: 9px 7px;
+     overflow: visible;
 }
 
 .planner-sidebar .item-calendar-attributes-grid .widget-option-control .custom-select,

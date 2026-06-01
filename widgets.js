@@ -130,7 +130,9 @@ function applyThemeToWidget(item) {
                     && partSlots.borderSlot
                     && partSlots.borderSlot === widgetSlots.parts?.background?.borderSlot;
 
-               if (partSlots.textSlot) {
+               if (partSlots.textSlot && item.dataset.itemType === "sticker" && partName === "text") {
+                    setStickerTextSettings(item);
+               } else if (partSlots.textSlot) {
                     const textPartName = getWidgetSharedTextPartName(item.dataset.itemType, partName);
 
                     applyTextThemeToElement(part, theme.text?.[partSlots.textSlot] || {}, theme, {
@@ -266,7 +268,7 @@ function renderToc(item, entries = []) {
      tocTitle.style.gridRow = `span ${tocTitleGridRows}`;
      tocTitle.dataset.themePart = "heading";
      tocTitleName.className = "toc-title-name";
-     tocTitleName.textContent = "Table of Contents";
+     tocTitleName.textContent = "Contents";
      tocTitle.append(tocTitleName);
      list.append(tocTitle);
 
@@ -4055,6 +4057,7 @@ function makePlannerItem(type = "sticker") {
      });
      dateOffsetSelect.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
+               dateMode: "relative",
                dateOffset: dateOffsetSelect.value
           });
      });
