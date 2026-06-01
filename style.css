@@ -2883,15 +2883,16 @@ body {
 .toc-title-name {
      display: grid;
      place-items: center;
+     box-sizing: border-box;
      min-width: 0;
      min-height: 0;
 }
 
 .toc-title-name {
-     overflow: hidden;
-     padding: 0 6px;
+     overflow: visible;
+     padding: 2px 6px;
+     line-height: 1.15;
      text-align: center;
-     text-overflow: ellipsis;
      white-space: nowrap;
 }
 

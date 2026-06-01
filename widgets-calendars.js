@@ -500,7 +500,7 @@ function getWeeklyTimeColumnGridUnits(item) {
 }
 
 function getWeeklyHeaderGridRows(item) {
-     return item.dataset.itemType === "day-view" ? 2 : 1;
+     return 5;
 }
 
 function getFullMonthGridUnits(item) {
@@ -513,11 +513,11 @@ function getFullMonthGridUnits(item) {
 }
 
 function getFullMonthTitleRowUnits() {
-     return 4;
+     return 5;
 }
 
 function getFullMonthWeekRowUnits() {
-     return 5;
+     return 6;
 }
 
 function getDiaryViewMinGridRows(item) {

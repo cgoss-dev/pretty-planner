@@ -246,7 +246,7 @@ function renderToc(item, entries = []) {
      }
 
      const tocEntries = Array.isArray(entries) ? entries : [];
-     const tocTitleGridRows = 4;
+     const tocTitleGridRows = 5;
      let toc = item.querySelector(".toc-widget");
 
      if (!toc) {
