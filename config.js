@@ -36,7 +36,7 @@
                tocLeftColumnGridUnits: 2,
                tocRightColumnMinGridUnits: 8,
                perpetualCalendarMaxDayRows: 31,
-               perpetualCalendarHeaderRows: 5,
+               perpetualCalendarHeaderRows: 4,
                perpetualCalendarLeftColumnGridUnits,
                perpetualCalendarRightColumnMinGridUnits,
                itemGridUnits: {
@@ -46,19 +46,19 @@
                     },
                     toc: {
                          width: 18,
-                         height: 19
+                         height: 18
                     },
                     "mini-month": {
                          width: 10,
                          height: 9
                     },
                     "full-month": {
-                         width: 14,
-                         height: 33
+                         width: 31,
+                         height: 42
                     },
                     "perpetual-calendar": {
                          width: perpetualCalendarLeftColumnGridUnits + perpetualCalendarRightColumnMinGridUnits,
-                         height: 33
+                         height: 35
                     },
                     "weekly-view": {
                          width: 14,
@@ -81,7 +81,6 @@
                          "actions.bring-forward": true,
                          "actions.delete": true,
                          "style.fill": true,
-                         "style.mini-month-size": true,
                          "text.appears-in-toc": true,
                          "text.font": true,
                          "text.size": true,

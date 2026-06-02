@@ -2820,7 +2820,7 @@ body {
 .toc-widget::before {
      content: "";
      position: absolute;
-     inset: var(--toc-title-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 5))) 0 0 0;
+     inset: var(--toc-title-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 4))) 0 0 0;
      z-index: 2;
      border-radius: inherit;
      outline: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
@@ -2832,7 +2832,7 @@ body {
      display: grid;
      position: relative;
      align-content: start;
-     grid-template-rows: var(--toc-title-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 5)));
+     grid-template-rows: var(--toc-title-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 4)));
      grid-auto-rows: var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2)));
      gap: 0;
      min-height: 0;
@@ -2845,7 +2845,7 @@ body {
      position: absolute;
      inset: 0;
      z-index: 2;
-     top: var(--toc-title-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 5)));
+     top: var(--toc-title-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 4)));
      background:
           repeating-linear-gradient(180deg, transparent 0 calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - 1px), var(--toc-grid-line-color) calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - 1px) var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2)))),
           linear-gradient(90deg, var(--calendar-tint) 0 var(--toc-left-column-width, 22.222222%), transparent var(--toc-left-column-width, 22.222222%)) 0 0 / 100% 100% no-repeat,
@@ -2856,7 +2856,7 @@ body {
 .toc-list::after {
      content: "";
      position: absolute;
-     top: var(--toc-title-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 5)));
+     top: var(--toc-title-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 4)));
      bottom: 0;
      left: var(--toc-left-column-width, 22.222222%);
      z-index: 3;
@@ -2953,7 +2953,7 @@ body {
      min-height: 0;
      color: var(--color-gray3);
      text-align: center;
-     background: var(--calendar-tint-background);
+     background: var(--widget-box-fill);
 }
 
 .sticker-text::-webkit-scrollbar {
@@ -3268,7 +3268,7 @@ body {
           repeat(var(--mini-month-day-column-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 5), 1fr));
      grid-template-rows:
           calc(var(--weekly-row-cell-height, 12px) * var(--mini-month-title-row-units, 1))
-          var(--weekly-row-cell-height, 12px)
+          calc(var(--weekly-row-cell-height, 12px) * var(--mini-month-weekday-row-units, 1))
           repeat(var(--mini-month-week-row-count, 6), var(--mini-month-week-row-height, var(--weekly-row-cell-height, 12px)));
 }
 
@@ -3282,7 +3282,7 @@ body {
 
 .planner-item-full-month .mini-month.no-title-row {
      grid-template-rows:
-          var(--weekly-row-cell-height, 12px)
+          calc(var(--weekly-row-cell-height, 12px) * var(--mini-month-weekday-row-units, 1))
           repeat(var(--mini-month-week-row-count, 6), var(--mini-month-week-row-height, var(--weekly-row-cell-height, 12px)));
 }
 
@@ -3371,13 +3371,15 @@ body {
      justify-self: center;
      place-items: center;
      box-sizing: border-box;
-     width: 1.8em;
-     height: 1.8em;
-     border: var(--border-sm) solid currentColor;
+     width: 1.65em;
+     height: 1.65em;
+     border: var(--border-sm) solid var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16));
      border-radius: 50%;
      background: transparent;
+     color: var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16)) !important;
      font-size: 0.9em;
      line-height: 1;
+     padding-bottom: 0.08em;
 }
 
 .calendar-day-text {
@@ -3743,6 +3745,11 @@ body {
      min-width: 0;
 }
 
+.planner-item-weekly-view .weekly-view-date-label {
+     grid-template-columns: repeat(2, auto);
+     row-gap: 0.1em;
+}
+
 .weekly-view-sunday-mid-marker {
      width: 100%;
      height: 100%;
@@ -3958,6 +3965,52 @@ body {
           linear-gradient(var(--accent-ring-strong), var(--accent-ring-strong)) left bottom / 8px 8px no-repeat,
           linear-gradient(var(--accent-ring-strong), var(--accent-ring-strong)) right bottom / 8px 8px no-repeat;
      pointer-events: none;
+}
+
+.selection-move-handle {
+     position: absolute;
+     z-index: 8;
+     display: none;
+     pointer-events: auto;
+     cursor: grab;
+}
+
+.planner-item.is-selected .selection-move-handle {
+     display: block;
+}
+
+.planner-item.is-dragging .selection-move-handle {
+     cursor: grabbing;
+}
+
+.selection-move-handle-top,
+.selection-move-handle-bottom {
+     left: 18px;
+     right: 18px;
+     height: 14px;
+}
+
+.selection-move-handle-top {
+     top: -10px;
+}
+
+.selection-move-handle-bottom {
+     bottom: -10px;
+}
+
+.selection-move-handle-left,
+.selection-move-handle-right {
+     top: 18px;
+     bottom: 18px;
+     width: 14px;
+}
+
+.selection-move-handle-left {
+     left: -10px;
+}
+
+.selection-move-handle-right {
+     right: -10px;
 }
 
 .planner-item.is-widget-focus {
@@ -4354,18 +4407,6 @@ body {
      gap: 3px;
 }
 
-.mini-month-size-control {
-     grid-template-columns: minmax(0, 1fr);
-     align-items: start;
-}
-
-.mini-month-size-options {
-     display: grid;
-     grid-template-columns: repeat(2, var(--color-swatch-size));
-     gap: 6px;
-}
-
-.mini-month-size-button,
 .text-panel-size-button,
 .text-panel-alignment-button {
      min-width: 0;
@@ -4380,7 +4421,6 @@ body {
      line-height: 1;
 }
 
-.mini-month-size-button.is-active,
 .text-panel-size-button.is-active,
 .text-panel-alignment-button.is-active {
      border-color: rgba(17, 17, 17, 0.34);
@@ -4456,6 +4496,21 @@ body {
      grid-column: auto;
      justify-self: stretch;
      width: 100%;
+}
+
+.item-calendar-attributes-grid .widget-option-control input[data-widget-control="date-offset"] {
+     grid-column: auto;
+     justify-self: stretch;
+     width: 100%;
+     padding: 0 8px;
+     appearance: textfield;
+     background: rgba(255, 255, 255, 0.48);
+}
+
+.item-calendar-attributes-grid .widget-option-control input[data-widget-control="date-offset"]::-webkit-outer-spin-button,
+.item-calendar-attributes-grid .widget-option-control input[data-widget-control="date-offset"]::-webkit-inner-spin-button {
+     margin: 0;
+     appearance: none;
 }
 
 .item-calendar-attributes-grid .widget-option-control input[type="checkbox"] {
@@ -5518,7 +5573,10 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 }
 
 .toc-list::before {
-     background: repeating-linear-gradient(180deg, transparent 0 calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - var(--widget-body-h-line-width, var(--border-sm))), var(--widget-body-h-line-color, var(--toc-grid-line-color)) calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - var(--widget-body-h-line-width, var(--border-sm))) var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))));
+     background:
+          repeating-linear-gradient(180deg, transparent 0 calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - var(--widget-body-h-line-width, var(--border-sm))), var(--widget-body-h-line-color, var(--toc-grid-line-color)) calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - var(--widget-body-h-line-width, var(--border-sm))) var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2)))),
+          linear-gradient(90deg, var(--calendar-tint) 0 var(--toc-left-column-width, 22.222222%), transparent var(--toc-left-column-width, 22.222222%)) 0 0 / 100% 100% no-repeat,
+          var(--widget-box-fill);
 }
 
 .toc-list::after {

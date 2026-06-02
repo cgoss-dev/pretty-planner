@@ -91,7 +91,6 @@ function serializePlannerItem(item) {
                     dayFormat: item.dataset.dateDayFormat || "ddd",
                     dateMode: item.dataset.dateMode || "fixed",
                     dateOffset: Number(item.dataset.dateOffset) || 0,
-                    miniMonthSize: item.dataset.miniMonthSize || "sm",
                     titleVisible: item.dataset.calendarTitleVisible !== "false",
                     monthDisplay: item.dataset.monthDisplay || "full",
                     monthVisible: item.dataset.monthDisplay !== "none",
@@ -496,13 +495,7 @@ function isLegacyMiniMonth2Type(type) {
 function getStoredItemGrid(itemData) {
      const type = normalizePlannerItemType(itemData.type || "sticker");
      const isLegacyMiniMonth2 = isLegacyMiniMonth2Type(itemData.type);
-     const miniMonthSize = itemData.widget?.miniMonthSize || itemData.style?.miniMonthSize;
-     const miniMonthFallbackItem = {
-          dataset: {
-               miniMonthSize
-          }
-     };
-     const fallback = isLegacyMiniMonth2 || type === "mini-month" ? getMiniMonthGridUnits(miniMonthFallbackItem) : itemGridUnits[type] || itemGridUnits.sticker;
+     const fallback = isLegacyMiniMonth2 || type === "mini-month" ? getMiniMonthGridUnits() : itemGridUnits[type] || itemGridUnits.sticker;
      const grid = itemData.grid || {};
      const storedWidth = Number(grid.width);
      const storedHeight = Number(grid.height);
@@ -568,7 +561,6 @@ function restorePlannerItemSettings(item, itemData) {
                dayFormat: widget.dayFormat,
                dateMode: widget.dateMode,
                dateOffset: widget.dateOffset !== undefined && widget.dateOffset !== null ? String(widget.dateOffset) : undefined,
-               miniMonthSize: widget.miniMonthSize || undefined,
                titleVisible: normalizeStoredBoolean(widget.titleVisible, "true"),
                monthDisplay: widget.monthDisplay || "full",
                monthVisible: normalizeStoredBoolean(widget.monthVisible, "true"),

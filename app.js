@@ -805,18 +805,7 @@ function setRootLength(name, value) {
      document.documentElement.style.setProperty(name, `${value}%`);
 }
 
-function getMiniMonthSizeKey(item) {
-     return item?.dataset?.miniMonthSize === "md" ? "md" : "sm";
-}
-
-function getMiniMonthGridUnits(item) {
-     if (getMiniMonthSizeKey(item) === "md") {
-          return {
-               width: 16,
-               height: 18
-          };
-     }
-
+function getMiniMonthGridUnits() {
      return {
           width: 10,
           height: 8

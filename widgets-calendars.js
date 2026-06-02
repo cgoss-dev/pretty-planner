@@ -497,11 +497,15 @@ function getWeeklyTimeColumnGridUnits(item) {
           return 0;
      }
 
+     if (item.dataset.itemType === "weekly-view") {
+          return 2;
+     }
+
      return item.dataset.itemType === "day-view" ? 0 : 1;
 }
 
 function getWeeklyHeaderGridRows(item) {
-     return 5;
+     return 4;
 }
 
 function getWeeklyBodyGridRows(item) {
@@ -513,12 +517,16 @@ function getFullMonthGridUnits(item) {
 
      return {
           width: 31 + getWeekNotesColumnUnits(item),
-          height: titleRowUnits + 1 + (6 * getFullMonthWeekRowUnits())
+          height: titleRowUnits + getFullMonthWeekdayRowUnits() + (6 * getFullMonthWeekRowUnits())
      };
 }
 
 function getFullMonthTitleRowUnits() {
-     return 5;
+     return 4;
+}
+
+function getFullMonthWeekdayRowUnits() {
+     return 2;
 }
 
 function getFullMonthWeekRowUnits() {
@@ -1072,7 +1080,9 @@ function createCalendarDatePart(part, date, {
      } else if (part === "date") {
           element.className = "calendar-date-part calendar-date-number dayNumber";
           element.textContent = String(date.getDate()).padStart(2, "0");
-          markCurrentCalendarDayNumber(element, dayKey, todayKey);
+          if (todayKey) {
+               markCurrentCalendarDayNumber(element, dayKey, todayKey);
+          }
      } else if (part === "year") {
           element.className = "calendar-date-part calendar-date-year";
           element.textContent = yearFormat === "yy" ? String(date.getFullYear()).slice(-2) : String(date.getFullYear());
@@ -1241,7 +1251,7 @@ function renderMiniMonth(item) {
           ...weekRows.map((weekIndex) => weekIndex + 2)
      ];
      const titleRowUnits = usesExpandedCalendarUnits ? getFullMonthTitleRowUnits() : 2;
-     const dayNameRowUnits = 1;
+     const dayNameRowUnits = usesExpandedCalendarUnits ? getFullMonthWeekdayRowUnits() : 1;
      const weekRowUnits = usesExpandedCalendarUnits ? getFullMonthWeekRowUnits() : 1;
      const visibleColumnCount = columnSlots.length;
      const visibleRowCount = calendarRows.length;
@@ -1268,6 +1278,7 @@ function renderMiniMonth(item) {
      calendar.style.setProperty("--mini-month-max-row-units", String(maxVisibleRowUnits));
      calendar.style.setProperty("--mini-month-fixed-row-units", String(fixedRowUnits));
      calendar.style.setProperty("--mini-month-title-row-units", String(titleRowUnits));
+     calendar.style.setProperty("--mini-month-weekday-row-units", String(dayNameRowUnits));
      calendar.style.setProperty("--mini-month-week-row-count", String(weekRows.length));
      calendar.style.setProperty("--mini-month-day-column-count", String(displayColumns.length + (weekNotesEnabled ? 1 : 0)));
      if (usesExpandedCalendarUnits) {
@@ -1283,7 +1294,7 @@ function renderMiniMonth(item) {
           calendar.style.gridTemplateColumns = `var(--weekly-column-cell-width, 12px) ${contentTemplateColumns}`;
           calendar.style.gridTemplateRows = [
                ...(titleVisible ? [`calc(var(--weekly-row-cell-height, 12px) * ${titleRowUnits})`] : []),
-               "var(--weekly-row-cell-height, 12px)",
+               `calc(var(--weekly-row-cell-height, 12px) * ${dayNameRowUnits})`,
                `repeat(${weekRows.length}, calc(var(--weekly-row-cell-height, 12px) * ${weekRowUnits}))`
           ].join(" ");
      } else {
@@ -1292,6 +1303,7 @@ function renderMiniMonth(item) {
      }
      item.style.setProperty("--mini-month-fixed-row-units", String(fixedRowUnits));
      item.style.setProperty("--mini-month-title-row-units", String(titleRowUnits));
+     item.style.setProperty("--mini-month-weekday-row-units", String(dayNameRowUnits));
      item.style.setProperty("--mini-month-week-row-count", String(weekRows.length));
      for (let row = 0; row < calendarRows.length; row += 1) {
           const calendarRow = calendarRows[row];
@@ -1894,7 +1906,7 @@ function renderWeeklyVertical(item) {
                          appendCalendarDateParts(dateLabel, item, date, {
                               weekdayLabelFormat,
                               monthDisplay,
-                              todayKey
+                              todayKey: null
                          });
                          cell.append(dateLabel);
                     });
@@ -1912,7 +1924,13 @@ function renderWeeklyVertical(item) {
                          ? `${displayColumn.dates.map((date) => getCalendarDayKey(date.getFullYear(), date.getMonth(), date.getDate())).join("+")}T${formatMinutesAsTime(slotMinutes)}`
                          : getWeeklySlotKey(primaryDate, slotMinutes);
                     const slotText = document.createElement("div");
-                    const isSharedWeekendLabelRow = displayColumn.type === "shared-weekend" && calendarRow === 1 + Math.floor(slotCount / 2);
+                    const sharedWeekendSundayRow = 1 + Math.floor(slotCount / 2);
+                    const sharedWeekendSundaySpan = Math.min(2, Math.max(1, slotCount - sharedWeekendSundayRow + 1));
+                    const isSharedWeekendSundayRow = displayColumn.type === "shared-weekend" && calendarRow === sharedWeekendSundayRow;
+                    const isSharedWeekendSundayCoveredRow = displayColumn.type === "shared-weekend" &&
+                         sharedWeekendSundaySpan > 1 &&
+                         calendarRow > sharedWeekendSundayRow &&
+                         calendarRow < sharedWeekendSundayRow + sharedWeekendSundaySpan;
 
                     cell.classList.add("weekly-view-slot");
                     cell.dataset.themePart = "timeSlot";
@@ -1927,16 +1945,20 @@ function renderWeeklyVertical(item) {
                     cell.classList.add("dayCell");
                     cell.dataset.dayKey = slotKey;
                     markCurrentCalendarDay(cell, displayColumn.dates.map((date) => getCalendarDayKey(date.getFullYear(), date.getMonth(), date.getDate())), todayKey);
-                    if (isSharedWeekendLabelRow) {
+                    if (isSharedWeekendSundayCoveredRow) {
+                         continue;
+                    }
+                    if (isSharedWeekendSundayRow) {
                          const sundayDate = displayColumn.dates[1];
                          const sundayMarker = document.createElement("span");
 
+                         cell.style.gridRow = `${calendarRow + 1} / span ${sharedWeekendSundaySpan}`;
                          sundayMarker.className = "weekly-view-date-label weekly-view-sunday-mid-marker";
                          sundayMarker.dataset.themePart = "weekendDayHeader";
                          appendCalendarDateParts(sundayMarker, item, sundayDate, {
                               weekdayLabelFormat,
                               monthDisplay,
-                              todayKey
+                              todayKey: null
                          });
                          cell.append(sundayMarker);
                     } else {
@@ -2085,9 +2107,6 @@ function setCalendarWidgetSettings(item, settings = {}) {
      item.dataset.dateMode = nextDateMode;
      item.dataset.dateUnit = getCalendarRelativeDateUnit(item);
      item.dataset.dateOffset = clampRelativeDateOffset(settings.dateOffset ?? (nextDateMode === "relative" && previousDateMode !== "relative" ? "0" : item.dataset.dateOffset ?? "0"), item.dataset.dateUnit);
-     if (item.dataset.itemType === "mini-month") {
-          item.dataset.miniMonthSize = normalizeMiniMonthSize(settings.miniMonthSize || item.dataset.miniMonthSize);
-     }
      item.dataset.calendarTitleVisible = titleVisible;
      item.dataset.monthDisplay = getVisibleCalendarDisplay(settings.monthDisplay, item.dataset.monthDisplay, "full");
      item.dataset.monthVisible = item.dataset.monthDisplay === "none" ? "false" : "true";
@@ -2125,7 +2144,6 @@ function setCalendarWidgetSettings(item, settings = {}) {
      const monthSelect = controls.querySelector("[data-widget-control='month']");
      const monthLabel = monthSelect ? monthSelect.closest(".widget-option-control") : null;
      const monthDisplaySelect = controls.querySelector("[data-widget-control='month-display']");
-     const miniMonthSizeControls = controls.querySelectorAll("[data-mini-month-size-value]");
      const yearSelect = controls.querySelector("[data-widget-control='year']");
      const yearDisplaySelect = controls.querySelector("[data-widget-control='year-display']");
      const startDaySelect = controls.querySelector("[data-widget-control='start-day']");
@@ -2192,13 +2210,6 @@ function setCalendarWidgetSettings(item, settings = {}) {
      if (monthDisplaySelect) {
           monthDisplaySelect.value = item.dataset.monthDisplay;
      }
-
-     miniMonthSizeControls.forEach((button) => {
-          const isActive = button.dataset.miniMonthSizeValue === (item.dataset.miniMonthSize || "sm");
-
-          button.classList.toggle("is-active", isActive);
-          button.setAttribute("aria-pressed", String(isActive));
-     });
 
      if (yearSelect) {
           yearSelect.value = item.dataset.year;
