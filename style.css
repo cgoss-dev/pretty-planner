@@ -2950,11 +2950,22 @@ body {
      position: relative;
      z-index: 1;
      display: grid;
-     place-items: center;
+     grid-template-columns: var(--toc-left-column-width, 22.222222%) minmax(var(--toc-right-column-min-width, 22.222222%), 1fr);
+     align-items: stretch;
      min-height: 0;
      color: var(--color-gray3);
      text-align: center;
      background: var(--widget-box-fill);
+}
+
+.toc-empty-title {
+     display: grid;
+     place-items: center;
+     min-width: 0;
+     padding: 0 6px;
+     overflow: hidden;
+     text-overflow: ellipsis;
+     white-space: nowrap;
 }
 
 .sticker-text::-webkit-scrollbar {
@@ -3350,6 +3361,7 @@ body {
 .mini-month-day-number {
      align-self: start;
      justify-self: start;
+     color: var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16));
 }
 
 .planner-item-mini-month .mini-month-day-number {
@@ -3502,11 +3514,6 @@ body {
 .mini-month-day-name {
      background: var(--calendar-tint-background);
      color: var(--color-gray1);
-}
-
-.mini-month-day-name,
-.weekly-view-day-name {
-     color: var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16));
 }
 
 .mini-month-week {
@@ -3803,7 +3810,7 @@ body {
      top: 2px;
      left: 4px;
      z-index: 1;
-     color: var(--color-gray1);
+     color: var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16));
      font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
      line-height: 1;
      pointer-events: none;

@@ -298,9 +298,14 @@ function renderToc(item, entries = []) {
 
      if (!tocEntries.length) {
           const empty = document.createElement("div");
+          const emptyNumber = document.createElement("span");
+          const emptyTitle = document.createElement("span");
 
           empty.className = "toc-empty";
-          empty.textContent = "No page titles";
+          emptyNumber.className = "toc-page-number";
+          emptyTitle.className = "toc-empty-title";
+          emptyTitle.textContent = "No page titles";
+          empty.append(emptyNumber, emptyTitle);
           list.append(empty);
           applyThemeToWidget(item);
           return;
