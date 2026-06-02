@@ -2260,9 +2260,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      const titleVisibleInput = controls.querySelector("[data-widget-control='calendar-title-visible']");
      const monthSelect = controls.querySelector("[data-widget-control='month']");
      const monthLabel = monthSelect ? monthSelect.closest(".widget-option-control") : null;
-     const monthDisplaySelect = controls.querySelector("[data-widget-control='month-display']");
      const yearSelect = controls.querySelector("[data-widget-control='year']");
-     const yearDisplaySelect = controls.querySelector("[data-widget-control='year-display']");
      const startDaySelect = controls.querySelector("[data-widget-control='start-day']");
      const visibleDaysSelect = controls.querySelector("[data-widget-control='visible-days']");
      const timeIncrementSelect = controls.querySelector("[data-widget-control='time-increment']");
@@ -2326,16 +2324,8 @@ function setCalendarWidgetSettings(item, settings = {}) {
           monthLabel.hidden = item.dataset.dateMode === "relative";
      }
 
-     if (monthDisplaySelect) {
-          monthDisplaySelect.value = item.dataset.monthDisplay;
-     }
-
      if (yearSelect) {
           yearSelect.value = item.dataset.year;
-     }
-
-     if (yearDisplaySelect) {
-          yearDisplaySelect.value = item.dataset.yearDisplay;
      }
 
      if (item.dataset.itemType === "diary-view") {

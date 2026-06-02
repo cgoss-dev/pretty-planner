@@ -130,9 +130,7 @@
                          "options.calendar-title-visible": true,
                          "options.month": true,
                          "options.year": true,
-                         "options.week-number-format": true,
-                         "options.month-display": true,
-                         "options.year-display": true
+                         "options.week-number-format": true
                     },
                     "full-month": {
                          "actions.duplicate": true,
@@ -161,9 +159,7 @@
                          "options.calendar-title-visible": true,
                          "options.month": true,
                          "options.year": true,
-                         "options.week-number-format": true,
-                         "options.month-display": true,
-                         "options.year-display": true
+                         "options.week-number-format": true
                     },
                     "perpetual-calendar": {
                          "actions.duplicate": true,
@@ -185,8 +181,7 @@
                          "options.date-mode": true,
                          "options.date-offset": true,
                          "options.calendar-title-visible": true,
-                         "options.month": true,
-                         "options.month-display": true
+                         "options.month": true
                     },
                     "weekly-view": {
                          "actions.duplicate": true,

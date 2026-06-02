@@ -4621,8 +4621,37 @@ body {
      justify-self: stretch;
      width: 100%;
      padding: 0 8px;
+     text-align: center;
      appearance: textfield;
      background: rgba(255, 255, 255, 0.48);
+}
+
+.date-offset-stepper {
+     display: grid;
+     grid-template-columns: var(--color-swatch-size) minmax(0, 1fr) var(--color-swatch-size);
+     align-items: stretch;
+     gap: 4px;
+     width: 100%;
+     min-width: 0;
+}
+
+.date-offset-stepper-button {
+     width: var(--color-swatch-size);
+     min-width: var(--color-swatch-size);
+     height: var(--color-swatch-size);
+     padding: 0;
+     border: 1px solid var(--color-gray4);
+     border-radius: 4px;
+     background: rgba(255, 255, 255, 0.72);
+     color: var(--color-gray1);
+     font: 600 var(--font-size-md) var(--font-noto-sans-mono);
+     line-height: 1;
+     cursor: pointer;
+}
+
+.date-offset-stepper-button:hover,
+.date-offset-stepper-button:focus-visible {
+     background: var(--color-white);
 }
 
 .item-calendar-attributes-grid .widget-option-control input[data-widget-control="date-offset"]::-webkit-outer-spin-button,
@@ -5603,7 +5632,8 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 }
 
 .planner-sidebar .item-calendar-attributes-grid .widget-option-control .custom-select,
-.planner-sidebar .item-calendar-attributes-grid .widget-option-control select {
+.planner-sidebar .item-calendar-attributes-grid .widget-option-control select,
+.planner-sidebar .item-calendar-attributes-grid .widget-option-control .date-offset-stepper {
      grid-column: 2;
      justify-self: stretch;
      width: 100%;

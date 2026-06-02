@@ -2970,19 +2970,18 @@ function makePlannerItem(type = "sticker") {
      const dateModeLabel = document.createElement("label");
      const dateModeSelect = document.createElement("select");
      const dateOffsetLabel = document.createElement("label");
+     const dateOffsetStepper = document.createElement("div");
+     const dateOffsetPrevButton = document.createElement("button");
      const dateOffsetInput = document.createElement("input");
+     const dateOffsetNextButton = document.createElement("button");
      const calendarSizeLabel = document.createElement("div");
      const calendarSizeOptions = document.createElement("div");
      const titleVisibleLabel = document.createElement("label");
      const titleVisibleInput = document.createElement("input");
      const monthLabel = document.createElement("label");
      const monthSelect = document.createElement("select");
-     const monthDisplayLabel = document.createElement("label");
-     const monthDisplaySelect = document.createElement("select");
      const yearLabel = document.createElement("label");
      const yearSelect = document.createElement("select");
-     const yearDisplayLabel = document.createElement("label");
-     const yearDisplaySelect = document.createElement("select");
      const startDayLabel = document.createElement("label");
      const startDaySelect = document.createElement("select");
      const visibleDaysLabel = document.createElement("div");
@@ -3428,12 +3427,21 @@ function makePlannerItem(type = "sticker") {
      dateOffsetLabel.className = "widget-panel-row widget-option-control";
      dateOffsetLabel.dataset.sidebarControl = "options.date-offset";
      dateOffsetLabel.textContent = "Current Offset";
+     dateOffsetStepper.className = "date-offset-stepper";
+     dateOffsetPrevButton.className = "date-offset-stepper-button date-offset-stepper-button-prev";
+     dateOffsetPrevButton.type = "button";
+     dateOffsetPrevButton.textContent = "‹";
+     dateOffsetPrevButton.setAttribute("aria-label", "Decrease current offset");
      dateOffsetInput.type = "text";
      dateOffsetInput.inputMode = "numeric";
      dateOffsetInput.pattern = "-?[0-9]*";
      dateOffsetInput.dataset.widgetControl = "date-offset";
      dateOffsetInput.setAttribute("aria-label", "Calendar current date offset");
      syncRelativeDateOffsetInput(dateOffsetInput, getCalendarRelativeDateUnit(item), "0");
+     dateOffsetNextButton.className = "date-offset-stepper-button date-offset-stepper-button-next";
+     dateOffsetNextButton.type = "button";
+     dateOffsetNextButton.textContent = "›";
+     dateOffsetNextButton.setAttribute("aria-label", "Increase current offset");
      calendarSizeLabel.className = "widget-panel-row widget-option-control calendar-size-control";
      calendarSizeLabel.dataset.sidebarControl = "options.page-size";
      calendarSizeLabel.textContent = "Size";
@@ -3473,22 +3481,6 @@ function makePlannerItem(type = "sticker") {
           option.textContent = monthName;
           monthSelect.append(option);
      });
-     monthDisplayLabel.className = "widget-panel-row widget-option-control";
-     monthDisplayLabel.dataset.sidebarControl = "options.month-display";
-     monthDisplayLabel.textContent = "Month Display";
-     monthDisplaySelect.dataset.widgetControl = "month-display";
-     monthDisplaySelect.setAttribute("aria-label", "Calendar month display");
-     [
-          ["number", "#"],
-          ["short", "MMM"],
-          ["full", "Full"]
-     ].forEach(([value, label]) => {
-          const option = document.createElement("option");
-
-          option.value = value;
-          option.textContent = label;
-          monthDisplaySelect.append(option);
-     });
      yearLabel.className = "widget-panel-row widget-option-control";
      yearLabel.dataset.sidebarControl = "options.year";
      yearLabel.textContent = "Year";
@@ -3501,22 +3493,6 @@ function makePlannerItem(type = "sticker") {
           option.textContent = String(year);
           yearSelect.append(option);
      }
-     yearDisplayLabel.className = "widget-panel-row widget-option-control";
-     yearDisplayLabel.dataset.sidebarControl = "options.year-display";
-     yearDisplayLabel.textContent = "Year Display";
-     yearDisplaySelect.dataset.widgetControl = "year-display";
-     yearDisplaySelect.setAttribute("aria-label", "Calendar year display");
-     [
-          ["none", "Off"],
-          ["short", "YY"],
-          ["full", "YYYY"]
-     ].forEach(([value, label]) => {
-          const option = document.createElement("option");
-
-          option.value = value;
-          option.textContent = label;
-          yearDisplaySelect.append(option);
-     });
      startDayLabel.className = "widget-panel-row widget-option-control";
      startDayLabel.dataset.sidebarControl = "options.start-day";
      startDayLabel.textContent = type === "diary-view" ? "Week #" : "Day";
@@ -3630,9 +3606,7 @@ function makePlannerItem(type = "sticker") {
      stylePanel.append(stylePanelTitle, fillLabel);
      textPanel.append(textPanelTitle, textTocLabel, textControlsRow);
      monthLabel.append(monthSelect);
-     monthDisplayLabel.append(monthDisplaySelect);
      yearLabel.append(yearSelect);
-     yearDisplayLabel.append(yearDisplaySelect);
      displayYearLabel.append(displayYearSelect);
      displayMonthLabel.append(displayMonthSelect);
      displayDateModeLabel.append(displayDateModeSelect);
@@ -3654,12 +3628,13 @@ function makePlannerItem(type = "sticker") {
      weekStartLabel.append(weekStartSelect);
      weekdayLabelLabel.append(weekdayLabelSelect);
      dateModeLabel.append(dateModeSelect);
-     dateOffsetLabel.append(dateOffsetInput);
+     dateOffsetStepper.append(dateOffsetPrevButton, dateOffsetInput, dateOffsetNextButton);
+     dateOffsetLabel.append(dateOffsetStepper);
      calendarSizeLabel.append(calendarSizeOptions);
      titleVisibleLabel.append(titleVisibleInput);
      weekNumberLabel.append(weekNumberInput);
      if (type === "perpetual-calendar") {
-          calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, monthDisplayLabel);
+          calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel);
      } else if (type === "weekly-view") {
           calendarAttributesGrid.append(calendarSizeLabel, weeklyMonthYearVisibleLabel, weekdayLabelLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "diary-view") {
@@ -3667,9 +3642,9 @@ function makePlannerItem(type = "sticker") {
      } else if (type === "day-view") {
           calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "full-month") {
-          calendarAttributesGrid.append(calendarSizeLabel, weekdayLabelLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
+          calendarAttributesGrid.append(calendarSizeLabel, weekdayLabelLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel);
      } else {
-          calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
+          calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel);
      }
      startDayLabel.append(startDaySelect);
      visibleDaysLabel.append(visibleDaysSelect);
@@ -4106,6 +4081,14 @@ function makePlannerItem(type = "sticker") {
                dateMode: dateModeSelect.value
           });
      });
+     const applyDateOffsetValue = (nextValue) => {
+          dateOffsetInput.value = nextValue;
+          applyCalendarWidgetSettingsToActionItems(item, {
+               dateMode: "relative",
+               dateOffset: nextValue
+          });
+     };
+
      dateOffsetInput.addEventListener("input", () => {
           const sanitizedValue = sanitizeIntegerEntryValue(dateOffsetInput.value);
 
@@ -4117,19 +4100,22 @@ function makePlannerItem(type = "sticker") {
                return;
           }
 
-          applyCalendarWidgetSettingsToActionItems(item, {
-               dateMode: "relative",
-               dateOffset: sanitizedValue
-          });
+          applyDateOffsetValue(sanitizedValue);
      });
      dateOffsetInput.addEventListener("change", () => {
           const nextValue = normalizeIntegerEntryValue(dateOffsetInput.value, item.dataset.dateOffset || "0");
 
-          dateOffsetInput.value = nextValue;
-          applyCalendarWidgetSettingsToActionItems(item, {
-               dateMode: "relative",
-               dateOffset: nextValue
-          });
+          applyDateOffsetValue(nextValue);
+     });
+     dateOffsetPrevButton.addEventListener("click", () => {
+          const currentValue = Number(normalizeIntegerEntryValue(dateOffsetInput.value, item.dataset.dateOffset || "0"));
+
+          applyDateOffsetValue(String(currentValue - 1));
+     });
+     dateOffsetNextButton.addEventListener("click", () => {
+          const currentValue = Number(normalizeIntegerEntryValue(dateOffsetInput.value, item.dataset.dateOffset || "0"));
+
+          applyDateOffsetValue(String(currentValue + 1));
      });
      titleVisibleInput.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
@@ -4162,11 +4148,6 @@ function makePlannerItem(type = "sticker") {
                dateOffset: displayDateModeSelect.value === "relative" ? "0" : item.dataset.dateOffset
           });
      });
-     monthDisplaySelect.addEventListener("change", () => {
-          applyCalendarWidgetSettingsToActionItems(item, {
-               monthDisplay: monthDisplaySelect.value
-          });
-     });
      yearSelect.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
                dateMode: "fixed",
@@ -4185,11 +4166,6 @@ function makePlannerItem(type = "sticker") {
           applyCalendarWidgetSettingsToActionItems(item, {
                dateMode: "fixed",
                year: displayYearSelect.value
-          });
-     });
-     yearDisplaySelect.addEventListener("change", () => {
-          applyCalendarWidgetSettingsToActionItems(item, {
-               yearDisplay: yearDisplaySelect.value
           });
      });
      startDaySelect.addEventListener("change", () => {
