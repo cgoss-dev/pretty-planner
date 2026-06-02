@@ -814,27 +814,17 @@ function clampRelativeDateOffset(offset, unit) {
      return String(clamp(Number(offset) || 0, -maxOffset, maxOffset));
 }
 
-function formatRelativeDateOffset(offset) {
-     return offset > 0 ? `+${offset}` : String(offset);
-}
-
-function populateRelativeDateOffsetSelect(select, unit, selectedOffset) {
-     if (!select) {
+function syncRelativeDateOffsetInput(input, unit, selectedOffset) {
+     if (!input) {
           return;
      }
 
      const maxOffset = getRelativeDateOffsetMax(unit);
      const clampedOffset = clampRelativeDateOffset(selectedOffset, unit);
 
-     select.replaceChildren();
-     for (let offset = -maxOffset; offset <= maxOffset; offset += 1) {
-          const option = document.createElement("option");
-
-          option.value = String(offset);
-          option.textContent = formatRelativeDateOffset(offset);
-          select.append(option);
-     }
-     select.value = clampedOffset;
+     input.dataset.offsetMin = String(-maxOffset);
+     input.dataset.offsetMax = String(maxOffset);
+     input.value = clampedOffset;
 }
 
 function replaceSelectOptions(select, options, selectedValue) {
@@ -2119,7 +2109,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      const weekStartSelect = controls.querySelector("[data-widget-control='week-start']");
      const weekdayLabelSelect = controls.querySelector("[data-widget-control='weekday-label-format']");
      const dateModeSelect = controls.querySelector("[data-widget-control='date-mode']");
-     const dateOffsetSelect = controls.querySelector("[data-widget-control='date-offset']");
+     const dateOffsetInput = controls.querySelector("[data-widget-control='date-offset']");
      const displayMonthSelect = controls.querySelector("[data-widget-control='display-month']");
      const displayYearSelect = controls.querySelector("[data-widget-control='display-year']");
      const displayDateModeSelect = controls.querySelector("[data-widget-control='display-date-mode']");
@@ -2178,8 +2168,8 @@ function setCalendarWidgetSettings(item, settings = {}) {
           displayDateModeSelect.value = item.dataset.dateMode;
      }
 
-     if (dateOffsetSelect) {
-          populateRelativeDateOffsetSelect(dateOffsetSelect, item.dataset.dateUnit, item.dataset.dateOffset);
+     if (dateOffsetInput) {
+          syncRelativeDateOffsetInput(dateOffsetInput, item.dataset.dateUnit, item.dataset.dateOffset);
      }
 
      if (titleVisibleInput) {
@@ -2245,7 +2235,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
           weekNotesSelect.value = item.dataset.weekNotes;
      }
 
-     const rebuiltSelects = new Set([dateOffsetSelect, startDaySelect, displayDaySelect, displayYearSelect, displayMonthSelect].filter(Boolean));
+     const rebuiltSelects = new Set([startDaySelect, displayDaySelect, displayYearSelect, displayMonthSelect].filter(Boolean));
 
      rebuiltSelects.forEach(syncCustomSelect);
      controls.querySelectorAll("select").forEach((select) => {

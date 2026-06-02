@@ -77,7 +77,6 @@ function serializePlannerItem(item) {
                borderColor: item.dataset.borderColor || null,
                borderWidth: item.dataset.borderWidth || null,
                dotGrid: item.dataset.dotGrid || null,
-               titleBarVisible: item.dataset.titleBarVisible || null,
                themeMode: item.dataset.themeMode || null
           },
           widget: isCalendarItem(item)
@@ -517,18 +516,16 @@ function restorePlannerItemSettings(item, itemData) {
      const text = itemData.text || {};
      const widget = itemData.widget || {};
 
-     if (style.fillColor || style.borderColor || style.borderWidth || style.dotGrid || style.titleBarVisible || style.titleFillVisible || style.titleBorderVisible) {
+     if (style.fillColor || style.borderColor || style.borderWidth || style.dotGrid) {
           if (style.themeMode) {
                item.dataset.themeMode = style.themeMode;
           }
-          const legacyTitleBarVisible = style.titleFillVisible === "false" || style.titleBorderVisible === "false" ? "false" : "true";
 
           setItemStyle(item, {
                fillColor: style.fillColor || item.dataset.fillColor,
                borderColor: style.borderColor || item.dataset.borderColor,
                borderWidth: style.borderWidth || item.dataset.borderWidth,
-               dotGrid: style.dotGrid || item.dataset.dotGrid,
-               titleBarVisible: normalizeStoredBoolean(style.titleBarVisible, item.dataset.titleBarVisible || legacyTitleBarVisible)
+               dotGrid: style.dotGrid || item.dataset.dotGrid
           });
      }
 

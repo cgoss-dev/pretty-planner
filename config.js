@@ -75,8 +75,6 @@
                },
                sidebarControlVisibility: {
                     sticker: {
-                         "actions.move": true,
-                         "actions.resize": true,
                          "actions.duplicate": true,
                          "actions.group": true,
                          "actions.send-backward": true,
@@ -93,8 +91,6 @@
                          "options.dot-grid": true
                     },
                     toc: {
-                         "actions.move": true,
-                         "actions.resize": true,
                          "actions.duplicate": true,
                          "actions.group": true,
                          "actions.send-backward": true,
@@ -107,12 +103,9 @@
                          "text.format": true,
                          "text.align": true,
                          "text.color": true,
-                         "text.line-height": true,
-                         "options.title-bar-visible": true
+                         "text.line-height": true
                     },
                     "mini-month": {
-                         "actions.move": true,
-                         "actions.resize": true,
                          "actions.duplicate": true,
                          "actions.group": true,
                          "actions.send-backward": true,
@@ -135,7 +128,6 @@
                          "options.date-mode": true,
                          "options.date-offset": true,
                          "options.calendar-title-visible": true,
-                         "options.title-bar-visible": true,
                          "options.month": true,
                          "options.year": true,
                          "options.week-number-format": true,
@@ -143,8 +135,6 @@
                          "options.year-display": true
                     },
                     "full-month": {
-                         "actions.move": true,
-                         "actions.resize": true,
                          "actions.duplicate": true,
                          "actions.group": true,
                          "actions.send-backward": true,
@@ -169,7 +159,6 @@
                          "options.date-mode": true,
                          "options.date-offset": true,
                          "options.calendar-title-visible": true,
-                         "options.title-bar-visible": true,
                          "options.month": true,
                          "options.year": true,
                          "options.week-number-format": true,
@@ -177,8 +166,6 @@
                          "options.year-display": true
                     },
                     "perpetual-calendar": {
-                         "actions.move": true,
-                         "actions.resize": true,
                          "actions.duplicate": true,
                          "actions.group": true,
                          "actions.send-backward": true,
@@ -198,13 +185,10 @@
                          "options.date-mode": true,
                          "options.date-offset": true,
                          "options.calendar-title-visible": true,
-                         "options.title-bar-visible": true,
                          "options.month": true,
                          "options.month-display": true
                     },
                     "weekly-view": {
-                         "actions.move": true,
-                         "actions.resize": true,
                          "actions.duplicate": true,
                          "actions.group": true,
                          "actions.send-backward": true,
@@ -227,7 +211,6 @@
                          "options.week-notes": true,
                          "options.date-mode": true,
                          "options.date-offset": true,
-                         "options.title-bar-visible": true,
                          "options.month": true,
                          "options.year": true,
                          "options.start-day": true,
@@ -237,8 +220,6 @@
                          "options.time-increment": true
                     },
                     "day-view": {
-                         "actions.move": true,
-                         "actions.resize": true,
                          "actions.duplicate": true,
                          "actions.group": true,
                          "actions.send-backward": true,
@@ -258,7 +239,6 @@
                          "options.display-month": true,
                          "options.date-mode": true,
                          "options.date-offset": true,
-                         "options.title-bar-visible": true,
                          "options.month": true,
                          "options.year": true,
                          "options.start-day": true,
@@ -267,8 +247,6 @@
                          "options.time-increment": true
                     },
                     "diary-view": {
-                         "actions.move": true,
-                         "actions.resize": true,
                          "actions.duplicate": true,
                          "actions.group": true,
                          "actions.send-backward": true,
@@ -289,7 +267,6 @@
                          "options.weekday-label-format": true,
                          "options.date-mode": true,
                          "options.date-offset": true,
-                         "options.title-bar-visible": true,
                          "options.month": true,
                          "options.year": true,
                          "options.start-day": true,
