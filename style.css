@@ -2885,8 +2885,8 @@ body {
 }
 
 .toc-title-name {
-     display: grid;
-     align-items: end;
+     display: block;
+     align-self: end;
      justify-items: center;
      box-sizing: border-box;
      min-width: 0;
@@ -3074,12 +3074,22 @@ body {
 .perpetual-calendar-title > span,
 .weekly-view-date > span,
 .weekly-view-date-label {
+     align-self: end;
      justify-self: center;
+     height: max-content;
      width: max-content;
      max-width: none;
+     max-height: none;
      overflow: visible;
      text-align: center;
      white-space: nowrap;
+}
+
+.weekly-view-sunday-mid-marker,
+.diary-view.is-vertical .diary-view-date-label {
+     align-self: end;
+     height: max-content;
+     max-height: none;
 }
 
 /* NOTE: Widget Tray Mini Preview Pictures */

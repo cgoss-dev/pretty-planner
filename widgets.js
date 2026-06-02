@@ -381,7 +381,11 @@ function updateTocGridMetrics(item, page, box) {
 }
 
 function getTocMinGridColumns() {
-     return tocLeftColumnGridUnits + tocRightColumnMinGridUnits;
+     return 14;
+}
+
+function getTocMinGridRows() {
+     return 14;
 }
 
 function clampTocBox(item, page, box) {
@@ -391,11 +395,14 @@ function clampTocBox(item, page, box) {
 
      const grid = getGridSize(page);
      const minWidth = grid.x * getTocMinGridColumns();
+     const minHeight = grid.y * getTocMinGridRows();
      const snappedWidth = Math.max(minWidth, Math.round(box.width / grid.x) * grid.x);
+     const snappedHeight = Math.max(minHeight, Math.round(box.height / grid.y) * grid.y);
 
      return {
           ...box,
-          width: snappedWidth
+          width: snappedWidth,
+          height: snappedHeight
      };
 }
 
@@ -2618,6 +2625,10 @@ function getResizedPerpetualCalendarBox(item, page, clientX, current, mode, grid
 }
 
 function getItemMinGridHeight(item) {
+     if (isTocItem(item)) {
+          return getTocMinGridRows();
+     }
+
      if (item.dataset.itemType === "weekly-view") {
           return getWeeklyViewFixedGridRows();
      }
