@@ -77,6 +77,7 @@ function serializePlannerItem(item) {
                borderColor: item.dataset.borderColor || null,
                borderWidth: item.dataset.borderWidth || null,
                dotGrid: item.dataset.dotGrid || null,
+               pageFlagSide: item.dataset.pageFlagSide || null,
                themeMode: item.dataset.themeMode || null
           },
           widget: isCalendarItem(item)
@@ -548,6 +549,9 @@ function restorePlannerItemSettings(item, itemData) {
                borderWidth: style.borderWidth || item.dataset.borderWidth,
                dotGrid: style.dotGrid || item.dataset.dotGrid
           });
+     }
+     if (item.dataset.itemType === "page-flag") {
+          item.dataset.pageFlagSide = style.pageFlagSide === "left" ? "left" : "right";
      }
 
      if (isStickerTextItem(item)) {

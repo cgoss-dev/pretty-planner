@@ -2767,24 +2767,21 @@ body {
      --page-flag-notch-x: var(--page-flag-grid-x, calc(var(--item-width, 72px) / 6));
 }
 
-.planner-item-page-flag::before,
-.planner-item-page-flag::after {
-     content: "";
+.page-flag-shape {
      position: absolute;
-     pointer-events: none;
-     clip-path: polygon(0 0, 100% 0, calc(100% - var(--page-flag-notch-x)) 50%, 100% 100%, 0 100%);
-}
-
-.planner-item-page-flag::before {
      inset: 0;
      z-index: 0;
-     background: var(--sticker-border-color, #ccc);
+     width: 100%;
+     height: 100%;
+     overflow: visible;
+     pointer-events: none;
 }
 
-.planner-item-page-flag::after {
-     inset: var(--sticker-border-size, var(--border-sm));
-     z-index: 0;
-     background: var(--widget-box-fill, var(--color-white));
+.page-flag-shape-path {
+     fill: var(--widget-box-fill, var(--color-white));
+     stroke: var(--sticker-border-color, #ccc);
+     stroke-width: var(--sticker-border-size, var(--border-sm));
+     vector-effect: non-scaling-stroke;
 }
 
 .planner-item-sticker[data-has-clear-fill="true"],
@@ -2792,16 +2789,16 @@ body {
      background: transparent;
 }
 
-.planner-item-page-flag[data-has-clear-fill="true"]::after {
-     background: transparent;
+.planner-item-page-flag[data-has-clear-fill="true"] .page-flag-shape-path {
+     fill: transparent;
 }
 
 .planner-item-sticker[data-has-clear-border="true"] {
      border-color: transparent;
 }
 
-.planner-item-page-flag[data-has-clear-border="true"]::before {
-     background: transparent;
+.planner-item-page-flag[data-has-clear-border="true"] .page-flag-shape-path {
+     stroke: transparent;
 }
 
 .planner-item-toc {
@@ -2841,6 +2838,10 @@ body {
      inset: 0 var(--page-flag-notch-x, 12px) 0 0;
      z-index: 2;
      padding: 2px 4px;
+}
+
+.planner-item-page-flag[data-page-flag-side="left"] .sticker-text {
+     inset: 0 0 0 var(--page-flag-notch-x, 12px);
 }
 
 .planner-item [data-theme-part] {

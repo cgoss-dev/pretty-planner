@@ -201,8 +201,9 @@ window.PageControls = (() => {
      }) {
           items.forEach((item) => {
                const isPageItem = Boolean(item.dataset.pageId);
+               const isPersistentPageFlag = item.dataset.itemType === "page-flag";
                const isVisible = !isPageItem || (
-                    getItemSpreadIndex(item) === currentSpreadIndex &&
+                    (isPersistentPageFlag || getItemSpreadIndex(item) === currentSpreadIndex) &&
                     isPageNumberAvailable({ pageNumber: getItemPageNumber(item), notebookPageCount })
                );
 

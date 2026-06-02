@@ -481,6 +481,31 @@ function isStickerTextItem(item) {
      return isStickerTextItemType(item?.dataset?.itemType);
 }
 
+function isPageFlagItem(item) {
+     return item?.dataset?.itemType === "page-flag";
+}
+
+function isPageFlagOnCurrentSpread(item) {
+     return !isPageFlagItem(item) || !item.dataset.pageId || getItemSpreadIndex(item) === currentSpreadIndex;
+}
+
+function goToPageFlagItem(item) {
+     if (!isPageFlagItem(item) || !item.dataset.pageId || isPageFlagOnCurrentSpread(item)) {
+          return false;
+     }
+
+     if (typeof finishAllTextEditing === "function") {
+          finishAllTextEditing();
+     }
+     closeItemMenus();
+     clearSelection();
+     setFocusedPageNumber(getItemPageNumber(item));
+     resetViewPanOffset();
+     syncNotebookSpread();
+     applyViewControls();
+     return true;
+}
+
 function getPageNumberForPage(page) {
      return getCurrentSpreadPageNumber(getPageId(page));
 }
@@ -749,7 +774,7 @@ function getDeskRelativeRect(element) {
 
 function getItemPage(item) {
      if (item.dataset.pageId) {
-          if (getItemSpreadIndex(item) !== currentSpreadIndex) {
+          if (getItemSpreadIndex(item) !== currentSpreadIndex && !isPageFlagItem(item)) {
                return null;
           }
           return pages.find((page) => getPageId(page) === item.dataset.pageId) || null;
@@ -867,6 +892,79 @@ function updatePageFlagMetrics(item, page, box) {
 
      item.style.setProperty("--page-flag-grid-x", `${grid ? grid.x : box.width / gridUnits.width}px`);
      item.style.setProperty("--page-flag-grid-y", `${grid ? grid.y : box.height / gridUnits.height}px`);
+     updatePageFlagShape(item, page, box);
+}
+
+function getPageFlagPathData(widthUnits, heightUnits, side) {
+     const width = Math.max(2, widthUnits);
+     const height = Math.max(1, heightUnits);
+     const notch = Math.min(1, Math.max(0.25, width / 2));
+     const radius = Math.min(0.35, width / 4, height / 4);
+
+     if (side === "left") {
+          return [
+               `M ${width - radius} 0`,
+               `Q ${width} 0 ${width} ${radius}`,
+               `L ${width} ${height - radius}`,
+               `Q ${width} ${height} ${width - radius} ${height}`,
+               `L 0 ${height}`,
+               `L ${notch} ${height / 2}`,
+               "L 0 0",
+               "Z"
+          ].join(" ");
+     }
+
+     return [
+          `M ${radius} 0`,
+          `L ${width} 0`,
+          `L ${width - notch} ${height / 2}`,
+          `L ${width} ${height}`,
+          `L ${radius} ${height}`,
+          `Q 0 ${height} 0 ${height - radius}`,
+          `L 0 ${radius}`,
+          `Q 0 0 ${radius} 0`,
+          "Z"
+     ].join(" ");
+}
+
+function updatePageFlagShape(item, page, box) {
+     if (!isPageFlagItem(item)) {
+          return;
+     }
+
+     const shape = item.querySelector(".page-flag-shape");
+     const path = shape?.querySelector(".page-flag-shape-path");
+
+     if (!shape || !path) {
+          return;
+     }
+
+     const grid = page ? getGridSize(page) : null;
+     const gridUnits = itemGridUnits["page-flag"] || { width: 6, height: 2 };
+     const widthUnits = grid ? Math.max(1, box.width / grid.x) : gridUnits.width;
+     const heightUnits = grid ? Math.max(1, box.height / grid.y) : gridUnits.height;
+
+     shape.setAttribute("viewBox", `0 0 ${widthUnits} ${heightUnits}`);
+     path.setAttribute("d", getPageFlagPathData(widthUnits, heightUnits, item.dataset.pageFlagSide));
+}
+
+function setPageFlagSide(item, side) {
+     if (!isPageFlagItem(item)) {
+          return;
+     }
+
+     item.dataset.pageFlagSide = side === "left" ? "left" : "right";
+     updatePageFlagShape(item, getItemPage(item), getItemBox(item));
+     updateStickerTextOverflow(item);
+     notifyTemplateChanged();
+}
+
+function togglePageFlagSide(item) {
+     const nextSide = item.dataset.pageFlagSide === "left" ? "right" : "left";
+
+     getActionItems(item)
+          .filter(isPageFlagItem)
+          .forEach((flag) => setPageFlagSide(flag, nextSide));
 }
 
 // NOTE: Text Inside Notes, Titles, And Calendars
@@ -1912,6 +2010,7 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      layerGroup.className = "item-layer-actions";
 
      const duplicateButton = makeButton("Duplicate", closeAfter(() => duplicateItem(item)));
+     const flipButton = makeButton("Flip", closeAfter(() => togglePageFlagSide(item)));
      const groupButton = makeButton(itemsHaveGroup(actionItems) ? "Ungroup" : "Group", closeAfter(() => {
           const nextItems = getActionItems(item);
 
@@ -1927,6 +2026,9 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
 
      if (textTarget && item.dataset.itemType === "sticker") {
           textGroup.append(makeButton("Appears in ToC", closeAfter(() => applyPopupTextToc(item, textTarget, !textTarget.appearsInToc)), textTarget.appearsInToc ? "is-active" : ""));
+     }
+     if (isPageFlagItem(item)) {
+          duplicateGroup.append(flipButton);
      }
      duplicateGroup.append(duplicateButton, groupButton);
      layerGroup.append(sendBackwardButton, bringForwardButton);
@@ -2926,6 +3028,8 @@ function makePlannerItem(type = "sticker") {
      const hasWidgetControls = type === "sticker" || isCalendarItemType(type);
      const item = document.createElement("div");
      const sizeLabel = document.createElement("span");
+     const pageFlagShape = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+     const pageFlagShapePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
      const controls = document.createElement("div");
      const widgetPanelTitle = document.createElement("div");
      const controlTabs = document.createElement("div");
@@ -3054,9 +3158,18 @@ function makePlannerItem(type = "sticker") {
      item.dataset.itemType = type;
      item.dataset.templateId = `${type}-${nextTemplateItemId}`;
      nextTemplateItemId += 1;
+     if (type === "page-flag") {
+          item.dataset.pageFlagSide = "right";
+     }
      item.tabIndex = 0;
      item.setAttribute("role", "button");
      item.setAttribute("aria-label", getItemAriaLabel(type));
+     pageFlagShape.classList.add("page-flag-shape");
+     pageFlagShape.setAttribute("aria-hidden", "true");
+     pageFlagShape.setAttribute("focusable", "false");
+     pageFlagShape.setAttribute("preserveAspectRatio", "none");
+     pageFlagShapePath.classList.add("page-flag-shape-path");
+     pageFlagShape.append(pageFlagShapePath);
 
      sizeLabel.className = "item-size-label";
      sizeLabel.setAttribute("aria-hidden", "true");
@@ -3822,6 +3935,9 @@ function makePlannerItem(type = "sticker") {
      });
      setWidgetPanelTab(controls, "actions");
      item.append(sizeLabel, ...createSelectionMoveHandles());
+     if (type === "page-flag") {
+          item.append(pageFlagShape);
+     }
      if (isStickerTextItemType(type)) {
           item.append(textElement);
      }
@@ -3852,6 +3968,13 @@ function makePlannerItem(type = "sticker") {
           }
 
           if (event.button !== 0) {
+               return;
+          }
+
+          if (goToPageFlagItem(item)) {
+               event.preventDefault();
+               event.stopPropagation();
+               shouldSkipNextItemClick = true;
                return;
           }
 
@@ -3899,6 +4022,13 @@ function makePlannerItem(type = "sticker") {
      });
      item.addEventListener("click", (event) => {
           if (hasActiveWidgetTextSelection()) {
+               return;
+          }
+
+          if (goToPageFlagItem(item)) {
+               event.preventDefault();
+               event.stopPropagation();
+               shouldSkipNextItemClick = true;
                return;
           }
 
@@ -4334,6 +4464,9 @@ function copyItemConfiguration(source, target) {
      });
      if (source.dataset.themeMode) {
           target.dataset.themeMode = source.dataset.themeMode;
+     }
+     if (isPageFlagItem(source) && isPageFlagItem(target)) {
+          target.dataset.pageFlagSide = source.dataset.pageFlagSide === "left" ? "left" : "right";
      }
      setStickerTextSettings(target, {
           enabled: source.dataset.textEnabled,
