@@ -3704,10 +3704,14 @@ body {
 .weekly-view::before {
      content: "";
      position: absolute;
-     inset: calc(var(--weekly-row-cell-height, 12px) * var(--weekly-header-row-units, 1)) 0 0 0;
+     inset:
+          calc((var(--weekly-row-cell-height, 12px) * var(--weekly-header-row-units, 1)) + (var(--widget-body-h-line-width, var(--border-sm)) * 0.5))
+          calc(var(--widget-body-v-line-width, var(--border-sm)) * 0.5)
+          calc(var(--widget-body-h-line-width, var(--border-sm)) * 0.5)
+          calc(var(--widget-body-v-line-width, var(--border-sm)) * 0.5);
      z-index: 3;
      border-radius: inherit;
-     border: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
+     border: var(--widget-body-h-line-width, var(--border-sm)) solid var(--widget-body-h-line-color, rgba(17, 17, 17, 0.18));
      pointer-events: none;
 }
 
@@ -3729,6 +3733,7 @@ body {
      font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
      line-height: 1;
      overflow: hidden;
+     contain: paint;
 }
 
 .weekly-view-time-heading {
@@ -4041,7 +4046,9 @@ body {
      width: 100%;
      height: 100%;
      min-height: 0;
-     padding: 3px 5px;
+     padding:
+          var(--diary-row-cell-height, var(--weekly-row-cell-height, 12px))
+          var(--diary-column-cell-width, var(--weekly-column-cell-width, 12px));
 }
 
 .diary-view-weekend {

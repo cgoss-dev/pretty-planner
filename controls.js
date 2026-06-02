@@ -463,6 +463,7 @@ window.KeyboardControls = (() => {
                controls: [
                     { key: "1-5", action: "Choose Guide, Widgets, Notebook, Dates, or Selected" },
                     { key: "Q / E", action: "Last or next panel tab" },
+                    { key: "Home / End", action: "First or last notebook page" },
                     { key: "WASD / Arrows", action: "Move spatially through panel controls; up/down scroll at edges" },
                     { key: "Enter", action: "Activate selected control" },
                     { key: "Delete / Esc", action: "Close panel" }

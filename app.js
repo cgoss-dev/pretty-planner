@@ -1326,8 +1326,14 @@ function turnNotebookSpread(step) {
      });
 }
 
+function jumpNotebookSpread(spreadIndex) {
+     const nextSpreadIndex = clamp(Number(spreadIndex) || 0, 0, notebookSpreadCount - 1);
+
+     turnNotebookSpread(nextSpreadIndex - currentSpreadIndex);
+}
+
 function handlePageTurnKey(event) {
-     // NOTE: Uses Q/E for previous/next page or menu tab, with bracket and page keys kept as legacy aliases
+     // NOTE: Uses Q/E for previous/next page or menu tab, Home/End for notebook ends, with bracket and page keys kept as legacy aliases
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -1343,7 +1349,17 @@ function handlePageTurnKey(event) {
 
      const key = event.key.toLowerCase();
 
-     if (key === "q" || event.key === "[" || event.key === "PageDown") {
+     if (event.key === "Home") {
+          event.preventDefault();
+          if (!controlPanel.classList.contains("is-open")) {
+               jumpNotebookSpread(0);
+          }
+     } else if (event.key === "End") {
+          event.preventDefault();
+          if (!controlPanel.classList.contains("is-open")) {
+               jumpNotebookSpread(notebookSpreadCount - 1);
+          }
+     } else if (key === "q" || event.key === "[" || event.key === "PageDown") {
           event.preventDefault();
           if (controlPanel.classList.contains("is-open")) {
                stepControlPanelTab(-1);

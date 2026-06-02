@@ -381,7 +381,7 @@ function updateTocGridMetrics(item, page, box) {
 }
 
 function getTocMinGridColumns() {
-     return 14;
+     return 20;
 }
 
 function getTocMinGridRows() {
