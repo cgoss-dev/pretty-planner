@@ -2472,7 +2472,7 @@ function getResizeMode(item, event) {
           return "";
      }
 
-     if (item.dataset.itemType === "mini-month" || item.dataset.itemType === "full-month") {
+     if (item.dataset.itemType === "mini-month") {
           return "";
      }
 
@@ -2621,7 +2621,7 @@ function getItemMinGridHeight(item) {
 function getResizedBox(item, page, clientX, clientY, mode) {
      const current = getItemBox(item);
 
-     if (item.dataset.itemType === "mini-month" || item.dataset.itemType === "full-month") {
+     if (item.dataset.itemType === "mini-month") {
           return current;
      }
 

@@ -11,8 +11,8 @@ function getGridTemplateBox(item, page) {
      return {
           x: Math.round((box.x - origin.x) / grid.x),
           y: Math.round((box.y - origin.y) / grid.y),
-          width: Math.round(box.width / grid.x),
-          height: Math.round(box.height / grid.y)
+          width: Number((box.width / grid.x).toFixed(4)),
+          height: Number((box.height / grid.y).toFixed(4))
      };
 }
 

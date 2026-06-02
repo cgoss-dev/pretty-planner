@@ -602,7 +602,7 @@ function clampPerpetualCalendarBox(item, page, box) {
      const grid = getGridSize(page);
      const minWidth = grid.x * getPerpetualCalendarMinGridColumns();
      const fixedHeight = grid.y * getPerpetualCalendarMaxGridRows();
-     const snappedWidth = Math.max(minWidth, Math.round(box.width / grid.x) * grid.x);
+     const snappedWidth = Math.max(minWidth, Math.round((box.width - minWidth) / grid.x) * grid.x + minWidth);
 
      return {
           ...box,
@@ -612,12 +612,12 @@ function clampPerpetualCalendarBox(item, page, box) {
 }
 
 function clampMiniMonthBox(item, page, box) {
-     if (item.dataset.itemType !== "mini-month" && item.dataset.itemType !== "full-month") {
+     if (item.dataset.itemType !== "mini-month") {
           return box;
      }
 
      const grid = getGridSize(page);
-     const units = item.dataset.itemType === "full-month" ? getFullMonthGridUnits(item) : getMiniMonthGridUnits(item);
+     const units = getMiniMonthGridUnits(item);
 
      return {
           ...box,
