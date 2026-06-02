@@ -2820,7 +2820,7 @@ body {
 .toc-widget::before {
      content: "";
      position: absolute;
-     inset: 0;
+     inset: var(--toc-title-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 5))) 0 0 0;
      z-index: 2;
      border-radius: inherit;
      outline: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
@@ -2863,6 +2863,12 @@ body {
      background: var(--toc-grid-line-color);
      transform: translateX(-0.5px);
      pointer-events: none;
+}
+
+.toc-row:first-of-type,
+.toc-empty {
+     border-top-left-radius: inherit;
+     border-top-right-radius: inherit;
 }
 
 .toc-title {
@@ -3201,7 +3207,11 @@ body {
 .mini-month::before {
      content: "";
      position: absolute;
-     inset: 0 0 0 calc(100% / 8);
+     inset:
+          calc((100% / var(--mini-month-visible-row-units, var(--mini-month-visible-rows, 8))) * var(--mini-month-title-row-units, 0))
+          0
+          0
+          calc(100% / 8);
      z-index: 2;
      border-radius: inherit;
      outline: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
@@ -3259,7 +3269,11 @@ body {
 }
 
 .planner-item-full-month .mini-month::before {
-     inset: 0 0 0 var(--weekly-column-cell-width, 12px);
+     inset:
+          calc(var(--weekly-row-cell-height, 12px) * var(--mini-month-title-row-units, 0))
+          0
+          0
+          var(--weekly-column-cell-width, 12px);
 }
 
 .planner-item-full-month .mini-month.no-title-row {
@@ -3522,7 +3536,7 @@ body {
 .perpetual-calendar::before {
      content: "";
      position: absolute;
-     inset: 0;
+     inset: var(--perpetual-calendar-row-height, calc(100% / var(--perpetual-calendar-row-count, 32))) 0 0 0;
      z-index: 2;
      border-radius: inherit;
      outline: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
@@ -3561,6 +3575,11 @@ body {
           minmax(var(--perpetual-calendar-right-column-min-width, 80%), 1fr);
      align-items: stretch;
      background: var(--widget-box-fill);
+}
+
+.perpetual-calendar-title + .perpetual-calendar-row {
+     border-top-left-radius: inherit;
+     border-top-right-radius: inherit;
 }
 
 .perpetual-calendar-weekend {
@@ -3617,7 +3636,7 @@ body {
 .weekly-view::before {
      content: "";
      position: absolute;
-     inset: 0;
+     inset: calc(var(--weekly-row-cell-height, 12px) * var(--weekly-header-row-units, 1)) 0 0 0;
      z-index: 3;
      border-radius: inherit;
      border: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
@@ -3781,6 +3800,14 @@ body {
      border-bottom: var(--widget-title-line-width, var(--border-sm)) solid var(--widget-title-line-color, #ccc);
 }
 
+.weekly-view-cell[style*="grid-row: 2"][style*="grid-column: 1"] {
+     border-top-left-radius: inherit;
+}
+
+.weekly-view-cell[style*="grid-row: 2"].weekly-view-edge-right {
+     border-top-right-radius: inherit;
+}
+
 .diary-view {
      position: relative;
      display: grid;
@@ -3797,7 +3824,7 @@ body {
 .diary-view::before {
      content: "";
      position: absolute;
-     inset: 0;
+     inset: 0 0 0 calc(var(--diary-column-cell-width, var(--weekly-column-cell-width, 12px)) * 10);
      z-index: 2;
      border-radius: inherit;
      border: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
@@ -5563,6 +5590,43 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      border-width: 0;
      background: transparent;
      color: #000;
+}
+
+.planner-item .toc-title,
+.planner-item .toc-title-name,
+.planner-item .mini-month-month,
+.planner-item .perpetual-calendar-title,
+.planner-item .weekly-view-date,
+.planner-item .weekly-view-date-label,
+.planner-item .weekly-view-time-heading,
+.planner-item .weekly-view-sunday-mid-marker,
+.planner-item .diary-view-date-label,
+.planner-item .diary-view-date-label .calendar-date-part,
+.planner-item .diary-view-weekend .diary-view-date-label {
+     border-width: 0;
+     background: transparent;
+     color: #000;
+}
+
+.diary-view-row {
+     background: transparent;
+     border-bottom-width: 0;
+}
+
+.diary-view-day-text {
+     background: var(--widget-box-fill);
+     border-bottom: var(--widget-body-h-line-width, var(--border-sm)) solid var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16));
+}
+
+.diary-view-row:first-child .diary-view-day-text {
+     border-top-left-radius: inherit;
+     border-top-right-radius: inherit;
+}
+
+.diary-view-edge-bottom .diary-view-day-text {
+     border-bottom-width: 0;
+     border-bottom-left-radius: inherit;
+     border-bottom-right-radius: inherit;
 }
 
 /* NOTE: Printing */

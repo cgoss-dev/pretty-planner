@@ -1803,6 +1803,7 @@ function renderWeeklyVertical(item) {
 
      calendar.replaceChildren();
      calendar.style.setProperty("--weekly-slot-count", String(slotCount));
+     calendar.style.setProperty("--weekly-header-row-units", String(headerRowUnits));
      calendar.style.setProperty("--weekly-row-count", String(headerRowUnits + (slotCount * bodyRowUnits)));
      calendar.style.setProperty("--weekly-body-row-units", String(bodyRowUnits));
      calendar.style.setProperty("--weekly-day-count", String(displayColumns.length));

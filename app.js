@@ -810,11 +810,16 @@ function getMiniMonthSizeKey(item) {
 }
 
 function getMiniMonthGridUnits(item) {
-     const scale = getMiniMonthSizeKey(item) === "md" ? 2 : 1;
+     if (getMiniMonthSizeKey(item) === "md") {
+          return {
+               width: 16,
+               height: 18
+          };
+     }
 
      return {
-          width: 10 * scale,
-          height: 8 * scale
+          width: 10,
+          height: 8
      };
 }
 
