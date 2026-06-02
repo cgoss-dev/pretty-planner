@@ -3937,7 +3937,10 @@ body {
 }
 
 .diary-view.is-vertical::before {
-     content: none;
+     content: "";
+     inset: calc(var(--diary-row-cell-height, var(--weekly-row-cell-height, 12px)) * 4) 0 0 0;
+     border-color: var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16));
+     border-width: var(--widget-body-h-line-width, var(--border-sm));
 }
 
 .diary-view-row {
@@ -5870,12 +5873,13 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 }
 
 .diary-view.is-vertical .diary-view-day-text {
-     border-top: var(--widget-body-h-line-width, var(--border-sm)) solid var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16));
+     border-top: 0;
+     border-bottom: 0;
      border-right: var(--widget-body-v-line-width, var(--border-sm)) solid var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16));
 }
 
-.diary-view.is-vertical .diary-view-row:first-child .diary-view-day-text {
-     border-left: var(--widget-body-v-line-width, var(--border-sm)) solid var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16));
+.diary-view.is-vertical .diary-view-edge-right .diary-view-day-text {
+     border-right-width: 0;
 }
 
 .diary-view-edge-bottom .diary-view-day-text {
@@ -5885,7 +5889,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 }
 
 .diary-view.is-vertical .diary-view-edge-bottom .diary-view-day-text {
-     border-bottom-width: var(--widget-body-h-line-width, var(--border-sm));
+     border-bottom-width: 0;
      border-bottom-left-radius: 0;
      border-bottom-right-radius: 0;
 }
