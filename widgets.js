@@ -49,6 +49,54 @@ function normalizeIntegerEntryValue(value, fallbackValue = "0") {
      return String(Number.parseInt(sanitizedValue, 10) || 0);
 }
 
+function normalizeMiniMonthSize(size) {
+     return size === "md" ? "md" : "sm";
+}
+
+function updateMiniMonthSizeControls(controls, size) {
+     const normalizedSize = normalizeMiniMonthSize(size);
+
+     controls.querySelectorAll("[data-mini-month-size-value]").forEach((button) => {
+          const isActive = button.dataset.miniMonthSizeValue === normalizedSize;
+
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", String(isActive));
+     });
+}
+
+function resizeMiniMonthToCurrentSize(item) {
+     if (item.dataset.itemType !== "mini-month") {
+          return;
+     }
+
+     const page = getItemPage(item);
+
+     if (!page) {
+          return;
+     }
+
+     const grid = getGridSize(page);
+     const units = getMiniMonthGridUnits(item);
+     const current = getItemBox(item);
+
+     setItemBox(item, {
+          ...current,
+          width: grid.x * units.width,
+          height: grid.y * units.height
+     });
+}
+
+function setMiniMonthSize(item, size) {
+     if (item.dataset.itemType !== "mini-month") {
+          return;
+     }
+
+     item.dataset.miniMonthSize = normalizeMiniMonthSize(size);
+     updateMiniMonthSizeControls(getWidgetPanel(item) || item, item.dataset.miniMonthSize);
+     resizeMiniMonthToCurrentSize(item);
+     renderMiniMonth(item);
+}
+
 function getThemeFillValue(theme, fillSlot) {
      const defaultGrid = typeof getPlannerDefaultGridSettings === "function" ? getPlannerDefaultGridSettings() : null;
      const fillColor = fillSlot === "fillColor1" && defaultGrid?.fill
@@ -393,6 +441,9 @@ function setItemStyle(item, style) {
      item.dataset.borderColor = "#ccc";
      item.dataset.borderWidth = "1";
      item.dataset.dotGrid = style.dotGrid || item.dataset.dotGrid || "false";
+     if (item.dataset.itemType === "mini-month") {
+          item.dataset.miniMonthSize = normalizeMiniMonthSize(style.miniMonthSize || item.dataset.miniMonthSize);
+     }
      const hasClearFill = item.dataset.fillColor === "transparent";
      const hasClearBorder = false;
 
@@ -424,6 +475,8 @@ function setItemStyle(item, style) {
      if (dotGridInput) {
           dotGridInput.checked = item.dataset.dotGrid === "true";
      }
+
+     updateMiniMonthSizeControls(controls, item.dataset.miniMonthSize);
 
      controls.querySelectorAll("select").forEach(updateCustomSelectDisplay);
 }
@@ -2137,6 +2190,13 @@ function applyStyleToActionItems(item, style) {
      notifyTemplateChanged();
 }
 
+function applyMiniMonthSizeToActionItems(item, size) {
+     getActionItems(item).forEach((targetItem) => {
+          setMiniMonthSize(targetItem, size);
+     });
+     notifyTemplateChanged();
+}
+
 function applyTextSettingsToActionItems(item, settings) {
      const textTarget = getSelectedTextStyleTarget(item);
 
@@ -2870,6 +2930,9 @@ function makePlannerItem(type = "sticker") {
      const fillTitle = document.createElement("span");
      const fillInput = document.createElement("select");
      const fillSwatches = document.createElement("div");
+     const miniMonthSizeLabel = document.createElement("div");
+     const miniMonthSizeTitle = document.createElement("span");
+     const miniMonthSizeGroup = document.createElement("div");
      const dotGridLabel = document.createElement("label");
      const dotGridInput = document.createElement("input");
      const textElement = document.createElement("div");
@@ -3131,6 +3194,27 @@ function makePlannerItem(type = "sticker") {
      fillInput.setAttribute("aria-label", "Sticker fill palette");
      fillSwatches.className = "color-panel-swatches";
      fillSwatches.dataset.styleSwatches = "fill";
+     miniMonthSizeLabel.className = "widget-panel-row mini-month-size-control";
+     miniMonthSizeLabel.dataset.sidebarControl = "style.mini-month-size";
+     miniMonthSizeTitle.className = "widget-panel-title";
+     miniMonthSizeTitle.textContent = "Size";
+     miniMonthSizeGroup.className = "mini-month-size-options";
+     miniMonthSizeGroup.setAttribute("role", "group");
+     miniMonthSizeGroup.setAttribute("aria-label", "Mini Month size");
+     [
+          ["sm", "SM"],
+          ["md", "MD"]
+     ].forEach(([value, label]) => {
+          const button = document.createElement("button");
+
+          button.className = "mini-month-size-button";
+          button.type = "button";
+          button.textContent = label;
+          button.dataset.miniMonthSizeValue = value;
+          button.setAttribute("aria-label", `${label} Mini Month size`);
+          button.setAttribute("aria-pressed", "false");
+          miniMonthSizeGroup.append(button);
+     });
      dotGridLabel.className = "widget-panel-row";
      dotGridLabel.dataset.sidebarControl = "options.dot-grid";
      dotGridLabel.textContent = "Dot Grid";
@@ -3524,6 +3608,7 @@ function makePlannerItem(type = "sticker") {
      }
 
      fillLabel.append(fillTitle, fillInput, fillSwatches);
+     miniMonthSizeLabel.append(miniMonthSizeTitle, miniMonthSizeGroup);
      dotGridLabel.append(dotGridInput);
      textToggleLabel.classList.add("text-panel-settings-control-no-toggle");
      textToggleLabel.append(textTitle, textFontSelect);
@@ -3535,6 +3620,9 @@ function makePlannerItem(type = "sticker") {
      textLineHeightLabel.append(textLineHeightSelect);
      textControlsRow.append(textColorLabel, textToggleLabel, textLineHeightLabel, textSizeLabel, textFormatGroup, textAlignLabel);
      stylePanel.append(stylePanelTitle, fillLabel);
+     if (type === "mini-month") {
+          stylePanel.append(miniMonthSizeLabel);
+     }
      textPanel.append(textPanelTitle, textTocLabel, textControlsRow);
      monthLabel.append(monthSelect);
      monthDisplayLabel.append(monthDisplaySelect);
@@ -3649,6 +3737,11 @@ function makePlannerItem(type = "sticker") {
                fillColor: nextColor
           });
           setPaletteControlValue(fillInput, fillSwatches, nextColor);
+     });
+     miniMonthSizeGroup.querySelectorAll("[data-mini-month-size-value]").forEach((button) => {
+          button.addEventListener("click", () => {
+               applyMiniMonthSizeToActionItems(item, button.dataset.miniMonthSizeValue);
+          });
      });
      setPaletteSelectionHandler(textColorInput, (nextColor) => {
           textColorInput.dataset.currentColor = nextColor;
@@ -4154,7 +4247,8 @@ function copyItemConfiguration(source, target) {
           fillColor: source.dataset.fillColor,
           borderColor: source.dataset.borderColor,
           borderWidth: source.dataset.borderWidth,
-          dotGrid: source.dataset.dotGrid
+          dotGrid: source.dataset.dotGrid,
+          miniMonthSize: source.dataset.miniMonthSize
      });
      if (source.dataset.themeMode) {
           target.dataset.themeMode = source.dataset.themeMode;

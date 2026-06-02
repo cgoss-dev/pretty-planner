@@ -4313,6 +4313,18 @@ body {
      gap: 3px;
 }
 
+.mini-month-size-control {
+     grid-template-columns: minmax(0, 1fr);
+     align-items: start;
+}
+
+.mini-month-size-options {
+     display: grid;
+     grid-template-columns: repeat(2, var(--color-swatch-size));
+     gap: 6px;
+}
+
+.mini-month-size-button,
 .text-panel-size-button,
 .text-panel-alignment-button {
      min-width: 0;
@@ -4327,6 +4339,7 @@ body {
      line-height: 1;
 }
 
+.mini-month-size-button.is-active,
 .text-panel-size-button.is-active,
 .text-panel-alignment-button.is-active {
      border-color: rgba(17, 17, 17, 0.34);

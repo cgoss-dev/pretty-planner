@@ -91,6 +91,7 @@ function serializePlannerItem(item) {
                     dayFormat: item.dataset.dateDayFormat || "ddd",
                     dateMode: item.dataset.dateMode || "fixed",
                     dateOffset: Number(item.dataset.dateOffset) || 0,
+                    miniMonthSize: item.dataset.miniMonthSize || "sm",
                     titleVisible: item.dataset.calendarTitleVisible !== "false",
                     monthDisplay: item.dataset.monthDisplay || "full",
                     monthVisible: item.dataset.monthDisplay !== "none",
@@ -495,18 +496,23 @@ function isLegacyMiniMonth2Type(type) {
 function getStoredItemGrid(itemData) {
      const type = normalizePlannerItemType(itemData.type || "sticker");
      const isLegacyMiniMonth2 = isLegacyMiniMonth2Type(itemData.type);
-     const fallback = isLegacyMiniMonth2 ? getMiniMonthGridUnits() : itemGridUnits[type] || itemGridUnits.sticker;
+     const miniMonthSize = itemData.widget?.miniMonthSize || itemData.style?.miniMonthSize;
+     const miniMonthFallbackItem = {
+          dataset: {
+               miniMonthSize
+          }
+     };
+     const fallback = isLegacyMiniMonth2 || type === "mini-month" ? getMiniMonthGridUnits(miniMonthFallbackItem) : itemGridUnits[type] || itemGridUnits.sticker;
      const grid = itemData.grid || {};
      const storedWidth = Number(grid.width);
      const storedHeight = Number(grid.height);
      const shouldUseMiniMonth2DefaultSize = isLegacyMiniMonth2 && storedWidth === 16 && storedHeight === 15;
-     const isMiniMonth = type === "mini-month";
 
      return {
           x: Number.isFinite(Number(grid.x)) ? Number(grid.x) : 0,
           y: Number.isFinite(Number(grid.y)) ? Number(grid.y) : 0,
-          width: isMiniMonth || shouldUseMiniMonth2DefaultSize ? fallback.width : Math.max(1, Number.isFinite(storedWidth) ? storedWidth : fallback.width),
-          height: isMiniMonth || shouldUseMiniMonth2DefaultSize ? fallback.height : Math.max(1, Number.isFinite(storedHeight) ? storedHeight : fallback.height)
+          width: type === "mini-month" || shouldUseMiniMonth2DefaultSize ? fallback.width : Math.max(1, Number.isFinite(storedWidth) ? storedWidth : fallback.width),
+          height: type === "mini-month" || shouldUseMiniMonth2DefaultSize ? fallback.height : Math.max(1, Number.isFinite(storedHeight) ? storedHeight : fallback.height)
      };
 }
 
@@ -562,6 +568,7 @@ function restorePlannerItemSettings(item, itemData) {
                dayFormat: widget.dayFormat,
                dateMode: widget.dateMode,
                dateOffset: widget.dateOffset !== undefined && widget.dateOffset !== null ? String(widget.dateOffset) : undefined,
+               miniMonthSize: widget.miniMonthSize || undefined,
                titleVisible: normalizeStoredBoolean(widget.titleVisible, "true"),
                monthDisplay: widget.monthDisplay || "full",
                monthVisible: normalizeStoredBoolean(widget.monthVisible, "true"),

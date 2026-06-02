@@ -81,6 +81,7 @@
                          "actions.bring-forward": true,
                          "actions.delete": true,
                          "style.fill": true,
+                         "style.mini-month-size": true,
                          "text.appears-in-toc": true,
                          "text.font": true,
                          "text.size": true,

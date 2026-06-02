@@ -2084,6 +2084,9 @@ function setCalendarWidgetSettings(item, settings = {}) {
      item.dataset.dateMode = nextDateMode;
      item.dataset.dateUnit = getCalendarRelativeDateUnit(item);
      item.dataset.dateOffset = clampRelativeDateOffset(settings.dateOffset ?? (nextDateMode === "relative" && previousDateMode !== "relative" ? "0" : item.dataset.dateOffset ?? "0"), item.dataset.dateUnit);
+     if (item.dataset.itemType === "mini-month") {
+          item.dataset.miniMonthSize = normalizeMiniMonthSize(settings.miniMonthSize || item.dataset.miniMonthSize);
+     }
      item.dataset.calendarTitleVisible = titleVisible;
      item.dataset.monthDisplay = getVisibleCalendarDisplay(settings.monthDisplay, item.dataset.monthDisplay, "full");
      item.dataset.monthVisible = item.dataset.monthDisplay === "none" ? "false" : "true";
@@ -2121,6 +2124,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      const monthSelect = controls.querySelector("[data-widget-control='month']");
      const monthLabel = monthSelect ? monthSelect.closest(".widget-option-control") : null;
      const monthDisplaySelect = controls.querySelector("[data-widget-control='month-display']");
+     const miniMonthSizeControls = controls.querySelectorAll("[data-mini-month-size-value]");
      const yearSelect = controls.querySelector("[data-widget-control='year']");
      const yearDisplaySelect = controls.querySelector("[data-widget-control='year-display']");
      const startDaySelect = controls.querySelector("[data-widget-control='start-day']");
@@ -2187,6 +2191,13 @@ function setCalendarWidgetSettings(item, settings = {}) {
      if (monthDisplaySelect) {
           monthDisplaySelect.value = item.dataset.monthDisplay;
      }
+
+     miniMonthSizeControls.forEach((button) => {
+          const isActive = button.dataset.miniMonthSizeValue === (item.dataset.miniMonthSize || "sm");
+
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", String(isActive));
+     });
 
      if (yearSelect) {
           yearSelect.value = item.dataset.year;
