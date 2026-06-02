@@ -366,7 +366,6 @@
                     }
                },
                paletteOrder: ["gray", "tertiary"],
-               tertiaryMatrixSteps: [80, 60, 40, 20],
                deskColors: {
                     "pink": {
                          label: "Pink",

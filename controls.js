@@ -469,12 +469,12 @@ window.KeyboardControls = (() => {
                ]
           },
           {
-               title: "Widget Placement / Transform",
+               title: "Widget Placement",
                controls: [
-                    { key: "Enter", action: "Pick up, place, or confirm the widget" },
-                    { key: "WASD / Arrows", action: "Move one grid cell, or resize from the upper-left anchor" },
+                    { key: "Enter", action: "Pick up or place the widget" },
+                    { key: "WASD / Arrows", action: "Move one grid cell while placing" },
                     { key: "X", action: "Toggle gridlines" },
-                    { key: "Delete / Esc", action: "Cancel placement, move, or resize" }
+                    { key: "Delete / Esc", action: "Cancel placement" }
                ]
           },
           {

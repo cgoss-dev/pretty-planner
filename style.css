@@ -3937,7 +3937,7 @@ body {
 }
 
 .diary-view.is-vertical::before {
-     inset: calc(var(--diary-row-cell-height, var(--weekly-row-cell-height, 12px)) * 4) 0 0 0;
+     content: none;
 }
 
 .diary-view-row {
@@ -3962,7 +3962,7 @@ body {
           calc(var(--diary-row-cell-height, var(--weekly-row-cell-height, 12px)) * 4)
           minmax(0, 1fr);
      height: 100%;
-     border-right: var(--border-sm) solid rgba(17, 17, 17, 0.16);
+     border-right: 0;
      border-bottom: 0;
 }
 
@@ -5847,11 +5847,6 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 }
 
 .diary-view.is-vertical .diary-view-row {
-     border-right-color: var(--widget-body-v-line-color);
-     border-right-width: var(--widget-body-v-line-width);
-}
-
-.diary-view.is-vertical .diary-view-edge-right {
      border-right-width: 0;
 }
 
@@ -5872,6 +5867,15 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 
 .diary-view.is-vertical .diary-view-edge-right .diary-view-day-text {
      border-top-right-radius: inherit;
+}
+
+.diary-view.is-vertical .diary-view-day-text {
+     border-top: var(--widget-body-h-line-width, var(--border-sm)) solid var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16));
+     border-right: var(--widget-body-v-line-width, var(--border-sm)) solid var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16));
+}
+
+.diary-view.is-vertical .diary-view-row:first-child .diary-view-day-text {
+     border-left: var(--widget-body-v-line-width, var(--border-sm)) solid var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16));
 }
 
 .diary-view-edge-bottom .diary-view-day-text {

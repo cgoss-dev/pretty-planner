@@ -566,14 +566,14 @@ function getDiaryViewMinGridRows(item) {
      const visibleDays = clamp(Number(item?.dataset?.visibleDays) || 7, 1, 7);
 
      if (item?.dataset?.diaryLayout === "vertical") {
-          return 14;
+          return 20;
      }
 
      return visibleDays * 6;
 }
 
 function getDiaryViewMinGridColumns(item) {
-     return item?.dataset?.diaryLayout === "vertical" ? 21 : 20;
+     return item?.dataset?.diaryLayout === "vertical" ? 16 : 20;
 }
 
 function clampWeeklyViewBox(item, page, box) {
@@ -1843,7 +1843,7 @@ function renderWeeklyVertical(item) {
      const startTime = item.dataset.startTime || "00:00";
      const timeFormat = item.dataset.timeFormat || "24";
      const timeVisible = item.dataset.timeVisible !== "false";
-     const shareWeekends = !isDayView;
+     const shareWeekends = true;
      const startMinutes = parseTimeValue(startTime);
      const slotCount = getWeeklyVisibleSlotCount(item);
      const weekStartDate = getWeeklyViewStartDate(item);
@@ -1914,7 +1914,7 @@ function renderWeeklyVertical(item) {
                     ? "1"
                     : String(calendarRow + 1);
                cell.style.gridColumn = String(displayColumn);
-               if (!isDayView && calendarRow > 0 && calendarRow % 2 === 1) {
+               if (calendarRow > 0 && calendarRow % 2 === 1) {
                     cell.classList.add("weekly-view-alt-row-line");
                }
 
