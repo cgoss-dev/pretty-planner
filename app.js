@@ -808,7 +808,7 @@ function setRootLength(name, value) {
 function getMiniMonthGridUnits() {
      return {
           width: 10,
-          height: 8
+          height: 9
      };
 }
 

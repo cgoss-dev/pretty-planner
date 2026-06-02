@@ -1966,9 +1966,12 @@ function renderWeeklyVertical(item) {
                     if (displayColumn.type === "shared-weekend") {
                          cell.classList.add("weekly-view-shared-weekend");
                          cell.dataset.themePart = "weekendTimeSlot";
+                         const rowBeforeSundayBox = calendarRow - 1;
                          const rowAfterSundayBox = calendarRow - (sharedWeekendSundayRow + sharedWeekendSundaySpan);
 
-                         if (rowAfterSundayBox >= 0 && rowAfterSundayBox % 2 === 0) {
+                         if (calendarRow < sharedWeekendSundayRow && rowBeforeSundayBox >= 0 && rowBeforeSundayBox % 2 === 0) {
+                              cell.dataset.weekendRowNumber = String((rowBeforeSundayBox / 2) + 1);
+                         } else if (rowAfterSundayBox >= 0 && rowAfterSundayBox % 2 === 0) {
                               cell.dataset.weekendRowNumber = String((rowAfterSundayBox / 2) + 1);
                          }
                     }

@@ -2564,6 +2564,23 @@ function getResizedPerpetualCalendarBox(item, page, clientX, current, mode, grid
      });
 }
 
+function clampWeeklyViewResizeBox(item, box, current, resizeLeft, grid) {
+     if (item.dataset.itemType !== "weekly-view") {
+          return box;
+     }
+
+     const columnStep = grid.x * 2;
+     const minWidth = grid.x * getWeeklyVerticalMinGridColumns(item);
+     const right = current.x + current.width;
+     const nextWidth = Math.max(minWidth, Math.round(box.width / columnStep) * columnStep);
+
+     return {
+          ...box,
+          x: resizeLeft ? right - nextWidth : box.x,
+          width: nextWidth
+     };
+}
+
 function getItemMinGridHeight(item) {
      if (item.dataset.itemType === "weekly-view") {
           return getWeeklyViewFixedGridRows();
@@ -2641,13 +2658,13 @@ function getResizedBox(item, page, clientX, clientY, mode) {
      const nextRight = resizeRight ? clamp(pointerX, current.x + minWidth, (pageRect.width / viewZoom) - grid.x * pageStickDepth + current.width) : right;
      const nextBottom = resizeBottom ? clamp(pointerY, current.y + minHeight, Math.min((pageRect.height / viewZoom) - grid.y * pageStickDepth + current.height, current.y + maxHeight)) : bottom;
 
-     return {
+     return clampWeeklyViewResizeBox(item, {
           ...current,
           x: nextLeft,
           y: nextTop,
           width: nextRight - nextLeft,
           height: nextBottom - nextTop
-     };
+     }, current, resizeLeft, grid);
 }
 
 function getResizeClass(resizeMode) {
@@ -3179,10 +3196,10 @@ function makePlannerItem(type = "sticker") {
      textSizeGroup.setAttribute("aria-label", "Sticker text size");
      [
           ["10", "SM: 10px"],
-          ["25", "MD: 25px"],
-          ["50", "LG: 50px"],
-          ["75", "1X: 75px"],
-          ["100", "2X: 100px"]
+          ["30", "MD: 30px"],
+          ["60", "LG: 60px"],
+          ["90", "1X: 90px"],
+          ["120", "2X: 120px"]
      ].forEach(([value, label]) => {
           const button = document.createElement("button");
 

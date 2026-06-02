@@ -2808,7 +2808,7 @@ body {
      z-index: 1;
      display: grid;
      grid-template-rows: minmax(0, 1fr);
-     overflow: hidden;
+     overflow: visible;
      border-radius: inherit;
      background: transparent;
      color: var(--color-gray1);
@@ -2836,7 +2836,7 @@ body {
      grid-auto-rows: var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2)));
      gap: 0;
      min-height: 0;
-     overflow: hidden;
+     overflow: visible;
      background: transparent;
 }
 
@@ -2892,7 +2892,8 @@ body {
 
 .toc-title-name {
      display: grid;
-     place-items: center;
+     align-items: end;
+     justify-items: center;
      box-sizing: border-box;
      min-width: 0;
      min-height: 0;
@@ -2916,6 +2917,7 @@ body {
      width: 100%;
      padding: 0;
      border: 0;
+     border-bottom: var(--widget-body-h-line-width, var(--border-sm)) solid var(--widget-body-h-line-color, var(--toc-grid-line-color));
      min-width: 0;
      min-height: 0;
      background: var(--widget-box-fill);
@@ -2953,6 +2955,7 @@ body {
      grid-template-columns: var(--toc-left-column-width, 22.222222%) minmax(var(--toc-right-column-min-width, 22.222222%), 1fr);
      align-items: stretch;
      min-height: 0;
+     border-bottom: var(--widget-body-h-line-width, var(--border-sm)) solid var(--widget-body-h-line-color, var(--toc-grid-line-color));
      color: var(--color-gray3);
      text-align: center;
      background: var(--widget-box-fill);
@@ -3048,6 +3051,8 @@ body {
 .weekly-view-date-label,
 .weekly-view-time-heading,
 .diary-view-date-label {
+     align-items: end;
+     align-content: end;
      justify-content: center;
      text-align: center;
 }
@@ -3058,6 +3063,9 @@ body {
 .weekly-view-date-label .calendar-date-part,
 .diary-view-date-label .calendar-date-part {
      max-width: none;
+     max-height: none;
+     overflow: visible;
+     align-self: end;
      white-space: nowrap;
 }
 
@@ -3212,7 +3220,7 @@ body {
      display: grid;
      width: calc((var(--mini-month-visible-columns, 8) / 8) * 100%);
      height: calc((var(--mini-month-visible-row-units, var(--mini-month-visible-rows, 8)) / var(--mini-month-max-row-units, 8)) * 100%);
-     overflow: hidden;
+     overflow: visible;
      border-radius: inherit;
      outline: 0;
      background: transparent;
@@ -3348,8 +3356,13 @@ body {
 .planner-item-full-month .mini-month-month,
 .planner-item-full-month .mini-month-week,
 .planner-item-full-month .mini-month-day-name {
-     place-items: center;
+     align-items: center;
+     justify-items: center;
      padding: 0;
+}
+
+.planner-item-full-month .mini-month-month {
+     align-items: end;
 }
 
 .planner-item-mini-month .weekNumberCell,
@@ -3378,6 +3391,10 @@ body {
      font-weight: 700;
 }
 
+.planner-item-mini-month .mini-month-day-number.calendar-current-day-number {
+     color: var(--tertiary-01);
+}
+
 .weekNumber {
      display: grid;
      align-self: center;
@@ -3386,10 +3403,10 @@ body {
      box-sizing: border-box;
      width: 1.65em;
      height: 1.65em;
-     border: var(--border-sm) solid #000;
+     border: var(--border-sm) solid var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16));
      border-radius: 50%;
      background: transparent;
-     color: #000 !important;
+     color: var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16)) !important;
      font-size: 0.9em;
      line-height: 1;
      transform: translateY(-2px);
@@ -3439,7 +3456,7 @@ body {
 .mini-month-month {
      grid-column: 1 / -1;
      border-right: 0;
-     align-content: center;
+     align-content: end;
      gap: 1px;
 }
 
@@ -3556,7 +3573,7 @@ body {
      height: var(--perpetual-calendar-visible-height, 100%);
      align-content: start;
      grid-auto-rows: var(--perpetual-calendar-row-height, calc(100% / var(--perpetual-calendar-row-count, 32)));
-     overflow: hidden;
+     overflow: visible;
      border-radius: inherit;
      outline: 0;
      background: transparent;
@@ -3589,14 +3606,16 @@ body {
 
 .perpetual-calendar-title {
      display: grid;
-     place-items: center;
+     align-items: end;
+     justify-items: center;
      background: var(--calendar-tint-background);
 }
 
 .perpetual-calendar-title-year,
 .perpetual-calendar-title-month {
      display: grid;
-     place-items: center;
+     align-items: end;
+     justify-items: center;
      min-width: 0;
      min-height: 0;
 }
@@ -3657,7 +3676,7 @@ body {
      display: grid;
      width: 100%;
      height: 100%;
-     overflow: hidden;
+     overflow: visible;
      border-radius: inherit;
      outline: 0;
      background: transparent;
@@ -3743,7 +3762,7 @@ body {
 
 .weekly-view-date {
      grid-template-columns: auto auto;
-     align-items: center;
+     align-items: end;
      justify-content: center;
      gap: 0.35em;
      padding: 3px;
@@ -3757,7 +3776,7 @@ body {
 .weekly-view-date-label {
      display: grid;
      grid-template-columns: repeat(4, auto);
-     align-items: center;
+     align-items: end;
      justify-content: center;
      gap: 0.35em;
      min-width: 0;
@@ -3873,7 +3892,7 @@ body {
      display: grid;
      width: 100%;
      height: 100%;
-     overflow: hidden;
+     overflow: visible;
      border-radius: inherit;
      outline: 0;
      background: transparent;
@@ -5674,6 +5693,8 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 .weekly-view-date-label,
 .weekly-view-time-heading,
 .diary-view-date-label {
+     align-items: end;
+     align-content: end;
      justify-content: center;
      text-align: center;
 }
@@ -5684,6 +5705,9 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 .weekly-view-date-label .calendar-date-part,
 .diary-view-date-label .calendar-date-part {
      max-width: none;
+     max-height: none;
+     overflow: visible;
+     align-self: end;
      white-space: nowrap;
 }
 

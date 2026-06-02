@@ -1,8 +1,8 @@
 // NOTE: One Place For The Main Planner Knobs
 (function () {
      const initialNotebookPageCount = 10;
-     const perpetualCalendarLeftColumnGridUnits = 2;
-     const perpetualCalendarRightColumnMinGridUnits = 3;
+     const perpetualCalendarLeftColumnGridUnits = 1;
+     const perpetualCalendarRightColumnMinGridUnits = 8;
      const rootControls = {
           app: {
                singlePageViewportMaxWidth: 1000,
