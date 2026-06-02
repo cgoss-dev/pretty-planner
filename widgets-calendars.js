@@ -2045,6 +2045,7 @@ function renderWeeklyVertical(item) {
                          const sundayDate = displayColumn.dates[1];
                          const sundayMarker = document.createElement("span");
 
+                         cell.classList.add("weekly-view-sunday-date-cell");
                          cell.style.gridRow = `${calendarRow + 1} / span ${sharedWeekendSundaySpan}`;
                          delete cell.dataset.weekendRowNumber;
                          sundayMarker.className = "weekly-view-date-label weekly-view-sunday-mid-marker";

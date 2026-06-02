@@ -3852,7 +3852,7 @@ body {
 .daily-view-date-marker {
      position: absolute;
      top: 3px;
-     left: 4px;
+     right: 4px;
      z-index: 2;
      display: inline-grid;
      grid-auto-flow: column;
@@ -3899,6 +3899,12 @@ body {
 .weekly-view-weekend,
 .weekly-view-shared-weekend {
      background: var(--calendar-tint-background);
+}
+
+.weekly-view-slot.weekly-view-sunday-date-cell,
+.weekly-view-sunday-date-cell.weekly-view-weekend,
+.weekly-view-sunday-date-cell.weekly-view-shared-weekend {
+     background: transparent;
 }
 
 .weekly-view-date,
