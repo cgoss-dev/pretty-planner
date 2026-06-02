@@ -831,7 +831,7 @@ function getTextLineHeightCellSize(item) {
           return item.offsetHeight / getMiniMonthGridUnits(item).height;
      }
 
-     if (item.dataset.itemType === "full-month" || item.dataset.itemType === "weekly-view" || item.dataset.itemType === "day-view") {
+     if (item.dataset.itemType === "full-month" || item.dataset.itemType === "weekly-view") {
           const rowCellHeight = Number.parseFloat(item.style.getPropertyValue("--weekly-row-cell-height"));
 
           if (Number.isFinite(rowCellHeight) && rowCellHeight > 0) {
@@ -1882,7 +1882,7 @@ function getWidgetFocusTargets(item) {
           return Array.from(item.querySelectorAll(".perpetual-calendar-row[data-day-key]"));
      }
 
-     if (item.dataset.itemType === "weekly-view" || item.dataset.itemType === "day-view") {
+     if (item.dataset.itemType === "weekly-view") {
           return Array.from(item.querySelectorAll(".weekly-view-slot.dayCell[data-day-key]"));
      }
 

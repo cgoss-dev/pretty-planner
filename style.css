@@ -1264,7 +1264,6 @@ body {
 }
 
 .widget-panel-weekly-view .item-calendar-display-row,
-.widget-panel-day-view .item-calendar-display-row,
 .widget-panel-diary-view .item-calendar-display-row {
      grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -2492,7 +2491,7 @@ body {
 
 .page-right {
      --outside-edge-dot-mask-width: var(--dot-grid-size-x);
-     --page-number-dot-mask-position: 100% 100%;
+     --page-number-dot-mask-position: calc(100% - var(--dot-grid-size-x) + 1px) calc(100% - var(--dot-grid-size-y) + 1px);
      --half-page-x: var(--half-right-x);
      --third-x-start: var(--third-right-x-1);
      --third-x-end: var(--third-right-x-2);
@@ -2635,7 +2634,6 @@ body {
 .add-panel .full-month-source,
 .add-panel .perpetual-calendar-source,
 .add-panel .weekly-view-source,
-.add-panel .day-view-source,
 .add-panel .diary-view-source {
      position: relative;
      top: auto;
@@ -2656,7 +2654,6 @@ body {
 .add-panel .full-month-source,
 .add-panel .perpetual-calendar-source,
 .add-panel .weekly-view-source,
-.add-panel .day-view-source,
 .add-panel .diary-view-source {
      width: 100%;
      max-width: 100px;
@@ -2675,8 +2672,6 @@ body {
 .add-panel .perpetual-calendar-source:focus-visible,
 .add-panel .weekly-view-source:hover,
 .add-panel .weekly-view-source:focus-visible,
-.add-panel .day-view-source:hover,
-.add-panel .day-view-source:focus-visible,
 .add-panel .diary-view-source:hover,
 .add-panel .diary-view-source:focus-visible {
      z-index: 4;
@@ -2709,7 +2704,6 @@ body {
 .add-panel .full-month-source > span:not(.calendar-source-preview) > span:not(.calendar-source-preview),
 .add-panel .perpetual-calendar-source > span:not(.calendar-source-preview),
 .add-panel .weekly-view-source > span:not(.calendar-source-preview),
-.add-panel .day-view-source > span:not(.calendar-source-preview),
 .add-panel .diary-view-source > span:not(.calendar-source-preview) {
      opacity: 0;
 }
@@ -3093,7 +3087,6 @@ body {
 .full-month-source,
 .perpetual-calendar-source,
 .weekly-view-source,
-.day-view-source,
 .diary-view-source {
      display: grid;
      place-items: center;
@@ -3122,10 +3115,6 @@ body {
      aspect-ratio: 1;
 }
 
-.day-view-source {
-     aspect-ratio: 0.57;
-}
-
 .diary-view-source {
      aspect-ratio: 1;
 }
@@ -3135,7 +3124,6 @@ body {
 .add-panel .full-month-source,
 .add-panel .perpetual-calendar-source,
 .add-panel .weekly-view-source,
-.add-panel .day-view-source,
 .add-panel .diary-view-source {
      min-height: 100px;
 }
@@ -3226,7 +3214,6 @@ body {
 .planner-item-full-month,
 .planner-item-perpetual-calendar,
 .planner-item-weekly-view,
-.planner-item-day-view,
 .planner-item-diary-view {
      padding: 0;
      overflow: visible;
@@ -3458,7 +3445,6 @@ body {
 
 .planner-item-full-month.is-editing-day-text .dayCell[data-text-overflow="true"]::after,
 .planner-item-weekly-view.is-editing-day-text .dayCell[data-text-overflow="true"]::after,
-.planner-item-day-view.is-editing-day-text .dayCell[data-text-overflow="true"]::after,
 .planner-item-diary-view.is-editing-day-text .dayCell[data-text-overflow="true"]::after {
      content: "⇧";
      position: absolute;
@@ -3715,21 +3701,6 @@ body {
      pointer-events: none;
 }
 
-.planner-item-day-view .weekly-view::after {
-     content: "";
-     position: absolute;
-     inset: 0;
-     z-index: 2;
-     border-radius: inherit;
-     background:
-          radial-gradient(circle at 1px 1px, var(--dot-grid-color) 0 1px, transparent 1.35px);
-     background-position:
-          calc(var(--weekly-column-cell-width, 12px) - 1px) calc(var(--weekly-row-cell-height, 12px) - 1px);
-     background-size:
-          var(--weekly-column-cell-width, 12px) var(--weekly-row-cell-height, 12px);
-     pointer-events: none;
-}
-
 .weekly-view:not(.has-time-column) {
      grid-template-columns:
           repeat(var(--weekly-day-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 5), 1fr));
@@ -3849,21 +3820,6 @@ body {
      padding: 2px 3px;
 }
 
-.daily-view-date-marker {
-     position: absolute;
-     top: 3px;
-     right: 4px;
-     z-index: 2;
-     display: inline-grid;
-     grid-auto-flow: column;
-     grid-auto-columns: max-content;
-     gap: 0.35em;
-     max-width: calc(100% - 8px);
-     overflow: visible;
-     white-space: nowrap;
-     user-select: text;
-}
-
 .weekly-view-shared-weekend .weekly-view-slot-text {
      justify-items: start;
      text-align: left;
@@ -3917,18 +3873,20 @@ body {
      border-right: 0;
 }
 
+.planner-item-weekly-view .weekly-view-edge-right {
+     overflow: hidden;
+}
+
 .weekly-view-edge-bottom {
      border-bottom: 0;
 }
 
-.planner-item-day-view .weekly-view-cell {
-     border-right: 0;
-     border-bottom: 0;
+.planner-item-weekly-view .weekly-view-alt-row-line {
+     border-bottom-style: dashed;
 }
 
-.planner-item-day-view .weekly-view-date,
-.planner-item-day-view .weekly-view-time-heading {
-     border-bottom: var(--widget-title-line-width, var(--border-sm)) solid var(--widget-title-line-color, #ccc);
+.planner-item-weekly-view .weekly-view-alt-row-line.weekly-view-edge-bottom {
+     border-bottom-style: solid;
 }
 
 .weekly-view-cell[style*="grid-row: 2"][style*="grid-column: 1"] {
@@ -3937,6 +3895,16 @@ body {
 
 .weekly-view-cell[style*="grid-row: 2"].weekly-view-edge-right {
      border-top-right-radius: inherit;
+}
+
+.planner-item-weekly-view .weekly-view-edge-bottom[style*="grid-column: 1"] {
+     border-bottom-left-radius: inherit;
+     overflow: hidden;
+}
+
+.planner-item-weekly-view .weekly-view-edge-bottom.weekly-view-edge-right {
+     border-bottom-right-radius: inherit;
+     overflow: hidden;
 }
 
 .diary-view {
@@ -3952,6 +3920,12 @@ body {
      grid-template-rows: repeat(var(--diary-row-count, 7), calc(var(--diary-row-cell-height, var(--weekly-row-cell-height, 12px)) * 6));
 }
 
+.diary-view.is-vertical {
+     align-content: stretch;
+     grid-template-columns: repeat(var(--diary-day-count, 7), minmax(0, 1fr));
+     grid-template-rows: minmax(0, 1fr);
+}
+
 .diary-view::before {
      content: "";
      position: absolute;
@@ -3960,6 +3934,10 @@ body {
      border-radius: inherit;
      border: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
      pointer-events: none;
+}
+
+.diary-view.is-vertical::before {
+     inset: calc(var(--diary-row-cell-height, var(--weekly-row-cell-height, 12px)) * 4) 0 0 0;
 }
 
 .diary-view-row {
@@ -3978,6 +3956,16 @@ body {
      overflow: hidden;
 }
 
+.diary-view.is-vertical .diary-view-row {
+     grid-template-columns: minmax(0, 1fr);
+     grid-template-rows:
+          calc(var(--diary-row-cell-height, var(--weekly-row-cell-height, 12px)) * 4)
+          minmax(0, 1fr);
+     height: 100%;
+     border-right: var(--border-sm) solid rgba(17, 17, 17, 0.16);
+     border-bottom: 0;
+}
+
 .diary-view-date-label {
      display: grid;
      grid-template-columns: repeat(2, minmax(0, max-content));
@@ -3991,6 +3979,11 @@ body {
      padding: 3px;
      border-right: var(--border-sm) solid rgba(17, 17, 17, 0.16);
      background: var(--calendar-weekday-header-background);
+}
+
+.diary-view.is-vertical .diary-view-date-label {
+     border-right: 0;
+     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.16);
 }
 
 .diary-view-day-name,
@@ -4026,6 +4019,10 @@ body {
 
 .diary-view-edge-bottom {
      border-bottom: 0;
+}
+
+.diary-view.is-vertical .diary-view-edge-right {
+     border-right: 0;
 }
 
 /* NOTE: Item Dragging, Selection, And Resize Handles */
@@ -4816,19 +4813,16 @@ body {
 .planner-item-full-month.is-widget-panel-open .widget-option-control,
 .planner-item-perpetual-calendar.is-widget-panel-open .widget-option-control,
 .planner-item-weekly-view.is-widget-panel-open .widget-option-control,
-.planner-item-day-view.is-widget-panel-open .widget-option-control,
 .planner-item-diary-view.is-widget-panel-open .widget-option-control,
 .widget-panel-mini-month.is-floating .widget-option-control,
 .widget-panel-full-month.is-floating .widget-option-control,
 .widget-panel-perpetual-calendar.is-floating .widget-option-control,
 .widget-panel-weekly-view.is-floating .widget-option-control,
-.widget-panel-day-view.is-floating .widget-option-control,
 .widget-panel-diary-view.is-floating .widget-option-control,
 .widget-panel-mini-month.is-docked .widget-option-control,
 .widget-panel-full-month.is-docked .widget-option-control,
 .widget-panel-perpetual-calendar.is-docked .widget-option-control,
 .widget-panel-weekly-view.is-docked .widget-option-control,
-.widget-panel-day-view.is-docked .widget-option-control,
 .widget-panel-diary-view.is-docked .widget-option-control {
      display: grid;
 }
@@ -5843,6 +5837,15 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      border-bottom-width: 0;
 }
 
+.diary-view.is-vertical .diary-view-row {
+     border-right-color: var(--widget-body-v-line-color);
+     border-right-width: var(--widget-body-v-line-width);
+}
+
+.diary-view.is-vertical .diary-view-edge-right {
+     border-right-width: 0;
+}
+
 .diary-view-day-text {
      background: var(--widget-box-fill);
      border-bottom: var(--widget-body-h-line-width, var(--border-sm)) solid var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16));
@@ -5853,9 +5856,32 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      border-top-right-radius: inherit;
 }
 
+.diary-view.is-vertical .diary-view-row:first-child .diary-view-day-text {
+     border-top-left-radius: inherit;
+     border-top-right-radius: 0;
+}
+
+.diary-view.is-vertical .diary-view-edge-right .diary-view-day-text {
+     border-top-right-radius: inherit;
+}
+
 .diary-view-edge-bottom .diary-view-day-text {
      border-bottom-width: 0;
      border-bottom-left-radius: inherit;
+     border-bottom-right-radius: inherit;
+}
+
+.diary-view.is-vertical .diary-view-edge-bottom .diary-view-day-text {
+     border-bottom-width: var(--widget-body-h-line-width, var(--border-sm));
+     border-bottom-left-radius: 0;
+     border-bottom-right-radius: 0;
+}
+
+.diary-view.is-vertical .diary-view-row:first-child .diary-view-day-text {
+     border-bottom-left-radius: inherit;
+}
+
+.diary-view.is-vertical .diary-view-edge-right .diary-view-day-text {
      border-bottom-right-radius: inherit;
 }
 

@@ -172,41 +172,6 @@
         }
       }
     },
-    "day-view": {
-      "label": "Day View",
-      "parts": {
-        "background": {
-          "fillSlot": "fillColor1",
-          "borderSlot": "borderColor",
-          "gridSlot": "interiorGridColor"
-        },
-        "dayHeader": {
-          "textSlot": "title",
-          "sizeMultiplier": 1,
-          "fillSlot": "fillColor3"
-        },
-        "weekendDayHeader": {
-          "textSlot": "title",
-          "sizeMultiplier": 1,
-          "fillSlot": "fillColor2"
-        },
-        "timeLabel": {
-          "textSlot": "body",
-          "fillSlot": "fillColor2"
-        },
-        "dayNotes": {
-          "textSlot": "body"
-        },
-        "timeSlot": {
-          "fillSlot": "fillColor1",
-          "gridSlot": "interiorGridColor"
-        },
-        "weekendTimeSlot": {
-          "fillSlot": "fillColor2",
-          "gridSlot": "interiorGridColor"
-        }
-      }
-    },
     "diary-view": {
       "label": "Diary View",
       "parts": {

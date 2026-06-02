@@ -95,7 +95,7 @@ function getWidgetTextPartSlots(type, partName) {
 }
 
 function getWidgetSharedTextPartName(type, partName) {
-     if ((type === "weekly-view" || type === "day-view" || type === "diary-view") && partName === "weekendDayHeader") {
+     if ((type === "weekly-view" || type === "diary-view") && partName === "weekendDayHeader") {
           return "dayHeader";
      }
 
@@ -225,7 +225,7 @@ async function loadPlannerThemeData() {
      try {
           const [themesResponse, slotsResponse] = await Promise.all([
                fetch("data/themes.json?v=planner-storage-8"),
-               fetch("data/widget-theme-slots.json?v=planner-storage-8")
+               fetch("data/widget-theme-slots.json?v=planner-storage-9")
           ]);
 
           plannerThemesData = await themesResponse.json();
@@ -292,6 +292,7 @@ function renderToc(item, entries = []) {
      tocTitle.style.gridRow = "1";
      tocTitle.dataset.themePart = "heading";
      tocTitleName.className = "toc-title-name";
+     tocTitleName.dataset.themePart = "heading";
      tocTitleName.textContent = "Contents";
      tocTitle.append(tocTitleName);
      list.append(tocTitle);
@@ -303,7 +304,9 @@ function renderToc(item, entries = []) {
 
           empty.className = "toc-empty";
           emptyNumber.className = "toc-page-number";
+          emptyNumber.dataset.themePart = "pageNumber";
           emptyTitle.className = "toc-empty-title";
+          emptyTitle.dataset.themePart = "entryText";
           emptyTitle.textContent = "No page titles";
           empty.append(emptyNumber, emptyTitle);
           list.append(empty);
@@ -339,8 +342,10 @@ function renderToc(item, entries = []) {
                }
           });
           number.className = "toc-page-number";
+          number.dataset.themePart = "pageNumber";
           number.textContent = String(entry.pageNumber);
           title.className = "toc-entry-title";
+          title.dataset.themePart = "entryText";
           title.textContent = getTocDisplayTitle(entry.title);
           row.append(number, title);
           list.append(row);
@@ -1312,7 +1317,6 @@ function getItemTypeLabel(type) {
           "full-month": "Full Month",
           "perpetual-calendar": "Perpetual Calendar",
           "weekly-view": "WeeklyView",
-          "day-view": "Day View",
           "diary-view": "Diary View"
      }[type] || "Widget";
 }
@@ -1648,6 +1652,17 @@ function getSelectedTextStyleTarget(item = selectedItem) {
 
      if (!item) {
           return null;
+     }
+
+     if (isTocItem(item)) {
+          return {
+               item,
+               label: "ToC Text",
+               appearsInToc: getWidgetTextPartToc("toc", "entryText"),
+               partName: "entryText",
+               scope: "type",
+               type: "toc"
+          };
      }
 
      return isCalendarTextItem(item)
@@ -2662,7 +2677,7 @@ function getResizedBox(item, page, clientX, clientY, mode) {
           return getResizedPerpetualCalendarBox(item, page, clientX, current, mode, grid, origin, pageRect, viewZoom);
      }
 
-     const minGridWidth = isTocItem(item) ? getTocMinGridColumns() : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMinGridColumns() : (item.dataset.itemType === "diary-view" ? getDiaryViewMinGridColumns() : (item.dataset.itemType === "full-month" ? getFullMonthGridUnits(item).width : (isTimeGridCalendarType(item.dataset.itemType) ? getWeeklyVerticalMinGridColumns(item) : (isFullPageCalendarType(item.dataset.itemType) ? 16 : 2)))));
+     const minGridWidth = isTocItem(item) ? getTocMinGridColumns() : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMinGridColumns() : (item.dataset.itemType === "diary-view" ? getDiaryViewMinGridColumns(item) : (item.dataset.itemType === "full-month" ? getFullMonthGridUnits(item).width : (isTimeGridCalendarType(item.dataset.itemType) ? getWeeklyVerticalMinGridColumns(item) : (isFullPageCalendarType(item.dataset.itemType) ? 16 : 2)))));
      const minGridHeight = getItemMinGridHeight(item);
      const minWidth = grid.x * minGridWidth;
      const minHeight = grid.y * minGridHeight;
@@ -2986,6 +3001,8 @@ function makePlannerItem(type = "sticker") {
      const startDaySelect = document.createElement("select");
      const visibleDaysLabel = document.createElement("div");
      const visibleDaysSelect = document.createElement("select");
+     const diaryLayoutLabel = document.createElement("label");
+     const diaryLayoutSelect = document.createElement("select");
      const timeIncrementLabel = document.createElement("div");
      const timeIncrementSelect = document.createElement("select");
      const startTimeLabel = document.createElement("div");
@@ -3510,6 +3527,21 @@ function makePlannerItem(type = "sticker") {
           option.textContent = `${dayCount} ${dayCount === 1 ? "day" : "days"}`;
           visibleDaysSelect.append(option);
      }
+     diaryLayoutLabel.className = "widget-panel-row widget-option-control";
+     diaryLayoutLabel.dataset.sidebarControl = "options.diary-layout";
+     diaryLayoutLabel.textContent = "Layout";
+     diaryLayoutSelect.dataset.widgetControl = "diary-layout";
+     diaryLayoutSelect.setAttribute("aria-label", "Diary view layout");
+     [
+          ["horizontal", "Horizontal"],
+          ["vertical", "Vertical"]
+     ].forEach(([value, label]) => {
+          const option = document.createElement("option");
+
+          option.value = value;
+          option.textContent = label;
+          diaryLayoutSelect.append(option);
+     });
      timeIncrementLabel.className = "widget-panel-row widget-option-control";
      timeIncrementLabel.dataset.sidebarControl = "options.time-increment";
      timeIncrementLabel.textContent = "Increments";
@@ -3619,7 +3651,7 @@ function makePlannerItem(type = "sticker") {
                displayDateRow.append(displayDateModeLabel, displayTitleVisibleLabel, displayWeekNumberLabel, displayYearLabel, displayMonthLabel);
           } else if (type === "mini-month") {
                displayDateRow.append(displayDateModeLabel, displayWeekNumberLabel, displayYearLabel, displayMonthLabel);
-          } else if (type === "weekly-view" || type === "day-view" || type === "diary-view") {
+          } else if (type === "weekly-view" || type === "diary-view") {
                displayDateRow.append(displayDateModeLabel, displayDayLabel, displayYearLabel, displayMonthLabel);
           } else {
                displayDateRow.append(displayDateModeLabel, displayYearLabel, displayMonthLabel);
@@ -3639,8 +3671,6 @@ function makePlannerItem(type = "sticker") {
           calendarAttributesGrid.append(calendarSizeLabel, weeklyMonthYearVisibleLabel, weekdayLabelLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "diary-view") {
           calendarAttributesGrid.append(weekdayLabelLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
-     } else if (type === "day-view") {
-          calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "full-month") {
           calendarAttributesGrid.append(calendarSizeLabel, weekdayLabelLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel);
      } else {
@@ -3648,6 +3678,7 @@ function makePlannerItem(type = "sticker") {
      }
      startDayLabel.append(startDaySelect);
      visibleDaysLabel.append(visibleDaysSelect);
+     diaryLayoutLabel.append(diaryLayoutSelect);
      timeIncrementLabel.append(timeIncrementSelect);
      startTimeLabel.append(startTimeSelect);
      timeVisibleLabel.append(timeVisibleInput);
@@ -3677,15 +3708,9 @@ function makePlannerItem(type = "sticker") {
           timeWidgetGroup.append(timeWidgetTitle, timeVisibleLabel, startTimeLabel, timeIncrementLabel, visibleDaysLabel);
           widgetPanel.append(dateWidgetGroup, timeWidgetGroup);
      }
-     if (type === "day-view") {
-          widgetPanel.append(widgetPanelSectionTitle);
-          dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid);
-          timeWidgetGroup.append(timeWidgetTitle, timeVisibleLabel, startTimeLabel, timeIncrementLabel);
-          widgetPanel.append(dateWidgetGroup, timeWidgetGroup);
-     }
      if (type === "diary-view") {
           widgetPanel.append(widgetPanelSectionTitle);
-          dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid, visibleDaysLabel);
+          dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid, visibleDaysLabel, diaryLayoutLabel);
           widgetPanel.append(dateWidgetGroup);
      }
      controlTabs.append(styleTab, textTab);
@@ -4185,6 +4210,11 @@ function makePlannerItem(type = "sticker") {
                visibleDays: visibleDaysSelect.value
           });
      });
+     diaryLayoutSelect.addEventListener("change", () => {
+          applyCalendarWidgetSettingsToActionItems(item, {
+               diaryLayout: diaryLayoutSelect.value
+          });
+     });
      timeIncrementSelect.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
                timeIncrement: timeIncrementSelect.value
@@ -4275,6 +4305,7 @@ function copyItemConfiguration(source, target) {
                year: source.dataset.year,
                startDay: source.dataset.startDay,
                visibleDays: source.dataset.visibleDays,
+               diaryLayout: source.dataset.diaryLayout,
                timeIncrement: source.dataset.timeIncrement,
                startTime: source.dataset.startTime,
                timeFormat: source.dataset.timeFormat,

@@ -101,6 +101,7 @@ function serializePlannerItem(item) {
                     year: Number(item.dataset.year) || new Date().getFullYear(),
                     startDay: Number(item.dataset.startDay) || 1,
                     visibleDays: Number(item.dataset.visibleDays) || 7,
+                    diaryLayout: item.dataset.diaryLayout || "horizontal",
                     timeIncrement: Number(item.dataset.timeIncrement) || 30,
                     startTime: item.dataset.startTime || "00:00",
                     timeFormat: item.dataset.timeFormat || "24",
@@ -111,7 +112,20 @@ function serializePlannerItem(item) {
                     weekNotes: item.dataset.weekNotes || "off",
                     dayNotes: isCalendarTextItem(item) ? getCalendarDayNotes(item) : null,
                     dayTextAppearsInToc: item.dataset.dayTextAppearsInToc === "true",
-                    dayText: null
+                    dayText: isCalendarTextItem(item)
+                         ? {
+                              size: item.dataset.dayTextSize || null,
+                              font: item.dataset.dayTextFont || null,
+                              color: item.dataset.dayTextColor || null,
+                              bold: item.dataset.dayTextBold || null,
+                              italic: item.dataset.dayTextItalic || null,
+                              underline: item.dataset.dayTextUnderline || null,
+                              strike: item.dataset.dayTextStrike || null,
+                              align: item.dataset.dayTextAlign || null,
+                              yAlign: item.dataset.dayTextYAlign || null,
+                              lineHeight: item.dataset.dayTextLineHeight || null
+                         }
+                         : null
           }
                : null,
           text: isTextItem
@@ -490,6 +504,10 @@ function normalizePlannerItemType(type = "sticker") {
      return type;
 }
 
+function isUnsupportedPlannerItemType(type) {
+     return type === "page-title" || type === "day-view";
+}
+
 function isLegacyMiniMonth2Type(type) {
      return type === "mini-cal2" || type === "mini-month2";
 }
@@ -551,8 +569,22 @@ function restorePlannerItemSettings(item, itemData) {
           const defaultShareWeekends = item.dataset.itemType === "full-month" || item.dataset.itemType === "weekly-view" ? "true" : "false";
 
           if (isCalendarTextItem(item)) {
+               const dayText = widget.dayText || {};
+
                item.dataset.dayNotes = JSON.stringify(widget.dayNotes || {});
                item.dataset.dayTextAppearsInToc = normalizeStoredBoolean(widget.dayTextAppearsInToc) || "false";
+               setCalendarDayTextSettings(item, {
+                    size: dayText.size,
+                    font: dayText.font,
+                    color: dayText.color,
+                    bold: normalizeStoredBoolean(dayText.bold),
+                    italic: normalizeStoredBoolean(dayText.italic),
+                    underline: normalizeStoredBoolean(dayText.underline),
+                    strike: normalizeStoredBoolean(dayText.strike),
+                    align: dayText.align,
+                    yAlign: dayText.yAlign,
+                    lineHeight: dayText.lineHeight
+               });
           }
           setCalendarWidgetSettings(item, {
                weekNumbers: normalizeStoredBoolean(widget.weekNumbers, "true"),
@@ -574,6 +606,7 @@ function restorePlannerItemSettings(item, itemData) {
                year: widget.year !== undefined && widget.year !== null ? String(widget.year) : undefined,
                startDay: widget.startDay !== undefined && widget.startDay !== null ? String(widget.startDay) : undefined,
                visibleDays: widget.visibleDays !== undefined && widget.visibleDays !== null ? String(widget.visibleDays) : undefined,
+               diaryLayout: widget.diaryLayout,
                timeIncrement: widget.timeIncrement !== undefined && widget.timeIncrement !== null ? String(widget.timeIncrement) : undefined,
                startTime: widget.startTime,
                timeFormat: widget.timeFormat,
@@ -583,6 +616,22 @@ function restorePlannerItemSettings(item, itemData) {
                pageSize: widget.pageSize || (["full-month", "weekly-view"].includes(item.dataset.itemType) && Number(itemData.grid?.width) >= 60 ? "both-pages" : "one-page"),
                weekNotes: widget.weekNotes
           });
+          if (isCalendarTextItem(item)) {
+               const dayText = widget.dayText || {};
+
+               setCalendarDayTextSettings(item, {
+                    size: dayText.size,
+                    font: dayText.font,
+                    color: dayText.color,
+                    bold: normalizeStoredBoolean(dayText.bold),
+                    italic: normalizeStoredBoolean(dayText.italic),
+                    underline: normalizeStoredBoolean(dayText.underline),
+                    strike: normalizeStoredBoolean(dayText.strike),
+                    align: dayText.align,
+                    yAlign: dayText.yAlign,
+                    lineHeight: dayText.lineHeight
+               });
+          }
      }
      if (itemData.groupId) {
           item.dataset.groupId = itemData.groupId;
@@ -593,7 +642,7 @@ function restorePlannerItem(itemData) {
      const type = normalizePlannerItemType(itemData.type || "sticker");
      const isPagePlacement = itemData.placement === "page" || itemData.page;
 
-     if (type === "page-title") {
+     if (isUnsupportedPlannerItemType(type)) {
           return null;
      }
 
@@ -698,7 +747,7 @@ function restorePlannerBook(paperKey = plannerConfig.paperKey) {
                     try {
                          const restoredItem = restorePlannerItem(itemData);
 
-                         if (!restoredItem && normalizePlannerItemType(itemData.type || "sticker") === "page-title") {
+                         if (!restoredItem && isUnsupportedPlannerItemType(normalizePlannerItemType(itemData.type || "sticker"))) {
                               removedUnsupportedItems = true;
                          }
                     } catch (error) {

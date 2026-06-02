@@ -64,10 +64,6 @@
                          width: 14,
                          height: 40
                     },
-                    "day-view": {
-                         width: 7,
-                         height: 14
-                    },
                     "diary-view": {
                          width: 20,
                          height: 42
@@ -215,33 +211,6 @@
                          "options.start-time": true,
                          "options.time-increment": true
                     },
-                    "day-view": {
-                         "actions.duplicate": true,
-                         "actions.group": true,
-                         "actions.send-backward": true,
-                         "actions.bring-forward": true,
-                         "actions.delete": true,
-                         "style.fill": true,
-                         "text.appears-in-toc": true,
-                         "text.font": true,
-                         "text.size": true,
-                         "text.format": true,
-                         "text.align": true,
-                         "text.color": true,
-                         "text.line-height": true,
-                         "options.display-date-mode": true,
-                         "options.display-day": true,
-                         "options.display-year": true,
-                         "options.display-month": true,
-                         "options.date-mode": true,
-                         "options.date-offset": true,
-                         "options.month": true,
-                         "options.year": true,
-                         "options.start-day": true,
-                         "options.time-visible": true,
-                         "options.start-time": true,
-                         "options.time-increment": true
-                    },
                     "diary-view": {
                          "actions.duplicate": true,
                          "actions.group": true,
@@ -266,7 +235,8 @@
                          "options.month": true,
                          "options.year": true,
                          "options.start-day": true,
-                         "options.visible-days": true
+                         "options.visible-days": true,
+                         "options.diary-layout": true
                     }
                }
           },
