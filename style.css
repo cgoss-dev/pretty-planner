@@ -3808,6 +3808,12 @@ body {
      row-gap: 0.1em;
 }
 
+.planner-item-weekly-view .weekly-view[data-weekly-month-year-visible="false"] .weekly-view-date-label {
+     grid-template-columns: auto;
+     grid-auto-rows: max-content;
+     row-gap: 0.1em;
+}
+
 .weekly-view-sunday-mid-marker {
      align-items: end;
      align-content: end;
@@ -3815,7 +3821,7 @@ body {
      justify-items: center;
      width: 100%;
      height: 100%;
-     background: var(--calendar-weekday-header-background);
+     background: transparent;
      color: var(--color-gray1);
      line-height: 1;
      pointer-events: none;
@@ -3841,6 +3847,21 @@ body {
      height: 100%;
      min-height: 0;
      padding: 2px 3px;
+}
+
+.daily-view-date-marker {
+     position: absolute;
+     top: 3px;
+     left: 4px;
+     z-index: 2;
+     display: inline-grid;
+     grid-auto-flow: column;
+     grid-auto-columns: max-content;
+     gap: 0.35em;
+     max-width: calc(100% - 8px);
+     overflow: visible;
+     white-space: nowrap;
+     user-select: text;
 }
 
 .weekly-view-shared-weekend .weekly-view-slot-text {
@@ -4490,7 +4511,14 @@ body {
      gap: 3px;
 }
 
+.calendar-size-options {
+     display: grid;
+     grid-template-columns: repeat(2, minmax(0, 1fr));
+     gap: 3px;
+}
+
 .text-panel-size-button,
+.calendar-size-button,
 .text-panel-alignment-button {
      min-width: 0;
      min-height: var(--color-swatch-size);
@@ -4505,6 +4533,7 @@ body {
 }
 
 .text-panel-size-button.is-active,
+.calendar-size-button.is-active,
 .text-panel-alignment-button.is-active {
      border-color: rgba(17, 17, 17, 0.34);
      background: var(--color-gray4);

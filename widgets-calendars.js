@@ -503,12 +503,6 @@ function getWeeklyVerticalMinGridColumns(item) {
      return timeColumnUnits + dayColumnUnits + getWeekNotesColumnUnits(item);
 }
 
-function getWeeklyVerticalResizeStepGridColumns(item) {
-     const weekNotesColumnCount = getWeekNotesColumnUnits(item) > 0 ? 1 : 0;
-
-     return Math.max(1, getWeeklyVerticalDisplayColumnCount(item) + weekNotesColumnCount);
-}
-
 function getWeeklyTimeColumnGridUnits(item) {
      if (!isTimeGridCalendarType(item.dataset.itemType) || item.dataset.timeVisible === "false") {
           return 0;
@@ -533,20 +527,37 @@ function getWeeklyViewFixedGridRows() {
      return 40;
 }
 
-function getFullMonthGridUnits(item) {
-     const titleRowUnits = item?.dataset?.calendarTitleVisible === "false" ? 0 : getFullMonthTitleRowUnits();
-
-     return {
-          width: 31 + getWeekNotesColumnUnits(item),
-          height: titleRowUnits + getFullMonthWeekdayRowUnits() + (6 * getFullMonthWeekRowUnits())
-     };
+function normalizeCalendarPageSize(value) {
+     return value === "both-pages" ? "both-pages" : "one-page";
 }
 
-function getFullMonthResizeStepGridColumns(item) {
-     const weekStart = item?.dataset?.weekStart || "monday";
-     const weekNotesColumnCount = getWeekNotesColumnUnits(item) > 0 ? 1 : 0;
+function getCalendarPageSizeGridUnits(item) {
+     const pageSize = normalizeCalendarPageSize(item?.dataset?.calendarPageSize);
 
-     return Math.max(1, getMonthCalendarColumns(weekStart, true).length + weekNotesColumnCount);
+     if (item?.dataset?.itemType === "weekly-view") {
+          return {
+               width: pageSize === "both-pages" ? 62 : 32,
+               height: 40
+          };
+     }
+
+     if (item?.dataset?.itemType === "full-month") {
+          return {
+               width: pageSize === "both-pages" ? 61 : 31,
+               height: 42
+          };
+     }
+
+     return null;
+}
+
+function getFullMonthGridUnits(item) {
+     const fixedSize = getCalendarPageSizeGridUnits(item);
+
+     return {
+          width: fixedSize?.width || 31,
+          height: fixedSize?.height || 42
+     };
 }
 
 function getFullMonthTitleRowUnits() {
@@ -709,9 +720,11 @@ function setCalendarDayTextSettings(item, settings = {}) {
      item.dataset.dayTextYAlign = settings.yAlign || item.dataset.dayTextYAlign || "center";
      item.dataset.dayTextLineHeight = settings.lineHeight || item.dataset.dayTextLineHeight || "1";
 
-     item.querySelectorAll(".calendar-day-text").forEach((textElement) => {
+     item.querySelectorAll(".calendar-day-text, .daily-view-date-marker").forEach((textElement) => {
           applyCalendarDayTextStyle(item, textElement);
-          updateCalendarDayTextOverflow(textElement);
+          if (textElement.classList.contains("calendar-day-text")) {
+               updateCalendarDayTextOverflow(textElement);
+          }
      });
 
      const fontSelect = controls.querySelector("[data-text-control='font']");
@@ -1138,8 +1151,13 @@ function createCalendarDatePart(part, date, {
 
 function appendCalendarDateParts(container, item, date, options = {}) {
      const dateFormats = getCalendarDateFormats(item);
+     const dateOrder = options.hideMonthYear ? ["day", "date"] : getCalendarDateOrder(item);
 
-     getCalendarDateOrder(item).forEach((part) => {
+     dateOrder.forEach((part) => {
+          if (options.hideMonthYear && (part === "month" || part === "year")) {
+               return;
+          }
+
           container.append(createCalendarDatePart(part, date, {
                ...options,
                ...dateFormats
@@ -1822,6 +1840,7 @@ function renderWeeklyVertical(item) {
      const weekdayLabelFormat = normalizeWeekdayLabelFormat(item.dataset.weekdayLabelFormat);
      const monthDisplay = item.dataset.monthDisplay || "full";
      const isDayView = item.dataset.itemType === "day-view";
+     const hideWeeklyMonthYear = item.dataset.itemType === "weekly-view" && item.dataset.weeklyMonthYearVisible === "false";
      const visibleDays = isDayView ? 1 : clamp(Number(item.dataset.visibleDays) || 7, 1, 7);
      const timeIncrement = Number(item.dataset.timeIncrement) || 30;
      const startTime = item.dataset.startTime || "00:00";
@@ -1869,6 +1888,7 @@ function renderWeeklyVertical(item) {
      calendar.style.setProperty("--weekly-body-row-units", String(bodyRowUnits));
      calendar.style.setProperty("--weekly-day-count", String(displayColumns.length));
      calendar.style.setProperty("--weekly-visible-column-units", String(timeColumnUnits + (isDayView ? 7 : displayColumns.length * 5) + (weekNotesEnabled ? 5 : 0)));
+     calendar.dataset.weeklyMonthYearVisible = hideWeeklyMonthYear ? "false" : "true";
      calendar.style.gridTemplateColumns = columnSlots.map((slot) => {
           if (slot.type === "time") {
                return `calc(var(--weekly-column-cell-width, 12px) * ${timeColumnUnits})`;
@@ -1942,6 +1962,9 @@ function renderWeeklyVertical(item) {
 
                     cell.classList.add("weekly-view-date", "dayCell", "dayName");
                     cell.dataset.themePart = "dayHeader";
+                    if (isDayView) {
+                         cell.style.gridColumn = "1 / -1";
+                    }
                     if (displayColumn.type === "shared-weekend") {
                          cell.classList.add("weekly-view-shared-weekend");
                          cell.dataset.themePart = "weekendDayHeader";
@@ -1952,17 +1975,26 @@ function renderWeeklyVertical(item) {
                     }
                     cell.dataset.dayKey = displayColumn.dates.map((date) => getCalendarDayKey(date.getFullYear(), date.getMonth(), date.getDate())).join(",");
                     markCurrentCalendarDay(cell, displayColumn.dates.map((date) => getCalendarDayKey(date.getFullYear(), date.getMonth(), date.getDate())), todayKey);
-                    displayColumn.dates.slice(0, 1).forEach((date) => {
-                         const dateLabel = document.createElement("span");
+                    if (isDayView) {
+                         const titleLabel = document.createElement("span");
 
-                         dateLabel.className = "weekly-view-date-label";
-                         appendCalendarDateParts(dateLabel, item, date, {
-                              weekdayLabelFormat,
-                              monthDisplay,
-                              todayKey: null
+                         titleLabel.className = "calendar-title-label";
+                         titleLabel.textContent = "To-Do Today";
+                         cell.append(titleLabel);
+                    } else {
+                         displayColumn.dates.slice(0, 1).forEach((date) => {
+                              const dateLabel = document.createElement("span");
+
+                              dateLabel.className = "weekly-view-date-label";
+                              appendCalendarDateParts(dateLabel, item, date, {
+                                   weekdayLabelFormat,
+                                   monthDisplay,
+                                   hideMonthYear: hideWeeklyMonthYear,
+                                   todayKey: null
+                              });
+                              cell.append(dateLabel);
                          });
-                         cell.append(dateLabel);
-                    });
+                    }
                } else if (columnSlot.type === "time") {
                     const timeMinutes = startMinutes + ((calendarRow - 1) * timeIncrement);
 
@@ -2020,6 +2052,7 @@ function renderWeeklyVertical(item) {
                          appendCalendarDateParts(sundayMarker, item, sundayDate, {
                               weekdayLabelFormat,
                               monthDisplay,
+                              hideMonthYear: hideWeeklyMonthYear,
                               todayKey: null
                          });
                          cell.append(sundayMarker);
@@ -2050,6 +2083,21 @@ function renderWeeklyVertical(item) {
                                    event.stopPropagation();
                               }
                          });
+                         if (isDayView && calendarRow === 1) {
+                              const dateMarker = document.createElement("span");
+
+                              cell.classList.add("has-daily-view-date-marker");
+                              dateMarker.className = "daily-view-date-marker";
+                              dateMarker.dataset.themePart = "dayNotes";
+                              dateMarker.setAttribute("aria-label", "Daily view date");
+                              appendCalendarDateParts(dateMarker, item, primaryDate, {
+                                   weekdayLabelFormat,
+                                   monthDisplay,
+                                   todayKey: null
+                              });
+                              applyCalendarDayTextStyle(item, dateMarker);
+                              cell.append(dateMarker);
+                         }
                          cell.append(slotText);
                          updateCalendarDayTextOverflow(slotText);
                     }
@@ -2183,9 +2231,13 @@ function setCalendarWidgetSettings(item, settings = {}) {
      item.dataset.startTime = normalizeScheduleStartTime(settings.startTime || item.dataset.startTime || "00:00");
      item.dataset.timeFormat = normalizeCalendarTimeFormat(settings.timeFormat || item.dataset.timeFormat || defaultDateSettings.timeFormat || "24");
      item.dataset.timeVisible = settings.timeVisible ?? item.dataset.timeVisible ?? "true";
+     item.dataset.weeklyMonthYearVisible = settings.weeklyMonthYearVisible ?? item.dataset.weeklyMonthYearVisible ?? "true";
      item.dataset.shareWeekends = item.dataset.itemType === "full-month" || item.dataset.itemType === "weekly-view"
           ? "true"
           : settings.shareWeekends ?? item.dataset.shareWeekends ?? "false";
+     item.dataset.calendarPageSize = item.dataset.itemType === "full-month" || item.dataset.itemType === "weekly-view"
+          ? normalizeCalendarPageSize(settings.pageSize ?? item.dataset.calendarPageSize)
+          : item.dataset.calendarPageSize ?? "";
      item.dataset.weekNotes = normalizeWeekNotesPosition(settings.weekNotes ?? item.dataset.weekNotes);
      renderMiniMonth(item);
      updateCalendarGridMetrics(item, getItemPage(item), getItemBox(item));
@@ -2216,7 +2268,9 @@ function setCalendarWidgetSettings(item, settings = {}) {
      const startTimeSelect = controls.querySelector("[data-widget-control='start-time']");
      const timeFormatSelect = controls.querySelector("[data-widget-control='time-format']");
      const timeVisibleInput = controls.querySelector("[data-widget-control='time-visible']");
+     const weeklyMonthYearVisibleInput = controls.querySelector("[data-widget-control='weekly-month-year-visible']");
      const shareWeekendsInput = controls.querySelector("[data-widget-control='share-weekends']");
+     const calendarSizeButtons = controls.querySelectorAll("[data-calendar-page-size]");
      const weekNotesSelect = controls.querySelector("[data-widget-control='week-notes']");
 
      if (weekNumberControl) {
@@ -2314,9 +2368,20 @@ function setCalendarWidgetSettings(item, settings = {}) {
           timeVisibleInput.checked = item.dataset.timeVisible !== "false";
      }
 
+     if (weeklyMonthYearVisibleInput) {
+          weeklyMonthYearVisibleInput.checked = item.dataset.weeklyMonthYearVisible !== "false";
+     }
+
      if (shareWeekendsInput) {
           shareWeekendsInput.checked = item.dataset.shareWeekends === "true";
      }
+
+     calendarSizeButtons.forEach((button) => {
+          const isActive = button.dataset.calendarPageSize === normalizeCalendarPageSize(item.dataset.calendarPageSize);
+
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", String(isActive));
+     });
 
      if (weekNotesSelect) {
           weekNotesSelect.value = item.dataset.weekNotes;

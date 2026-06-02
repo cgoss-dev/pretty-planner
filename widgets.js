@@ -2176,6 +2176,43 @@ function applyCalendarWidgetSettingsToActionItems(item, settings) {
      notifyTemplateChanged();
 }
 
+function applyCalendarPageSizeToItem(item, pageSize) {
+     if (item.dataset.itemType !== "weekly-view" && item.dataset.itemType !== "full-month") {
+          return;
+     }
+
+     item.dataset.calendarPageSize = normalizeCalendarPageSize(pageSize);
+     setCalendarWidgetSettings(item, {
+          pageSize: item.dataset.calendarPageSize
+     });
+
+     const page = getItemPage(item);
+
+     if (!page) {
+          return;
+     }
+
+     const grid = getGridSize(page);
+     const size = getCalendarPageSizeGridUnits(item);
+
+     if (!size) {
+          return;
+     }
+
+     setItemBox(item, {
+          ...getItemBox(item),
+          width: grid.x * size.width,
+          height: grid.y * size.height
+     });
+}
+
+function applyCalendarPageSizeToActionItems(item, pageSize) {
+     getActionItems(item).forEach((targetItem) => {
+          applyCalendarPageSizeToItem(targetItem, pageSize);
+     });
+     notifyTemplateChanged();
+}
+
 function setWidgetPanelTab(controls, tabName) {
      closeCustomSelects(controls);
      clearSelectFocus(controls);
@@ -2472,7 +2509,7 @@ function getResizeMode(item, event) {
           return "";
      }
 
-     if (item.dataset.itemType === "mini-month") {
+     if (item.dataset.itemType === "mini-month" || item.dataset.itemType === "weekly-view" || item.dataset.itemType === "full-month") {
           return "";
      }
 
@@ -2564,40 +2601,6 @@ function getResizedPerpetualCalendarBox(item, page, clientX, current, mode, grid
      });
 }
 
-function clampWeeklyViewResizeBox(item, box, current, resizeLeft, grid) {
-     if (item.dataset.itemType !== "weekly-view") {
-          return box;
-     }
-
-     const minWidth = grid.x * getWeeklyVerticalMinGridColumns(item);
-     const columnStep = grid.x * getWeeklyVerticalResizeStepGridColumns(item);
-     const right = current.x + current.width;
-     const nextWidth = minWidth + (Math.max(0, Math.round((box.width - minWidth) / columnStep)) * columnStep);
-
-     return {
-          ...box,
-          x: resizeLeft ? right - nextWidth : box.x,
-          width: nextWidth
-     };
-}
-
-function clampFullMonthResizeBox(item, box, current, resizeLeft, grid) {
-     if (item.dataset.itemType !== "full-month") {
-          return box;
-     }
-
-     const minWidth = grid.x * getFullMonthGridUnits(item).width;
-     const columnStep = grid.x * getFullMonthResizeStepGridColumns(item);
-     const right = current.x + current.width;
-     const nextWidth = minWidth + (Math.max(0, Math.round((box.width - minWidth) / columnStep)) * columnStep);
-
-     return {
-          ...box,
-          x: resizeLeft ? right - nextWidth : box.x,
-          width: nextWidth
-     };
-}
-
 function getItemMinGridHeight(item) {
      if (item.dataset.itemType === "weekly-view") {
           return getWeeklyViewFixedGridRows();
@@ -2621,7 +2624,7 @@ function getItemMinGridHeight(item) {
 function getResizedBox(item, page, clientX, clientY, mode) {
      const current = getItemBox(item);
 
-     if (item.dataset.itemType === "mini-month") {
+     if (item.dataset.itemType === "mini-month" || item.dataset.itemType === "weekly-view" || item.dataset.itemType === "full-month") {
           return current;
      }
 
@@ -2683,7 +2686,7 @@ function getResizedBox(item, page, clientX, clientY, mode) {
           height: nextBottom - nextTop
      };
 
-     return clampWeeklyViewResizeBox(item, clampFullMonthResizeBox(item, resizedBox, current, resizeLeft, grid), current, resizeLeft, grid);
+     return resizedBox;
 }
 
 function getResizeClass(resizeMode) {
@@ -2968,6 +2971,8 @@ function makePlannerItem(type = "sticker") {
      const dateModeSelect = document.createElement("select");
      const dateOffsetLabel = document.createElement("label");
      const dateOffsetInput = document.createElement("input");
+     const calendarSizeLabel = document.createElement("div");
+     const calendarSizeOptions = document.createElement("div");
      const titleVisibleLabel = document.createElement("label");
      const titleVisibleInput = document.createElement("input");
      const monthLabel = document.createElement("label");
@@ -2988,6 +2993,8 @@ function makePlannerItem(type = "sticker") {
      const startTimeSelect = document.createElement("select");
      const timeVisibleLabel = document.createElement("div");
      const timeVisibleInput = document.createElement("input");
+     const weeklyMonthYearVisibleLabel = document.createElement("label");
+     const weeklyMonthYearVisibleInput = document.createElement("input");
      const timeFormatLabel = document.createElement("div");
      const timeFormatSelect = document.createElement("select");
      const shareWeekendsLabel = document.createElement("label");
@@ -3427,6 +3434,26 @@ function makePlannerItem(type = "sticker") {
      dateOffsetInput.dataset.widgetControl = "date-offset";
      dateOffsetInput.setAttribute("aria-label", "Calendar current date offset");
      syncRelativeDateOffsetInput(dateOffsetInput, getCalendarRelativeDateUnit(item), "0");
+     calendarSizeLabel.className = "widget-panel-row widget-option-control calendar-size-control";
+     calendarSizeLabel.dataset.sidebarControl = "options.page-size";
+     calendarSizeLabel.textContent = "Size";
+     calendarSizeOptions.className = "calendar-size-options";
+     calendarSizeOptions.setAttribute("role", "group");
+     calendarSizeOptions.setAttribute("aria-label", "Calendar size");
+     [
+          ["one-page", "One Page"],
+          ["both-pages", "Both Pages"]
+     ].forEach(([value, label]) => {
+          const button = document.createElement("button");
+
+          button.className = "calendar-size-button";
+          button.type = "button";
+          button.textContent = label;
+          button.dataset.calendarPageSize = value;
+          button.setAttribute("aria-label", `${label} calendar size`);
+          button.setAttribute("aria-pressed", "false");
+          calendarSizeOptions.append(button);
+     });
      titleVisibleLabel.className = "widget-panel-row widget-option-control";
      titleVisibleLabel.dataset.sidebarControl = "options.calendar-title-visible";
      titleVisibleLabel.textContent = "Month/Year";
@@ -3535,6 +3562,13 @@ function makePlannerItem(type = "sticker") {
      timeVisibleInput.checked = true;
      timeVisibleInput.dataset.widgetControl = "time-visible";
      timeVisibleInput.setAttribute("aria-label", "Show weekly planner time column");
+     weeklyMonthYearVisibleLabel.className = "widget-panel-row widget-option-control";
+     weeklyMonthYearVisibleLabel.dataset.sidebarControl = "options.weekly-month-year-visible";
+     weeklyMonthYearVisibleLabel.textContent = "Month/Year";
+     weeklyMonthYearVisibleInput.type = "checkbox";
+     weeklyMonthYearVisibleInput.checked = true;
+     weeklyMonthYearVisibleInput.dataset.widgetControl = "weekly-month-year-visible";
+     weeklyMonthYearVisibleInput.setAttribute("aria-label", "Show month and year in weekly view dates");
      timeFormatLabel.className = "widget-panel-row widget-option-control";
      timeFormatLabel.dataset.sidebarControl = "options.time-format";
      timeFormatLabel.textContent = "Format";
@@ -3621,18 +3655,19 @@ function makePlannerItem(type = "sticker") {
      weekdayLabelLabel.append(weekdayLabelSelect);
      dateModeLabel.append(dateModeSelect);
      dateOffsetLabel.append(dateOffsetInput);
+     calendarSizeLabel.append(calendarSizeOptions);
      titleVisibleLabel.append(titleVisibleInput);
      weekNumberLabel.append(weekNumberInput);
      if (type === "perpetual-calendar") {
           calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, monthDisplayLabel);
      } else if (type === "weekly-view") {
-          calendarAttributesGrid.append(weekdayLabelLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
+          calendarAttributesGrid.append(calendarSizeLabel, weeklyMonthYearVisibleLabel, weekdayLabelLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "diary-view") {
           calendarAttributesGrid.append(weekdayLabelLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "day-view") {
           calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "full-month") {
-          calendarAttributesGrid.append(weekdayLabelLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
+          calendarAttributesGrid.append(calendarSizeLabel, weekdayLabelLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
      } else {
           calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
      }
@@ -3641,6 +3676,7 @@ function makePlannerItem(type = "sticker") {
      timeIncrementLabel.append(timeIncrementSelect);
      startTimeLabel.append(startTimeSelect);
      timeVisibleLabel.append(timeVisibleInput);
+     weeklyMonthYearVisibleLabel.append(weeklyMonthYearVisibleInput);
      timeFormatLabel.append(timeFormatSelect);
      shareWeekendsLabel.append(shareWeekendsInput);
      weekNotesLabel.append(weekNotesSelect);
@@ -4016,6 +4052,11 @@ function makePlannerItem(type = "sticker") {
                lineHeight: textLineHeightSelect.value
           });
      });
+     calendarSizeOptions.querySelectorAll("[data-calendar-page-size]").forEach((button) => {
+          button.addEventListener("click", () => {
+               applyCalendarPageSizeToActionItems(item, button.dataset.calendarPageSize);
+          });
+     });
      textElement.addEventListener("input", () => {
           updateStickerTextOverflow(item);
      });
@@ -4186,6 +4227,11 @@ function makePlannerItem(type = "sticker") {
      timeVisibleInput.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
                timeVisible: timeVisibleInput.checked ? "true" : "false"
+          });
+     });
+     weeklyMonthYearVisibleInput.addEventListener("change", () => {
+          applyCalendarWidgetSettingsToActionItems(item, {
+               weeklyMonthYearVisible: weeklyMonthYearVisibleInput.checked ? "true" : "false"
           });
      });
      shareWeekendsInput.addEventListener("change", () => {

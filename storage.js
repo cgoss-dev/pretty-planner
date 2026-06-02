@@ -105,7 +105,9 @@ function serializePlannerItem(item) {
                     startTime: item.dataset.startTime || "00:00",
                     timeFormat: item.dataset.timeFormat || "24",
                     timeVisible: item.dataset.timeVisible !== "false",
+                    weeklyMonthYearVisible: item.dataset.weeklyMonthYearVisible !== "false",
                     shareWeekends: item.dataset.shareWeekends === "true",
+                    pageSize: item.dataset.calendarPageSize || null,
                     weekNotes: item.dataset.weekNotes || "off",
                     dayNotes: isCalendarTextItem(item) ? getCalendarDayNotes(item) : null,
                     dayTextAppearsInToc: item.dataset.dayTextAppearsInToc === "true",
@@ -576,7 +578,9 @@ function restorePlannerItemSettings(item, itemData) {
                startTime: widget.startTime,
                timeFormat: widget.timeFormat,
                timeVisible: normalizeStoredBoolean(widget.timeVisible, "true"),
+               weeklyMonthYearVisible: normalizeStoredBoolean(widget.weeklyMonthYearVisible, "true"),
                shareWeekends: normalizeStoredBoolean(widget.shareWeekends, defaultShareWeekends),
+               pageSize: widget.pageSize || (["full-month", "weekly-view"].includes(item.dataset.itemType) && Number(itemData.grid?.width) >= 60 ? "both-pages" : "one-page"),
                weekNotes: widget.weekNotes
           });
      }
@@ -620,6 +624,9 @@ function restorePlannerItem(itemData) {
 
           markGridState(item, true, page);
           setItemBox(item, box);
+          if ((type === "full-month" || type === "weekly-view") && typeof applyCalendarPageSizeToItem === "function") {
+               applyCalendarPageSizeToItem(item, item.dataset.calendarPageSize);
+          }
           setItemSpreadIndex(item, Number(itemData.spreadIndex) || 0);
      } else {
           const deskRect = plannerDesk.getBoundingClientRect();
