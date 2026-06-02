@@ -84,6 +84,11 @@ function applyTextThemeToElement(element, textTheme = {}, theme = null, override
      );
      element.style.textAlign = defaultText?.align || "center";
      element.style.alignContent = getTextYAlignValue(defaultText?.yAlign || "center");
+
+     if (element.classList.contains("mini-month-day-number") && element.classList.contains("calendar-current-day-number")) {
+          element.style.color = "var(--tertiary-01)";
+          element.style.fontWeight = "700";
+     }
 }
 
 function getWidgetTypeTextParts(type) {
@@ -893,6 +898,39 @@ function updatePageFlagMetrics(item, page, box) {
      item.style.setProperty("--page-flag-grid-x", `${grid ? grid.x : box.width / gridUnits.width}px`);
      item.style.setProperty("--page-flag-grid-y", `${grid ? grid.y : box.height / gridUnits.height}px`);
      updatePageFlagShape(item, page, box);
+     updatePageFlagExposure(item, page, box);
+}
+
+function updatePageFlagExposure(item, page, box) {
+     if (!isPageFlagItem(item)) {
+          return;
+     }
+
+     const isCoveredByOtherPage = Boolean(page && item.dataset.pageId && getItemSpreadIndex(item) !== currentSpreadIndex);
+
+     item.classList.toggle("is-page-flag-covered", isCoveredByOtherPage);
+     if (!isCoveredByOtherPage) {
+          item.style.removeProperty("clip-path");
+          return;
+     }
+
+     const pageRect = page.getBoundingClientRect();
+     const viewZoom = getViewZoom();
+     const pageWidth = pageRect.width / viewZoom;
+     const leftExposure = Math.max(0, -box.x);
+     const rightExposure = Math.max(0, box.x + box.width - pageWidth);
+
+     if (rightExposure >= leftExposure && rightExposure > 0) {
+          item.style.clipPath = `inset(0 0 0 ${Math.max(0, box.width - rightExposure)}px)`;
+          return;
+     }
+
+     if (leftExposure > 0) {
+          item.style.clipPath = `inset(0 ${Math.max(0, box.width - leftExposure)}px 0 0)`;
+          return;
+     }
+
+     item.style.clipPath = "inset(0 0 0 100%)";
 }
 
 function getPageFlagPathData(widthUnits, heightUnits, side) {

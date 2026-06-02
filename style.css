@@ -2767,6 +2767,14 @@ body {
      --page-flag-notch-x: var(--page-flag-grid-x, calc(var(--item-width, 72px) / 6));
 }
 
+.planner-item-page-flag.is-page-flag-covered {
+     cursor: pointer;
+}
+
+.planner-item-page-flag.is-page-flag-covered .sticker-text {
+     cursor: pointer;
+}
+
 .page-flag-shape {
      position: absolute;
      inset: 0;
