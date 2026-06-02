@@ -2810,7 +2810,7 @@ body {
      grid-template-rows: minmax(0, 1fr);
      overflow: hidden;
      border-radius: inherit;
-     background: var(--widget-box-fill);
+     background: transparent;
      color: var(--color-gray1);
      font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
      line-height: 1;
@@ -2837,9 +2837,7 @@ body {
      gap: 0;
      min-height: 0;
      overflow: hidden;
-     background:
-          linear-gradient(90deg, var(--calendar-tint) 0 var(--toc-left-column-width, 22.222222%), transparent var(--toc-left-column-width, 22.222222%)) 0 0 / 100% 100% no-repeat,
-          var(--widget-box-fill);
+     background: transparent;
 }
 
 .toc-list::before {
@@ -2848,7 +2846,10 @@ body {
      inset: 0;
      z-index: 2;
      top: var(--toc-title-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 5)));
-     background: repeating-linear-gradient(180deg, transparent 0 calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - 1px), var(--toc-grid-line-color) calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - 1px) var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))));
+     background:
+          repeating-linear-gradient(180deg, transparent 0 calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - 1px), var(--toc-grid-line-color) calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - 1px) var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2)))),
+          linear-gradient(90deg, var(--calendar-tint) 0 var(--toc-left-column-width, 22.222222%), transparent var(--toc-left-column-width, 22.222222%)) 0 0 / 100% 100% no-repeat,
+          var(--widget-box-fill);
      pointer-events: none;
 }
 
@@ -2973,7 +2974,10 @@ body {
 }
 
 .toc-list::before {
-     background: repeating-linear-gradient(180deg, transparent 0 calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - var(--widget-body-h-line-width, var(--border-sm))), var(--widget-body-h-line-color, var(--toc-grid-line-color)) calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - var(--widget-body-h-line-width, var(--border-sm))) var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))));
+     background:
+          repeating-linear-gradient(180deg, transparent 0 calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - var(--widget-body-h-line-width, var(--border-sm))), var(--widget-body-h-line-color, var(--toc-grid-line-color)) calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - var(--widget-body-h-line-width, var(--border-sm))) var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2)))),
+          linear-gradient(90deg, var(--calendar-tint) 0 var(--toc-left-column-width, 22.222222%), transparent var(--toc-left-column-width, 22.222222%)) 0 0 / 100% 100% no-repeat,
+          var(--widget-box-fill);
 }
 
 .toc-list::after {
@@ -3362,8 +3366,18 @@ body {
 }
 
 .weekNumber {
+     display: grid;
      align-self: center;
      justify-self: center;
+     place-items: center;
+     box-sizing: border-box;
+     width: 1.8em;
+     height: 1.8em;
+     border: var(--border-sm) solid currentColor;
+     border-radius: 50%;
+     background: transparent;
+     font-size: 0.9em;
+     line-height: 1;
 }
 
 .calendar-day-text {
@@ -3538,7 +3552,7 @@ body {
      position: absolute;
      inset: var(--perpetual-calendar-row-height, calc(100% / var(--perpetual-calendar-row-count, 32))) 0 0 0;
      z-index: 2;
-     border-radius: inherit;
+     border-radius: 5px;
      outline: var(--sticker-border-size, var(--border-sm)) solid var(--sticker-border-color, rgba(17, 17, 17, 0.18));
      outline-offset: calc(var(--sticker-border-size, var(--border-sm)) * -1);
      pointer-events: none;
@@ -3578,8 +3592,8 @@ body {
 }
 
 .perpetual-calendar-title + .perpetual-calendar-row {
-     border-top-left-radius: inherit;
-     border-top-right-radius: inherit;
+     border-top-left-radius: 5px;
+     border-top-right-radius: 5px;
 }
 
 .perpetual-calendar-weekend {
