@@ -85,7 +85,10 @@ function applyTextThemeToElement(element, textTheme = {}, theme = null, override
      element.style.textAlign = defaultText?.align || "center";
      element.style.alignContent = getTextYAlignValue(defaultText?.yAlign || "center");
 
-     if (element.classList.contains("mini-month-day-number") && element.classList.contains("calendar-current-day-number")) {
+     if (
+          element.classList.contains("calendar-current-day-number") &&
+          (element.classList.contains("mini-month-day-number") || element.classList.contains("perpetual-calendar-day-number"))
+     ) {
           element.style.color = "var(--tertiary-01)";
           element.style.fontWeight = "700";
      }
