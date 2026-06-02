@@ -573,7 +573,7 @@ function getDiaryViewMinGridRows(item) {
 }
 
 function getDiaryViewMinGridColumns(item) {
-     return item?.dataset?.diaryLayout === "vertical" ? 16 : 20;
+     return item?.dataset?.diaryLayout === "vertical" ? 15 : 20;
 }
 
 function clampWeeklyViewBox(item, page, box) {

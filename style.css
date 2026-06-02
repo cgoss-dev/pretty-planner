@@ -3889,6 +3889,19 @@ body {
      border-bottom-style: solid;
 }
 
+.planner-item-weekly-view .weekly-view-sunday-date-cell.weekly-view-alt-row-line {
+     border-bottom-style: solid;
+}
+
+.planner-item-weekly-view .weekly-view-cell {
+     background-clip: padding-box;
+}
+
+.planner-item-weekly-view .weekly-view-edge-right,
+.planner-item-weekly-view .weekly-view-edge-bottom {
+     clip-path: inset(0);
+}
+
 .weekly-view-cell[style*="grid-row: 2"][style*="grid-column: 1"] {
      border-top-left-radius: inherit;
 }
@@ -3995,7 +4008,7 @@ body {
 
 .diary-view.is-vertical .diary-view-date-label {
      border-right: 0;
-     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.16);
+     border-bottom: 0;
 }
 
 .diary-view-day-name,

@@ -293,7 +293,8 @@ function renderToc(item, entries = []) {
      tocTitle.dataset.themePart = "heading";
      tocTitleName.className = "toc-title-name";
      tocTitleName.dataset.themePart = "heading";
-     tocTitleName.textContent = "Contents";
+     tocTitleName.setAttribute("aria-label", "Table of Contents");
+     tocTitleName.append("Table of", document.createElement("br"), "Contents");
      tocTitle.append(tocTitleName);
      list.append(tocTitle);
 
