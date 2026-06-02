@@ -1707,6 +1707,8 @@ function renderDiaryView(item) {
      const monthDisplay = item.dataset.monthDisplay || "short";
      const visibleDays = clamp(Number(item.dataset.visibleDays) || 7, 1, 7);
      const diaryLayout = item.dataset.diaryLayout === "vertical" ? "vertical" : "horizontal";
+     const hideDiaryMonthYear = item.dataset.diaryMonthYearVisible === "false";
+     const diaryTitleLines = item.dataset.diaryTitleLines === "one" ? "one" : "two";
      const startDate = getWeeklyViewStartDate(item);
      const dayNotes = getCalendarDayNotes(item);
      const todayKey = getTodayCalendarDayKey();
@@ -1720,6 +1722,10 @@ function renderDiaryView(item) {
      calendar.replaceChildren();
      calendar.classList.toggle("is-vertical", diaryLayout === "vertical");
      calendar.classList.toggle("is-horizontal", diaryLayout !== "vertical");
+     calendar.classList.toggle("is-title-one-line", diaryTitleLines === "one");
+     calendar.classList.toggle("is-title-two-lines", diaryTitleLines !== "one");
+     calendar.dataset.diaryMonthYearVisible = hideDiaryMonthYear ? "false" : "true";
+     calendar.dataset.diaryTitleLines = diaryTitleLines;
      calendar.style.setProperty("--diary-row-count", String(visibleDays));
      calendar.style.setProperty("--diary-day-count", String(visibleDays));
      calendar.style.setProperty("--diary-column-cell-width", `${getGridSize(getItemPage(item) || pages[0]).x}px`);
@@ -1755,6 +1761,7 @@ function renderDiaryView(item) {
           appendCalendarDateParts(dateLabel, item, date, {
                weekdayLabelFormat,
                monthDisplay,
+               hideMonthYear: hideDiaryMonthYear,
                todayKey
           });
 
@@ -2193,6 +2200,8 @@ function setCalendarWidgetSettings(item, settings = {}) {
      item.dataset.startDay = settings.startDay || item.dataset.startDay || "1";
      item.dataset.visibleDays = settings.visibleDays || item.dataset.visibleDays || "7";
      item.dataset.diaryLayout = settings.diaryLayout || item.dataset.diaryLayout || "horizontal";
+     item.dataset.diaryMonthYearVisible = settings.diaryMonthYearVisible ?? item.dataset.diaryMonthYearVisible ?? "true";
+     item.dataset.diaryTitleLines = settings.diaryTitleLines === "one" ? "one" : (settings.diaryTitleLines === "two" ? "two" : item.dataset.diaryTitleLines || "two");
      item.dataset.startDay = String(clamp(Number(item.dataset.startDay) || 1, 1, getCalendarDaysInMonth(Number(item.dataset.year), Number(item.dataset.month))));
      item.dataset.timeIncrement = settings.timeIncrement || item.dataset.timeIncrement || "30";
      item.dataset.startTime = normalizeScheduleStartTime(settings.startTime || item.dataset.startTime || "00:00");
@@ -2230,6 +2239,8 @@ function setCalendarWidgetSettings(item, settings = {}) {
      const startDaySelect = controls.querySelector("[data-widget-control='start-day']");
      const visibleDaysSelect = controls.querySelector("[data-widget-control='visible-days']");
      const diaryLayoutSelect = controls.querySelector("[data-widget-control='diary-layout']");
+     const diaryMonthYearVisibleInput = controls.querySelector("[data-widget-control='diary-month-year-visible']");
+     const diaryTitleLinesSelect = controls.querySelector("[data-widget-control='diary-title-lines']");
      const timeIncrementSelect = controls.querySelector("[data-widget-control='time-increment']");
      const startTimeSelect = controls.querySelector("[data-widget-control='start-time']");
      const timeFormatSelect = controls.querySelector("[data-widget-control='time-format']");
@@ -2312,6 +2323,14 @@ function setCalendarWidgetSettings(item, settings = {}) {
 
      if (diaryLayoutSelect) {
           diaryLayoutSelect.value = item.dataset.diaryLayout;
+     }
+
+     if (diaryMonthYearVisibleInput) {
+          diaryMonthYearVisibleInput.checked = item.dataset.diaryMonthYearVisible !== "false";
+     }
+
+     if (diaryTitleLinesSelect) {
+          diaryTitleLinesSelect.value = item.dataset.diaryTitleLines;
      }
 
      if (timeIncrementSelect) {

@@ -3003,6 +3003,10 @@ function makePlannerItem(type = "sticker") {
      const visibleDaysSelect = document.createElement("select");
      const diaryLayoutLabel = document.createElement("label");
      const diaryLayoutSelect = document.createElement("select");
+     const diaryMonthYearVisibleLabel = document.createElement("label");
+     const diaryMonthYearVisibleInput = document.createElement("input");
+     const diaryTitleLinesLabel = document.createElement("label");
+     const diaryTitleLinesSelect = document.createElement("select");
      const timeIncrementLabel = document.createElement("div");
      const timeIncrementSelect = document.createElement("select");
      const startTimeLabel = document.createElement("div");
@@ -3542,6 +3546,28 @@ function makePlannerItem(type = "sticker") {
           option.textContent = label;
           diaryLayoutSelect.append(option);
      });
+     diaryMonthYearVisibleLabel.className = "widget-panel-row widget-option-control";
+     diaryMonthYearVisibleLabel.dataset.sidebarControl = "options.diary-month-year-visible";
+     diaryMonthYearVisibleLabel.textContent = "Month/Year";
+     diaryMonthYearVisibleInput.type = "checkbox";
+     diaryMonthYearVisibleInput.checked = true;
+     diaryMonthYearVisibleInput.dataset.widgetControl = "diary-month-year-visible";
+     diaryMonthYearVisibleInput.setAttribute("aria-label", "Show month and year in diary view titles");
+     diaryTitleLinesLabel.className = "widget-panel-row widget-option-control";
+     diaryTitleLinesLabel.dataset.sidebarControl = "options.diary-title-lines";
+     diaryTitleLinesLabel.textContent = "Title Lines";
+     diaryTitleLinesSelect.dataset.widgetControl = "diary-title-lines";
+     diaryTitleLinesSelect.setAttribute("aria-label", "Diary view title lines");
+     [
+          ["two", "Two"],
+          ["one", "One"]
+     ].forEach(([value, label]) => {
+          const option = document.createElement("option");
+
+          option.value = value;
+          option.textContent = label;
+          diaryTitleLinesSelect.append(option);
+     });
      timeIncrementLabel.className = "widget-panel-row widget-option-control";
      timeIncrementLabel.dataset.sidebarControl = "options.time-increment";
      timeIncrementLabel.textContent = "Increments";
@@ -3679,6 +3705,8 @@ function makePlannerItem(type = "sticker") {
      startDayLabel.append(startDaySelect);
      visibleDaysLabel.append(visibleDaysSelect);
      diaryLayoutLabel.append(diaryLayoutSelect);
+     diaryMonthYearVisibleLabel.append(diaryMonthYearVisibleInput);
+     diaryTitleLinesLabel.append(diaryTitleLinesSelect);
      timeIncrementLabel.append(timeIncrementSelect);
      startTimeLabel.append(startTimeSelect);
      timeVisibleLabel.append(timeVisibleInput);
@@ -3710,7 +3738,7 @@ function makePlannerItem(type = "sticker") {
      }
      if (type === "diary-view") {
           widgetPanel.append(widgetPanelSectionTitle);
-          dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid, visibleDaysLabel, diaryLayoutLabel);
+          dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid, visibleDaysLabel, diaryLayoutLabel, diaryMonthYearVisibleLabel, diaryTitleLinesLabel);
           widgetPanel.append(dateWidgetGroup);
      }
      controlTabs.append(styleTab, textTab);
@@ -4215,6 +4243,16 @@ function makePlannerItem(type = "sticker") {
                diaryLayout: diaryLayoutSelect.value
           });
      });
+     diaryMonthYearVisibleInput.addEventListener("change", () => {
+          applyCalendarWidgetSettingsToActionItems(item, {
+               diaryMonthYearVisible: diaryMonthYearVisibleInput.checked ? "true" : "false"
+          });
+     });
+     diaryTitleLinesSelect.addEventListener("change", () => {
+          applyCalendarWidgetSettingsToActionItems(item, {
+               diaryTitleLines: diaryTitleLinesSelect.value
+          });
+     });
      timeIncrementSelect.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
                timeIncrement: timeIncrementSelect.value
@@ -4306,6 +4344,8 @@ function copyItemConfiguration(source, target) {
                startDay: source.dataset.startDay,
                visibleDays: source.dataset.visibleDays,
                diaryLayout: source.dataset.diaryLayout,
+               diaryMonthYearVisible: source.dataset.diaryMonthYearVisible,
+               diaryTitleLines: source.dataset.diaryTitleLines,
                timeIncrement: source.dataset.timeIncrement,
                startTime: source.dataset.startTime,
                timeFormat: source.dataset.timeFormat,

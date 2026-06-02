@@ -84,7 +84,7 @@
                          "text.align": true,
                          "text.color": true,
                          "text.line-height": true,
-                         "options.dot-grid": true
+                         "options.dot-grid": false
                     },
                     toc: {
                          "actions.duplicate": true,
@@ -93,7 +93,7 @@
                          "actions.bring-forward": true,
                          "actions.delete": true,
                          "style.fill": true,
-                         "text.appears-in-toc": true,
+                         "text.appears-in-toc": false,
                          "text.font": true,
                          "text.size": true,
                          "text.format": true,
@@ -236,7 +236,9 @@
                          "options.year": true,
                          "options.start-day": true,
                          "options.visible-days": true,
-                         "options.diary-layout": true
+                         "options.diary-layout": true,
+                         "options.diary-month-year-visible": true,
+                         "options.diary-title-lines": true
                     }
                }
           },
