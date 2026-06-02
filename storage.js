@@ -546,6 +546,8 @@ function restorePlannerItemSettings(item, itemData) {
           item.dataset.textAppearsInToc = normalizeStoredBoolean(text.appearsInToc) || "false";
      }
      if (isCalendarItem(item)) {
+          const defaultShareWeekends = item.dataset.itemType === "full-month" || item.dataset.itemType === "weekly-view" ? "true" : "false";
+
           if (isCalendarTextItem(item)) {
                item.dataset.dayNotes = JSON.stringify(widget.dayNotes || {});
                item.dataset.dayTextAppearsInToc = normalizeStoredBoolean(widget.dayTextAppearsInToc) || "false";
@@ -574,7 +576,7 @@ function restorePlannerItemSettings(item, itemData) {
                startTime: widget.startTime,
                timeFormat: widget.timeFormat,
                timeVisible: normalizeStoredBoolean(widget.timeVisible, "true"),
-               shareWeekends: normalizeStoredBoolean(widget.shareWeekends),
+               shareWeekends: normalizeStoredBoolean(widget.shareWeekends, defaultShareWeekends),
                weekNotes: widget.weekNotes
           });
      }
