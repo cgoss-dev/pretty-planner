@@ -2832,7 +2832,8 @@ body {
      display: grid;
      position: relative;
      align-content: start;
-     grid-auto-rows: var(--toc-row-height, calc(100% / var(--toc-row-count, 18)));
+     grid-template-rows: var(--toc-title-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 5)));
+     grid-auto-rows: var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2)));
      gap: 0;
      min-height: 0;
      overflow: hidden;
@@ -2846,14 +2847,15 @@ body {
      position: absolute;
      inset: 0;
      z-index: 2;
-     background: repeating-linear-gradient(180deg, transparent 0 calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) - 1px), var(--toc-grid-line-color) calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) - 1px) var(--toc-row-height, calc(100% / var(--toc-row-count, 18))));
+     top: var(--toc-title-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 5)));
+     background: repeating-linear-gradient(180deg, transparent 0 calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - 1px), var(--toc-grid-line-color) calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - 1px) var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))));
      pointer-events: none;
 }
 
 .toc-list::after {
      content: "";
      position: absolute;
-     top: calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 4));
+     top: var(--toc-title-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-title-row-span, 5)));
      bottom: 0;
      left: var(--toc-left-column-width, 22.222222%);
      z-index: 3;
@@ -2965,7 +2967,7 @@ body {
 }
 
 .toc-list::before {
-     background: repeating-linear-gradient(180deg, transparent 0 calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) - var(--widget-body-h-line-width, var(--border-sm))), var(--widget-body-h-line-color, var(--toc-grid-line-color)) calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) - var(--widget-body-h-line-width, var(--border-sm))) var(--toc-row-height, calc(100% / var(--toc-row-count, 18))));
+     background: repeating-linear-gradient(180deg, transparent 0 calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - var(--widget-body-h-line-width, var(--border-sm))), var(--widget-body-h-line-color, var(--toc-grid-line-color)) calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - var(--widget-body-h-line-width, var(--border-sm))) var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))));
 }
 
 .toc-list::after {
@@ -3002,6 +3004,64 @@ body {
 .perpetual-calendar-day-number {
      border-right-color: var(--widget-body-v-line-color);
      border-right-width: var(--widget-body-v-line-width);
+}
+
+.planner-item[data-title-fill-visible="false"] .toc-title,
+.planner-item[data-title-fill-visible="false"] .mini-month-month,
+.planner-item[data-title-fill-visible="false"] .perpetual-calendar-title,
+.planner-item[data-title-fill-visible="false"] .weekly-view-date,
+.planner-item[data-title-fill-visible="false"] .weekly-view-time-heading,
+.planner-item[data-title-fill-visible="false"] .weekly-view-sunday-mid-marker,
+.planner-item[data-title-fill-visible="false"] .diary-view-date-label,
+.planner-item[data-title-fill-visible="false"] .diary-view-weekend .diary-view-date-label {
+     background: var(--widget-box-fill);
+}
+
+.planner-item[data-title-border-visible="false"] .toc-title,
+.planner-item[data-title-border-visible="false"] .mini-month-month,
+.planner-item[data-title-border-visible="false"] .perpetual-calendar-title,
+.planner-item[data-title-border-visible="false"] .weekly-view-date,
+.planner-item[data-title-border-visible="false"] .weekly-view-time-heading,
+.planner-item[data-title-border-visible="false"] .diary-view-date-label {
+     border-right-width: 0;
+     border-bottom-width: 0;
+}
+
+.planner-item[data-title-border-visible="false"] .diary-view-row .diary-view-date-label {
+     border-right-width: 0;
+}
+
+.toc-title,
+.toc-title-name,
+.mini-month-month,
+.perpetual-calendar-title,
+.weekly-view-date,
+.weekly-view-time-heading,
+.weekly-view-date-label,
+.weekly-view-sunday-mid-marker,
+.diary-view-date-label,
+.diary-view-date-label .calendar-date-part {
+     overflow: visible;
+     text-overflow: clip;
+}
+
+.mini-month-month,
+.perpetual-calendar-title,
+.weekly-view-date,
+.weekly-view-date-label,
+.weekly-view-time-heading,
+.diary-view-date-label {
+     justify-content: center;
+     text-align: center;
+}
+
+.mini-month-month .calendar-date-part,
+.perpetual-calendar-title .calendar-date-part,
+.weekly-view-date .calendar-date-part,
+.weekly-view-date-label .calendar-date-part,
+.diary-view-date-label .calendar-date-part {
+     max-width: none;
+     white-space: nowrap;
 }
 
 /* NOTE: Widget Tray Mini Preview Pictures */
@@ -5448,7 +5508,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 }
 
 .toc-list::before {
-     background: repeating-linear-gradient(180deg, transparent 0 calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) - var(--widget-body-h-line-width, var(--border-sm))), var(--widget-body-h-line-color, var(--toc-grid-line-color)) calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) - var(--widget-body-h-line-width, var(--border-sm))) var(--toc-row-height, calc(100% / var(--toc-row-count, 18))));
+     background: repeating-linear-gradient(180deg, transparent 0 calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - var(--widget-body-h-line-width, var(--border-sm))), var(--widget-body-h-line-color, var(--toc-grid-line-color)) calc(var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))) - var(--widget-body-h-line-width, var(--border-sm))) var(--toc-body-row-height, calc(var(--toc-row-height, calc(100% / var(--toc-row-count, 18))) * var(--toc-body-row-span, 2))));
 }
 
 .toc-list::after {
@@ -5485,6 +5545,64 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 .perpetual-calendar-day-number {
      border-right-color: var(--widget-body-v-line-color);
      border-right-width: var(--widget-body-v-line-width);
+}
+
+.planner-item[data-title-fill-visible="false"] .toc-title,
+.planner-item[data-title-fill-visible="false"] .mini-month-month,
+.planner-item[data-title-fill-visible="false"] .perpetual-calendar-title,
+.planner-item[data-title-fill-visible="false"] .weekly-view-date,
+.planner-item[data-title-fill-visible="false"] .weekly-view-time-heading,
+.planner-item[data-title-fill-visible="false"] .weekly-view-sunday-mid-marker,
+.planner-item[data-title-fill-visible="false"] .diary-view-date-label,
+.planner-item[data-title-fill-visible="false"] .diary-view-weekend .diary-view-date-label {
+     background: var(--widget-box-fill);
+}
+
+.planner-item[data-title-border-visible="false"] .toc-title,
+.planner-item[data-title-border-visible="false"] .mini-month-month,
+.planner-item[data-title-border-visible="false"] .perpetual-calendar-title,
+.planner-item[data-title-border-visible="false"] .weekly-view-date,
+.planner-item[data-title-border-visible="false"] .weekly-view-time-heading,
+.planner-item[data-title-border-visible="false"] .diary-view-date-label {
+     border-right-width: 0;
+     border-bottom-width: 0;
+}
+
+.planner-item[data-title-border-visible="false"] .diary-view-row .diary-view-date-label {
+     border-right-width: 0;
+}
+
+.toc-title,
+.toc-title-name,
+.mini-month-month,
+.perpetual-calendar-title,
+.weekly-view-date,
+.weekly-view-time-heading,
+.weekly-view-date-label,
+.weekly-view-sunday-mid-marker,
+.diary-view-date-label,
+.diary-view-date-label .calendar-date-part {
+     overflow: visible;
+     text-overflow: clip;
+}
+
+.mini-month-month,
+.perpetual-calendar-title,
+.weekly-view-date,
+.weekly-view-date-label,
+.weekly-view-time-heading,
+.diary-view-date-label {
+     justify-content: center;
+     text-align: center;
+}
+
+.mini-month-month .calendar-date-part,
+.perpetual-calendar-title .calendar-date-part,
+.weekly-view-date .calendar-date-part,
+.weekly-view-date-label .calendar-date-part,
+.diary-view-date-label .calendar-date-part {
+     max-width: none;
+     white-space: nowrap;
 }
 
 /* NOTE: Printing */

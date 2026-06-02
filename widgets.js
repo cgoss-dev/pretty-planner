@@ -249,6 +249,7 @@ function renderToc(item, entries = []) {
 
      const tocEntries = Array.isArray(entries) ? entries : [];
      const tocTitleGridRows = 5;
+     const tocBodyGridRows = 2;
      let toc = item.querySelector(".toc-widget");
 
      if (!toc) {
@@ -263,9 +264,10 @@ function renderToc(item, entries = []) {
 
      list.className = "toc-list";
      list.style.setProperty("--toc-title-row-span", String(tocTitleGridRows));
+     list.style.setProperty("--toc-body-row-span", String(tocBodyGridRows));
      toc.replaceChildren(list);
      tocTitle.className = "toc-title";
-     tocTitle.style.gridRow = `span ${tocTitleGridRows}`;
+     tocTitle.style.gridRow = "1";
      tocTitle.dataset.themePart = "heading";
      tocTitleName.className = "toc-title-name";
      tocTitleName.textContent = "Contents";
@@ -334,10 +336,14 @@ function updateTocGridMetrics(item, page, box) {
      const fallbackHeightUnits = itemGridUnits.toc?.height || 19;
      const columnWidth = grid ? grid.x : box.width / fallbackWidthUnits;
      const rowHeight = grid ? grid.y : box.height / fallbackHeightUnits;
-     const rowCount = Math.max(1, Math.round(box.height / rowHeight));
+     const titleGridRows = 5;
+     const bodyGridRows = 2;
+     const rowCount = Math.max(1, Math.floor((Math.round(box.height / rowHeight) - titleGridRows) / bodyGridRows));
      item.style.setProperty("--toc-left-column-width", `${columnWidth * tocLeftColumnGridUnits}px`);
      item.style.setProperty("--toc-right-column-min-width", `${columnWidth * tocRightColumnMinGridUnits}px`);
      item.style.setProperty("--toc-row-height", `${rowHeight}px`);
+     item.style.setProperty("--toc-title-row-height", `${rowHeight * titleGridRows}px`);
+     item.style.setProperty("--toc-body-row-height", `${rowHeight * bodyGridRows}px`);
      item.style.setProperty("--toc-row-count", String(rowCount));
 }
 
@@ -365,6 +371,8 @@ function setItemStyle(item, style) {
      item.dataset.borderColor = "#ccc";
      item.dataset.borderWidth = "1";
      item.dataset.dotGrid = style.dotGrid || item.dataset.dotGrid || "false";
+     item.dataset.titleFillVisible = style.titleFillVisible ?? item.dataset.titleFillVisible ?? "true";
+     item.dataset.titleBorderVisible = style.titleBorderVisible ?? item.dataset.titleBorderVisible ?? "true";
      const hasClearFill = item.dataset.fillColor === "transparent";
      const hasClearBorder = false;
 
@@ -388,6 +396,8 @@ function setItemStyle(item, style) {
      const fillInput = controls.querySelector("[data-style-control='fill']");
      const fillSwatches = controls.querySelector("[data-style-swatches='fill']");
      const dotGridInput = controls.querySelector("[data-style-control='dot-grid']");
+     const titleFillInput = controls.querySelector("[data-widget-control='title-fill-visible']");
+     const titleBorderInput = controls.querySelector("[data-widget-control='title-border-visible']");
 
      if (fillInput) {
           setPaletteControlValue(fillInput, fillSwatches, item.dataset.fillColor);
@@ -395,6 +405,14 @@ function setItemStyle(item, style) {
 
      if (dotGridInput) {
           dotGridInput.checked = item.dataset.dotGrid === "true";
+     }
+
+     if (titleFillInput) {
+          titleFillInput.checked = item.dataset.titleFillVisible !== "false";
+     }
+
+     if (titleBorderInput) {
+          titleBorderInput.checked = item.dataset.titleBorderVisible !== "false";
      }
 
      controls.querySelectorAll("select").forEach(updateCustomSelectDisplay);
@@ -2114,7 +2132,9 @@ function applyStyleToActionItems(item, style) {
                fillColor: style.fillColor ?? targetItem.dataset.fillColor,
                borderColor: style.borderColor ?? targetItem.dataset.borderColor,
                borderWidth: style.borderWidth ?? targetItem.dataset.borderWidth,
-               dotGrid: style.dotGrid ?? targetItem.dataset.dotGrid
+               dotGrid: style.dotGrid ?? targetItem.dataset.dotGrid,
+               titleFillVisible: style.titleFillVisible ?? targetItem.dataset.titleFillVisible,
+               titleBorderVisible: style.titleBorderVisible ?? targetItem.dataset.titleBorderVisible
           });
      });
      notifyTemplateChanged();
@@ -2835,7 +2855,7 @@ function updateItemSizeLabel(item) {
 
 // NOTE: Build New Items And Their Option Controls
 function makePlannerItem(type = "sticker") {
-     const hasWidgetControls = type === "sticker" || isCalendarItemType(type);
+     const hasWidgetControls = type === "sticker" || isCalendarItemType(type) || isTocItemType(type);
      const item = document.createElement("div");
      const sizeLabel = document.createElement("span");
      const controls = document.createElement("div");
@@ -2930,6 +2950,10 @@ function makePlannerItem(type = "sticker") {
      const dateOffsetSelect = document.createElement("select");
      const titleVisibleLabel = document.createElement("label");
      const titleVisibleInput = document.createElement("input");
+     const titleFillLabel = document.createElement("label");
+     const titleFillInput = document.createElement("input");
+     const titleBorderLabel = document.createElement("label");
+     const titleBorderInput = document.createElement("input");
      const monthLabel = document.createElement("label");
      const monthSelect = document.createElement("select");
      const monthDisplayLabel = document.createElement("label");
@@ -3402,6 +3426,20 @@ function makePlannerItem(type = "sticker") {
      titleVisibleInput.dataset.widgetControl = "calendar-title-visible";
      titleVisibleInput.setAttribute("aria-label", "Show calendar month and year row");
      titleVisibleInput.checked = true;
+     titleFillLabel.className = "widget-panel-row widget-option-control";
+     titleFillLabel.dataset.sidebarControl = "options.title-fill-visible";
+     titleFillLabel.textContent = "Title Fill";
+     titleFillInput.type = "checkbox";
+     titleFillInput.dataset.widgetControl = "title-fill-visible";
+     titleFillInput.setAttribute("aria-label", "Show widget title bar background fill");
+     titleFillInput.checked = true;
+     titleBorderLabel.className = "widget-panel-row widget-option-control";
+     titleBorderLabel.dataset.sidebarControl = "options.title-border-visible";
+     titleBorderLabel.textContent = "Title Border";
+     titleBorderInput.type = "checkbox";
+     titleBorderInput.dataset.widgetControl = "title-border-visible";
+     titleBorderInput.setAttribute("aria-label", "Show widget title bar border");
+     titleBorderInput.checked = true;
      monthLabel.className = "widget-panel-row widget-option-control";
      monthLabel.dataset.sidebarControl = "options.month";
      monthLabel.textContent = "Month";
@@ -3589,19 +3627,23 @@ function makePlannerItem(type = "sticker") {
      dateModeLabel.append(dateModeSelect);
      dateOffsetLabel.append(dateOffsetSelect);
      titleVisibleLabel.append(titleVisibleInput);
+     titleFillLabel.append(titleFillInput);
+     titleBorderLabel.append(titleBorderInput);
      weekNumberLabel.append(weekNumberInput);
      if (type === "perpetual-calendar") {
-          calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, monthDisplayLabel);
+          calendarAttributesGrid.append(titleFillLabel, titleBorderLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, monthDisplayLabel);
      } else if (type === "weekly-view") {
-          calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
+          calendarAttributesGrid.append(titleFillLabel, titleBorderLabel, weekdayLabelLabel, shareWeekendsLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "diary-view") {
-          calendarAttributesGrid.append(weekdayLabelLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
+          calendarAttributesGrid.append(titleFillLabel, titleBorderLabel, weekdayLabelLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "day-view") {
-          calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
+          calendarAttributesGrid.append(titleFillLabel, titleBorderLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
      } else if (type === "full-month") {
-          calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
+          calendarAttributesGrid.append(titleFillLabel, titleBorderLabel, weekdayLabelLabel, shareWeekendsLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
+     } else if (type === "toc") {
+          calendarAttributesGrid.append(titleFillLabel, titleBorderLabel);
      } else {
-          calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
+          calendarAttributesGrid.append(titleFillLabel, titleBorderLabel, weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel, monthDisplayLabel, yearDisplayLabel);
      }
      startDayLabel.append(startDaySelect);
      visibleDaysLabel.append(visibleDaysSelect);
@@ -3627,6 +3669,9 @@ function makePlannerItem(type = "sticker") {
      if (isCalendarItemType(type) && type !== "weekly-view") {
           widgetPanel.append(widgetPanelSectionTitle);
           widgetPanel.append(calendarAttributesGrid);
+     }
+     if (type === "toc") {
+          widgetPanel.append(widgetPanelSectionTitle, calendarAttributesGrid);
      }
      if (type === "weekly-view") {
           widgetPanel.append(widgetPanelSectionTitle);
@@ -4056,6 +4101,16 @@ function makePlannerItem(type = "sticker") {
                titleVisible: titleVisibleInput.checked ? "true" : "false"
           });
      });
+     titleFillInput.addEventListener("change", () => {
+          applyStyleToActionItems(item, {
+               titleFillVisible: titleFillInput.checked ? "true" : "false"
+          });
+     });
+     titleBorderInput.addEventListener("change", () => {
+          applyStyleToActionItems(item, {
+               titleBorderVisible: titleBorderInput.checked ? "true" : "false"
+          });
+     });
      monthSelect.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
                dateMode: "fixed",
@@ -4174,7 +4229,9 @@ function copyItemConfiguration(source, target) {
           fillColor: source.dataset.fillColor,
           borderColor: source.dataset.borderColor,
           borderWidth: source.dataset.borderWidth,
-          dotGrid: source.dataset.dotGrid
+          dotGrid: source.dataset.dotGrid,
+          titleFillVisible: source.dataset.titleFillVisible,
+          titleBorderVisible: source.dataset.titleBorderVisible
      });
      if (source.dataset.themeMode) {
           target.dataset.themeMode = source.dataset.themeMode;
