@@ -286,6 +286,17 @@ function formatMinutesAsTime(totalMinutes) {
      return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
 
+function normalizeScheduleStartTime(value) {
+     const minutes = parseTimeValue(value);
+     const hour = Math.floor(minutes / 60);
+
+     if (!Number.isFinite(minutes) || hour < 0 || hour > 11) {
+          return "00:00";
+     }
+
+     return formatMinutesAsTime(hour * 60);
+}
+
 function normalizeCalendarTimeFormat(format) {
      if (format === "12" || format === "12-double" || format === "compact" || format === "ampm") {
           return "12";
@@ -512,6 +523,10 @@ function getWeeklyBodyGridRows(item) {
      return 1;
 }
 
+function getWeeklyViewFixedGridRows() {
+     return 40;
+}
+
 function getFullMonthGridUnits(item) {
      const titleRowUnits = item?.dataset?.calendarTitleVisible === "false" ? 0 : getFullMonthTitleRowUnits();
 
@@ -541,6 +556,19 @@ function getDiaryViewMinGridRows(item) {
 
 function getDiaryViewMinGridColumns() {
      return 20;
+}
+
+function clampWeeklyViewBox(item, page, box) {
+     if (item.dataset.itemType !== "weekly-view") {
+          return box;
+     }
+
+     const grid = getGridSize(page);
+
+     return {
+          ...box,
+          height: grid.y * getWeeklyViewFixedGridRows()
+     };
 }
 
 function getDiaryViewMaxGridRows() {
@@ -602,6 +630,7 @@ function updatePerpetualCalendarGridMetrics(item, page, box) {
      item.style.setProperty("--perpetual-calendar-right-column-min-width", `${columnWidth * perpetualCalendarRightColumnMinGridUnits}px`);
      item.style.setProperty("--perpetual-calendar-row-height", `${rowHeight}px`);
      item.style.setProperty("--perpetual-calendar-row-count", String(rowCount));
+     item.style.setProperty("--perpetual-calendar-title-row-units", String(perpetualCalendarHeaderRows));
      item.style.setProperty("--perpetual-calendar-visible-height", `${rowHeight * visibleRows}px`);
      item.style.setProperty("--perpetual-calendar-visible-rows", String(visibleRows));
 }
@@ -1925,7 +1954,7 @@ function renderWeeklyVertical(item) {
                          : getWeeklySlotKey(primaryDate, slotMinutes);
                     const slotText = document.createElement("div");
                     const sharedWeekendSundayRow = 1 + Math.floor(slotCount / 2);
-                    const sharedWeekendSundaySpan = Math.min(2, Math.max(1, slotCount - sharedWeekendSundayRow + 1));
+                    const sharedWeekendSundaySpan = Math.min(4, Math.max(1, slotCount - sharedWeekendSundayRow + 1));
                     const isSharedWeekendSundayRow = displayColumn.type === "shared-weekend" && calendarRow === sharedWeekendSundayRow;
                     const isSharedWeekendSundayCoveredRow = displayColumn.type === "shared-weekend" &&
                          sharedWeekendSundaySpan > 1 &&
@@ -1937,6 +1966,9 @@ function renderWeeklyVertical(item) {
                     if (displayColumn.type === "shared-weekend") {
                          cell.classList.add("weekly-view-shared-weekend");
                          cell.dataset.themePart = "weekendTimeSlot";
+                         if (calendarRow % 2 === 1) {
+                              cell.dataset.weekendRowNumber = String(Math.floor((calendarRow + 1) / 2));
+                         }
                     }
                     if (displayColumn.dates.some((date) => date.getDay() === 0 || date.getDay() === 6)) {
                          cell.classList.add("weekly-view-weekend");
@@ -1953,6 +1985,7 @@ function renderWeeklyVertical(item) {
                          const sundayMarker = document.createElement("span");
 
                          cell.style.gridRow = `${calendarRow + 1} / span ${sharedWeekendSundaySpan}`;
+                         delete cell.dataset.weekendRowNumber;
                          sundayMarker.className = "weekly-view-date-label weekly-view-sunday-mid-marker";
                          sundayMarker.dataset.themePart = "weekendDayHeader";
                          appendCalendarDateParts(sundayMarker, item, sundayDate, {
@@ -2118,7 +2151,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      item.dataset.visibleDays = settings.visibleDays || item.dataset.visibleDays || "7";
      item.dataset.startDay = String(clamp(Number(item.dataset.startDay) || 1, 1, getCalendarDaysInMonth(Number(item.dataset.year), Number(item.dataset.month))));
      item.dataset.timeIncrement = settings.timeIncrement || item.dataset.timeIncrement || "30";
-     item.dataset.startTime = settings.startTime || item.dataset.startTime || "00:00";
+     item.dataset.startTime = normalizeScheduleStartTime(settings.startTime || item.dataset.startTime || "00:00");
      item.dataset.timeFormat = normalizeCalendarTimeFormat(settings.timeFormat || item.dataset.timeFormat || defaultDateSettings.timeFormat || "24");
      item.dataset.timeVisible = settings.timeVisible ?? item.dataset.timeVisible ?? "true";
      item.dataset.shareWeekends = settings.shareWeekends ?? item.dataset.shareWeekends ?? "false";

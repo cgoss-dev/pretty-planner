@@ -62,7 +62,7 @@
                     },
                     "weekly-view": {
                          width: 14,
-                         height: 14
+                         height: 40
                     },
                     "day-view": {
                          width: 7,

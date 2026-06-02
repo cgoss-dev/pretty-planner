@@ -505,7 +505,7 @@ function getStoredItemGrid(itemData) {
           x: Number.isFinite(Number(grid.x)) ? Number(grid.x) : 0,
           y: Number.isFinite(Number(grid.y)) ? Number(grid.y) : 0,
           width: type === "mini-month" || shouldUseMiniMonth2DefaultSize ? fallback.width : Math.max(1, Number.isFinite(storedWidth) ? storedWidth : fallback.width),
-          height: type === "mini-month" || shouldUseMiniMonth2DefaultSize ? fallback.height : Math.max(1, Number.isFinite(storedHeight) ? storedHeight : fallback.height)
+          height: type === "mini-month" || shouldUseMiniMonth2DefaultSize || type === "weekly-view" ? fallback.height : Math.max(1, Number.isFinite(storedHeight) ? storedHeight : fallback.height)
      };
 }
 

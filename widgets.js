@@ -774,6 +774,7 @@ function setItemBox(item, box) {
      if (page) {
           box = clampPerpetualCalendarBox(item, page, box);
           box = clampMiniMonthBox(item, page, box);
+          box = clampWeeklyViewBox(item, page, box);
           box = clampTocBox(item, page, box);
      }
 
@@ -2559,6 +2560,10 @@ function getResizedPerpetualCalendarBox(item, page, clientX, current, mode, grid
 }
 
 function getItemMinGridHeight(item) {
+     if (item.dataset.itemType === "weekly-view") {
+          return getWeeklyViewFixedGridRows();
+     }
+
      if (item.dataset.itemType === "perpetual-calendar") {
           return getPerpetualCalendarMaxGridRows();
      }
@@ -2621,7 +2626,7 @@ function getResizedBox(item, page, clientX, clientY, mode) {
      const minHeight = grid.y * minGridHeight;
      const maxHeight = item.dataset.itemType === "perpetual-calendar"
           ? grid.y * getPerpetualCalendarMaxGridRows()
-          : (item.dataset.itemType === "diary-view" ? grid.y * getDiaryViewMaxGridRows() : Infinity);
+          : (item.dataset.itemType === "weekly-view" ? grid.y * getWeeklyViewFixedGridRows() : (item.dataset.itemType === "diary-view" ? grid.y * getDiaryViewMaxGridRows() : Infinity));
      const right = current.x + current.width;
      const bottom = current.y + current.height;
      const pointerX = snapToGridOrigin((clientX - pageRect.left) / viewZoom, origin.x, grid.x);
@@ -3526,12 +3531,13 @@ function makePlannerItem(type = "sticker") {
           option.textContent = label;
           weekNotesSelect.append(option);
      });
-     for (let minute = 0; minute < 24 * 60; minute += 30) {
+     for (let minute = 0; minute < 12 * 60; minute += 60) {
           const option = document.createElement("option");
           const time = formatMinutesAsTime(minute);
+          const hour = minute / 60;
 
           option.value = time;
-          option.textContent = time;
+          option.textContent = `${hour === 0 ? 12 : hour} AM`;
           startTimeSelect.append(option);
      }
 
