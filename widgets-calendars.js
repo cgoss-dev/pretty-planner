@@ -503,6 +503,12 @@ function getWeeklyVerticalMinGridColumns(item) {
      return timeColumnUnits + dayColumnUnits + getWeekNotesColumnUnits(item);
 }
 
+function getWeeklyVerticalResizeStepGridColumns(item) {
+     const weekNotesColumnCount = getWeekNotesColumnUnits(item) > 0 ? 1 : 0;
+
+     return Math.max(1, getWeeklyVerticalDisplayColumnCount(item) + weekNotesColumnCount);
+}
+
 function getWeeklyTimeColumnGridUnits(item) {
      if (!isTimeGridCalendarType(item.dataset.itemType) || item.dataset.timeVisible === "false") {
           return 0;
@@ -534,6 +540,13 @@ function getFullMonthGridUnits(item) {
           width: 31 + getWeekNotesColumnUnits(item),
           height: titleRowUnits + getFullMonthWeekdayRowUnits() + (6 * getFullMonthWeekRowUnits())
      };
+}
+
+function getFullMonthResizeStepGridColumns(item) {
+     const weekStart = item?.dataset?.weekStart || "monday";
+     const weekNotesColumnCount = getWeekNotesColumnUnits(item) > 0 ? 1 : 0;
+
+     return Math.max(1, getMonthCalendarColumns(weekStart, true).length + weekNotesColumnCount);
 }
 
 function getFullMonthTitleRowUnits() {

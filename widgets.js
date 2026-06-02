@@ -2569,10 +2569,27 @@ function clampWeeklyViewResizeBox(item, box, current, resizeLeft, grid) {
           return box;
      }
 
-     const columnStep = grid.x * 6;
      const minWidth = grid.x * getWeeklyVerticalMinGridColumns(item);
+     const columnStep = grid.x * getWeeklyVerticalResizeStepGridColumns(item);
      const right = current.x + current.width;
-     const nextWidth = Math.max(minWidth, Math.round(box.width / columnStep) * columnStep);
+     const nextWidth = minWidth + (Math.max(0, Math.round((box.width - minWidth) / columnStep)) * columnStep);
+
+     return {
+          ...box,
+          x: resizeLeft ? right - nextWidth : box.x,
+          width: nextWidth
+     };
+}
+
+function clampFullMonthResizeBox(item, box, current, resizeLeft, grid) {
+     if (item.dataset.itemType !== "full-month") {
+          return box;
+     }
+
+     const minWidth = grid.x * getFullMonthGridUnits(item).width;
+     const columnStep = grid.x * getFullMonthResizeStepGridColumns(item);
+     const right = current.x + current.width;
+     const nextWidth = minWidth + (Math.max(0, Math.round((box.width - minWidth) / columnStep)) * columnStep);
 
      return {
           ...box,
@@ -2642,7 +2659,7 @@ function getResizedBox(item, page, clientX, clientY, mode) {
           return getResizedPerpetualCalendarBox(item, page, clientX, current, mode, grid, origin, pageRect, viewZoom);
      }
 
-     const minGridWidth = isTocItem(item) ? getTocMinGridColumns() : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMinGridColumns() : (item.dataset.itemType === "diary-view" ? getDiaryViewMinGridColumns() : (isTimeGridCalendarType(item.dataset.itemType) ? getWeeklyVerticalMinGridColumns(item) : (isFullPageCalendarType(item.dataset.itemType) ? 16 : 2))));
+     const minGridWidth = isTocItem(item) ? getTocMinGridColumns() : (item.dataset.itemType === "perpetual-calendar" ? getPerpetualCalendarMinGridColumns() : (item.dataset.itemType === "diary-view" ? getDiaryViewMinGridColumns() : (item.dataset.itemType === "full-month" ? getFullMonthGridUnits(item).width : (isTimeGridCalendarType(item.dataset.itemType) ? getWeeklyVerticalMinGridColumns(item) : (isFullPageCalendarType(item.dataset.itemType) ? 16 : 2)))));
      const minGridHeight = getItemMinGridHeight(item);
      const minWidth = grid.x * minGridWidth;
      const minHeight = grid.y * minGridHeight;
@@ -2658,13 +2675,15 @@ function getResizedBox(item, page, clientX, clientY, mode) {
      const nextRight = resizeRight ? clamp(pointerX, current.x + minWidth, (pageRect.width / viewZoom) - grid.x * pageStickDepth + current.width) : right;
      const nextBottom = resizeBottom ? clamp(pointerY, current.y + minHeight, Math.min((pageRect.height / viewZoom) - grid.y * pageStickDepth + current.height, current.y + maxHeight)) : bottom;
 
-     return clampWeeklyViewResizeBox(item, {
+     const resizedBox = {
           ...current,
           x: nextLeft,
           y: nextTop,
           width: nextRight - nextLeft,
           height: nextBottom - nextTop
-     }, current, resizeLeft, grid);
+     };
+
+     return clampWeeklyViewResizeBox(item, clampFullMonthResizeBox(item, resizedBox, current, resizeLeft, grid), current, resizeLeft, grid);
 }
 
 function getResizeClass(resizeMode) {
