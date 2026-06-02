@@ -225,7 +225,7 @@ async function loadPlannerThemeData() {
      try {
           const [themesResponse, slotsResponse] = await Promise.all([
                fetch("data/themes.json?v=planner-storage-8"),
-               fetch("data/widget-theme-slots.json?v=planner-storage-9")
+               fetch("data/widget-theme-slots.json?v=planner-storage-10")
           ]);
 
           plannerThemesData = await themesResponse.json();
@@ -474,7 +474,7 @@ function getClearPageSides() {
 }
 
 function isStickerTextItemType(type) {
-     return type === "sticker" || type === "toc";
+     return type === "sticker" || type === "page-flag" || type === "toc";
 }
 
 function isStickerTextItem(item) {
@@ -817,6 +817,7 @@ function setItemBox(item, box) {
      item.style.setProperty("--item-width", `${box.width}px`);
      item.style.setProperty("--item-height", `${box.height}px`);
      updateStickerDotGrid(item, page, box);
+     updatePageFlagMetrics(item, page, box);
      updateItemSizeLabel(item);
      if (item.dataset.itemType === "full-month" || isTimeGridCalendarType(item.dataset.itemType)) {
           updateCalendarGridMetrics(item, page, box);
@@ -854,6 +855,18 @@ function updateStickerDotGrid(item, page, box) {
      item.style.setProperty("--sticker-dot-grid-size-y", `${grid.y}px`);
      item.style.setProperty("--sticker-dot-grid-offset-x", `${-offsetX}px`);
      item.style.setProperty("--sticker-dot-grid-offset-y", `${-offsetY}px`);
+}
+
+function updatePageFlagMetrics(item, page, box) {
+     if (item.dataset.itemType !== "page-flag") {
+          return;
+     }
+
+     const grid = page ? getGridSize(page) : null;
+     const gridUnits = itemGridUnits["page-flag"] || { width: 6, height: 2 };
+
+     item.style.setProperty("--page-flag-grid-x", `${grid ? grid.x : box.width / gridUnits.width}px`);
+     item.style.setProperty("--page-flag-grid-y", `${grid ? grid.y : box.height / gridUnits.height}px`);
 }
 
 // NOTE: Text Inside Notes, Titles, And Calendars
@@ -976,7 +989,8 @@ function setStickerTextSettings(item, settings = {}) {
      const textElement = getStickerTextElement(item);
      const controls = getWidgetPanel(item) || item;
      const isGeneratedTextItem = isTocItem(item);
-     const isEnabled = isGeneratedTextItem ? "true" : settings.enabled ?? item.dataset.textEnabled ?? "false";
+     const isDefaultTextEnabled = item.dataset.itemType === "page-flag" ? "true" : "false";
+     const isEnabled = isGeneratedTextItem ? "true" : settings.enabled ?? item.dataset.textEnabled ?? isDefaultTextEnabled;
 
      item.dataset.textEnabled = String(isEnabled);
      item.dataset.textSize = settings.size || item.dataset.textSize || "10";
@@ -1320,6 +1334,7 @@ function getWidgetPanel(item) {
 function getItemTypeLabel(type) {
      return {
           sticker: "Sticker",
+          "page-flag": "Page Flag",
           toc: "Table of Contents",
           "mini-month": "Mini Month",
           "full-month": "Full Month",
@@ -1910,13 +1925,13 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      const bringForwardButton = makeButton("Bring Fwd", closeAfter(() => moveActionItemsLayer(item, "forward")));
      const deleteButton = makeButton("Delete", closeAfter(() => deleteItem(item)), "widget-panel-danger");
 
-     if (textTarget) {
+     if (textTarget && item.dataset.itemType === "sticker") {
           textGroup.append(makeButton("Appears in ToC", closeAfter(() => applyPopupTextToc(item, textTarget, !textTarget.appearsInToc)), textTarget.appearsInToc ? "is-active" : ""));
      }
      duplicateGroup.append(duplicateButton, groupButton);
      layerGroup.append(sendBackwardButton, bringForwardButton);
      popup.append(popupTitle, widgetType);
-     if (textTarget) {
+     if (textGroup.childElementCount) {
           popup.append(textGroup);
      }
      popup.append(layerGroup, duplicateGroup, deleteButton);
@@ -3822,7 +3837,7 @@ function makePlannerItem(type = "sticker") {
      });
      setStickerTextSettings(item, typeof getPlannerDefaultTextSettings === "function"
           ? getPlannerDefaultTextSettings({
-               enabled: isTocItemType(type) ? "true" : "false"
+               enabled: isTocItemType(type) || type === "page-flag" ? "true" : "false"
           }) : {});
      setCalendarDayTextSettings(item, typeof getPlannerDefaultTextSettings === "function" ? getPlannerDefaultTextSettings() : {});
      if (isCalendarItemType(type)) {

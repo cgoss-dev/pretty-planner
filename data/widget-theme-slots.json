@@ -26,6 +26,22 @@
         }
       }
     },
+    "page-flag": {
+      "label": "Page Flag",
+      "parts": {
+        "background": {
+          "fillSlot": "fillColor1",
+          "borderSlot": "borderColor",
+          "gridSlot": "interiorGridColor"
+        },
+        "text": {
+          "textSlot": "body",
+          "fillSlot": null,
+          "borderSlot": null,
+          "gridSlot": null
+        }
+      }
+    },
     "toc": {
       "label": "Table of Contents",
       "parts": {

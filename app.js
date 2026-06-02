@@ -623,7 +623,7 @@ function resetItemsToPlannerDefaults(items) {
                setCalendarDayTextSettings(item, getPlannerDefaultTextSettings());
           } else if (isStickerTextItem(item)) {
                setStickerTextSettings(item, getPlannerDefaultTextSettings({
-                    enabled: item.dataset.textEnabled ?? (isTocItem(item) ? "true" : "false")
+                    enabled: item.dataset.textEnabled ?? (isTocItem(item) || item.dataset.itemType === "page-flag" ? "true" : "false")
                }));
           }
      });

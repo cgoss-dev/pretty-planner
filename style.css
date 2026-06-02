@@ -2629,6 +2629,7 @@ body {
 }
 
 .add-panel .sticker-source,
+.add-panel .page-flag-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
 .add-panel .full-month-source,
@@ -2649,6 +2650,7 @@ body {
 }
 
 .add-panel .sticker-source,
+.add-panel .page-flag-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
 .add-panel .full-month-source,
@@ -2662,6 +2664,8 @@ body {
 
 .add-panel .sticker-source:hover,
 .add-panel .sticker-source:focus-visible,
+.add-panel .page-flag-source:hover,
+.add-panel .page-flag-source:focus-visible,
 .add-panel .toc-source:hover,
 .add-panel .toc-source:focus-visible,
 .add-panel .mini-month-source:hover,
@@ -2698,6 +2702,23 @@ body {
 
 .add-panel .toc-source[data-widget-label]::before {
      content: "Table of Contents";
+}
+
+.add-panel .page-flag-source {
+     aspect-ratio: 3 / 1;
+     border-color: transparent;
+     background: transparent;
+}
+
+.add-panel .page-flag-source::after {
+     content: "";
+     position: absolute;
+     inset: 0;
+     z-index: 1;
+     clip-path: polygon(0 0, 100% 0, calc(100% - 24px) 50%, 100% 100%, 0 100%);
+     background: var(--color-white);
+     border: var(--border-sm) solid var(--color-gray4);
+     pointer-events: none;
 }
 
 .add-panel .mini-month-source > span:not(.calendar-source-preview),
@@ -2739,13 +2760,48 @@ body {
      overflow: visible;
 }
 
+.planner-item-page-flag {
+     overflow: visible;
+     border: 0;
+     background: transparent;
+     --page-flag-notch-x: var(--page-flag-grid-x, calc(var(--item-width, 72px) / 6));
+}
+
+.planner-item-page-flag::before,
+.planner-item-page-flag::after {
+     content: "";
+     position: absolute;
+     pointer-events: none;
+     clip-path: polygon(0 0, 100% 0, calc(100% - var(--page-flag-notch-x)) 50%, 100% 100%, 0 100%);
+}
+
+.planner-item-page-flag::before {
+     inset: 0;
+     z-index: 0;
+     background: var(--sticker-border-color, #ccc);
+}
+
+.planner-item-page-flag::after {
+     inset: var(--sticker-border-size, var(--border-sm));
+     z-index: 0;
+     background: var(--widget-box-fill, var(--color-white));
+}
+
 .planner-item-sticker[data-has-clear-fill="true"],
 .planner-item-sticker[data-has-clear-fill="true"][data-dot-grid="true"] {
      background: transparent;
 }
 
+.planner-item-page-flag[data-has-clear-fill="true"]::after {
+     background: transparent;
+}
+
 .planner-item-sticker[data-has-clear-border="true"] {
      border-color: transparent;
+}
+
+.planner-item-page-flag[data-has-clear-border="true"]::before {
+     background: transparent;
 }
 
 .planner-item-toc {
@@ -2779,6 +2835,12 @@ body {
      white-space: pre-wrap;
      word-break: break-word;
      scrollbar-width: none;
+}
+
+.planner-item-page-flag .sticker-text {
+     inset: 0 var(--page-flag-notch-x, 12px) 0 0;
+     z-index: 2;
+     padding: 2px 4px;
 }
 
 .planner-item [data-theme-part] {
@@ -5345,7 +5407,8 @@ body.is-single-page-viewport .notebook {
      grid-template-columns: 1fr 1fr;
 }
 
-body.is-single-page-viewport .planner-desk > .sticker-source {
+body.is-single-page-viewport .planner-desk > .sticker-source,
+body.is-single-page-viewport .planner-desk > .page-flag-source {
      display: none;
 }
 
@@ -5975,7 +6038,8 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 
      .planner-sidebar,
      .control-panel,
-     .sticker-source {
+     .sticker-source,
+     .page-flag-source {
           display: none;
      }
 

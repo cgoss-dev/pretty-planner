@@ -44,6 +44,10 @@
                          width: 12,
                          height: 12
                     },
+                    "page-flag": {
+                         width: 6,
+                         height: 2
+                    },
                     toc: {
                          width: 18,
                          height: 18
@@ -87,6 +91,21 @@
                          "options.dot-grid": false
                     },
                     toc: {
+                         "actions.duplicate": true,
+                         "actions.group": true,
+                         "actions.send-backward": true,
+                         "actions.bring-forward": true,
+                         "actions.delete": true,
+                         "style.fill": true,
+                         "text.appears-in-toc": false,
+                         "text.font": true,
+                         "text.size": true,
+                         "text.format": true,
+                         "text.align": true,
+                         "text.color": true,
+                         "text.line-height": true
+                    },
+                    "page-flag": {
                          "actions.duplicate": true,
                          "actions.group": true,
                          "actions.send-backward": true,
