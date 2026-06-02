@@ -3055,6 +3055,38 @@ body {
      border-top-right-radius: inherit;
 }
 
+.planner-item[data-title-bar-visible="false"] .toc-row:first-of-type,
+.planner-item[data-title-bar-visible="false"] .toc-empty,
+.planner-item[data-title-bar-visible="false"] .mini-month-draw-top-left,
+.planner-item[data-title-bar-visible="false"] .perpetual-calendar-title + .perpetual-calendar-row,
+.planner-item[data-title-bar-visible="false"] .weekly-view-cell[style*="grid-row: 2"][style*="grid-column: 1"] {
+     border-top-left-radius: inherit;
+}
+
+.planner-item[data-title-bar-visible="false"] .toc-row:first-of-type,
+.planner-item[data-title-bar-visible="false"] .toc-empty,
+.planner-item[data-title-bar-visible="false"] .mini-month-draw-top-right,
+.planner-item[data-title-bar-visible="false"] .perpetual-calendar-title + .perpetual-calendar-row,
+.planner-item[data-title-bar-visible="false"] .weekly-view-cell[style*="grid-row: 2"].weekly-view-edge-right {
+     border-top-right-radius: inherit;
+}
+
+.planner-item[data-title-bar-visible="false"] .toc-row:last-of-type,
+.planner-item[data-title-bar-visible="false"] .toc-empty,
+.planner-item[data-title-bar-visible="false"] .mini-month-draw-bottom-left,
+.planner-item[data-title-bar-visible="false"] .perpetual-calendar-edge-bottom,
+.planner-item[data-title-bar-visible="false"] .weekly-view-edge-bottom[style*="grid-column: 1"] {
+     border-bottom-left-radius: inherit;
+}
+
+.planner-item[data-title-bar-visible="false"] .toc-row:last-of-type,
+.planner-item[data-title-bar-visible="false"] .toc-empty,
+.planner-item[data-title-bar-visible="false"] .mini-month-draw-bottom-right,
+.planner-item[data-title-bar-visible="false"] .perpetual-calendar-edge-bottom,
+.planner-item[data-title-bar-visible="false"] .weekly-view-edge-bottom.weekly-view-edge-right {
+     border-bottom-right-radius: inherit;
+}
+
 .planner-item[data-title-bar-visible="false"] .diary-view-row:first-child {
      border-top-left-radius: inherit;
      border-top-right-radius: inherit;
@@ -3071,6 +3103,24 @@ body {
 
 .planner-item[data-title-bar-visible="false"] .diary-view-edge-bottom .diary-view-date-label {
      border-bottom-left-radius: inherit;
+}
+
+.planner-item-diary-view[data-title-bar-visible="false"] .diary-view-row {
+     background: transparent;
+}
+
+.planner-item-diary-view[data-title-bar-visible="false"] .diary-view-day-text {
+     background: var(--widget-box-fill);
+}
+
+.planner-item-diary-view[data-title-bar-visible="false"] .diary-view-row:first-child .diary-view-day-text {
+     border-top-left-radius: inherit;
+     border-top-right-radius: inherit;
+}
+
+.planner-item-diary-view[data-title-bar-visible="false"] .diary-view-edge-bottom .diary-view-day-text {
+     border-bottom-left-radius: inherit;
+     border-bottom-right-radius: inherit;
 }
 
 .toc-title,
@@ -5636,6 +5686,38 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 .planner-item[data-title-bar-visible="false"] .weekly-view-date.weekly-view-edge-right,
 .planner-item-day-view[data-title-bar-visible="false"] .weekly-view-date {
      border-top-right-radius: inherit;
+}
+
+.planner-item[data-title-bar-visible="false"] .toc-row:first-of-type,
+.planner-item[data-title-bar-visible="false"] .toc-empty,
+.planner-item[data-title-bar-visible="false"] .mini-month-draw-top-left,
+.planner-item[data-title-bar-visible="false"] .perpetual-calendar-title + .perpetual-calendar-row,
+.planner-item[data-title-bar-visible="false"] .weekly-view-cell[style*="grid-row: 2"][style*="grid-column: 1"] {
+     border-top-left-radius: inherit;
+}
+
+.planner-item[data-title-bar-visible="false"] .toc-row:first-of-type,
+.planner-item[data-title-bar-visible="false"] .toc-empty,
+.planner-item[data-title-bar-visible="false"] .mini-month-draw-top-right,
+.planner-item[data-title-bar-visible="false"] .perpetual-calendar-title + .perpetual-calendar-row,
+.planner-item[data-title-bar-visible="false"] .weekly-view-cell[style*="grid-row: 2"].weekly-view-edge-right {
+     border-top-right-radius: inherit;
+}
+
+.planner-item[data-title-bar-visible="false"] .toc-row:last-of-type,
+.planner-item[data-title-bar-visible="false"] .toc-empty,
+.planner-item[data-title-bar-visible="false"] .mini-month-draw-bottom-left,
+.planner-item[data-title-bar-visible="false"] .perpetual-calendar-edge-bottom,
+.planner-item[data-title-bar-visible="false"] .weekly-view-edge-bottom[style*="grid-column: 1"] {
+     border-bottom-left-radius: inherit;
+}
+
+.planner-item[data-title-bar-visible="false"] .toc-row:last-of-type,
+.planner-item[data-title-bar-visible="false"] .toc-empty,
+.planner-item[data-title-bar-visible="false"] .mini-month-draw-bottom-right,
+.planner-item[data-title-bar-visible="false"] .perpetual-calendar-edge-bottom,
+.planner-item[data-title-bar-visible="false"] .weekly-view-edge-bottom.weekly-view-edge-right {
+     border-bottom-right-radius: inherit;
 }
 
 .planner-item[data-title-bar-visible="false"] .diary-view-row:first-child {
