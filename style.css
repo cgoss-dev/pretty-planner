@@ -3222,6 +3222,12 @@ body {
      min-height: 100px;
 }
 
+.add-panel .full-month-source,
+.add-panel .perpetual-calendar-source,
+.add-panel .weekly-view-source {
+     min-height: 200px;
+}
+
 .calendar-source-preview {
      position: absolute;
      inset: 0;
