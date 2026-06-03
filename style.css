@@ -5944,6 +5944,15 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.14);
 }
 
+.planner-sidebar .control-object-shell .widget-panel-tab {
+     background: var(--color-white);
+}
+
+.planner-sidebar .control-object-shell .widget-panel-tab.is-active,
+.planner-sidebar .control-object-shell .widget-panel-tab[aria-selected="true"] {
+     background: var(--color-gray4);
+}
+
 .planner-sidebar .control-object-shell .widget-panel.is-docked .widget-panel-page:not([hidden]) {
      gap: 9px;
      padding: 7px;

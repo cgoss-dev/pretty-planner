@@ -7,17 +7,12 @@ function getGridTemplateBox(item, page) {
      const grid = getGridSize(page);
      const origin = getGridSnapOrigin(page);
      const box = getItemBox(item);
-     const fixedGridSize = getFixedStoredCalendarGridUnits(item.dataset.itemType, {
-          widget: {
-               pageSize: item.dataset.calendarPageSize
-          }
-     });
 
      return {
           x: Math.round((box.x - origin.x) / grid.x),
           y: Math.round((box.y - origin.y) / grid.y),
-          width: fixedGridSize?.width || Number((box.width / grid.x).toFixed(4)),
-          height: fixedGridSize?.height || Number((box.height / grid.y).toFixed(4))
+          width: Number((box.width / grid.x).toFixed(4)),
+          height: Number((box.height / grid.y).toFixed(4))
      };
 }
 
@@ -520,27 +515,49 @@ function isLegacyMiniMonth2Type(type) {
      return type === "mini-cal2" || type === "mini-month2";
 }
 
-function getFixedStoredCalendarGridUnits(type, itemData = {}) {
-     const widget = itemData.widget || {};
-     const grid = itemData.grid || {};
-     const pageSize = widget.pageSize || (Number(grid.width) >= 60 ? "both-pages" : "one-page");
-     const normalizedPageSize = pageSize === "both-pages" ? "both-pages" : "one-page";
+function getStoredCalendarPageSize(type, itemData = {}) {
+     if (type !== "weekly-view" && type !== "full-month") {
+          return null;
+     }
+
+     const storedWidth = Number(itemData.grid?.width);
+
+     if (Number.isFinite(storedWidth)) {
+          return storedWidth >= 60 ? "both-pages" : "one-page";
+     }
+
+     return itemData.widget?.pageSize === "both-pages" ? "both-pages" : "one-page";
+}
+
+function getStoredCalendarMinGridUnits(type, itemData = {}) {
+     const pageSize = getStoredCalendarPageSize(type, itemData);
+
+     if (!pageSize) {
+          return null;
+     }
+
+     if (typeof getCalendarPageSizeGridUnits === "function") {
+          const itemLike = {
+               dataset: {
+                    itemType: type,
+                    calendarPageSize: pageSize
+               }
+          };
+
+          return getCalendarPageSizeGridUnits(itemLike);
+     }
 
      if (type === "weekly-view") {
           return {
-               width: normalizedPageSize === "both-pages" ? 62 : 32,
+               width: pageSize === "both-pages" ? 62 : 32,
                height: 40
           };
      }
 
-     if (type === "full-month") {
-          return {
-               width: normalizedPageSize === "both-pages" ? 61 : 31,
-               height: 42
-          };
-     }
-
-     return null;
+     return {
+          width: pageSize === "both-pages" ? 61 : 31,
+          height: 42
+     };
 }
 
 function getStoredItemGrid(itemData) {
@@ -551,13 +568,19 @@ function getStoredItemGrid(itemData) {
      const storedWidth = Number(grid.width);
      const storedHeight = Number(grid.height);
      const shouldUseMiniMonth2DefaultSize = isLegacyMiniMonth2 && storedWidth === 16 && storedHeight === 15;
-     const fixedCalendarSize = getFixedStoredCalendarGridUnits(type, itemData);
+     const minCalendarSize = getStoredCalendarMinGridUnits(type, itemData);
+     const restoredWidth = type === "mini-month" || shouldUseMiniMonth2DefaultSize
+          ? fallback.width
+          : Math.max(1, Number.isFinite(storedWidth) ? storedWidth : fallback.width);
+     const restoredHeight = type === "mini-month" || shouldUseMiniMonth2DefaultSize
+          ? fallback.height
+          : Math.max(1, Number.isFinite(storedHeight) ? storedHeight : fallback.height);
 
      return {
           x: Number.isFinite(Number(grid.x)) ? Number(grid.x) : 0,
           y: Number.isFinite(Number(grid.y)) ? Number(grid.y) : 0,
-          width: fixedCalendarSize?.width || (type === "mini-month" || shouldUseMiniMonth2DefaultSize ? fallback.width : Math.max(1, Number.isFinite(storedWidth) ? storedWidth : fallback.width)),
-          height: fixedCalendarSize?.height || (type === "mini-month" || shouldUseMiniMonth2DefaultSize ? fallback.height : Math.max(1, Number.isFinite(storedHeight) ? storedHeight : fallback.height))
+          width: minCalendarSize ? Math.max(minCalendarSize.width, restoredWidth) : restoredWidth,
+          height: minCalendarSize ? Math.max(minCalendarSize.height, restoredHeight) : restoredHeight
      };
 }
 
@@ -650,7 +673,7 @@ function restorePlannerItemSettings(item, itemData) {
                timeVisible: normalizeStoredBoolean(widget.timeVisible, "true"),
                weeklyMonthYearVisible: normalizeStoredBoolean(widget.weeklyMonthYearVisible, "false"),
                shareWeekends: normalizeStoredBoolean(widget.shareWeekends, defaultShareWeekends),
-               pageSize: widget.pageSize || (["full-month", "weekly-view"].includes(item.dataset.itemType) && Number(itemData.grid?.width) >= 60 ? "both-pages" : "one-page"),
+               pageSize: getStoredCalendarPageSize(item.dataset.itemType, itemData) || widget.pageSize,
                weekNotes: widget.weekNotes
           });
           if (isCalendarTextItem(item)) {
@@ -710,9 +733,6 @@ function restorePlannerItem(itemData) {
 
           markGridState(item, true, page);
           setItemBox(item, box);
-          if ((type === "full-month" || type === "weekly-view") && typeof applyCalendarPageSizeToItem === "function") {
-               applyCalendarPageSizeToItem(item, item.dataset.calendarPageSize);
-          }
           setItemSpreadIndex(item, Number(itemData.spreadIndex) || 0);
      } else {
           const deskRect = plannerDesk.getBoundingClientRect();
