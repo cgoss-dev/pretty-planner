@@ -3968,6 +3968,8 @@ body {
 }
 
 .planner-item-weekly-view .weekly-view-alt-row-line {
+     border-bottom-color: var(--widget-body-h-line-color, rgba(17, 17, 17, 0.22));
+     border-bottom-width: max(var(--widget-body-h-line-width, var(--border-sm)), 1.25px);
      border-bottom-style: dashed;
 }
 
