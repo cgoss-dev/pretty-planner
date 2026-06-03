@@ -1637,6 +1637,10 @@ function isSidebarReorderTitlePointer(row, target, event) {
      return event.clientX >= rowRect.left && event.clientX <= rowRect.left + titleWidth;
 }
 
+function isFormatSidebarReorderRow(row) {
+     return Boolean(row?.parentElement?.matches?.(".text-panel, .widget-options-panel, .item-calendar-attributes-grid"));
+}
+
 function clearSidebarReorderState() {
      if (activeSidebarReorderRow) {
           activeSidebarReorderRow.classList.remove("is-sidebar-row-dragging");
@@ -1673,7 +1677,7 @@ function initializeSidebarRowReorder() {
      plannerSidebar.addEventListener("pointerdown", (event) => {
           const row = getSidebarReorderRow(event.target);
 
-          if (event.button !== 0 || !row || isSidebarReorderInteractiveTarget(event.target) || !isSidebarReorderTitlePointer(row, event.target, event)) {
+          if (event.button !== 0 || !row || isSidebarReorderInteractiveTarget(event.target) || (!isFormatSidebarReorderRow(row) && !isSidebarReorderTitlePointer(row, event.target, event))) {
                return;
           }
 
@@ -1687,7 +1691,7 @@ function initializeSidebarRowReorder() {
           } catch {
           }
      });
-     plannerSidebar.addEventListener("pointermove", (event) => {
+     document.addEventListener("pointermove", (event) => {
           if (!activeSidebarReorderRow || event.pointerId !== activeSidebarReorderPointerId) {
                return;
           }
@@ -1695,12 +1699,12 @@ function initializeSidebarRowReorder() {
           event.preventDefault();
           moveSidebarReorderRow(event.clientY);
      });
-     plannerSidebar.addEventListener("pointerup", (event) => {
+     document.addEventListener("pointerup", (event) => {
           if (activeSidebarReorderRow && event.pointerId === activeSidebarReorderPointerId) {
                clearSidebarReorderState();
           }
      });
-     plannerSidebar.addEventListener("pointercancel", (event) => {
+     document.addEventListener("pointercancel", (event) => {
           if (activeSidebarReorderRow && event.pointerId === activeSidebarReorderPointerId) {
                clearSidebarReorderState();
           }

@@ -2598,13 +2598,12 @@ body {
 }
 
 .add-panel {
-     grid-template-columns: repeat(2, minmax(0, 100px));
-     grid-auto-rows: minmax(112px, max-content);
-     align-items: start;
-     justify-items: center;
+     display: flex;
+     flex-wrap: wrap;
+     align-items: flex-start;
      justify-content: center;
-     align-content: start;
-     gap: 28px 12px;
+     align-content: flex-start;
+     gap: 18px 14px;
      padding: 10px 8px 18px;
 }
 
@@ -2660,7 +2659,6 @@ body {
 }
 
 .add-panel .sticker-source,
-.add-panel .page-flag-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
 .add-panel .full-month-source,
@@ -2691,14 +2689,7 @@ body {
 .add-panel .diary-view-source {
      width: 100%;
      max-width: 100px;
-     justify-self: center;
-}
-
-.add-panel .full-month-source,
-.add-panel .weekly-view-source {
-     grid-column: 1 / -1;
-     width: 208px;
-     max-width: 208px;
+     flex: 0 0 auto;
 }
 
 .add-panel .full-month-source,
@@ -3246,6 +3237,7 @@ body {
 }
 
 .add-panel .sticker-source,
+.add-panel .page-flag-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
 .add-panel .full-month-source,
@@ -3264,17 +3256,21 @@ body {
 .add-panel .perpetual-calendar-source,
 .add-panel .weekly-view-source {
      min-height: 200px;
+     max-width: 214px;
 }
 
 .add-panel .full-month-source {
+     width: 208px;
      height: calc(208px / 0.86);
 }
 
 .add-panel .perpetual-calendar-source {
+     width: 100px;
      height: calc(100px / 0.78);
 }
 
 .add-panel .weekly-view-source {
+     width: 208px;
      height: calc(208px / 0.82);
 }
 
@@ -5155,8 +5151,8 @@ body {
 
 .text-panel-alignment-grid {
      display: grid;
-     grid-template-columns: repeat(3, var(--color-swatch-size));
-     grid-template-rows: repeat(3, var(--color-swatch-size));
+     grid-template-columns: repeat(3, calc(var(--color-swatch-size) * 2));
+     grid-template-rows: repeat(3, calc(var(--color-swatch-size) * 2));
      gap: 3px;
      justify-content: center;
 }
@@ -5164,12 +5160,12 @@ body {
 .text-panel-alignment-button {
      display: grid;
      place-items: center;
-     min-width: var(--color-swatch-size);
-     width: var(--color-swatch-size);
-     max-width: var(--color-swatch-size);
-     min-height: var(--color-swatch-size);
-     height: var(--color-swatch-size);
-     max-height: var(--color-swatch-size);
+     min-width: calc(var(--color-swatch-size) * 2);
+     width: calc(var(--color-swatch-size) * 2);
+     max-width: calc(var(--color-swatch-size) * 2);
+     min-height: calc(var(--color-swatch-size) * 2);
+     height: calc(var(--color-swatch-size) * 2);
+     max-height: calc(var(--color-swatch-size) * 2);
      padding: 3px;
      border: var(--palette-swatch-border);
      border-radius: var(--palette-swatch-radius);
@@ -5913,7 +5909,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 }
 
 .planner-sidebar .control-panel.is-open .control-panel-page.add-panel:not([hidden]) {
-     display: grid;
+     display: flex;
 }
 
 .planner-sidebar .control-panel.is-resize-ns,
@@ -5943,8 +5939,8 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 }
 
 .planner-sidebar .control-object-shell .widget-panel-tabs {
-     margin: 0;
-     padding: 0 0 7px;
+     margin: 0 -4px;
+     padding: 4px 4px 7px;
      border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.14);
 }
 
@@ -5953,7 +5949,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      padding: 7px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
      border-radius: 6px;
-     background: rgba(255, 255, 255, 0.28);
+     background: var(--color-white);
 }
 
 .planner-sidebar .widget-panel.is-docked .widget-panel-page[hidden] {
@@ -5980,6 +5976,13 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 .planner-sidebar .palette-preview > .palette-preview-label,
 .planner-sidebar .date-format-defaults > span:first-child,
 .planner-sidebar .date-order-control > span:first-child {
+     cursor: grab;
+}
+
+.planner-sidebar .widget-panel.is-docked .text-panel > .widget-panel-row,
+.planner-sidebar .widget-panel.is-docked .widget-options-panel > .widget-panel-row,
+.planner-sidebar .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid > .widget-panel-row,
+.planner-sidebar .widget-panel.is-docked .text-panel > .text-panel-format {
      cursor: grab;
 }
 
@@ -6045,7 +6048,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 .planner-sidebar .text-panel-align-control {
      grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
      align-items: center;
-     min-height: calc((var(--color-swatch-size) * 3) + 30px);
+     min-height: calc((var(--color-swatch-size) * 6) + 30px);
 }
 
 .planner-sidebar .text-panel-alignment-grid {
