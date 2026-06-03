@@ -1000,7 +1000,7 @@ function getCustomSelectOptionFont(select, value) {
 }
 
 function shouldUseButtonSelect(select) {
-     return select.options.length > 0 && select.options.length <= 3;
+     return select.options.length > 0 && select.options.length <= 5;
 }
 
 function makeButtonSelect(select) {

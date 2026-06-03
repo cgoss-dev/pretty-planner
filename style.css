@@ -1011,7 +1011,7 @@ body {
 .control-panel select {
      min-width: 0;
      min-height: var(--color-swatch-size);
-     padding: 0 24px 0 6px;
+     padding: 0 24px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
      border-radius: 6px;
      appearance: none;
@@ -1021,6 +1021,8 @@ body {
           rgba(255, 255, 255, 0.48);
      color: var(--color-gray1);
      font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     text-align: center;
+     text-align-last: center;
 }
 
 .control-choice-group {
@@ -1123,9 +1125,9 @@ body {
 .custom-select summary {
      display: flex;
      align-items: center;
-     justify-content: space-between;
+     justify-content: center;
      min-height: var(--color-swatch-size);
-     padding: 0 24px 0 6px;
+     padding: 0 24px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
      border-radius: 6px;
      background:
@@ -1137,6 +1139,7 @@ body {
      font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
      list-style: none;
      overflow: hidden;
+     text-align: center;
 }
 
 .custom-select summary::-webkit-details-marker {
@@ -1181,7 +1184,7 @@ body {
      color: var(--color-gray1);
      cursor: pointer;
      font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
-     text-align: left;
+     text-align: center;
 }
 
 .custom-select-option:last-child {
@@ -4219,7 +4222,7 @@ body {
      background-size: 7px 2px;
 }
 
-.weekly-view-grid-line .weekly-view-grid-line-segment.is-shared-weekend {
+.weekly-view-grid-line .weekly-view-grid-line-segment.is-shared-weekend.is-dotted {
      background:
           radial-gradient(
                circle,
@@ -4229,6 +4232,10 @@ body {
      background-position: 0 center;
      background-repeat: repeat-x;
      background-size: 7px 2px;
+}
+
+.weekly-view-grid-line .weekly-view-grid-line-segment.is-shared-weekend.is-solid {
+     background: var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16));
 }
 
 .planner-item-weekly-view .weekly-view-cell {
@@ -4817,12 +4824,14 @@ body {
 }
 
 .widget-panel-row select {
-     padding: 0 28px 0 8px;
+     padding: 0 28px;
      appearance: none;
      background:
           linear-gradient(45deg, transparent 50%, var(--color-gray2) 50%) calc(100% - 14px) 50% / 5px 5px no-repeat,
           linear-gradient(135deg, var(--color-gray2) 50%, transparent 50%) calc(100% - 9px) 50% / 5px 5px no-repeat,
           rgba(255, 255, 255, 0.48);
+     text-align: center;
+     text-align-last: center;
 }
 
 .widget-panel-row .custom-select {
@@ -5001,7 +5010,7 @@ body {
 .date-offset-stepper {
      display: grid;
      grid-template-columns: var(--color-swatch-size) minmax(0, 1fr) var(--color-swatch-size);
-     align-items: stretch;
+     align-items: center;
      gap: 4px;
      width: 100%;
      min-width: 0;
@@ -5010,7 +5019,12 @@ body {
 .date-offset-stepper-button {
      width: var(--color-swatch-size);
      min-width: var(--color-swatch-size);
+     max-width: var(--color-swatch-size);
      height: var(--color-swatch-size);
+     min-height: var(--color-swatch-size);
+     max-height: var(--color-swatch-size);
+     inline-size: var(--color-swatch-size);
+     block-size: var(--color-swatch-size);
      padding: 0;
      border: 1px solid var(--color-gray4);
      border-radius: 4px;
@@ -5343,12 +5357,16 @@ body {
 }
 
 .control-panel select,
-.widget-panel-row input,
 .widget-panel-row select {
      background:
           linear-gradient(45deg, transparent 50%, var(--color-gray2) 50%) calc(100% - 14px) 50% / 5px 5px no-repeat,
           linear-gradient(135deg, var(--color-gray2) 50%, transparent 50%) calc(100% - 9px) 50% / 5px 5px no-repeat,
           var(--color-white);
+}
+
+.widget-panel-row input {
+     background: var(--color-white);
+     text-align: center;
 }
 
 .defaults-panel .widget-panel-row,
@@ -5924,6 +5942,20 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      gap: 6px;
 }
 
+.planner-sidebar .control-object-shell .widget-panel-tabs {
+     margin: 0;
+     padding: 0 0 7px;
+     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.14);
+}
+
+.planner-sidebar .control-object-shell .widget-panel.is-docked .widget-panel-page:not([hidden]) {
+     gap: 9px;
+     padding: 7px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
+     border-radius: 6px;
+     background: rgba(255, 255, 255, 0.28);
+}
+
 .planner-sidebar .widget-panel.is-docked .widget-panel-page[hidden] {
      display: none;
 }
@@ -5935,7 +5967,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
      align-items: center;
      gap: 8px;
-     padding: 7px;
+     padding: 7px 0;
 }
 
 .planner-sidebar .widget-panel-title {
@@ -6031,10 +6063,13 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      gap: 8px;
 }
 
-.planner-sidebar .widget-panel.is-docked .text-panel .widget-panel-row,
-.planner-sidebar .widget-panel.is-docked .widget-options-panel .widget-panel-row,
-.planner-sidebar .widget-panel.is-docked .text-panel-format,
-.planner-sidebar .widget-panel.is-docked .color-panel-control {
+.planner-sidebar .widget-panel.is-docked .text-panel > .widget-panel-row,
+.planner-sidebar .widget-panel.is-docked .widget-options-panel > .widget-panel-row,
+.planner-sidebar .widget-panel.is-docked .text-panel > .text-panel-format,
+.planner-sidebar .widget-panel.is-docked .widget-options-panel > .text-panel-format,
+.planner-sidebar .widget-panel.is-docked .text-panel > .color-panel-control,
+.planner-sidebar .widget-panel.is-docked .widget-options-panel > .color-panel-control,
+.planner-sidebar .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid > .widget-panel-row {
      min-height: var(--color-swatch-size);
      grid-template-columns: 112px minmax(0, 1fr);
      align-items: center;
@@ -6043,13 +6078,16 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      border: 0;
      border-radius: 0;
      background: transparent;
+     box-shadow: none;
 }
 
-.planner-sidebar .widget-panel.is-docked .text-panel-format {
+.planner-sidebar .widget-panel.is-docked .text-panel > .text-panel-format,
+.planner-sidebar .widget-panel.is-docked .widget-options-panel > .text-panel-format {
      grid-template-columns: 112px repeat(2, minmax(0, 1fr));
 }
 
-.planner-sidebar .widget-panel.is-docked .text-panel-format .widget-panel-title {
+.planner-sidebar .widget-panel.is-docked .text-panel > .text-panel-format .widget-panel-title,
+.planner-sidebar .widget-panel.is-docked .widget-options-panel > .text-panel-format .widget-panel-title {
      grid-row: 1 / span 2;
 }
 
@@ -6059,6 +6097,16 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      grid-column: 2;
      justify-self: stretch;
      width: 100%;
+}
+
+.planner-sidebar .widget-panel.is-docked .text-panel > .color-panel-control,
+.planner-sidebar .widget-panel.is-docked .widget-options-panel > .color-panel-control {
+     grid-template-columns: 112px minmax(0, 1fr);
+}
+
+.planner-sidebar .widget-panel.is-docked .text-panel > .color-panel-control .color-panel-swatches,
+.planner-sidebar .widget-panel.is-docked .widget-options-panel > .color-panel-control .color-panel-swatches {
+     grid-column: 2;
 }
 
 .planner-sidebar .item-calendar-attributes-grid {
@@ -6075,6 +6123,20 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      min-height: calc(var(--color-swatch-size) + 22px);
      padding: 9px 7px;
      overflow: visible;
+}
+
+.planner-sidebar .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid {
+     gap: 8px;
+}
+
+.planner-sidebar .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid > .widget-option-control {
+     min-height: var(--color-swatch-size);
+     grid-template-columns: 112px minmax(0, 1fr);
+     padding: 0;
+     border: 0;
+     border-radius: 0;
+     background: transparent;
+     box-shadow: none;
 }
 
 .planner-sidebar .item-calendar-attributes-grid .widget-option-control .custom-select,

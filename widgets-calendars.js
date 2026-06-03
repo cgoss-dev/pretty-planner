@@ -1929,23 +1929,30 @@ function renderWeeklyVertical(item) {
           const isSundayInteriorLine = sharedWeekendColumnIndex >= 0 &&
                row >= sharedWeekendSundayRow &&
                row < sharedWeekendSundayRow + sharedWeekendSundaySpan - 1;
+          const isSundayEdgeLine = sharedWeekendColumnIndex >= 0 &&
+               (row === sharedWeekendSundayRow - 1 || row === sharedWeekendSundayRow + sharedWeekendSundaySpan - 1);
           const isHourBoundary = (startMinutes + (row * timeIncrement)) % 60 === 0;
-          const shouldGapSharedWeekendColumn = sharedWeekendColumnIndex >= 0 && isHourBoundary;
+          const shouldSplitSharedWeekendColumn = sharedWeekendColumnIndex >= 0 && (isHourBoundary || isSundayInteriorLine || isSundayEdgeLine);
 
           gridLine.className = `weekly-view-grid-line ${isHourBoundary ? "is-solid" : "is-dotted"}`;
           gridLine.style.top = `calc(var(--weekly-row-cell-height, 12px) * var(--weekly-body-row-units, 1) * ${row})`;
-          if (isSundayInteriorLine || shouldGapSharedWeekendColumn) {
+          if (shouldSplitSharedWeekendColumn) {
                const beforeSegment = document.createElement("span");
-               const sharedWeekendSegment = document.createElement("span");
                const afterSegment = document.createElement("span");
 
                gridLine.classList.add("has-shared-weekend-gap");
                gridLine.style.setProperty("--weekly-sunday-column-start", `calc(var(--weekly-column-cell-width, 12px) * ${sharedWeekendColumnStartUnits})`);
                gridLine.style.setProperty("--weekly-sunday-column-end", `calc(var(--weekly-column-cell-width, 12px) * ${sharedWeekendColumnEndUnits})`);
                beforeSegment.className = "weekly-view-grid-line-segment is-before-sunday";
-               sharedWeekendSegment.className = "weekly-view-grid-line-segment is-shared-weekend";
                afterSegment.className = "weekly-view-grid-line-segment is-after-sunday";
-               gridLine.append(beforeSegment, sharedWeekendSegment, afterSegment);
+               gridLine.append(beforeSegment);
+               if (!isSundayInteriorLine) {
+                    const sharedWeekendSegment = document.createElement("span");
+
+                    sharedWeekendSegment.className = `weekly-view-grid-line-segment is-shared-weekend ${isSundayEdgeLine ? "is-solid" : "is-dotted"}`;
+                    gridLine.append(sharedWeekendSegment);
+               }
+               gridLine.append(afterSegment);
           }
           gridLineOverlay.append(gridLine);
      }

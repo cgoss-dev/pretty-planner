@@ -3534,7 +3534,7 @@ function makePlannerItem(type = "sticker") {
           button.append(glyph);
           textAlignmentGrid.append(button);
      });
-     textLineHeightLabel.className = "widget-panel-row text-panel-control";
+     textLineHeightLabel.className = "widget-panel-row text-panel-control text-panel-size-control";
      textLineHeightLabel.dataset.sidebarControl = "text.line-height";
      textLineHeightLabel.textContent = "Line Height";
      textLineHeightSelect.dataset.textControl = "line-height";
