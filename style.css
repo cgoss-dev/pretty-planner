@@ -2662,6 +2662,12 @@ body {
      justify-self: center;
 }
 
+.add-panel .full-month-source,
+.add-panel .weekly-view-source {
+     grid-column: span 2;
+     max-width: 208px;
+}
+
 .add-panel .sticker-source:hover,
 .add-panel .sticker-source:focus-visible,
 .add-panel .page-flag-source:hover,
@@ -2702,19 +2708,6 @@ body {
 
 .add-panel .toc-source[data-widget-label]::before {
      content: "Table of Contents";
-}
-
-.add-panel .full-month-source[data-widget-label]::before,
-.add-panel .perpetual-calendar-source[data-widget-label]::before,
-.add-panel .weekly-view-source[data-widget-label]::before {
-     align-items: start;
-     padding-top: 6px;
-     background:
-          linear-gradient(
-               rgba(255, 255, 255, 0.8),
-               rgba(255, 255, 255, 0.24) 38%,
-               transparent 62%
-          );
 }
 
 .add-panel .page-flag-source {
@@ -3258,7 +3251,7 @@ body {
      display: grid;
      place-items: center;
      color: var(--color-gray1);
-     font-size: 0.58rem;
+     font-size: 0.65rem;
      font-weight: 600;
      font-variant-numeric: tabular-nums;
      line-height: 1;
@@ -3268,7 +3261,7 @@ body {
      display: grid;
      place-items: center;
      color: var(--color-gray1);
-     font-size: 0.42rem;
+     font-size: 0.65rem;
      font-variant-numeric: tabular-nums;
      line-height: 1;
      text-transform: lowercase;
