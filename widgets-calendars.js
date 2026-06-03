@@ -1931,8 +1931,9 @@ function renderWeeklyVertical(item) {
                row < sharedWeekendSundayRow + sharedWeekendSundaySpan - 1;
           const isSundayBottomLine = sharedWeekendColumnIndex >= 0 &&
                row === sharedWeekendSundayRow + sharedWeekendSundaySpan - 1;
+          const isHourBoundary = (startMinutes + (row * timeIncrement)) % 60 === 0;
 
-          gridLine.className = `weekly-view-grid-line ${isSundayBottomLine || row % 2 === 0 ? "is-solid" : "is-dashed"}`;
+          gridLine.className = `weekly-view-grid-line ${isSundayBottomLine || isHourBoundary ? "is-solid" : "is-dotted"}`;
           gridLine.style.top = `calc(var(--weekly-row-cell-height, 12px) * var(--weekly-body-row-units, 1) * ${row})`;
           if (isSundayInteriorLine) {
                const beforeSegment = document.createElement("span");

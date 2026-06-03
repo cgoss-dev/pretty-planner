@@ -3837,7 +3837,7 @@ body {
 }
 
 .weekly-view::after {
-     content: "";
+     content: none;
      position: absolute;
      inset:
           calc(var(--weekly-row-cell-height, 12px) * var(--weekly-header-row-units, 1))
@@ -3856,19 +3856,7 @@ body {
 }
 
 .weekly-view.has-time-column::after {
-     background:
-          linear-gradient(
-               90deg,
-               transparent 0 calc(var(--weekly-time-column-width) - var(--weekly-grid-line-width)),
-               var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16)) calc(var(--weekly-time-column-width) - var(--weekly-grid-line-width)) var(--weekly-time-column-width),
-               transparent var(--weekly-time-column-width) 100%
-          ),
-          repeating-linear-gradient(
-               90deg,
-               transparent 0 calc(var(--weekly-content-column-width) - var(--weekly-grid-line-width)),
-               var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16)) calc(var(--weekly-content-column-width) - var(--weekly-grid-line-width)) var(--weekly-content-column-width)
-          )
-          var(--weekly-time-column-width) 0 / calc(100% - var(--weekly-time-column-width)) 100% no-repeat;
+     background: none;
 }
 
 .weekly-view:not(.has-time-column) {
@@ -4119,13 +4107,17 @@ body {
      background: var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16));
 }
 
-.weekly-view-grid-line.is-dashed {
+.weekly-view-grid-line.is-dotted {
+     height: 2px;
      background:
-          repeating-linear-gradient(
-               90deg,
-               var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16)) 0 5px,
-               transparent 5px 10px
+          radial-gradient(
+               circle,
+               var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16)) 0 1px,
+               transparent 1.25px
           );
+     background-position: 0 center;
+     background-repeat: repeat-x;
+     background-size: 7px 2px;
 }
 
 .weekly-view-grid-line.has-sunday-gap {
@@ -4153,13 +4145,16 @@ body {
      background: var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16));
 }
 
-.weekly-view-grid-line.is-dashed .weekly-view-grid-line-segment {
+.weekly-view-grid-line.is-dotted .weekly-view-grid-line-segment {
      background:
-          repeating-linear-gradient(
-               90deg,
-               var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16)) 0 5px,
-               transparent 5px 10px
+          radial-gradient(
+               circle,
+               var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16)) 0 1px,
+               transparent 1.25px
           );
+     background-position: 0 center;
+     background-repeat: repeat-x;
+     background-size: 7px 2px;
 }
 
 .planner-item-weekly-view .weekly-view-cell {
@@ -6127,6 +6122,17 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      border-width: 0;
      background: transparent;
      color: #000;
+}
+
+.planner-item-weekly-view .weekly-view-time,
+.planner-item-weekly-view .weekly-view-slot,
+.planner-item-weekly-view .weekly-view-week-notes {
+     border-bottom-color: transparent;
+     border-bottom-width: 0;
+}
+
+.planner-item-weekly-view .weekly-view-edge-right {
+     border-right-width: 0;
 }
 
 .diary-view-row {
