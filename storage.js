@@ -642,7 +642,7 @@ function restorePlannerItemSettings(item, itemData) {
                startDay: widget.startDay !== undefined && widget.startDay !== null ? String(widget.startDay) : undefined,
                visibleDays: widget.visibleDays !== undefined && widget.visibleDays !== null ? String(widget.visibleDays) : undefined,
                diaryLayout: widget.diaryLayout,
-               diaryMonthYearVisible: normalizeStoredBoolean(widget.diaryMonthYearVisible, "true"),
+               diaryMonthYearVisible: normalizeStoredBoolean(widget.diaryMonthYearVisible, "false"),
                diaryTitleLines: widget.diaryTitleLines,
                timeIncrement: widget.timeIncrement !== undefined && widget.timeIncrement !== null ? String(widget.timeIncrement) : undefined,
                startTime: widget.startTime,

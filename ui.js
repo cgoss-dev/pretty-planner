@@ -857,6 +857,16 @@ function initializePaletteColorControl(select, swatches, defaultColor, onSelect)
 function updateCustomSelectDisplay(select) {
      const dropdown = select.nextElementSibling;
 
+     if (dropdown?.classList.contains("button-select")) {
+          dropdown.querySelectorAll(".button-select-option").forEach((option) => {
+               const isSelected = option.dataset.value === select.value;
+
+               option.classList.toggle("is-selected", isSelected);
+               option.setAttribute("aria-pressed", String(isSelected));
+          });
+          return;
+     }
+
      if (!dropdown || !dropdown.classList.contains("custom-select")) {
           return;
      }
@@ -872,6 +882,28 @@ function updateCustomSelectDisplay(select) {
 
           option.classList.toggle("is-selected", isSelected);
           option.setAttribute("aria-selected", String(isSelected));
+     });
+}
+
+function buildButtonSelectOptions(select, buttonGroup) {
+     buttonGroup.replaceChildren();
+     buttonGroup.style.setProperty("--button-select-count", String(Math.max(1, select.options.length)));
+     Array.from(select.options).forEach((selectOption) => {
+          const option = document.createElement("button");
+
+          option.className = "button-select-option";
+          option.type = "button";
+          option.dataset.value = selectOption.value;
+          option.textContent = selectOption.textContent;
+          option.style.fontFamily = getCustomSelectOptionFont(select, selectOption.value) || "";
+          option.addEventListener("click", (event) => {
+               event.preventDefault();
+               event.stopPropagation();
+               select.value = selectOption.value;
+               select.dispatchEvent(new Event("change", { bubbles: true }));
+               updateCustomSelectDisplay(select);
+          });
+          buttonGroup.append(option);
      });
 }
 
@@ -967,8 +999,51 @@ function getCustomSelectOptionFont(select, value) {
      return "var(--font-annotation-mono)";
 }
 
+function shouldUseButtonSelect(select) {
+     return select.options.length > 0 && select.options.length <= 3;
+}
+
+function makeButtonSelect(select) {
+     const existingControl = select.nextElementSibling;
+
+     if (existingControl?.classList.contains("button-select")) {
+          buildButtonSelectOptions(select, existingControl);
+          updateCustomSelectDisplay(select);
+          return existingControl;
+     }
+
+     if (existingControl?.classList.contains("custom-select")) {
+          customSelectDetails = customSelectDetails.filter((details) => details !== existingControl);
+          existingControl.remove();
+     }
+
+     const buttonGroup = document.createElement("div");
+
+     select.classList.add("native-select");
+     buttonGroup.className = "button-select";
+     buttonGroup.dataset.buttonSelect = select.dataset.setting || select.dataset.styleControl || select.dataset.textControl || select.dataset.widgetControl || select.dataset.defaultControl || "";
+     buttonGroup.setAttribute("role", "group");
+     buttonGroup.setAttribute("aria-label", select.getAttribute("aria-label") || "Select option");
+     select.after(buttonGroup);
+     buildButtonSelectOptions(select, buttonGroup);
+     updateCustomSelectDisplay(select);
+
+     return buttonGroup;
+}
+
 function syncCustomSelect(select) {
      const dropdown = select.nextElementSibling;
+
+     if (shouldUseButtonSelect(select)) {
+          makeButtonSelect(select);
+          return;
+     }
+
+     if (dropdown?.classList.contains("button-select")) {
+          dropdown.remove();
+          makeCustomSelect(select);
+          return;
+     }
 
      if (!dropdown || !dropdown.classList.contains("custom-select")) {
           return;
@@ -1300,11 +1375,19 @@ function setSelectFocus(dropdown) {
 }
 
 function makeCustomSelect(select) {
+     if (shouldUseButtonSelect(select)) {
+          return makeButtonSelect(select);
+     }
+
      const dropdown = document.createElement("details");
      const summary = document.createElement("summary");
      const optionsBox = document.createElement("div");
 
-     if (select.nextElementSibling && select.nextElementSibling.classList.contains("custom-select")) {
+     if (select.nextElementSibling?.classList.contains("button-select")) {
+          select.nextElementSibling.remove();
+     }
+
+     if (select.nextElementSibling?.classList.contains("custom-select")) {
           return select.nextElementSibling;
      }
 

@@ -1676,7 +1676,7 @@ function openItemMenu(item) {
      setControlsActionItems(controls, actionItems);
      controls.classList.remove("is-floating", "is-actions-popup");
      controls.classList.add("is-docked");
-     setWidgetPanelTab(controls, "style");
+     setWidgetPanelTab(controls, "text");
      item.classList.add("is-widget-panel-open");
      updateObjectControlsState();
      if (typeof selectControlPanelTab === "function") {
@@ -3072,13 +3072,10 @@ function makePlannerItem(type = "sticker") {
      const pageFlagShape = document.createElementNS("http://www.w3.org/2000/svg", "svg");
      const pageFlagShapePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
      const controls = document.createElement("div");
-     const widgetPanelTitle = document.createElement("div");
      const controlTabs = document.createElement("div");
-     const stylePanelTitle = document.createElement("div");
      const textPanelTitle = document.createElement("div");
      const widgetPanelSectionTitle = document.createElement("div");
      const actionsTab = document.createElement("button");
-     const styleTab = document.createElement("button");
      const textTab = document.createElement("button");
      const widgetTab = document.createElement("button");
      const actionsPanel = document.createElement("div");
@@ -3100,11 +3097,8 @@ function makePlannerItem(type = "sticker") {
      const displayWeekStartSelect = document.createElement("select");
      const layoutActionGroup = document.createElement("div");
      const layoutActionTitle = document.createElement("div");
-     const stylePanel = document.createElement("div");
      const textPanel = document.createElement("div");
      const widgetPanel = document.createElement("div");
-     const dateWidgetGroup = document.createElement("div");
-     const dateWidgetTitle = document.createElement("div");
      const calendarAttributesGrid = document.createElement("div");
      const timeWidgetGroup = document.createElement("div");
      const timeWidgetTitle = document.createElement("div");
@@ -3217,8 +3211,6 @@ function makePlannerItem(type = "sticker") {
      controls.className = `widget-panel widget-panel-${type}`;
      controls.dataset.ownerId = item.dataset.templateId;
      controls.setAttribute("role", "menu");
-     widgetPanelTitle.className = "panel-title title widget-panel-name";
-     widgetPanelTitle.textContent = "Selection";
      controlTabs.className = "widget-panel-tabs";
      controlTabs.setAttribute("role", "tablist");
      actionsTab.className = "widget-panel-tab";
@@ -3226,11 +3218,6 @@ function makePlannerItem(type = "sticker") {
      actionsTab.textContent = "Actions";
      actionsTab.dataset.widgetPanelTab = "actions";
      actionsTab.setAttribute("role", "tab");
-     styleTab.className = "widget-panel-tab";
-     styleTab.type = "button";
-     styleTab.textContent = "Appearance";
-     styleTab.dataset.widgetPanelTab = "style";
-     styleTab.setAttribute("role", "tab");
      textTab.className = "widget-panel-tab";
      textTab.type = "button";
      textTab.textContent = "Text";
@@ -3342,11 +3329,6 @@ function makePlannerItem(type = "sticker") {
           option.textContent = label;
           displayWeekStartSelect.append(option);
      });
-     stylePanel.className = "widget-panel-page";
-     stylePanel.dataset.widgetPanelPage = "style";
-     stylePanel.setAttribute("role", "tabpanel");
-     stylePanelTitle.className = "widget-panel-section-title section-title";
-     stylePanelTitle.textContent = "Appearance";
      textPanel.className = "widget-panel-page text-panel";
      textPanel.dataset.textPanel = "true";
      textPanel.dataset.widgetPanelPage = "text";
@@ -3358,9 +3340,6 @@ function makePlannerItem(type = "sticker") {
      widgetPanel.setAttribute("role", "tabpanel");
      widgetPanelSectionTitle.className = "widget-panel-section-title section-title";
      widgetPanelSectionTitle.textContent = "Options";
-     dateWidgetGroup.className = "widget-option-group widget-option-date-group";
-     dateWidgetTitle.className = "widget-option-group-title";
-     dateWidgetTitle.textContent = "Day";
      calendarAttributesGrid.className = "item-calendar-attributes-grid";
      timeWidgetGroup.className = "widget-option-group widget-option-time-group";
      timeWidgetTitle.className = "widget-option-group-title";
@@ -3389,7 +3368,7 @@ function makePlannerItem(type = "sticker") {
      sendBackwardButton.dataset.sidebarControl = "actions.send-backward";
      sendBackwardButton.setAttribute("aria-label", "Send selected item backward");
      fillLabel.className = "widget-panel-row color-panel-control";
-     fillLabel.dataset.sidebarControl = "style.fill";
+     fillLabel.dataset.sidebarControl = "text.fill";
      fillTitle.className = "widget-panel-title";
      fillTitle.textContent = "Fill";
      fillInput.className = "native-select";
@@ -3472,7 +3451,7 @@ function makePlannerItem(type = "sticker") {
      textColorSwatches.className = "color-panel-swatches";
      textColorSwatches.dataset.textSwatches = "color";
      textTocLabel.className = "widget-panel-row text-panel-control text-panel-toc-control";
-     textTocLabel.dataset.sidebarControl = "text.appears-in-toc";
+     textTocLabel.dataset.sidebarControl = "options.appears-in-toc";
      textTocLabel.textContent = "Appears in ToC";
      textTocInput.type = "checkbox";
      textTocInput.dataset.textControl = "appears-in-toc";
@@ -3628,7 +3607,7 @@ function makePlannerItem(type = "sticker") {
      });
      dateOffsetLabel.className = "widget-panel-row widget-option-control";
      dateOffsetLabel.dataset.sidebarControl = "options.date-offset";
-     dateOffsetLabel.textContent = "Current Offset";
+     dateOffsetLabel.textContent = "Offset";
      dateOffsetStepper.className = "date-offset-stepper";
      dateOffsetPrevButton.className = "date-offset-stepper-button date-offset-stepper-button-prev";
      dateOffsetPrevButton.type = "button";
@@ -3731,7 +3710,7 @@ function makePlannerItem(type = "sticker") {
      diaryMonthYearVisibleLabel.dataset.sidebarControl = "options.diary-month-year-visible";
      diaryMonthYearVisibleLabel.textContent = "Month/Year";
      diaryMonthYearVisibleInput.type = "checkbox";
-     diaryMonthYearVisibleInput.checked = true;
+     diaryMonthYearVisibleInput.checked = false;
      diaryMonthYearVisibleInput.dataset.widgetControl = "diary-month-year-visible";
      diaryMonthYearVisibleInput.setAttribute("aria-label", "Show month and year in Daily Diary titles");
      diaryTitleLinesLabel.className = "widget-panel-row widget-option-control";
@@ -3842,8 +3821,7 @@ function makePlannerItem(type = "sticker") {
      textAlignLabel.append(textAlignTitle, textAlignmentGrid);
      textLineHeightLabel.append(textLineHeightSelect);
      textControlsRow.append(textColorLabel, textToggleLabel, textLineHeightLabel, textSizeLabel, textFormatGroup, textAlignLabel);
-     stylePanel.append(stylePanelTitle, fillLabel);
-     textPanel.append(textPanelTitle, textTocLabel, textControlsRow);
+     textPanel.append(textPanelTitle, fillLabel, textControlsRow);
      monthLabel.append(monthSelect);
      yearLabel.append(yearSelect);
      displayYearLabel.append(displayYearSelect);
@@ -3903,30 +3881,27 @@ function makePlannerItem(type = "sticker") {
           actionsPanel.append(displayDateRow);
      }
      actionsPanel.append(layoutActionGroup);
+     if (hasWidgetControls) {
+          widgetPanel.append(widgetPanelSectionTitle, textTocLabel);
+     }
      if (type === "sticker") {
-          widgetPanel.append(widgetPanelSectionTitle);
           widgetPanel.append(dotGridLabel);
      }
      if (isCalendarItemType(type) && type !== "weekly-view") {
-          widgetPanel.append(widgetPanelSectionTitle);
           widgetPanel.append(calendarAttributesGrid);
      }
      if (type === "weekly-view") {
-          widgetPanel.append(widgetPanelSectionTitle);
-          dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid);
           timeWidgetGroup.append(timeWidgetTitle, timeVisibleLabel, startTimeLabel, timeIncrementLabel, visibleDaysLabel);
-          widgetPanel.append(dateWidgetGroup, timeWidgetGroup);
+          widgetPanel.append(calendarAttributesGrid, timeWidgetGroup);
      }
      if (type === "diary-view") {
-          widgetPanel.append(widgetPanelSectionTitle);
-          dateWidgetGroup.append(dateWidgetTitle, calendarAttributesGrid, visibleDaysLabel, diaryLayoutLabel, diaryMonthYearVisibleLabel, diaryTitleLinesLabel);
-          widgetPanel.append(dateWidgetGroup);
+          widgetPanel.append(calendarAttributesGrid, visibleDaysLabel, diaryLayoutLabel, diaryMonthYearVisibleLabel, diaryTitleLinesLabel);
      }
-     controlTabs.append(styleTab, textTab);
+     controlTabs.append(textTab);
      if (hasWidgetControls) {
           controlTabs.append(widgetTab);
      }
-     controls.append(widgetPanelTitle, controlTabs, actionsPanel, stylePanel, textPanel);
+     controls.append(controlTabs, actionsPanel, textPanel);
      if (hasWidgetControls) {
           controls.append(widgetPanel);
      }

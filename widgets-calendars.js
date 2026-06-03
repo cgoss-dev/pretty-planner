@@ -1918,9 +1918,12 @@ function renderWeeklyVertical(item) {
      calendar.classList.add("no-title-row");
 
      const gridLineOverlay = document.createElement("span");
+     const columnLineOverlay = document.createElement("span");
 
      gridLineOverlay.className = "weekly-view-grid-lines";
      gridLineOverlay.setAttribute("aria-hidden", "true");
+     columnLineOverlay.className = "weekly-view-column-lines";
+     columnLineOverlay.setAttribute("aria-hidden", "true");
      for (let row = 1; row < slotCount; row += 1) {
           const gridLine = document.createElement("span");
           const isSundayInteriorLine = sharedWeekendColumnIndex >= 0 &&
@@ -1944,6 +1947,13 @@ function renderWeeklyVertical(item) {
                gridLine.append(beforeSegment, afterSegment);
           }
           gridLineOverlay.append(gridLine);
+     }
+     for (let column = 1; column < columnCount; column += 1) {
+          const columnLine = document.createElement("span");
+
+          columnLine.className = "weekly-view-column-line";
+          columnLine.style.gridColumn = String(column);
+          columnLineOverlay.append(columnLine);
      }
 
      for (let row = 0; row < slotCount + 1; row += 1) {
@@ -2130,6 +2140,7 @@ function renderWeeklyVertical(item) {
                calendar.append(cell);
           }
      }
+     calendar.append(columnLineOverlay);
      calendar.append(gridLineOverlay);
      applyThemeToWidget(item);
 }
@@ -2245,7 +2256,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      item.dataset.startDay = settings.startDay || item.dataset.startDay || "1";
      item.dataset.visibleDays = settings.visibleDays || item.dataset.visibleDays || "7";
      item.dataset.diaryLayout = settings.diaryLayout || item.dataset.diaryLayout || "horizontal";
-     item.dataset.diaryMonthYearVisible = settings.diaryMonthYearVisible ?? item.dataset.diaryMonthYearVisible ?? "true";
+     item.dataset.diaryMonthYearVisible = settings.diaryMonthYearVisible ?? item.dataset.diaryMonthYearVisible ?? "false";
      item.dataset.diaryTitleLines = settings.diaryTitleLines === "one" ? "one" : (settings.diaryTitleLines === "two" ? "two" : item.dataset.diaryTitleLines || "two");
      item.dataset.startDay = String(clamp(Number(item.dataset.startDay) || 1, 1, getCalendarDaysInMonth(Number(item.dataset.year), Number(item.dataset.month))));
      item.dataset.timeIncrement = settings.timeIncrement || item.dataset.timeIncrement || "30";

@@ -816,7 +816,9 @@ body {
 }
 
 .defaults-panel .widget-panel-row .custom-select,
+.defaults-panel .widget-panel-row .button-select,
 .defaults-panel .color-panel-control .custom-select,
+.defaults-panel .color-panel-control .button-select,
 .defaults-panel .date-order-picker {
      grid-column: 2;
      justify-self: stretch;
@@ -858,7 +860,9 @@ body {
 .notebook-defaults-section .control-field > .control-choice-group,
 .notebook-defaults-section .control-field > .guide-controls,
 .notebook-defaults-section .control-field > .custom-select,
+.notebook-defaults-section .control-field > .button-select,
 .notebook-defaults-section .palette-preview > .custom-select,
+.notebook-defaults-section .palette-preview > .button-select,
 .notebook-defaults-section .palette-preview > .palette-swatches {
      grid-column: 2;
 }
@@ -1182,6 +1186,32 @@ body {
 
 .custom-select-option:last-child {
      border-radius: 0 0 6px 6px;
+}
+
+.button-select {
+     display: grid;
+     grid-template-columns: repeat(var(--button-select-count, 2), minmax(0, 1fr));
+     gap: 3px;
+     min-width: 0;
+}
+
+.button-select-option {
+     min-width: 0;
+     min-height: var(--color-swatch-size);
+     padding: 3px 6px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-radius: 5px;
+     background: rgba(255, 255, 255, 0.48);
+     color: var(--color-gray1);
+     cursor: pointer;
+     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     line-height: 1;
+     text-align: center;
+}
+
+.button-select-option.is-selected {
+     border-color: rgba(17, 17, 17, 0.34);
+     background: var(--color-gray4);
 }
 
 .widget-option-time-group .custom-select[open] .custom-select-options {
@@ -2664,7 +2694,8 @@ body {
 
 .add-panel .full-month-source,
 .add-panel .weekly-view-source {
-     grid-column: span 2;
+     grid-column: 1 / -1;
+     width: 208px;
      max-width: 208px;
 }
 
@@ -4075,6 +4106,27 @@ body {
      pointer-events: none;
 }
 
+.weekly-view-column-lines {
+     position: absolute;
+     inset: 0;
+     z-index: 5;
+     display: grid;
+     grid-template-columns: inherit;
+     grid-template-rows: inherit;
+     overflow: hidden;
+     border-radius: inherit;
+     pointer-events: none;
+}
+
+.weekly-view-column-line {
+     grid-row: 2 / -1;
+     justify-self: end;
+     width: max(var(--widget-body-v-line-width, var(--border-sm)), 1px);
+     height: 100%;
+     background: var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16));
+     pointer-events: none;
+}
+
 .weekly-view-grid-line {
      position: absolute;
      left: 0;
@@ -4249,6 +4301,10 @@ body {
 
 .diary-view.is-title-one-line[data-diary-month-year-visible="false"] .diary-view-date-label {
      grid-template-columns: repeat(2, minmax(0, max-content));
+}
+
+.diary-view.is-title-two-lines[data-diary-month-year-visible="false"] .diary-view-date-label {
+     grid-template-columns: minmax(0, max-content);
 }
 
 .diary-view.is-vertical .diary-view-date-label {
@@ -4600,7 +4656,7 @@ body {
 .widget-panel-tabs {
      display: flex;
      align-items: center;
-     justify-content: start;
+     justify-content: center;
      gap: 6px;
      width: 100%;
      margin-bottom: 6px;
@@ -4879,7 +4935,8 @@ body {
 }
 
 .item-calendar-attributes-grid .widget-option-control select,
-.item-calendar-attributes-grid .widget-option-control .custom-select {
+.item-calendar-attributes-grid .widget-option-control .custom-select,
+.item-calendar-attributes-grid .widget-option-control .button-select {
      grid-column: auto;
      justify-self: stretch;
      width: 100%;
@@ -4951,7 +5008,16 @@ body {
      width: 132px;
 }
 
+.widget-option-control .button-select {
+     grid-column: 3;
+     width: 132px;
+}
+
 .text-panel-control .custom-select {
+     width: 100%;
+}
+
+.text-panel-control .button-select {
      width: 100%;
 }
 
@@ -5049,6 +5115,24 @@ body {
      padding: 3px;
      border: var(--palette-swatch-border);
      border-radius: var(--palette-swatch-radius);
+}
+
+.planner-desk button,
+.control-panel button,
+.widget-panel button,
+.button-select-option,
+.text-panel-alignment-button {
+     min-width: var(--color-swatch-size);
+     min-height: var(--color-swatch-size);
+}
+
+.planner-desk input[type="checkbox"],
+.control-panel input[type="checkbox"],
+.widget-panel input[type="checkbox"] {
+     width: var(--color-swatch-size);
+     min-width: var(--color-swatch-size);
+     height: var(--color-swatch-size);
+     min-height: var(--color-swatch-size);
 }
 
 .text-panel-alignment-glyph {
@@ -5814,7 +5898,8 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      grid-column: auto;
 }
 
-.planner-sidebar .widget-panel-row .custom-select {
+.planner-sidebar .widget-panel-row .custom-select,
+.planner-sidebar .widget-panel-row .button-select {
      grid-column: 2;
      justify-self: stretch;
      width: 100%;
@@ -5824,7 +5909,8 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
 }
 
-.planner-sidebar .color-panel-control .custom-select {
+.planner-sidebar .color-panel-control .custom-select,
+.planner-sidebar .color-panel-control .button-select {
      grid-column: 2;
      justify-self: stretch;
      width: 100%;
@@ -5899,6 +5985,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 }
 
 .planner-sidebar .item-calendar-attributes-grid .widget-option-control .custom-select,
+.planner-sidebar .item-calendar-attributes-grid .widget-option-control .button-select,
 .planner-sidebar .item-calendar-attributes-grid .widget-option-control select,
 .planner-sidebar .item-calendar-attributes-grid .widget-option-control .date-offset-stepper {
      grid-column: 2;
