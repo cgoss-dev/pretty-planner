@@ -2568,13 +2568,13 @@ body {
 }
 
 .add-panel {
-     grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+     grid-template-columns: repeat(2, minmax(0, 100px));
      align-items: start;
-     justify-items: stretch;
-     justify-content: stretch;
+     justify-items: center;
+     justify-content: center;
      align-content: start;
      gap: 8px;
-     padding-bottom: 8px;
+     padding: 8px;
 }
 
 .add-panel-actions,
@@ -3250,8 +3250,8 @@ body {
 .calendar-source-preview-cell.is-list-number {
      display: grid;
      place-items: center;
-     color: var(--color-gray1);
-     font-size: 0.65rem;
+     color: var(--color-black);
+     font-size: 0.8rem;
      font-weight: 600;
      font-variant-numeric: tabular-nums;
      line-height: 1;
@@ -3260,8 +3260,8 @@ body {
 .calendar-source-preview-cell.is-time-label {
      display: grid;
      place-items: center;
-     color: var(--color-gray1);
-     font-size: 0.65rem;
+     color: var(--color-black);
+     font-size: 0.8rem;
      font-variant-numeric: tabular-nums;
      line-height: 1;
      text-transform: lowercase;
