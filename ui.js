@@ -1457,7 +1457,7 @@ function syncObjectControlsTab(tabName) {
 
 function getObjectControlWidgetPanelPageNames(tabName) {
      return {
-          "object-selected": ["style"]
+          "object-selected": ["text"]
      }[tabName] || [];
 }
 
