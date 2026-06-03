@@ -4188,6 +4188,11 @@ body {
      width: var(--weekly-sunday-column-start, 0);
 }
 
+.weekly-view-grid-line-segment.is-shared-weekend {
+     left: var(--weekly-sunday-column-start, 0);
+     width: calc(var(--weekly-sunday-column-end, 100%) - var(--weekly-sunday-column-start, 0));
+}
+
 .weekly-view-grid-line-segment.is-after-sunday {
      left: var(--weekly-sunday-column-end, 100%);
      right: 0;
@@ -4198,6 +4203,18 @@ body {
 }
 
 .weekly-view-grid-line.is-dotted .weekly-view-grid-line-segment {
+     background:
+          radial-gradient(
+               circle,
+               var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16)) 0 1px,
+               transparent 1.25px
+          );
+     background-position: 0 center;
+     background-repeat: repeat-x;
+     background-size: 7px 2px;
+}
+
+.weekly-view-grid-line .weekly-view-grid-line-segment.is-shared-weekend {
      background:
           radial-gradient(
                circle,
@@ -5933,6 +5950,8 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 
 .planner-sidebar .is-sidebar-row-dragging {
      opacity: 0.55;
+     cursor: grabbing;
+     user-select: none;
 }
 
 .planner-sidebar .is-sidebar-row-drop-target {

@@ -1598,6 +1598,7 @@ function updateObjectControlsState() {
 }
 
 let activeSidebarReorderRow = null;
+let activeSidebarReorderPointerId = null;
 
 function getSidebarReorderRow(target) {
      if (!target?.closest || !plannerSidebar?.contains(target)) {
@@ -1639,11 +1640,28 @@ function isSidebarReorderTitlePointer(row, target, event) {
 function clearSidebarReorderState() {
      if (activeSidebarReorderRow) {
           activeSidebarReorderRow.classList.remove("is-sidebar-row-dragging");
-          activeSidebarReorderRow.draggable = false;
           delete activeSidebarReorderRow.dataset.sidebarReorderReady;
      }
      plannerSidebar?.querySelectorAll(".is-sidebar-row-drop-target").forEach((row) => row.classList.remove("is-sidebar-row-drop-target"));
      activeSidebarReorderRow = null;
+     activeSidebarReorderPointerId = null;
+}
+
+function moveSidebarReorderRow(clientY) {
+     if (!activeSidebarReorderRow?.parentElement) {
+          return;
+     }
+
+     const parent = activeSidebarReorderRow.parentElement;
+     const rows = Array.from(parent.children).filter((child) => child !== activeSidebarReorderRow && getSidebarReorderRow(child) === child && !child.hidden);
+     const nextRow = rows.find((row) => {
+          const rect = row.getBoundingClientRect();
+
+          return clientY < rect.top + (rect.height / 2);
+     });
+
+     rows.forEach((row) => row.classList.toggle("is-sidebar-row-drop-target", row === nextRow));
+     parent.insertBefore(activeSidebarReorderRow, nextRow || null);
 }
 
 function initializeSidebarRowReorder() {
@@ -1655,58 +1673,37 @@ function initializeSidebarRowReorder() {
      plannerSidebar.addEventListener("pointerdown", (event) => {
           const row = getSidebarReorderRow(event.target);
 
-          if (!row || isSidebarReorderInteractiveTarget(event.target) || !isSidebarReorderTitlePointer(row, event.target, event)) {
-               return;
-          }
-
-          row.draggable = true;
-          row.dataset.sidebarReorderReady = "true";
-     });
-     plannerSidebar.addEventListener("dragstart", (event) => {
-          const row = getSidebarReorderRow(event.target);
-
-          if (!row || row.dataset.sidebarReorderReady !== "true") {
-               event.preventDefault();
-               return;
-          }
-
-          activeSidebarReorderRow = row;
-          row.classList.add("is-sidebar-row-dragging");
-          event.dataTransfer.effectAllowed = "move";
-          event.dataTransfer.setData("text/plain", "");
-     });
-     plannerSidebar.addEventListener("dragover", (event) => {
-          const targetRow = getSidebarReorderRow(event.target);
-
-          if (!activeSidebarReorderRow || !targetRow || targetRow === activeSidebarReorderRow || targetRow.parentElement !== activeSidebarReorderRow.parentElement) {
+          if (event.button !== 0 || !row || isSidebarReorderInteractiveTarget(event.target) || !isSidebarReorderTitlePointer(row, event.target, event)) {
                return;
           }
 
           event.preventDefault();
-          event.dataTransfer.dropEffect = "move";
-          targetRow.classList.add("is-sidebar-row-drop-target");
-          const rect = targetRow.getBoundingClientRect();
-          const shouldPlaceAfter = event.clientY > rect.top + (rect.height / 2);
-
-          targetRow.parentElement.insertBefore(activeSidebarReorderRow, shouldPlaceAfter ? targetRow.nextSibling : targetRow);
-     });
-     plannerSidebar.addEventListener("dragleave", (event) => {
-          const row = getSidebarReorderRow(event.target);
-
-          row?.classList.remove("is-sidebar-row-drop-target");
-     });
-     plannerSidebar.addEventListener("drop", (event) => {
-          if (activeSidebarReorderRow) {
-               event.preventDefault();
+          activeSidebarReorderRow = row;
+          activeSidebarReorderPointerId = event.pointerId;
+          row.classList.add("is-sidebar-row-dragging");
+          row.dataset.sidebarReorderReady = "true";
+          try {
+               row.setPointerCapture(event.pointerId);
+          } catch {
           }
-          clearSidebarReorderState();
      });
-     plannerSidebar.addEventListener("dragend", clearSidebarReorderState);
-     plannerSidebar.addEventListener("pointerup", () => {
-          plannerSidebar.querySelectorAll("[data-sidebar-reorder-ready='true']").forEach((row) => {
-               row.draggable = false;
-               delete row.dataset.sidebarReorderReady;
-          });
+     plannerSidebar.addEventListener("pointermove", (event) => {
+          if (!activeSidebarReorderRow || event.pointerId !== activeSidebarReorderPointerId) {
+               return;
+          }
+
+          event.preventDefault();
+          moveSidebarReorderRow(event.clientY);
+     });
+     plannerSidebar.addEventListener("pointerup", (event) => {
+          if (activeSidebarReorderRow && event.pointerId === activeSidebarReorderPointerId) {
+               clearSidebarReorderState();
+          }
+     });
+     plannerSidebar.addEventListener("pointercancel", (event) => {
+          if (activeSidebarReorderRow && event.pointerId === activeSidebarReorderPointerId) {
+               clearSidebarReorderState();
+          }
      });
 }
 

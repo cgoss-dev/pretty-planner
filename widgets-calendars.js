@@ -1936,14 +1936,16 @@ function renderWeeklyVertical(item) {
           gridLine.style.top = `calc(var(--weekly-row-cell-height, 12px) * var(--weekly-body-row-units, 1) * ${row})`;
           if (isSundayInteriorLine || shouldGapSharedWeekendColumn) {
                const beforeSegment = document.createElement("span");
+               const sharedWeekendSegment = document.createElement("span");
                const afterSegment = document.createElement("span");
 
                gridLine.classList.add("has-shared-weekend-gap");
                gridLine.style.setProperty("--weekly-sunday-column-start", `calc(var(--weekly-column-cell-width, 12px) * ${sharedWeekendColumnStartUnits})`);
                gridLine.style.setProperty("--weekly-sunday-column-end", `calc(var(--weekly-column-cell-width, 12px) * ${sharedWeekendColumnEndUnits})`);
                beforeSegment.className = "weekly-view-grid-line-segment is-before-sunday";
+               sharedWeekendSegment.className = "weekly-view-grid-line-segment is-shared-weekend";
                afterSegment.className = "weekly-view-grid-line-segment is-after-sunday";
-               gridLine.append(beforeSegment, afterSegment);
+               gridLine.append(beforeSegment, sharedWeekendSegment, afterSegment);
           }
           gridLineOverlay.append(gridLine);
      }
