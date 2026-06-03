@@ -171,6 +171,11 @@
           "sizeMultiplier": 1,
           "fillSlot": "fillColor2"
         },
+        "weekNotesHeader": {
+          "textSlot": "title",
+          "sizeMultiplier": 1,
+          "fillSlot": "fillColor3"
+        },
         "timeLabel": {
           "textSlot": "body",
           "fillSlot": "fillColor2"

@@ -233,7 +233,7 @@ async function loadPlannerThemeData() {
      try {
           const [themesResponse, slotsResponse] = await Promise.all([
                fetch("data/themes.json?v=planner-storage-8"),
-               fetch("data/widget-theme-slots.json?v=planner-storage-10")
+               fetch("data/widget-theme-slots.json?v=planner-storage-11")
           ]);
 
           plannerThemesData = await themesResponse.json();
@@ -3781,7 +3781,7 @@ function makePlannerItem(type = "sticker") {
      weeklyMonthYearVisibleLabel.dataset.sidebarControl = "options.weekly-month-year-visible";
      weeklyMonthYearVisibleLabel.textContent = "Month/Year";
      weeklyMonthYearVisibleInput.type = "checkbox";
-     weeklyMonthYearVisibleInput.checked = true;
+     weeklyMonthYearVisibleInput.checked = false;
      weeklyMonthYearVisibleInput.dataset.widgetControl = "weekly-month-year-visible";
      weeklyMonthYearVisibleInput.setAttribute("aria-label", "Show month and year in weekly view dates");
      timeFormatLabel.className = "widget-panel-row widget-option-control";

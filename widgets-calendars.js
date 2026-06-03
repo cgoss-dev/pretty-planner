@@ -1867,6 +1867,13 @@ function renderWeeklyVertical(item) {
           ...bodyColumnSlots
      ];
      const columnCount = columnSlots.length;
+     const sharedWeekendColumnIndex = columnSlots.findIndex((slot) => slot.type === "day" && slot.displayColumn?.type === "shared-weekend");
+     const sharedWeekendColumnStartUnits = sharedWeekendColumnIndex >= 0
+          ? columnSlots.slice(0, sharedWeekendColumnIndex).reduce((sum, slot) => sum + (slot.type === "time" ? timeColumnUnits : 5), 0)
+          : 0;
+     const sharedWeekendColumnEndUnits = sharedWeekendColumnStartUnits + 5;
+     const sharedWeekendSundayRow = Math.max(1, 1 + Math.floor(slotCount / 2) - 2);
+     const sharedWeekendSundaySpan = Math.min(4, Math.max(1, slotCount - sharedWeekendSundayRow + 1));
      const todayKey = getTodayCalendarDayKey();
      const weekNoteKey = getCalendarWeekNoteKey(weekStartDate, item.dataset.weekStart || "monday");
 
@@ -1907,9 +1914,25 @@ function renderWeeklyVertical(item) {
      gridLineOverlay.setAttribute("aria-hidden", "true");
      for (let row = 1; row < slotCount; row += 1) {
           const gridLine = document.createElement("span");
+          const isSundayInteriorLine = sharedWeekendColumnIndex >= 0 &&
+               row >= sharedWeekendSundayRow &&
+               row < sharedWeekendSundayRow + sharedWeekendSundaySpan - 1;
+          const isSundayBottomLine = sharedWeekendColumnIndex >= 0 &&
+               row === sharedWeekendSundayRow + sharedWeekendSundaySpan - 1;
 
-          gridLine.className = `weekly-view-grid-line ${row % 2 === 1 ? "is-dashed" : "is-solid"}`;
+          gridLine.className = `weekly-view-grid-line ${isSundayBottomLine || row % 2 === 0 ? "is-solid" : "is-dashed"}`;
           gridLine.style.top = `calc(var(--weekly-row-cell-height, 12px) * var(--weekly-body-row-units, 1) * ${row})`;
+          if (isSundayInteriorLine) {
+               const beforeSegment = document.createElement("span");
+               const afterSegment = document.createElement("span");
+
+               gridLine.classList.add("has-sunday-gap");
+               gridLine.style.setProperty("--weekly-sunday-column-start", `calc(var(--weekly-column-cell-width, 12px) * ${sharedWeekendColumnStartUnits})`);
+               gridLine.style.setProperty("--weekly-sunday-column-end", `calc(var(--weekly-column-cell-width, 12px) * ${sharedWeekendColumnEndUnits})`);
+               beforeSegment.className = "weekly-view-grid-line-segment is-before-sunday";
+               afterSegment.className = "weekly-view-grid-line-segment is-after-sunday";
+               gridLine.append(beforeSegment, afterSegment);
+          }
           gridLineOverlay.append(gridLine);
      }
 
@@ -1943,7 +1966,7 @@ function renderWeeklyVertical(item) {
                          const notesLabel = document.createElement("span");
 
                          cell.classList.add("weekly-view-date", "dayName", "weekly-view-notes-heading");
-                         cell.dataset.themePart = "dayHeader";
+                         cell.dataset.themePart = "weekNotesHeader";
                          notesLabel.className = "calendar-title-label";
                          notesLabel.textContent = "Notes";
                          cell.append(notesLabel);
@@ -2009,8 +2032,6 @@ function renderWeeklyVertical(item) {
                          ? `${displayColumn.dates.map((date) => getCalendarDayKey(date.getFullYear(), date.getMonth(), date.getDate())).join("+")}T${formatMinutesAsTime(slotMinutes)}`
                          : getWeeklySlotKey(primaryDate, slotMinutes);
                     const slotText = document.createElement("div");
-                    const sharedWeekendSundayRow = Math.max(1, 1 + Math.floor(slotCount / 2) - 2);
-                    const sharedWeekendSundaySpan = Math.min(4, Math.max(1, slotCount - sharedWeekendSundayRow + 1));
                     const isSharedWeekendSundayRow = displayColumn.type === "shared-weekend" && calendarRow === sharedWeekendSundayRow;
                     const isSharedWeekendSundayCoveredRow = displayColumn.type === "shared-weekend" &&
                          sharedWeekendSundaySpan > 1 &&
@@ -2221,7 +2242,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      item.dataset.startTime = normalizeScheduleStartTime(settings.startTime || item.dataset.startTime || "06:00");
      item.dataset.timeFormat = normalizeCalendarTimeFormat(settings.timeFormat || item.dataset.timeFormat || defaultDateSettings.timeFormat || "24");
      item.dataset.timeVisible = settings.timeVisible ?? item.dataset.timeVisible ?? "true";
-     item.dataset.weeklyMonthYearVisible = settings.weeklyMonthYearVisible ?? item.dataset.weeklyMonthYearVisible ?? "true";
+     item.dataset.weeklyMonthYearVisible = settings.weeklyMonthYearVisible ?? item.dataset.weeklyMonthYearVisible ?? "false";
      item.dataset.shareWeekends = item.dataset.itemType === "full-month" || item.dataset.itemType === "weekly-view"
           ? "true"
           : settings.shareWeekends ?? item.dataset.shareWeekends ?? "false";

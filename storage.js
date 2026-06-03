@@ -648,7 +648,7 @@ function restorePlannerItemSettings(item, itemData) {
                startTime: widget.startTime,
                timeFormat: widget.timeFormat,
                timeVisible: normalizeStoredBoolean(widget.timeVisible, "true"),
-               weeklyMonthYearVisible: normalizeStoredBoolean(widget.weeklyMonthYearVisible, "true"),
+               weeklyMonthYearVisible: normalizeStoredBoolean(widget.weeklyMonthYearVisible, "false"),
                shareWeekends: normalizeStoredBoolean(widget.shareWeekends, defaultShareWeekends),
                pageSize: widget.pageSize || (["full-month", "weekly-view"].includes(item.dataset.itemType) && Number(itemData.grid?.width) >= 60 ? "both-pages" : "one-page"),
                weekNotes: widget.weekNotes

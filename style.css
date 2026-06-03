@@ -3966,10 +3966,33 @@ body {
 }
 
 .weekly-view-week-notes {
+     position: relative;
      z-index: 1;
+     overflow: hidden;
+}
+
+.weekly-view-week-notes::before {
+     content: "";
+     position: absolute;
+     inset: 0;
+     z-index: 0;
+     background-image:
+          radial-gradient(
+               circle,
+               var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16)) 0 1px,
+               transparent 1.25px
+          );
+     background-position:
+          0 calc((var(--weekly-row-cell-height, 12px) * var(--weekly-body-row-units, 1)) - 1px);
+     background-repeat: repeat;
+     background-size:
+          6px calc(var(--weekly-row-cell-height, 12px) * var(--weekly-body-row-units, 1));
+     pointer-events: none;
 }
 
 .weekly-view-week-notes-text {
+     position: relative;
+     z-index: 1;
      width: 100%;
      height: 100%;
      min-height: 0;
@@ -4030,7 +4053,7 @@ body {
           0
           0
           0;
-     z-index: 5;
+     z-index: 6;
      overflow: hidden;
      border-radius: inherit;
      pointer-events: none;
@@ -4050,6 +4073,40 @@ body {
 }
 
 .weekly-view-grid-line.is-dashed {
+     background:
+          repeating-linear-gradient(
+               90deg,
+               var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16)) 0 5px,
+               transparent 5px 10px
+          );
+}
+
+.weekly-view-grid-line.has-sunday-gap {
+     background: transparent;
+}
+
+.weekly-view-grid-line-segment {
+     position: absolute;
+     top: 0;
+     bottom: 0;
+     pointer-events: none;
+}
+
+.weekly-view-grid-line-segment.is-before-sunday {
+     left: 0;
+     width: var(--weekly-sunday-column-start, 0);
+}
+
+.weekly-view-grid-line-segment.is-after-sunday {
+     left: var(--weekly-sunday-column-end, 100%);
+     right: 0;
+}
+
+.weekly-view-grid-line.is-solid .weekly-view-grid-line-segment {
+     background: var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16));
+}
+
+.weekly-view-grid-line.is-dashed .weekly-view-grid-line-segment {
      background:
           repeating-linear-gradient(
                90deg,
