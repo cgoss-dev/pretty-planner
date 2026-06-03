@@ -1597,6 +1597,119 @@ function updateObjectControlsState() {
      }
 }
 
+let activeSidebarReorderRow = null;
+
+function getSidebarReorderRow(target) {
+     if (!target?.closest || !plannerSidebar?.contains(target)) {
+          return null;
+     }
+
+     const row = target.closest(".widget-panel-row, .text-panel-format, .control-field, .palette-preview, .date-format-defaults, .date-order-control");
+
+     if (!row || row.closest(".add-panel") || row.matches("[data-create-item]")) {
+          return null;
+     }
+
+     return row;
+}
+
+function isSidebarReorderInteractiveTarget(target) {
+     return Boolean(target?.closest?.(
+          "button, input, select, textarea, [contenteditable='true'], .custom-select, .button-select, .date-offset-stepper, .color-panel-swatches, .text-panel-size-options, .calendar-size-options, .text-panel-alignment-grid, .control-choice-group, .date-order-picker"
+     ));
+}
+
+function isSidebarReorderTitlePointer(row, target, event) {
+     const title = target.closest?.(".widget-panel-title, .palette-preview-label, .keyboard-control-title") || row.querySelector(":scope > .widget-panel-title, :scope > span, :scope > .palette-preview-label");
+
+     if (title) {
+          const rect = title.getBoundingClientRect();
+
+          if (event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom) {
+               return true;
+          }
+     }
+
+     const rowRect = row.getBoundingClientRect();
+     const titleWidth = Math.min(118, Math.max(72, rowRect.width * 0.38));
+
+     return event.clientX >= rowRect.left && event.clientX <= rowRect.left + titleWidth;
+}
+
+function clearSidebarReorderState() {
+     if (activeSidebarReorderRow) {
+          activeSidebarReorderRow.classList.remove("is-sidebar-row-dragging");
+          activeSidebarReorderRow.draggable = false;
+          delete activeSidebarReorderRow.dataset.sidebarReorderReady;
+     }
+     plannerSidebar?.querySelectorAll(".is-sidebar-row-drop-target").forEach((row) => row.classList.remove("is-sidebar-row-drop-target"));
+     activeSidebarReorderRow = null;
+}
+
+function initializeSidebarRowReorder() {
+     if (!plannerSidebar || plannerSidebar.dataset.sidebarRowReorderReady === "true") {
+          return;
+     }
+
+     plannerSidebar.dataset.sidebarRowReorderReady = "true";
+     plannerSidebar.addEventListener("pointerdown", (event) => {
+          const row = getSidebarReorderRow(event.target);
+
+          if (!row || isSidebarReorderInteractiveTarget(event.target) || !isSidebarReorderTitlePointer(row, event.target, event)) {
+               return;
+          }
+
+          row.draggable = true;
+          row.dataset.sidebarReorderReady = "true";
+     });
+     plannerSidebar.addEventListener("dragstart", (event) => {
+          const row = getSidebarReorderRow(event.target);
+
+          if (!row || row.dataset.sidebarReorderReady !== "true") {
+               event.preventDefault();
+               return;
+          }
+
+          activeSidebarReorderRow = row;
+          row.classList.add("is-sidebar-row-dragging");
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", "");
+     });
+     plannerSidebar.addEventListener("dragover", (event) => {
+          const targetRow = getSidebarReorderRow(event.target);
+
+          if (!activeSidebarReorderRow || !targetRow || targetRow === activeSidebarReorderRow || targetRow.parentElement !== activeSidebarReorderRow.parentElement) {
+               return;
+          }
+
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "move";
+          targetRow.classList.add("is-sidebar-row-drop-target");
+          const rect = targetRow.getBoundingClientRect();
+          const shouldPlaceAfter = event.clientY > rect.top + (rect.height / 2);
+
+          targetRow.parentElement.insertBefore(activeSidebarReorderRow, shouldPlaceAfter ? targetRow.nextSibling : targetRow);
+     });
+     plannerSidebar.addEventListener("dragleave", (event) => {
+          const row = getSidebarReorderRow(event.target);
+
+          row?.classList.remove("is-sidebar-row-drop-target");
+     });
+     plannerSidebar.addEventListener("drop", (event) => {
+          if (activeSidebarReorderRow) {
+               event.preventDefault();
+          }
+          clearSidebarReorderState();
+     });
+     plannerSidebar.addEventListener("dragend", clearSidebarReorderState);
+     plannerSidebar.addEventListener("pointerup", () => {
+          plannerSidebar.querySelectorAll("[data-sidebar-reorder-ready='true']").forEach((row) => {
+               row.draggable = false;
+               delete row.dataset.sidebarReorderReady;
+          });
+     });
+}
+
 function updateClipboardControls() {
      document.querySelectorAll("[data-clipboard-action='paste']").forEach((button) => {
           button.disabled = !plannerClipboard;
@@ -1768,6 +1881,7 @@ const ControlPanel = {
      syncAllChoiceInputs: syncAllSettingChoiceInputs,
      syncChoiceInputs: syncSettingChoiceInputs,
      syncObjectControlsTab: syncObjectControlsTab,
+     initializeSidebarRowReorder,
      updatePanelSteps: updateControlPanelSteps
 };
 

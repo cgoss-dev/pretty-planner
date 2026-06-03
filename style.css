@@ -2603,8 +2603,8 @@ body {
      justify-items: center;
      justify-content: center;
      align-content: start;
-     gap: 8px;
-     padding: 8px;
+     gap: 20px 12px;
+     padding: 10px 8px 18px;
 }
 
 .add-panel-actions,
@@ -2699,6 +2699,12 @@ body {
      max-width: 208px;
 }
 
+.add-panel .full-month-source,
+.add-panel .perpetual-calendar-source,
+.add-panel .weekly-view-source {
+     margin-block: 4px;
+}
+
 .add-panel .sticker-source:hover,
 .add-panel .sticker-source:focus-visible,
 .add-panel .page-flag-source:hover,
@@ -2717,7 +2723,7 @@ body {
 .add-panel .diary-view-source:focus-visible {
      z-index: 4;
      filter: drop-shadow(0 18px 16px rgba(17, 17, 17, 0.22));
-     transform: scale(1.1);
+     transform: scale(1.03);
 }
 
 .add-panel [data-widget-label]::before {
@@ -3250,6 +3256,18 @@ body {
 .add-panel .perpetual-calendar-source,
 .add-panel .weekly-view-source {
      min-height: 200px;
+}
+
+.add-panel .full-month-source {
+     height: calc(208px / 0.86);
+}
+
+.add-panel .perpetual-calendar-source {
+     height: calc(100px / 0.78);
+}
+
+.add-panel .weekly-view-source {
+     height: calc(208px / 0.82);
 }
 
 .calendar-source-preview {
@@ -4153,7 +4171,8 @@ body {
      background-size: 7px 2px;
 }
 
-.weekly-view-grid-line.has-sunday-gap {
+.weekly-view-grid-line.has-sunday-gap,
+.weekly-view-grid-line.has-shared-weekend-gap {
      background: transparent;
 }
 
@@ -4914,6 +4933,11 @@ body {
      border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
      border-radius: 6px;
      background: rgba(255, 255, 255, 0.3);
+}
+
+.widget-option-time-group {
+     display: grid;
+     gap: 6px;
 }
 
 .widget-option-group .widget-option-control {
@@ -5898,6 +5922,24 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      grid-column: auto;
 }
 
+.planner-sidebar .widget-panel-row > .widget-panel-title,
+.planner-sidebar .text-panel-format > .widget-panel-title,
+.planner-sidebar .control-field > span:first-child,
+.planner-sidebar .palette-preview > .palette-preview-label,
+.planner-sidebar .date-format-defaults > span:first-child,
+.planner-sidebar .date-order-control > span:first-child {
+     cursor: grab;
+}
+
+.planner-sidebar .is-sidebar-row-dragging {
+     opacity: 0.55;
+}
+
+.planner-sidebar .is-sidebar-row-drop-target {
+     outline: var(--border-sm) dashed rgba(17, 17, 17, 0.28);
+     outline-offset: 2px;
+}
+
 .planner-sidebar .widget-panel-row .custom-select,
 .planner-sidebar .widget-panel-row .button-select {
      grid-column: 2;
@@ -5966,6 +6008,10 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      display: grid;
      gap: 8px;
      max-height: none;
+}
+
+.planner-sidebar .widget-option-time-group {
+     gap: 8px;
 }
 
 .planner-sidebar .item-calendar-attributes-grid {

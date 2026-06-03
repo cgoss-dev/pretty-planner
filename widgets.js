@@ -3101,7 +3101,6 @@ function makePlannerItem(type = "sticker") {
      const widgetPanel = document.createElement("div");
      const calendarAttributesGrid = document.createElement("div");
      const timeWidgetGroup = document.createElement("div");
-     const timeWidgetTitle = document.createElement("div");
      const duplicateButton = document.createElement("button");
      const duplicateGroupActions = document.createElement("div");
      const groupButton = document.createElement("button");
@@ -3341,9 +3340,7 @@ function makePlannerItem(type = "sticker") {
      widgetPanelSectionTitle.className = "widget-panel-section-title section-title";
      widgetPanelSectionTitle.textContent = "Options";
      calendarAttributesGrid.className = "item-calendar-attributes-grid";
-     timeWidgetGroup.className = "widget-option-group widget-option-time-group";
-     timeWidgetTitle.className = "widget-option-group-title";
-     timeWidgetTitle.textContent = "Time";
+     timeWidgetGroup.className = "widget-option-time-group";
      duplicateButton.className = "widget-panel-button";
      duplicateButton.type = "button";
      duplicateButton.textContent = "Duplicate";
@@ -3891,7 +3888,7 @@ function makePlannerItem(type = "sticker") {
           widgetPanel.append(calendarAttributesGrid);
      }
      if (type === "weekly-view") {
-          timeWidgetGroup.append(timeWidgetTitle, timeVisibleLabel, startTimeLabel, timeIncrementLabel, visibleDaysLabel);
+          timeWidgetGroup.append(timeVisibleLabel, startTimeLabel, timeIncrementLabel, visibleDaysLabel);
           widgetPanel.append(calendarAttributesGrid, timeWidgetGroup);
      }
      if (type === "diary-view") {
