@@ -2653,18 +2653,12 @@ body {
 .add-panel .page-flag-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
+.add-panel .full-month-source,
+.add-panel .perpetual-calendar-source,
+.add-panel .weekly-view-source,
 .add-panel .diary-view-source {
      width: 100%;
      max-width: 100px;
-     justify-self: center;
-}
-
-.add-panel .full-month-source,
-.add-panel .perpetual-calendar-source,
-.add-panel .weekly-view-source {
-     grid-column: span 2;
-     width: 100%;
-     max-width: 176px;
      justify-self: center;
 }
 
@@ -3204,15 +3198,15 @@ body {
 }
 
 .full-month-source {
-     aspect-ratio: 31 / 42;
+     aspect-ratio: 0.86;
 }
 
 .perpetual-calendar-source {
-     aspect-ratio: 1 / 1.75;
+     aspect-ratio: 0.78;
 }
 
 .weekly-view-source {
-     aspect-ratio: 32 / 40;
+     aspect-ratio: 0.82;
 }
 
 .diary-view-source {
@@ -3226,18 +3220,6 @@ body {
 .add-panel .weekly-view-source,
 .add-panel .diary-view-source {
      min-height: 100px;
-}
-
-.add-panel .full-month-source {
-     min-height: 144px;
-}
-
-.add-panel .perpetual-calendar-source {
-     min-height: 164px;
-}
-
-.add-panel .weekly-view-source {
-     min-height: 150px;
 }
 
 .calendar-source-preview {
@@ -3270,7 +3252,7 @@ body {
      display: grid;
      place-items: center;
      color: var(--color-gray1);
-     font-size: 0.48rem;
+     font-size: 0.58rem;
      font-weight: 600;
      font-variant-numeric: tabular-nums;
      line-height: 1;
@@ -3280,7 +3262,7 @@ body {
      display: grid;
      place-items: center;
      color: var(--color-gray1);
-     font-size: 0.34rem;
+     font-size: 0.42rem;
      font-variant-numeric: tabular-nums;
      line-height: 1;
      text-transform: lowercase;

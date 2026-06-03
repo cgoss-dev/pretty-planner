@@ -63,19 +63,16 @@ function populateMonthCalendarSourcePreview(preview, { expanded = false } = {}) 
      preview.classList.toggle("is-max-month-preview", expanded);
      preview.style.gridTemplateColumns = `0.85fr repeat(7, minmax(0, 1fr))`;
      preview.style.gridTemplateRows = expanded
-          ? `1.8fr 0.9fr repeat(${rows - 2}, minmax(0, 1fr))`
+          ? `1.15fr repeat(${rows - 1}, minmax(0, 1fr))`
           : `1.2fr repeat(${rows - 1}, minmax(0, 1fr))`;
 
      titleCell.style.gridColumn = "1 / -1";
-     if (expanded) {
-          titleCell.style.gridRow = "1 / span 2";
-     }
      preview.append(titleCell);
-     for (let row = expanded ? 3 : 2; row <= rows; row += 1) {
+     for (let row = 2; row <= rows; row += 1) {
           for (let column = 1; column <= columns; column += 1) {
                const classNames = [];
 
-               if (row === (expanded ? 3 : 2)) {
+               if (row === 2) {
                     classNames.push("is-weekday");
                } else if (column === 1 || column >= 7) {
                     classNames.push("is-tinted");
