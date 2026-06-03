@@ -1637,10 +1637,6 @@ function isSidebarReorderTitlePointer(row, target, event) {
      return event.clientX >= rowRect.left && event.clientX <= rowRect.left + titleWidth;
 }
 
-function isFormatSidebarReorderRow(row) {
-     return Boolean(row?.parentElement?.matches?.(".text-panel, .widget-options-panel, .item-calendar-attributes-grid"));
-}
-
 function clearSidebarReorderState() {
      if (activeSidebarReorderRow) {
           activeSidebarReorderRow.classList.remove("is-sidebar-row-dragging");
@@ -1676,8 +1672,9 @@ function initializeSidebarRowReorder() {
      plannerSidebar.dataset.sidebarRowReorderReady = "true";
      plannerSidebar.addEventListener("pointerdown", (event) => {
           const row = getSidebarReorderRow(event.target);
+          const isTitlePointer = row ? isSidebarReorderTitlePointer(row, event.target, event) : false;
 
-          if (event.button !== 0 || !row || isSidebarReorderInteractiveTarget(event.target) || (!isFormatSidebarReorderRow(row) && !isSidebarReorderTitlePointer(row, event.target, event))) {
+          if (event.button !== 0 || !row || !isTitlePointer || (isSidebarReorderInteractiveTarget(event.target) && !isTitlePointer)) {
                return;
           }
 
@@ -1686,10 +1683,6 @@ function initializeSidebarRowReorder() {
           activeSidebarReorderPointerId = event.pointerId;
           row.classList.add("is-sidebar-row-dragging");
           row.dataset.sidebarReorderReady = "true";
-          try {
-               row.setPointerCapture(event.pointerId);
-          } catch {
-          }
      });
      document.addEventListener("pointermove", (event) => {
           if (!activeSidebarReorderRow || event.pointerId !== activeSidebarReorderPointerId) {
@@ -1698,17 +1691,17 @@ function initializeSidebarRowReorder() {
 
           event.preventDefault();
           moveSidebarReorderRow(event.clientY);
-     });
+     }, true);
      document.addEventListener("pointerup", (event) => {
           if (activeSidebarReorderRow && event.pointerId === activeSidebarReorderPointerId) {
                clearSidebarReorderState();
           }
-     });
+     }, true);
      document.addEventListener("pointercancel", (event) => {
           if (activeSidebarReorderRow && event.pointerId === activeSidebarReorderPointerId) {
                clearSidebarReorderState();
           }
-     });
+     }, true);
 }
 
 function updateClipboardControls() {
