@@ -54,22 +54,28 @@ function populateCalendarSourcePreviewGrid(container, {
      }
 }
 
-function populateMonthCalendarSourcePreview(preview) {
-     const rows = 8;
+function populateMonthCalendarSourcePreview(preview, { expanded = false } = {}) {
+     const rows = expanded ? 10 : 8;
      const columns = 8;
      const titleCell = createCalendarSourcePreviewCell(1, 1, rows, columns, ["is-title"]);
 
      preview.classList.add("calendar-source-preview-month");
+     preview.classList.toggle("is-max-month-preview", expanded);
      preview.style.gridTemplateColumns = `0.85fr repeat(7, minmax(0, 1fr))`;
-     preview.style.gridTemplateRows = `1.2fr repeat(${rows - 1}, minmax(0, 1fr))`;
+     preview.style.gridTemplateRows = expanded
+          ? `1.8fr 0.9fr repeat(${rows - 2}, minmax(0, 1fr))`
+          : `1.2fr repeat(${rows - 1}, minmax(0, 1fr))`;
 
      titleCell.style.gridColumn = "1 / -1";
+     if (expanded) {
+          titleCell.style.gridRow = "1 / span 2";
+     }
      preview.append(titleCell);
-     for (let row = 2; row <= rows; row += 1) {
+     for (let row = expanded ? 3 : 2; row <= rows; row += 1) {
           for (let column = 1; column <= columns; column += 1) {
                const classNames = [];
 
-               if (row === 2) {
+               if (row === (expanded ? 3 : 2)) {
                     classNames.push("is-weekday");
                } else if (column === 1 || column >= 7) {
                     classNames.push("is-tinted");
@@ -97,7 +103,13 @@ function populateWeeklyCalendarSourcePreview(preview) {
                     classNames.push("is-tinted");
                }
 
-               preview.append(createCalendarSourcePreviewCell(row, column, rows, columns, classNames));
+               const cell = createCalendarSourcePreviewCell(row, column, rows, columns, classNames);
+
+               if (column === 1 && row > 1) {
+                    cell.classList.add("is-time-label");
+                    cell.textContent = `${row + 4}a`;
+               }
+               preview.append(cell);
           }
      }
 }
@@ -141,13 +153,13 @@ function populateDiaryCalendarSourcePreview(preview) {
 }
 
 function populatePerpetualCalendarSourcePreview(preview) {
-     const rows = 12;
+     const rows = 16;
      const columns = 2;
      const titleCell = document.createElement("span");
 
      preview.classList.add("calendar-source-preview-list");
      preview.style.gridTemplateColumns = "1fr 4fr";
-     preview.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
+     preview.style.gridTemplateRows = `1.35fr repeat(${rows - 1}, minmax(0, 1fr))`;
      titleCell.className = "calendar-source-preview-cell is-title";
      titleCell.style.gridRow = "1";
      titleCell.style.gridColumn = "1 / -1";
@@ -184,7 +196,7 @@ function initializeCalendarSourcePreviews(sourceItems) {
           if (type === "perpetual-calendar") {
                populatePerpetualCalendarSourcePreview(preview);
           } else if (type === "mini-month" || type === "full-month") {
-               populateMonthCalendarSourcePreview(preview);
+               populateMonthCalendarSourcePreview(preview, { expanded: type === "full-month" });
           } else if (type === "weekly-view") {
                populateWeeklyCalendarSourcePreview(preview);
           } else if (type === "diary-view") {
@@ -485,7 +497,7 @@ function getPerpetualCalendarMinGridColumns() {
 
 function getWeeklyVerticalDisplayColumnCount(item) {
      const visibleDays = clamp(Number(item.dataset.visibleDays) || 7, 1, 7);
-     const weekStartDate = getWeeklyViewStartDate(item);
+     const weekStartDate = getScheduleViewStartDate(item);
 
      return getWeeklyDisplayColumns(weekStartDate, visibleDays, true).length;
 }
@@ -513,7 +525,7 @@ function getWeeklyBodyGridRows(item) {
      return 1;
 }
 
-function getWeeklyViewFixedGridRows() {
+function getScheduleViewFixedGridRows() {
      return 40;
 }
 
@@ -576,7 +588,7 @@ function getDiaryViewMinGridColumns(item) {
      return item?.dataset?.diaryLayout === "vertical" ? 15 : 20;
 }
 
-function clampWeeklyViewBox(item, page, box) {
+function clampScheduleViewBox(item, page, box) {
      if (item.dataset.itemType !== "weekly-view") {
           return box;
      }
@@ -585,7 +597,7 @@ function clampWeeklyViewBox(item, page, box) {
 
      return {
           ...box,
-          height: grid.y * getWeeklyViewFixedGridRows()
+          height: grid.y * getScheduleViewFixedGridRows()
      };
 }
 
@@ -808,7 +820,7 @@ function updateCalendarTextOverflow(item) {
      item.querySelectorAll(".calendar-day-text").forEach((textElement) => updateCalendarDayTextOverflow(textElement));
 }
 
-function getWeeklyViewStartDate(item) {
+function getScheduleViewStartDate(item) {
      if (item.dataset.dateMode === "relative") {
           const date = getCalendarEffectiveDate(item);
           const firstDayIndex = item.dataset.weekStart === "sunday" ? 0 : 1;
@@ -1428,7 +1440,7 @@ function renderMiniMonth(item) {
 
                          cell.classList.add("mini-month-day-name", "dayName");
                          notesLabel.className = "calendar-title-label";
-                         notesLabel.textContent = "Notes";
+                         notesLabel.textContent = "Note";
                          cell.append(notesLabel);
                     } else {
                          const weekDate = new Date(year, month, 1 - firstDayOffset + ((calendarRow - 2) * 7));
@@ -1709,7 +1721,7 @@ function renderDiaryView(item) {
      const diaryLayout = item.dataset.diaryLayout === "vertical" ? "vertical" : "horizontal";
      const hideDiaryMonthYear = item.dataset.diaryMonthYearVisible === "false";
      const diaryTitleLines = item.dataset.diaryTitleLines === "one" ? "one" : "two";
-     const startDate = getWeeklyViewStartDate(item);
+     const startDate = getScheduleViewStartDate(item);
      const dayNotes = getCalendarDayNotes(item);
      const todayKey = getTodayCalendarDayKey();
 
@@ -1846,7 +1858,7 @@ function renderWeeklyVertical(item) {
      const shareWeekends = true;
      const startMinutes = parseTimeValue(startTime);
      const slotCount = getWeeklyVisibleSlotCount(item);
-     const weekStartDate = getWeeklyViewStartDate(item);
+     const weekStartDate = getScheduleViewStartDate(item);
      const dayNotes = getCalendarDayNotes(item);
      const displayColumns = getWeeklyDisplayColumns(weekStartDate, visibleDays, shareWeekends);
      const weekNotesPosition = getWeekNotesPosition(item);
@@ -1968,7 +1980,7 @@ function renderWeeklyVertical(item) {
                          cell.classList.add("weekly-view-date", "dayName", "weekly-view-notes-heading");
                          cell.dataset.themePart = "weekNotesHeader";
                          notesLabel.className = "calendar-title-label";
-                         notesLabel.textContent = "Notes";
+                         notesLabel.textContent = "Note";
                          cell.append(notesLabel);
                     } else if (calendarRow === 1) {
                          const notesText = createCalendarWeekNotesText(item, weekNoteKey, "weekly-view-week-notes-text");

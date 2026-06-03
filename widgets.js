@@ -233,7 +233,7 @@ async function loadPlannerThemeData() {
      try {
           const [themesResponse, slotsResponse] = await Promise.all([
                fetch("data/themes.json?v=planner-storage-8"),
-               fetch("data/widget-theme-slots.json?v=planner-storage-11")
+               fetch("data/widget-theme-slots.json?v=planner-storage-12")
           ]);
 
           plannerThemesData = await themesResponse.json();
@@ -544,7 +544,7 @@ function getFullMonthTocTitle(item) {
           : getCalendarYearTitle(year, dateFormats.yearFormat === "yy" ? "short" : "full");
      const title = [monthText, yearText].filter(Boolean).join(" ").trim();
 
-     return title || "Full Month";
+     return title || "Max Month";
 }
 
 function getWidgetTextPartTocTitle(item, partName) {
@@ -825,7 +825,7 @@ function setItemBox(item, box) {
      if (page) {
           box = clampPerpetualCalendarBox(item, page, box);
           box = clampMiniMonthBox(item, page, box);
-          box = clampWeeklyViewBox(item, page, box);
+          box = clampScheduleViewBox(item, page, box);
           box = clampTocBox(item, page, box);
      }
 
@@ -1476,10 +1476,10 @@ function getItemTypeLabel(type) {
           "page-flag": "Page Flag",
           toc: "Table of Contents",
           "mini-month": "Mini Month",
-          "full-month": "Full Month",
+          "full-month": "Max Month",
           "perpetual-calendar": "Perpetual Calendar",
-          "weekly-view": "WeeklyView",
-          "diary-view": "Diary View"
+          "weekly-view": "Schedule View",
+          "diary-view": "Daily Diary"
      }[type] || "Widget";
 }
 
@@ -2788,7 +2788,7 @@ function getItemMinGridHeight(item) {
      }
 
      if (item.dataset.itemType === "weekly-view") {
-          return getWeeklyViewFixedGridRows();
+          return getScheduleViewFixedGridRows();
      }
 
      if (item.dataset.itemType === "perpetual-calendar") {
@@ -2853,7 +2853,7 @@ function getResizedBox(item, page, clientX, clientY, mode) {
      const minHeight = grid.y * minGridHeight;
      const maxHeight = item.dataset.itemType === "perpetual-calendar"
           ? grid.y * getPerpetualCalendarMaxGridRows()
-          : (item.dataset.itemType === "weekly-view" ? grid.y * getWeeklyViewFixedGridRows() : (item.dataset.itemType === "diary-view" ? grid.y * getDiaryViewMaxGridRows() : Infinity));
+          : (item.dataset.itemType === "weekly-view" ? grid.y * getScheduleViewFixedGridRows() : (item.dataset.itemType === "diary-view" ? grid.y * getDiaryViewMaxGridRows() : Infinity));
      const right = current.x + current.width;
      const bottom = current.y + current.height;
      const pointerX = snapToGridOrigin((clientX - pageRect.left) / viewZoom, origin.x, grid.x);
@@ -3699,12 +3699,12 @@ function makePlannerItem(type = "sticker") {
      startDayLabel.dataset.sidebarControl = "options.start-day";
      startDayLabel.textContent = type === "diary-view" ? "Week #" : "Day";
      startDaySelect.dataset.widgetControl = "start-day";
-     startDaySelect.setAttribute("aria-label", type === "diary-view" ? "Diary view week number" : "Weekly planner start day");
+     startDaySelect.setAttribute("aria-label", type === "diary-view" ? "Daily Diary week number" : "Schedule View start day");
      visibleDaysLabel.className = "widget-panel-row widget-option-control";
      visibleDaysLabel.dataset.sidebarControl = "options.visible-days";
      visibleDaysLabel.textContent = "Duration";
      visibleDaysSelect.dataset.widgetControl = "visible-days";
-     visibleDaysSelect.setAttribute("aria-label", "Weekly planner visible days");
+     visibleDaysSelect.setAttribute("aria-label", "Schedule View visible days");
      for (let dayCount = 1; dayCount <= 7; dayCount += 1) {
           const option = document.createElement("option");
 
@@ -3716,7 +3716,7 @@ function makePlannerItem(type = "sticker") {
      diaryLayoutLabel.dataset.sidebarControl = "options.diary-layout";
      diaryLayoutLabel.textContent = "Layout";
      diaryLayoutSelect.dataset.widgetControl = "diary-layout";
-     diaryLayoutSelect.setAttribute("aria-label", "Diary view layout");
+     diaryLayoutSelect.setAttribute("aria-label", "Daily Diary layout");
      [
           ["horizontal", "Horizontal"],
           ["vertical", "Vertical"]
@@ -3733,12 +3733,12 @@ function makePlannerItem(type = "sticker") {
      diaryMonthYearVisibleInput.type = "checkbox";
      diaryMonthYearVisibleInput.checked = true;
      diaryMonthYearVisibleInput.dataset.widgetControl = "diary-month-year-visible";
-     diaryMonthYearVisibleInput.setAttribute("aria-label", "Show month and year in diary view titles");
+     diaryMonthYearVisibleInput.setAttribute("aria-label", "Show month and year in Daily Diary titles");
      diaryTitleLinesLabel.className = "widget-panel-row widget-option-control";
      diaryTitleLinesLabel.dataset.sidebarControl = "options.diary-title-lines";
      diaryTitleLinesLabel.textContent = "Title Lines";
      diaryTitleLinesSelect.dataset.widgetControl = "diary-title-lines";
-     diaryTitleLinesSelect.setAttribute("aria-label", "Diary view title lines");
+     diaryTitleLinesSelect.setAttribute("aria-label", "Daily Diary title lines");
      [
           ["two", "Two"],
           ["one", "One"]
@@ -3753,7 +3753,7 @@ function makePlannerItem(type = "sticker") {
      timeIncrementLabel.dataset.sidebarControl = "options.time-increment";
      timeIncrementLabel.textContent = "Increments";
      timeIncrementSelect.dataset.widgetControl = "time-increment";
-     timeIncrementSelect.setAttribute("aria-label", "Weekly planner time increment");
+     timeIncrementSelect.setAttribute("aria-label", "Schedule View time increment");
      [
           ["15", "15m"],
           ["30", "30m"],
@@ -3769,26 +3769,26 @@ function makePlannerItem(type = "sticker") {
      startTimeLabel.dataset.sidebarControl = "options.start-time";
      startTimeLabel.textContent = "Start";
      startTimeSelect.dataset.widgetControl = "start-time";
-     startTimeSelect.setAttribute("aria-label", "Weekly planner start time");
+     startTimeSelect.setAttribute("aria-label", "Schedule View start time");
      timeVisibleLabel.className = "widget-panel-row widget-option-control";
      timeVisibleLabel.dataset.sidebarControl = "options.time-visible";
      timeVisibleLabel.textContent = "Time Column";
      timeVisibleInput.type = "checkbox";
      timeVisibleInput.checked = true;
      timeVisibleInput.dataset.widgetControl = "time-visible";
-     timeVisibleInput.setAttribute("aria-label", "Show weekly planner time column");
+     timeVisibleInput.setAttribute("aria-label", "Show Schedule View time column");
      weeklyMonthYearVisibleLabel.className = "widget-panel-row widget-option-control";
      weeklyMonthYearVisibleLabel.dataset.sidebarControl = "options.weekly-month-year-visible";
      weeklyMonthYearVisibleLabel.textContent = "Month/Year";
      weeklyMonthYearVisibleInput.type = "checkbox";
      weeklyMonthYearVisibleInput.checked = false;
      weeklyMonthYearVisibleInput.dataset.widgetControl = "weekly-month-year-visible";
-     weeklyMonthYearVisibleInput.setAttribute("aria-label", "Show month and year in weekly view dates");
+     weeklyMonthYearVisibleInput.setAttribute("aria-label", "Show month and year in Schedule View dates");
      timeFormatLabel.className = "widget-panel-row widget-option-control";
      timeFormatLabel.dataset.sidebarControl = "options.time-format";
      timeFormatLabel.textContent = "Format";
      timeFormatSelect.dataset.widgetControl = "time-format";
-     timeFormatSelect.setAttribute("aria-label", "Weekly planner time format");
+     timeFormatSelect.setAttribute("aria-label", "Schedule View time format");
      [
           ["12", "12hr - 11:00a / 3:30p"],
           ["24", "24hr - 11:00 / 15:30"]

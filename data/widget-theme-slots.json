@@ -97,7 +97,7 @@
       }
     },
     "full-month": {
-      "label": "Full Month",
+      "label": "Max Month",
       "parts": {
         "background": {
           "fillSlot": "fillColor1",
@@ -154,7 +154,7 @@
       }
     },
     "weekly-view": {
-      "label": "WeeklyView",
+      "label": "Schedule View",
       "parts": {
         "background": {
           "fillSlot": "fillColor1",
@@ -194,7 +194,7 @@
       }
     },
     "diary-view": {
-      "label": "Diary View",
+      "label": "Daily Diary",
       "parts": {
         "background": {
           "fillSlot": "fillColor1",

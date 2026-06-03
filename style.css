@@ -2653,12 +2653,18 @@ body {
 .add-panel .page-flag-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
-.add-panel .full-month-source,
-.add-panel .perpetual-calendar-source,
-.add-panel .weekly-view-source,
 .add-panel .diary-view-source {
      width: 100%;
      max-width: 100px;
+     justify-self: center;
+}
+
+.add-panel .full-month-source,
+.add-panel .perpetual-calendar-source,
+.add-panel .weekly-view-source {
+     grid-column: span 2;
+     width: 100%;
+     max-width: 176px;
      justify-self: center;
 }
 
@@ -2702,6 +2708,19 @@ body {
 
 .add-panel .toc-source[data-widget-label]::before {
      content: "Table of Contents";
+}
+
+.add-panel .full-month-source[data-widget-label]::before,
+.add-panel .perpetual-calendar-source[data-widget-label]::before,
+.add-panel .weekly-view-source[data-widget-label]::before {
+     align-items: start;
+     padding-top: 6px;
+     background:
+          linear-gradient(
+               rgba(255, 255, 255, 0.8),
+               rgba(255, 255, 255, 0.24) 38%,
+               transparent 62%
+          );
 }
 
 .add-panel .page-flag-source {
@@ -3185,15 +3204,15 @@ body {
 }
 
 .full-month-source {
-     aspect-ratio: 1.4;
+     aspect-ratio: 31 / 42;
 }
 
 .perpetual-calendar-source {
-     aspect-ratio: 0.72;
+     aspect-ratio: 1 / 1.75;
 }
 
 .weekly-view-source {
-     aspect-ratio: 1;
+     aspect-ratio: 32 / 40;
 }
 
 .diary-view-source {
@@ -3210,7 +3229,15 @@ body {
 }
 
 .add-panel .full-month-source {
-     min-height: 72px;
+     min-height: 144px;
+}
+
+.add-panel .perpetual-calendar-source {
+     min-height: 164px;
+}
+
+.add-panel .weekly-view-source {
+     min-height: 150px;
 }
 
 .calendar-source-preview {
@@ -3242,9 +3269,29 @@ body {
 .calendar-source-preview-cell.is-list-number {
      display: grid;
      place-items: center;
-     color: var(--color-gray2);
-     font-size: 0.38rem;
+     color: var(--color-gray1);
+     font-size: 0.48rem;
+     font-weight: 600;
      font-variant-numeric: tabular-nums;
+     line-height: 1;
+}
+
+.calendar-source-preview-cell.is-time-label {
+     display: grid;
+     place-items: center;
+     color: var(--color-gray1);
+     font-size: 0.34rem;
+     font-variant-numeric: tabular-nums;
+     line-height: 1;
+     text-transform: lowercase;
+}
+
+.calendar-source-preview-month.is-max-month-preview .calendar-source-preview-cell.is-title {
+     background: transparent;
+}
+
+.calendar-source-preview-month.is-max-month-preview .calendar-source-preview-cell {
+     border-color: rgba(17, 17, 17, 0.18);
 }
 
 .calendar-source-preview-cell.is-list-line {
