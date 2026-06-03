@@ -1882,6 +1882,7 @@ function renderWeeklyVertical(item) {
      calendar.style.setProperty("--weekly-row-count", String(headerRowUnits + (slotCount * bodyRowUnits)));
      calendar.style.setProperty("--weekly-body-row-units", String(bodyRowUnits));
      calendar.style.setProperty("--weekly-day-count", String(displayColumns.length));
+     calendar.style.setProperty("--weekly-time-column-units", String(hasTimeColumn ? timeColumnUnits : 0));
      calendar.style.setProperty("--weekly-visible-column-units", String(timeColumnUnits + (displayColumns.length * 5) + (weekNotesEnabled ? 5 : 0)));
      calendar.dataset.weeklyMonthYearVisible = hideWeeklyMonthYear ? "false" : "true";
      calendar.style.gridTemplateColumns = columnSlots.map((slot) => {

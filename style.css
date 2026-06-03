@@ -3766,6 +3766,9 @@ body {
      border-radius: inherit;
      outline: 0;
      background: transparent;
+     --weekly-grid-line-width: max(var(--widget-body-v-line-width, var(--border-sm)), 1px);
+     --weekly-content-column-width: calc(var(--weekly-column-cell-width, 12px) * 5);
+     --weekly-time-column-width: calc(var(--weekly-column-cell-width, 12px) * var(--weekly-time-column-units, 0));
      grid-template-columns:
           var(--weekly-column-cell-width, 12px)
           repeat(var(--weekly-day-count, 7), minmax(calc(var(--weekly-column-cell-width, 12px) * 5), 1fr));
@@ -3784,6 +3787,41 @@ body {
      border-radius: inherit;
      border: var(--widget-body-h-line-width, var(--border-sm)) solid var(--widget-body-h-line-color, rgba(17, 17, 17, 0.18));
      pointer-events: none;
+}
+
+.weekly-view::after {
+     content: "";
+     position: absolute;
+     inset:
+          calc(var(--weekly-row-cell-height, 12px) * var(--weekly-header-row-units, 1))
+          0
+          0
+          0;
+     z-index: 4;
+     pointer-events: none;
+     background:
+          repeating-linear-gradient(
+               90deg,
+               transparent 0 calc(var(--weekly-content-column-width) - var(--weekly-grid-line-width)),
+               var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16)) calc(var(--weekly-content-column-width) - var(--weekly-grid-line-width)) var(--weekly-content-column-width)
+          )
+          var(--weekly-time-column-width) 0 / calc(100% - var(--weekly-time-column-width)) 100% no-repeat;
+}
+
+.weekly-view.has-time-column::after {
+     background:
+          linear-gradient(
+               90deg,
+               transparent 0 calc(var(--weekly-time-column-width) - var(--weekly-grid-line-width)),
+               var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16)) calc(var(--weekly-time-column-width) - var(--weekly-grid-line-width)) var(--weekly-time-column-width),
+               transparent var(--weekly-time-column-width) 100%
+          ),
+          repeating-linear-gradient(
+               90deg,
+               transparent 0 calc(var(--weekly-content-column-width) - var(--weekly-grid-line-width)),
+               var(--widget-body-v-line-color, rgba(17, 17, 17, 0.16)) calc(var(--weekly-content-column-width) - var(--weekly-grid-line-width)) var(--weekly-content-column-width)
+          )
+          var(--weekly-time-column-width) 0 / calc(100% - var(--weekly-time-column-width)) 100% no-repeat;
 }
 
 .weekly-view:not(.has-time-column) {

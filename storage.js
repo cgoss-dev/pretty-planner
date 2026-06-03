@@ -7,12 +7,17 @@ function getGridTemplateBox(item, page) {
      const grid = getGridSize(page);
      const origin = getGridSnapOrigin(page);
      const box = getItemBox(item);
+     const fixedGridSize = getFixedStoredCalendarGridUnits(item.dataset.itemType, {
+          widget: {
+               pageSize: item.dataset.calendarPageSize
+          }
+     });
 
      return {
           x: Math.round((box.x - origin.x) / grid.x),
           y: Math.round((box.y - origin.y) / grid.y),
-          width: Number((box.width / grid.x).toFixed(4)),
-          height: Number((box.height / grid.y).toFixed(4))
+          width: fixedGridSize?.width || Number((box.width / grid.x).toFixed(4)),
+          height: fixedGridSize?.height || Number((box.height / grid.y).toFixed(4))
      };
 }
 
@@ -515,6 +520,29 @@ function isLegacyMiniMonth2Type(type) {
      return type === "mini-cal2" || type === "mini-month2";
 }
 
+function getFixedStoredCalendarGridUnits(type, itemData = {}) {
+     const widget = itemData.widget || {};
+     const grid = itemData.grid || {};
+     const pageSize = widget.pageSize || (Number(grid.width) >= 60 ? "both-pages" : "one-page");
+     const normalizedPageSize = pageSize === "both-pages" ? "both-pages" : "one-page";
+
+     if (type === "weekly-view") {
+          return {
+               width: normalizedPageSize === "both-pages" ? 62 : 32,
+               height: 40
+          };
+     }
+
+     if (type === "full-month") {
+          return {
+               width: normalizedPageSize === "both-pages" ? 61 : 31,
+               height: 42
+          };
+     }
+
+     return null;
+}
+
 function getStoredItemGrid(itemData) {
      const type = normalizePlannerItemType(itemData.type || "sticker");
      const isLegacyMiniMonth2 = isLegacyMiniMonth2Type(itemData.type);
@@ -523,12 +551,13 @@ function getStoredItemGrid(itemData) {
      const storedWidth = Number(grid.width);
      const storedHeight = Number(grid.height);
      const shouldUseMiniMonth2DefaultSize = isLegacyMiniMonth2 && storedWidth === 16 && storedHeight === 15;
+     const fixedCalendarSize = getFixedStoredCalendarGridUnits(type, itemData);
 
      return {
           x: Number.isFinite(Number(grid.x)) ? Number(grid.x) : 0,
           y: Number.isFinite(Number(grid.y)) ? Number(grid.y) : 0,
-          width: type === "mini-month" || shouldUseMiniMonth2DefaultSize ? fallback.width : Math.max(1, Number.isFinite(storedWidth) ? storedWidth : fallback.width),
-          height: type === "mini-month" || shouldUseMiniMonth2DefaultSize || type === "weekly-view" ? fallback.height : Math.max(1, Number.isFinite(storedHeight) ? storedHeight : fallback.height)
+          width: fixedCalendarSize?.width || (type === "mini-month" || shouldUseMiniMonth2DefaultSize ? fallback.width : Math.max(1, Number.isFinite(storedWidth) ? storedWidth : fallback.width)),
+          height: fixedCalendarSize?.height || (type === "mini-month" || shouldUseMiniMonth2DefaultSize ? fallback.height : Math.max(1, Number.isFinite(storedHeight) ? storedHeight : fallback.height))
      };
 }
 
