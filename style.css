@@ -1667,7 +1667,6 @@ body {
 .control-panel-page:has(.custom-select[open]),
 .widget-panel-page:has(.custom-select[open]),
 .widget-panel-row:has(.custom-select[open]),
-.text-panel-control-row:has(.custom-select[open]),
 .widget-option-control:has(.custom-select[open]),
 .item-calendar-attributes-grid:has(.custom-select[open]),
 .widget-option-group:has(.custom-select[open]),
@@ -1679,7 +1678,6 @@ body {
 
 .widget-panel-row:has(.custom-select[open]),
 .widget-option-control:has(.custom-select[open]),
-.text-panel-control-row:has(.custom-select[open]),
 .item-calendar-display-row:has(.custom-select[open]),
 .item-calendar-display-control:has(.custom-select[open]) {
      z-index: 360;
@@ -1701,7 +1699,6 @@ body {
 .widget-panel-page > .item-action-row,
 .widget-panel-page > .item-calendar-display-row,
 .widget-panel-page > .widget-panel-row,
-.widget-panel-page > .text-panel-control-row,
 .widget-panel-page > .text-panel-format,
 .widget-panel-page > .item-calendar-attributes-grid,
 .widget-panel-page > .widget-option-group,
@@ -2599,11 +2596,12 @@ body {
 
 .add-panel {
      grid-template-columns: repeat(2, minmax(0, 100px));
+     grid-auto-rows: minmax(112px, max-content);
      align-items: start;
      justify-items: center;
      justify-content: center;
      align-content: start;
-     gap: 20px 12px;
+     gap: 28px 12px;
      padding: 10px 8px 18px;
 }
 
@@ -2667,6 +2665,7 @@ body {
 .add-panel .weekly-view-source,
 .add-panel .diary-view-source {
      position: relative;
+     z-index: 1;
      top: auto;
      left: auto;
      display: grid;
@@ -3243,6 +3242,7 @@ body {
      aspect-ratio: 1;
 }
 
+.add-panel .sticker-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
 .add-panel .full-month-source,
@@ -3250,6 +3250,11 @@ body {
 .add-panel .weekly-view-source,
 .add-panel .diary-view-source {
      min-height: 100px;
+}
+
+.add-panel .sticker-source,
+.add-panel .toc-source {
+     height: 100px;
 }
 
 .add-panel .full-month-source,
@@ -5054,6 +5059,11 @@ body {
      width: 132px;
 }
 
+.widget-option-control .date-offset-stepper {
+     grid-column: 3;
+     width: 132px;
+}
+
 .text-panel-control .custom-select {
      width: 100%;
 }
@@ -5069,13 +5079,6 @@ body {
 
 .widget-option-control input[type="checkbox"]:last-child {
      grid-column: 3;
-}
-
-.text-panel-control-row {
-     display: grid;
-     grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--color-swatch-size) * 3)), 1fr));
-     gap: 6px;
-     align-items: stretch;
 }
 
 .text-panel-format {
@@ -5983,11 +5986,6 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      max-width: 100%;
 }
 
-.planner-sidebar .text-panel-control-row {
-     grid-template-columns: minmax(0, 1fr);
-     max-height: none;
-}
-
 .planner-sidebar .text-panel-settings-control {
      min-height: 42px;
 }
@@ -6031,6 +6029,36 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 
 .planner-sidebar .widget-option-time-group {
      gap: 8px;
+}
+
+.planner-sidebar .widget-panel.is-docked .text-panel .widget-panel-row,
+.planner-sidebar .widget-panel.is-docked .widget-options-panel .widget-panel-row,
+.planner-sidebar .widget-panel.is-docked .text-panel-format,
+.planner-sidebar .widget-panel.is-docked .color-panel-control {
+     min-height: var(--color-swatch-size);
+     grid-template-columns: 112px minmax(0, 1fr);
+     align-items: center;
+     gap: 8px;
+     padding: 0;
+     border: 0;
+     border-radius: 0;
+     background: transparent;
+}
+
+.planner-sidebar .widget-panel.is-docked .text-panel-format {
+     grid-template-columns: 112px repeat(2, minmax(0, 1fr));
+}
+
+.planner-sidebar .widget-panel.is-docked .text-panel-format .widget-panel-title {
+     grid-row: 1 / span 2;
+}
+
+.planner-sidebar .widget-panel.is-docked .widget-panel-row .custom-select,
+.planner-sidebar .widget-panel.is-docked .widget-panel-row .button-select,
+.planner-sidebar .widget-panel.is-docked .widget-panel-row .date-offset-stepper {
+     grid-column: 2;
+     justify-self: stretch;
+     width: 100%;
 }
 
 .planner-sidebar .item-calendar-attributes-grid {

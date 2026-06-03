@@ -3115,7 +3115,6 @@ function makePlannerItem(type = "sticker") {
      const dotGridInput = document.createElement("input");
      const textElement = document.createElement("div");
      const tocElement = document.createElement("div");
-     const textControlsRow = document.createElement("div");
      const textToggleLabel = document.createElement("label");
      const textTitle = document.createElement("span");
      const textSizeLabel = document.createElement("div");
@@ -3453,7 +3452,6 @@ function makePlannerItem(type = "sticker") {
      textTocInput.type = "checkbox";
      textTocInput.dataset.textControl = "appears-in-toc";
      textTocInput.setAttribute("aria-label", "Selected text appears in Table of Contents");
-     textControlsRow.className = "text-panel-control-row";
      textFormatGroup.className = "text-panel-format text-panel-control";
      textFormatGroup.dataset.sidebarControl = "text.format";
      textFormatTitle.className = "widget-panel-title";
@@ -3817,8 +3815,7 @@ function makePlannerItem(type = "sticker") {
      textFormatGroup.append(textFormatTitle, textBoldInput, textItalicInput, textUnderlineInput, textStrikeInput);
      textAlignLabel.append(textAlignTitle, textAlignmentGrid);
      textLineHeightLabel.append(textLineHeightSelect);
-     textControlsRow.append(textColorLabel, textToggleLabel, textLineHeightLabel, textSizeLabel, textFormatGroup, textAlignLabel);
-     textPanel.append(textPanelTitle, fillLabel, textControlsRow);
+     textPanel.append(textPanelTitle, fillLabel, textColorLabel, textToggleLabel, textLineHeightLabel, textSizeLabel, textFormatGroup, textAlignLabel);
      monthLabel.append(monthSelect);
      yearLabel.append(yearSelect);
      displayYearLabel.append(displayYearSelect);
@@ -3885,14 +3882,14 @@ function makePlannerItem(type = "sticker") {
           widgetPanel.append(dotGridLabel);
      }
      if (isCalendarItemType(type) && type !== "weekly-view") {
-          widgetPanel.append(calendarAttributesGrid);
+          widgetPanel.append(...Array.from(calendarAttributesGrid.children));
      }
      if (type === "weekly-view") {
           timeWidgetGroup.append(timeVisibleLabel, startTimeLabel, timeIncrementLabel, visibleDaysLabel);
-          widgetPanel.append(calendarAttributesGrid, timeWidgetGroup);
+          widgetPanel.append(...Array.from(calendarAttributesGrid.children), ...Array.from(timeWidgetGroup.children));
      }
      if (type === "diary-view") {
-          widgetPanel.append(calendarAttributesGrid, visibleDaysLabel, diaryLayoutLabel, diaryMonthYearVisibleLabel, diaryTitleLinesLabel);
+          widgetPanel.append(...Array.from(calendarAttributesGrid.children), visibleDaysLabel, diaryLayoutLabel, diaryMonthYearVisibleLabel, diaryTitleLinesLabel);
      }
      controlTabs.append(textTab);
      if (hasWidgetControls) {
