@@ -32,8 +32,6 @@ const hintPanel = document.querySelector("[data-hint-panel]");
 const defaultControls = Array.from(document.querySelectorAll("[data-default-control]"));
 const defaultTextColorSwatches = document.querySelector("[data-default-text-color-swatches]");
 const dateOrderPicker = document.querySelector("[data-date-order-picker]");
-const resetUniversalDefaultsButton = document.querySelector("[data-reset-universal-defaults]");
-const resetNotebookDefaultsButton = document.querySelector("[data-reset-notebook-defaults]");
 const pageGridCursor = document.querySelector("[data-page-grid-cursor]");
 const pageCornerFoldOverlay = document.createElement("div");
 const pageCornerFoldOverlayNumber = document.createElement("span");
@@ -603,47 +601,6 @@ function renderDateOrderPicker() {
      });
 }
 
-function resetItemsToPlannerDefaults(items) {
-     const uniqueItems = Array.from(new Set(items)).filter(Boolean);
-
-     uniqueItems.forEach((item) => {
-          delete item.dataset.themeMode;
-          setItemStyle(item, getPlannerDefaultItemStyle(item.dataset.itemType));
-          if (isCalendarItem(item)) {
-               setCalendarPartStyles(item, {});
-               item.querySelectorAll("[data-theme-mode='custom']").forEach((part) => {
-                    delete part.dataset.themeMode;
-               });
-          }
-          applyThemeToWidget(item);
-          if (isCalendarItem(item)) {
-               applyCalendarPartStyles(item);
-          }
-          if (isCalendarTextItem(item)) {
-               setCalendarDayTextSettings(item, getPlannerDefaultTextSettings());
-          } else if (isStickerTextItem(item)) {
-               setStickerTextSettings(item, getPlannerDefaultTextSettings({
-                    enabled: item.dataset.textEnabled ?? (isTocItem(item) || item.dataset.itemType === "page-flag" ? "true" : "false")
-               }));
-          }
-     });
-     notifyTemplateChanged();
-}
-
-function resetUniversalStylesToDefaults() {
-     if (!selectedItems.size) {
-          return;
-     }
-
-     const selectedTypes = new Set(Array.from(selectedItems).map((item) => item.dataset.itemType));
-
-     resetItemsToPlannerDefaults(getAllPlannerItems().filter((item) => selectedTypes.has(item.dataset.itemType)));
-}
-
-function resetNotebookStylesToDefaults() {
-     resetItemsToPlannerDefaults(getAllPlannerItems());
-}
-
 restoreSavedSettings();
 let plannerConfig = buildPlannerConfig();
 
@@ -750,13 +707,10 @@ function getNearestSnapUnit(targetUnit, originUnit) {
      return originUnit + Math.round(targetUnit - originUnit);
 }
 
-function getGridSnapOriginUnitsForPaper(paperKey, pageId) {
-     const isShiftedA5RightPage = paperKey === "a5" && pageId === "right";
-     const isA4Page = paperKey === "a4";
-
+function getGridSnapOriginUnitsForPaper() {
      return {
-          x: isShiftedA5RightPage ? -0.4 : 0,
-          y: isA4Page ? -0.3 : 0
+          x: 0,
+          y: 0
      };
 }
 
@@ -3502,8 +3456,6 @@ function initializeDefaultControls() {
           }
      });
 
-     resetUniversalDefaultsButton?.addEventListener("click", resetUniversalStylesToDefaults);
-     resetNotebookDefaultsButton?.addEventListener("click", resetNotebookStylesToDefaults);
      syncDefaultControls();
 }
 

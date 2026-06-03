@@ -496,13 +496,6 @@ window.KeyboardControls = (() => {
                     { key: "Enter", action: "Start a new line" },
                     { key: "Esc", action: "Finish editing" }
                ]
-          },
-          {
-               title: "Smart Text",
-               controls: [
-                    { key: "[[...]]", action: "Use Smart Text codes that update outside text editing" },
-                    { key: "\\[[...]]", action: "Show a Smart Text code as regular text" }
-               ]
           }
      ];
 

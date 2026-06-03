@@ -1031,7 +1031,7 @@ function getCalendarEffectiveMonthYear(item) {
 function getWeeklyVisibleSlotCount(item) {
      const page = getItemPage(item);
      const timeIncrement = Number(item.dataset.timeIncrement) || 30;
-     const startMinutes = parseTimeValue(item.dataset.startTime || "00:00");
+     const startMinutes = parseTimeValue(item.dataset.startTime || "06:00");
      const maxSlotCount = Math.max(1, Math.ceil(((24 * 60) - startMinutes) / timeIncrement));
      const headerRows = getWeeklyHeaderGridRows(item);
      const bodyRows = getWeeklyBodyGridRows(item);
@@ -1840,7 +1840,7 @@ function renderWeeklyVertical(item) {
      const hideWeeklyMonthYear = item.dataset.itemType === "weekly-view" && item.dataset.weeklyMonthYearVisible === "false";
      const visibleDays = clamp(Number(item.dataset.visibleDays) || 7, 1, 7);
      const timeIncrement = Number(item.dataset.timeIncrement) || 30;
-     const startTime = item.dataset.startTime || "00:00";
+     const startTime = item.dataset.startTime || "06:00";
      const timeFormat = item.dataset.timeFormat || "24";
      const timeVisible = item.dataset.timeVisible !== "false";
      const shareWeekends = true;
@@ -1900,6 +1900,18 @@ function renderWeeklyVertical(item) {
      calendar.classList.toggle("has-time-column", hasTimeColumn);
      calendar.classList.remove("has-title-row");
      calendar.classList.add("no-title-row");
+
+     const gridLineOverlay = document.createElement("span");
+
+     gridLineOverlay.className = "weekly-view-grid-lines";
+     gridLineOverlay.setAttribute("aria-hidden", "true");
+     for (let row = 1; row < slotCount; row += 1) {
+          const gridLine = document.createElement("span");
+
+          gridLine.className = `weekly-view-grid-line ${row % 2 === 1 ? "is-dashed" : "is-solid"}`;
+          gridLine.style.top = `calc(var(--weekly-row-cell-height, 12px) * var(--weekly-body-row-units, 1) * ${row})`;
+          gridLineOverlay.append(gridLine);
+     }
 
      for (let row = 0; row < slotCount + 1; row += 1) {
           const calendarRow = row;
@@ -2087,6 +2099,7 @@ function renderWeeklyVertical(item) {
                calendar.append(cell);
           }
      }
+     calendar.append(gridLineOverlay);
      applyThemeToWidget(item);
 }
 
@@ -2205,7 +2218,7 @@ function setCalendarWidgetSettings(item, settings = {}) {
      item.dataset.diaryTitleLines = settings.diaryTitleLines === "one" ? "one" : (settings.diaryTitleLines === "two" ? "two" : item.dataset.diaryTitleLines || "two");
      item.dataset.startDay = String(clamp(Number(item.dataset.startDay) || 1, 1, getCalendarDaysInMonth(Number(item.dataset.year), Number(item.dataset.month))));
      item.dataset.timeIncrement = settings.timeIncrement || item.dataset.timeIncrement || "30";
-     item.dataset.startTime = normalizeScheduleStartTime(settings.startTime || item.dataset.startTime || "00:00");
+     item.dataset.startTime = normalizeScheduleStartTime(settings.startTime || item.dataset.startTime || "06:00");
      item.dataset.timeFormat = normalizeCalendarTimeFormat(settings.timeFormat || item.dataset.timeFormat || defaultDateSettings.timeFormat || "24");
      item.dataset.timeVisible = settings.timeVisible ?? item.dataset.timeVisible ?? "true";
      item.dataset.weeklyMonthYearVisible = settings.weeklyMonthYearVisible ?? item.dataset.weeklyMonthYearVisible ?? "true";

@@ -312,25 +312,11 @@
                          unit: "in",
                          width: 5.5,
                          height: 8.5
-                    },
-                    "a4": {
-                         label: "A4",
-                         unit: "cm",
-                         width: 21,
-                         height: 29.7
-                    },
-                    "a5": {
-                         label: "A5",
-                         unit: "cm",
-                         width: 14.8,
-                         height: 21
                     }
                },
                viewScales: {
                     "letter": 1,
-                    "half-letter": 1.28,
-                    "a4": 0.92,
-                    "a5": 1.28
+                    "half-letter": 1.28
                },
                gridSizes: {
                     "quarter-inch": {

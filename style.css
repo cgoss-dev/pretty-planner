@@ -4001,14 +4001,18 @@ body {
      overflow: hidden;
 }
 
+.planner-item-weekly-view .weekly-view-time,
+.planner-item-weekly-view .weekly-view-slot,
+.planner-item-weekly-view .weekly-view-week-notes {
+     border-bottom-color: transparent;
+}
+
 .weekly-view-edge-bottom {
      border-bottom: 0;
 }
 
 .planner-item-weekly-view .weekly-view-alt-row-line {
-     border-bottom-color: var(--widget-body-h-line-color, rgba(17, 17, 17, 0.22));
-     border-bottom-width: max(var(--widget-body-h-line-width, var(--border-sm)), 1.25px);
-     border-bottom-style: dashed;
+     border-bottom-style: solid;
 }
 
 .planner-item-weekly-view .weekly-view-alt-row-line.weekly-view-edge-bottom {
@@ -4017,6 +4021,41 @@ body {
 
 .planner-item-weekly-view .weekly-view-sunday-date-cell.weekly-view-alt-row-line {
      border-bottom-style: solid;
+}
+
+.weekly-view-grid-lines {
+     position: absolute;
+     inset:
+          calc(var(--weekly-row-cell-height, 12px) * var(--weekly-header-row-units, 1))
+          0
+          0
+          0;
+     z-index: 5;
+     overflow: hidden;
+     border-radius: inherit;
+     pointer-events: none;
+}
+
+.weekly-view-grid-line {
+     position: absolute;
+     left: 0;
+     right: 0;
+     height: max(var(--widget-body-h-line-width, var(--border-sm)), 1px);
+     transform: translateY(-50%);
+     pointer-events: none;
+}
+
+.weekly-view-grid-line.is-solid {
+     background: var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16));
+}
+
+.weekly-view-grid-line.is-dashed {
+     background:
+          repeating-linear-gradient(
+               90deg,
+               var(--widget-body-h-line-color, rgba(17, 17, 17, 0.16)) 0 5px,
+               transparent 5px 10px
+          );
 }
 
 .planner-item-weekly-view .weekly-view-cell {

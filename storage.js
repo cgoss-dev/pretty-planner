@@ -111,7 +111,7 @@ function serializePlannerItem(item) {
                     diaryMonthYearVisible: item.dataset.diaryMonthYearVisible !== "false",
                     diaryTitleLines: item.dataset.diaryTitleLines || "two",
                     timeIncrement: Number(item.dataset.timeIncrement) || 30,
-                    startTime: item.dataset.startTime || "00:00",
+                    startTime: item.dataset.startTime || "06:00",
                     timeFormat: item.dataset.timeFormat || "24",
                     timeVisible: item.dataset.timeVisible !== "false",
                     weeklyMonthYearVisible: item.dataset.weeklyMonthYearVisible !== "false",
