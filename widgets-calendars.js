@@ -1952,6 +1952,10 @@ function renderWeeklyVertical(item) {
      for (let column = 1; column < columnCount; column += 1) {
           const columnLine = document.createElement("span");
 
+          if (sharedWeekendColumnIndex >= 0 && column === sharedWeekendColumnIndex) {
+               continue;
+          }
+
           columnLine.className = "weekly-view-column-line";
           columnLine.style.gridColumn = String(column);
           columnLineOverlay.append(columnLine);
