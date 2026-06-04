@@ -2394,6 +2394,57 @@ function applyCalendarPageSizeToActionItems(item, pageSize) {
      notifyTemplateChanged();
 }
 
+function createWidgetSelectStepper(select) {
+     const existingControl = select.nextElementSibling;
+
+     if (existingControl?.classList.contains("select-stepper")) {
+          updateCustomSelectDisplay(select);
+          return existingControl;
+     }
+
+     const stepper = document.createElement("div");
+     const previousButton = document.createElement("button");
+     const valueDisplay = document.createElement("span");
+     const nextButton = document.createElement("button");
+
+     select.dataset.stepperSelect = "true";
+     select.classList.add("native-select");
+     stepper.className = "select-stepper date-offset-stepper";
+     stepper.dataset.selectStepper = select.dataset.widgetControl || "";
+     previousButton.className = "select-stepper-button select-stepper-button-prev date-offset-stepper-button date-offset-stepper-button-prev";
+     previousButton.type = "button";
+     previousButton.textContent = "‹";
+     previousButton.setAttribute("aria-label", `Previous ${select.getAttribute("aria-label") || "option"}`);
+     valueDisplay.className = "select-stepper-value";
+     valueDisplay.setAttribute("aria-live", "polite");
+     nextButton.className = "select-stepper-button select-stepper-button-next date-offset-stepper-button date-offset-stepper-button-next";
+     nextButton.type = "button";
+     nextButton.textContent = "›";
+     nextButton.setAttribute("aria-label", `Next ${select.getAttribute("aria-label") || "option"}`);
+
+     const stepValue = (direction) => {
+          const currentIndex = select.selectedIndex >= 0 ? select.selectedIndex : 0;
+          const nextIndex = clamp(currentIndex + direction, 0, Math.max(0, select.options.length - 1));
+
+          if (nextIndex === currentIndex) {
+               return;
+          }
+
+          select.selectedIndex = nextIndex;
+          select.dispatchEvent(new Event("change", { bubbles: true }));
+          updateCustomSelectDisplay(select);
+     };
+
+     previousButton.addEventListener("click", () => stepValue(-1));
+     nextButton.addEventListener("click", () => stepValue(1));
+     select.addEventListener("change", () => updateCustomSelectDisplay(select));
+     stepper.append(previousButton, valueDisplay, nextButton);
+     select.after(stepper);
+     updateCustomSelectDisplay(select);
+
+     return stepper;
+}
+
 function setWidgetPanelTab(controls, tabName) {
      closeCustomSelects(controls);
      clearSelectFocus(controls);
@@ -3891,6 +3942,7 @@ function makePlannerItem(type = "sticker") {
      if (type === "diary-view") {
           widgetPanel.append(...Array.from(calendarAttributesGrid.children), visibleDaysLabel, diaryLayoutLabel, diaryMonthYearVisibleLabel, diaryTitleLinesLabel);
      }
+     [monthSelect, yearSelect, startDaySelect, visibleDaysSelect, startTimeSelect].forEach(createWidgetSelectStepper);
      controlTabs.append(textTab);
      if (hasWidgetControls) {
           controlTabs.append(widgetTab);
@@ -3899,7 +3951,7 @@ function makePlannerItem(type = "sticker") {
      if (hasWidgetControls) {
           controls.append(widgetPanel);
      }
-     controls.querySelectorAll("select:not([data-style-control='fill']):not([data-text-control='color'])").forEach((select) => {
+     controls.querySelectorAll("select:not([data-style-control='fill']):not([data-text-control='color']):not([data-stepper-select='true'])").forEach((select) => {
           makeCustomSelect(select);
           select.addEventListener("change", () => updateCustomSelectDisplay(select));
      });

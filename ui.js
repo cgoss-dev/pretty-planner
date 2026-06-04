@@ -857,6 +857,24 @@ function initializePaletteColorControl(select, swatches, defaultColor, onSelect)
 function updateCustomSelectDisplay(select) {
      const dropdown = select.nextElementSibling;
 
+     if (dropdown?.classList.contains("select-stepper")) {
+          const selectedOption = select.options[select.selectedIndex];
+          const valueDisplay = dropdown.querySelector(".select-stepper-value");
+          const previousButton = dropdown.querySelector(".select-stepper-button-prev");
+          const nextButton = dropdown.querySelector(".select-stepper-button-next");
+
+          if (valueDisplay) {
+               valueDisplay.textContent = selectedOption ? selectedOption.textContent : "";
+          }
+          if (previousButton) {
+               previousButton.disabled = select.selectedIndex <= 0;
+          }
+          if (nextButton) {
+               nextButton.disabled = select.selectedIndex >= select.options.length - 1;
+          }
+          return;
+     }
+
      if (dropdown?.classList.contains("button-select")) {
           dropdown.querySelectorAll(".button-select-option").forEach((option) => {
                const isSelected = option.dataset.value === select.value;
@@ -1032,6 +1050,11 @@ function makeButtonSelect(select) {
 }
 
 function syncCustomSelect(select) {
+     if (select.dataset.stepperSelect === "true") {
+          updateCustomSelectDisplay(select);
+          return;
+     }
+
      const dropdown = select.nextElementSibling;
 
      if (shouldUseButtonSelect(select)) {
@@ -1375,6 +1398,11 @@ function setSelectFocus(dropdown) {
 }
 
 function makeCustomSelect(select) {
+     if (select.dataset.stepperSelect === "true") {
+          updateCustomSelectDisplay(select);
+          return select.nextElementSibling;
+     }
+
      if (shouldUseButtonSelect(select)) {
           return makeButtonSelect(select);
      }

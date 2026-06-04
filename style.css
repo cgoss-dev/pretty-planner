@@ -5042,6 +5042,26 @@ body {
      background: var(--color-white);
 }
 
+.date-offset-stepper-button:disabled {
+     opacity: 0.46;
+     cursor: default;
+}
+
+.select-stepper-value {
+     display: grid;
+     place-items: center;
+     min-width: 0;
+     min-height: var(--color-swatch-size);
+     padding: 0 8px;
+     border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+     border-radius: 6px;
+     background: rgba(255, 255, 255, 0.48);
+     color: var(--color-gray1);
+     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     line-height: 1;
+     text-align: center;
+}
+
 .item-calendar-attributes-grid .widget-option-control input[data-widget-control="date-offset"]::-webkit-outer-spin-button,
 .item-calendar-attributes-grid .widget-option-control input[data-widget-control="date-offset"]::-webkit-inner-spin-button {
      margin: 0;
