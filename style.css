@@ -2659,6 +2659,7 @@ body {
 }
 
 .add-panel .sticker-source,
+.add-panel .page-flag-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
 .add-panel .full-month-source,
@@ -2741,7 +2742,13 @@ body {
 }
 
 .add-panel .page-flag-source {
+     width: 100px;
+     max-width: 100px;
+     height: calc(100px / 3);
+     min-height: calc(100px / 3);
      aspect-ratio: 3 / 1;
+     contain: paint;
+     overflow: hidden;
      border-color: transparent;
      background: transparent;
 }
@@ -3237,7 +3244,6 @@ body {
 }
 
 .add-panel .sticker-source,
-.add-panel .page-flag-source,
 .add-panel .toc-source,
 .add-panel .mini-month-source,
 .add-panel .full-month-source,
