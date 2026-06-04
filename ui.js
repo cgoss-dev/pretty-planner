@@ -1683,7 +1683,7 @@ function initializeSidebarRowReorder() {
           activeSidebarReorderPointerId = event.pointerId;
           row.classList.add("is-sidebar-row-dragging");
           row.dataset.sidebarReorderReady = "true";
-     });
+     }, true);
      document.addEventListener("pointermove", (event) => {
           if (!activeSidebarReorderRow || event.pointerId !== activeSidebarReorderPointerId) {
                return;
