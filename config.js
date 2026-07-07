@@ -2,7 +2,7 @@
 (function () {
      const initialNotebookPageCount = 10;
      const perpetualCalendarLeftColumnGridUnits = 1.25;
-     const perpetualCalendarRightColumnMinGridUnits = 8;
+     const perpetualCalendarRightColumnMinGridUnits = 8.75;
      const rootControls = {
           app: {
                singlePageViewportMaxWidth: 1000,

@@ -470,7 +470,12 @@ function applySidebarControlVisibility(item) {
      }
 
      controls.querySelectorAll("[data-sidebar-control]").forEach((control) => {
-          control.hidden = !isSidebarControlVisibleForItem(item, control.dataset.sidebarControl);
+          const isVisibleForItem = isSidebarControlVisibleForItem(item, control.dataset.sidebarControl);
+          const isVisibleForDateMode = control.dataset.dateModeVisibility
+               ? control.dataset.dateModeVisibility === (item.dataset.dateMode || "fixed")
+               : true;
+
+          control.hidden = !isVisibleForItem || !isVisibleForDateMode;
      });
 }
 
@@ -3653,6 +3658,7 @@ function makePlannerItem(type = "sticker") {
      });
      dateOffsetLabel.className = "widget-panel-row widget-option-control";
      dateOffsetLabel.dataset.sidebarControl = "options.date-offset";
+     dateOffsetLabel.dataset.dateModeVisibility = "relative";
      dateOffsetLabel.textContent = "Offset";
      dateOffsetStepper.className = "date-offset-stepper";
      dateOffsetPrevButton.className = "date-offset-stepper-button date-offset-stepper-button-prev";
@@ -3691,13 +3697,14 @@ function makePlannerItem(type = "sticker") {
      });
      titleVisibleLabel.className = "widget-panel-row widget-option-control";
      titleVisibleLabel.dataset.sidebarControl = "options.calendar-title-visible";
-     titleVisibleLabel.textContent = "Month/Year";
+     titleVisibleLabel.textContent = "Show Month/Year";
      titleVisibleInput.type = "checkbox";
      titleVisibleInput.dataset.widgetControl = "calendar-title-visible";
      titleVisibleInput.setAttribute("aria-label", "Show calendar month and year row");
      titleVisibleInput.checked = true;
      monthLabel.className = "widget-panel-row widget-option-control";
      monthLabel.dataset.sidebarControl = "options.month";
+     monthLabel.dataset.dateModeVisibility = "fixed";
      monthLabel.textContent = "Month";
      monthSelect.dataset.widgetControl = "month";
      monthSelect.setAttribute("aria-label", "Calendar month");
@@ -3754,7 +3761,7 @@ function makePlannerItem(type = "sticker") {
      });
      diaryMonthYearVisibleLabel.className = "widget-panel-row widget-option-control";
      diaryMonthYearVisibleLabel.dataset.sidebarControl = "options.diary-month-year-visible";
-     diaryMonthYearVisibleLabel.textContent = "Month/Year";
+     diaryMonthYearVisibleLabel.textContent = "Show Month/Year";
      diaryMonthYearVisibleInput.type = "checkbox";
      diaryMonthYearVisibleInput.checked = false;
      diaryMonthYearVisibleInput.dataset.widgetControl = "diary-month-year-visible";
@@ -3804,7 +3811,7 @@ function makePlannerItem(type = "sticker") {
      timeVisibleInput.setAttribute("aria-label", "Show Schedule View time column");
      weeklyMonthYearVisibleLabel.className = "widget-panel-row widget-option-control";
      weeklyMonthYearVisibleLabel.dataset.sidebarControl = "options.weekly-month-year-visible";
-     weeklyMonthYearVisibleLabel.textContent = "Month/Year";
+     weeklyMonthYearVisibleLabel.textContent = "Show Month/Year";
      weeklyMonthYearVisibleInput.type = "checkbox";
      weeklyMonthYearVisibleInput.checked = false;
      weeklyMonthYearVisibleInput.dataset.widgetControl = "weekly-month-year-visible";
@@ -3896,15 +3903,15 @@ function makePlannerItem(type = "sticker") {
      titleVisibleLabel.append(titleVisibleInput);
      weekNumberLabel.append(weekNumberInput);
      if (type === "perpetual-calendar") {
-          calendarAttributesGrid.append(dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel);
+          calendarAttributesGrid.append(dateModeLabel, monthLabel, dateOffsetLabel);
      } else if (type === "weekly-view") {
-          calendarAttributesGrid.append(calendarSizeLabel, weeklyMonthYearVisibleLabel, weekdayLabelLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
+          calendarAttributesGrid.append(calendarSizeLabel, weekdayLabelLabel, weekNotesLabel, dateModeLabel, monthLabel, dateOffsetLabel, yearLabel, startDayLabel);
      } else if (type === "diary-view") {
-          calendarAttributesGrid.append(weekdayLabelLabel, dateModeLabel, dateOffsetLabel, monthLabel, yearLabel, startDayLabel);
+          calendarAttributesGrid.append(weekdayLabelLabel, dateModeLabel, monthLabel, dateOffsetLabel, yearLabel, startDayLabel);
      } else if (type === "full-month") {
-          calendarAttributesGrid.append(calendarSizeLabel, weekdayLabelLabel, weekNotesLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel);
+          calendarAttributesGrid.append(calendarSizeLabel, weekdayLabelLabel, weekNotesLabel, dateModeLabel, monthLabel, dateOffsetLabel, yearLabel, weekNumberLabel);
      } else {
-          calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, dateOffsetLabel, titleVisibleLabel, monthLabel, yearLabel, weekNumberLabel);
+          calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, monthLabel, dateOffsetLabel, yearLabel, weekNumberLabel);
      }
      startDayLabel.append(startDaySelect);
      visibleDaysLabel.append(visibleDaysSelect);
@@ -3929,6 +3936,13 @@ function makePlannerItem(type = "sticker") {
      if (hasWidgetControls) {
           widgetPanel.append(widgetPanelSectionTitle, textTocLabel);
      }
+     if (isCalendarItemType(type)) {
+          const monthYearVisibilityLabel = type === "weekly-view"
+               ? weeklyMonthYearVisibleLabel
+               : (type === "diary-view" ? diaryMonthYearVisibleLabel : titleVisibleLabel);
+
+          widgetPanel.append(monthYearVisibilityLabel);
+     }
      if (type === "sticker") {
           widgetPanel.append(dotGridLabel);
      }
@@ -3940,7 +3954,7 @@ function makePlannerItem(type = "sticker") {
           widgetPanel.append(...Array.from(calendarAttributesGrid.children), ...Array.from(timeWidgetGroup.children));
      }
      if (type === "diary-view") {
-          widgetPanel.append(...Array.from(calendarAttributesGrid.children), visibleDaysLabel, diaryLayoutLabel, diaryMonthYearVisibleLabel, diaryTitleLinesLabel);
+          widgetPanel.append(...Array.from(calendarAttributesGrid.children), visibleDaysLabel, diaryLayoutLabel, diaryTitleLinesLabel);
      }
      [monthSelect, yearSelect, startDaySelect, visibleDaysSelect, startTimeSelect].forEach(createWidgetSelectStepper);
      controlTabs.append(textTab);

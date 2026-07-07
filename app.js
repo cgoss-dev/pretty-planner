@@ -1407,6 +1407,54 @@ function isPanelControlShortcutTarget(target) {
      return Boolean(target?.closest?.("button, input, select, textarea, [contenteditable='true'], .custom-select"));
 }
 
+function insertTextEditLineBreak(editingTarget) {
+     const selection = window.getSelection();
+
+     if (!selection || !selection.rangeCount) {
+          editingTarget.append(document.createTextNode("\n"));
+          return;
+     }
+
+     const range = selection.getRangeAt(0);
+
+     const lineBreak = document.createTextNode("\n");
+
+     range.deleteContents();
+     range.insertNode(lineBreak);
+     range.setStartAfter(lineBreak);
+     range.collapse(true);
+     selection.removeAllRanges();
+     selection.addRange(range);
+     editingTarget.dispatchEvent(new Event("input", {
+          bubbles: true
+     }));
+}
+
+function handleTextEditEnterKey(event) {
+     // NOTE: Keeps Enter for starting text edit mode; Shift+Enter owns new lines while editing.
+     if (
+          event.defaultPrevented ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.key !== "Enter"
+     ) {
+          return;
+     }
+
+     const editingTarget = event.target?.closest?.("[contenteditable='true']");
+
+     if (!editingTarget) {
+          return;
+     }
+
+     event.preventDefault();
+
+     if (event.shiftKey) {
+          insertTextEditLineBreak(editingTarget);
+     }
+}
+
 function handleMenuEnterKey(event) {
      // NOTE: Activates the focused panel control with E or Enter while the control panel is open
      if (
@@ -3026,9 +3074,8 @@ function getKeyHintState() {
           return {
                mode: "Current Action > Text Edit",
                entries: [
-               ["Type", "Enter text"],
-               ["Enter", "New line"],
-               ["Esc", "Finish editing"]
+               ["Shift+Enter", "New line"],
+               ["Escape", "Finish editing"]
                ]
           };
      }
@@ -3686,6 +3733,7 @@ document.addEventListener("auxclick", handleMousePageTurnButton, true);
 document.addEventListener("keydown", (event) => {
      handleUndoShortcut(event);
      handleClipboardShortcut(event);
+     handleTextEditEnterKey(event);
      handleTextEditFinishKey(event);
      blockSpacebarShortcut(event);
      handleKeyboardPlacementKey(event);

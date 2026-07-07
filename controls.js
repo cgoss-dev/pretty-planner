@@ -460,41 +460,11 @@ window.PageControls = (() => {
 window.KeyboardControls = (() => {
      const groups = [
           {
-               title: "Control Panel",
-               controls: [
-                    { key: "1-5", action: "Choose Guide, Widgets, Notebook, Dates, or Format" },
-                    { key: "Q / E", action: "Last or next panel tab" },
-                    { key: "Home / End", action: "First or last notebook page" },
-                    { key: "WASD / Arrows", action: "Move spatially through panel controls; up/down scroll at edges" },
-                    { key: "Enter", action: "Activate selected control" },
-                    { key: "Delete / Esc", action: "Close panel" }
-               ]
-          },
-          {
-               title: "Widget Placement",
-               controls: [
-                    { key: "Enter", action: "Pick up or place the widget" },
-                    { key: "WASD / Arrows", action: "Move one grid cell while placing" },
-                    { key: "X", action: "Toggle gridlines" },
-                    { key: "Delete / Esc", action: "Cancel placement" }
-               ]
-          },
-          {
-               title: "Selected Object",
-               controls: [
-                    { key: "1 / Enter", action: "Open widget actions" },
-                    { key: "2", action: "Group or ungroup selection" },
-                    { key: "3", action: "Delete selected object" },
-                    { key: "Enter", action: "Open widget actions" },
-                    { key: "Delete / Esc", action: "Deselect object" }
-               ]
-          },
-          {
                title: "Text Editing",
                controls: [
-                    { key: "Type", action: "Enter text normally" },
-                    { key: "Enter", action: "Start a new line" },
-                    { key: "Esc", action: "Finish editing" }
+                    { key: "Enter", action: "Enter text edit mode" },
+                    { key: "Shift+Enter", action: "Start a new line" },
+                    { key: "Escape", action: "Finish editing" }
                ]
           }
      ];

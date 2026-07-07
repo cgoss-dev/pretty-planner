@@ -2302,7 +2302,6 @@ function setCalendarWidgetSettings(item, settings = {}) {
      const displayWeekStartSelect = controls.querySelector("[data-widget-control='display-week-start']");
      const titleVisibleInput = controls.querySelector("[data-widget-control='calendar-title-visible']");
      const monthSelect = controls.querySelector("[data-widget-control='month']");
-     const monthLabel = monthSelect ? monthSelect.closest(".widget-option-control") : null;
      const yearSelect = controls.querySelector("[data-widget-control='year']");
      const startDaySelect = controls.querySelector("[data-widget-control='start-day']");
      const visibleDaysSelect = controls.querySelector("[data-widget-control='visible-days']");
@@ -2364,10 +2363,6 @@ function setCalendarWidgetSettings(item, settings = {}) {
 
      if (monthSelect) {
           monthSelect.value = item.dataset.month;
-     }
-
-     if (monthLabel) {
-          monthLabel.hidden = item.dataset.dateMode === "relative";
      }
 
      if (yearSelect) {
@@ -2434,6 +2429,10 @@ function setCalendarWidgetSettings(item, settings = {}) {
 
      if (weekNotesSelect) {
           weekNotesSelect.value = item.dataset.weekNotes;
+     }
+
+     if (typeof applySidebarControlVisibility === "function") {
+          applySidebarControlVisibility(item);
      }
 
      const rebuiltSelects = new Set([startDaySelect, displayDaySelect, displayYearSelect, displayMonthSelect].filter(Boolean));
