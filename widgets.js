@@ -76,7 +76,7 @@ function applyTextThemeToElement(element, textTheme = {}, theme = null, override
      element.style.fontFamily = getStickerTextFont(defaultText?.font || nextTextTheme.typeface || "annotation-mono");
      element.style.fontSize = `${defaultText?.size || getThemeTextSize(theme, nextTextTheme)}px`;
      element.style.color = defaultText?.color || getThemeColorValue(nextTextTheme.color || "gray1");
-     element.style.fontWeight = (defaultText?.bold === "true" || nextTextTheme.style?.includes("bold")) ? "700" : "400";
+     element.style.fontWeight = (defaultText?.bold === "true" || nextTextTheme.style?.includes("bold")) ? "800" : "400";
      element.style.fontStyle = (defaultText?.italic === "true" || nextTextTheme.style?.includes("italic")) ? "italic" : "normal";
      element.style.textDecoration = getTextDecorationValue(
           defaultText?.underline ?? (nextTextTheme.style?.includes("underline") ? "true" : "false"),
@@ -90,7 +90,7 @@ function applyTextThemeToElement(element, textTheme = {}, theme = null, override
           (element.classList.contains("mini-month-day-number") || element.classList.contains("perpetual-calendar-day-number"))
      ) {
           element.style.color = "var(--tertiary-01)";
-          element.style.fontWeight = "700";
+          element.style.fontWeight = "800";
      }
 }
 
@@ -1158,7 +1158,7 @@ function setStickerTextSettings(item, settings = {}) {
           textElement.style.fontSize = `${item.dataset.textSize}px`;
           textElement.style.color = item.dataset.textColor;
           textElement.style.fontFamily = getStickerTextFont(item.dataset.textFont);
-          textElement.style.fontWeight = item.dataset.textBold === "true" ? "700" : "400";
+          textElement.style.fontWeight = item.dataset.textBold === "true" ? "800" : "400";
           textElement.style.fontStyle = item.dataset.textItalic === "true" ? "italic" : "normal";
           textElement.style.textDecoration = getTextDecorationValue(item.dataset.textUnderline, item.dataset.textStrike);
           textElement.style.textAlign = item.dataset.textAlign;
@@ -2053,9 +2053,13 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      textGroup.className = "item-text-role-action-group";
      layoutGroup.className = "item-action-row item-layout-action-group";
      duplicateGroup.className = "item-action-row";
+     const groupAction = document.createElement("div");
+
+     groupAction.className = "item-action-row item-single-action-row";
      layerGroup.className = "item-layer-actions";
 
      const duplicateButton = makeButton("Duplicate", closeAfter(() => duplicateItem(item)));
+     const sequenceButton = makeButton("Sequence", closeAfter(() => sequenceItem(item)));
      const flipButton = makeButton("Flip", closeAfter(() => togglePageFlagSide(item)));
      const groupButton = makeButton(itemsHaveGroup(actionItems) ? "Ungroup" : "Group", closeAfter(() => {
           const nextItems = getActionItems(item);
@@ -2076,13 +2080,14 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      if (isPageFlagItem(item)) {
           duplicateGroup.append(flipButton);
      }
-     duplicateGroup.append(duplicateButton, groupButton);
+     duplicateGroup.append(duplicateButton, sequenceButton);
+     groupAction.append(groupButton);
      layerGroup.append(sendBackwardButton, bringForwardButton);
      popup.append(popupTitle, widgetType);
      if (textGroup.childElementCount) {
           popup.append(textGroup);
      }
-     popup.append(layerGroup, duplicateGroup, deleteButton);
+     popup.append(layerGroup, duplicateGroup, groupAction, deleteButton);
      plannerDesk.append(popup);
      positionItemActionsPopup(popup, event);
      updateObjectControlsState();
@@ -2587,7 +2592,7 @@ function applyCalendarPartStyles(item) {
                cell.style.fontFamily = getStickerTextFont(style.textFont);
           }
           if (style.textBold !== undefined) {
-               cell.style.fontWeight = style.textBold === "true" ? "700" : "400";
+               cell.style.fontWeight = style.textBold === "true" ? "800" : "400";
           }
           if (style.textItalic !== undefined) {
                cell.style.fontStyle = style.textItalic === "true" ? "italic" : "normal";
@@ -3161,7 +3166,9 @@ function makePlannerItem(type = "sticker") {
      const calendarAttributesGrid = document.createElement("div");
      const timeWidgetGroup = document.createElement("div");
      const duplicateButton = document.createElement("button");
+     const sequenceButton = document.createElement("button");
      const duplicateGroupActions = document.createElement("div");
+     const groupActions = document.createElement("div");
      const groupButton = document.createElement("button");
      const layerButtonGroup = document.createElement("div");
      const bringForwardButton = document.createElement("button");
@@ -3406,6 +3413,12 @@ function makePlannerItem(type = "sticker") {
      duplicateButton.dataset.sidebarControl = "actions.duplicate";
      duplicateButton.setAttribute("aria-label", "Duplicate sticker");
      duplicateGroupActions.className = "item-action-row";
+     sequenceButton.className = "widget-panel-button";
+     sequenceButton.type = "button";
+     sequenceButton.textContent = "Sequence";
+     sequenceButton.dataset.sidebarControl = "actions.duplicate";
+     sequenceButton.setAttribute("aria-label", "Duplicate and sequence sticker");
+     groupActions.className = "item-action-row item-single-action-row";
      groupButton.className = "widget-panel-button";
      groupButton.type = "button";
      groupButton.textContent = "Group";
@@ -3929,9 +3942,10 @@ function makePlannerItem(type = "sticker") {
      timeFormatLabel.append(timeFormatSelect);
      shareWeekendsLabel.append(shareWeekendsInput);
      weekNotesLabel.append(weekNotesSelect);
-     duplicateGroupActions.append(duplicateButton, groupButton);
+     duplicateGroupActions.append(duplicateButton, sequenceButton);
+     groupActions.append(groupButton);
      layerButtonGroup.append(sendBackwardButton, bringForwardButton);
-     layoutActionGroup.append(layoutActionTitle, duplicateGroupActions, layerButtonGroup, deleteButton);
+     layoutActionGroup.append(layoutActionTitle, duplicateGroupActions, groupActions, layerButtonGroup, deleteButton);
      actionsPanel.append(actionsWidgetType);
      if (isCalendarItemType(type)) {
           actionsPanel.append(displayDateRow);
@@ -4228,6 +4242,10 @@ function makePlannerItem(type = "sticker") {
      duplicateButton.addEventListener("click", (event) => {
           event.stopPropagation();
           duplicateItem(item);
+     });
+     sequenceButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          sequenceItem(item);
      });
      groupButton.addEventListener("click", (event) => {
           event.stopPropagation();
@@ -4784,8 +4802,7 @@ function duplicateItem(item) {
 
      if (actionItems.length > 1) {
           selectItems(actionItems);
-          duplicateSelectedItems();
-          return;
+          return duplicateSelectedItems();
      }
 
      const page = getItemPage(item);
@@ -4811,6 +4828,7 @@ function duplicateItem(item) {
      setItemBox(duplicate, nextBox);
      selectItem(duplicate);
      notifyTemplateChanged();
+     return [duplicate];
 }
 
 function duplicateSelectedItems() {
@@ -4854,10 +4872,59 @@ function duplicateSelectedItems() {
      });
 
      if (!copies.length) {
-          return;
+          return [];
      }
 
      selectItems(copies);
+     notifyTemplateChanged();
+     return copies;
+}
+
+function incrementPlainNumberText(value) {
+     const text = String(value || "").trim();
+
+     if (!/^-?\d+$/.test(text)) {
+          return null;
+     }
+
+     return String(Number(text) + 1);
+}
+
+function incrementItemPrimaryText(item) {
+     const stickerText = getStickerTextElement(item);
+     const stickerNextText = stickerText && item.dataset.textEnabled === "true"
+          ? incrementPlainNumberText(stickerText.textContent)
+          : null;
+
+     if (stickerNextText !== null) {
+          setStickerTextSettings(item, {
+               enabled: "true",
+               content: stickerNextText
+          });
+          return true;
+     }
+
+     const calendarText = item.querySelector(".calendar-day-text");
+     const calendarNextText = calendarText ? incrementPlainNumberText(calendarText.textContent) : null;
+
+     if (calendarNextText === null) {
+          return false;
+     }
+
+     calendarText.textContent = calendarNextText;
+     if (calendarText.dataset.dayKey && typeof setCalendarDayNote === "function") {
+          setCalendarDayNote(item, calendarText.dataset.dayKey, calendarNextText);
+     }
+     if (typeof updateCalendarDayTextOverflow === "function") {
+          updateCalendarDayTextOverflow(calendarText);
+     }
+     return true;
+}
+
+function sequenceItem(item) {
+     const copies = duplicateItem(item);
+
+     copies.forEach(incrementItemPrimaryText);
      notifyTemplateChanged();
 }
 

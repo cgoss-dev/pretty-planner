@@ -788,7 +788,7 @@ function applyCalendarDayTextStyle(item, textElement) {
      textElement.style.fontSize = `${item.dataset.dayTextSize || "10"}px`;
      textElement.style.color = item.dataset.dayTextColor || "var(--color-gray1)";
      textElement.style.fontFamily = getStickerTextFont(item.dataset.dayTextFont || "annotation-mono");
-     textElement.style.fontWeight = item.dataset.dayTextBold === "true" ? "700" : "400";
+     textElement.style.fontWeight = item.dataset.dayTextBold === "true" ? "800" : "400";
      textElement.style.fontStyle = item.dataset.dayTextItalic === "true" ? "italic" : "normal";
      textElement.style.textDecoration = getTextDecorationValue(item.dataset.dayTextUnderline, item.dataset.dayTextStrike);
      textElement.style.textAlign = item.dataset.dayTextAlign || "center";

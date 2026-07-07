@@ -3562,7 +3562,7 @@ body {
 }
 
 .calendar-current-day-number {
-     font-weight: 700;
+     font-weight: 800;
 }
 
 .planner-item-mini-month .mini-month-day-number.calendar-current-day-number {
@@ -4798,6 +4798,10 @@ body {
      gap: 6px;
 }
 
+.item-single-action-row {
+     grid-template-columns: minmax(0, 1fr);
+}
+
 .item-action-row .widget-panel-button,
 .item-layer-actions .widget-panel-button {
      min-width: 0;
@@ -5140,7 +5144,7 @@ body {
 }
 
 .text-panel-toggle-bold {
-     font-weight: 700;
+     font-weight: 800;
 }
 
 .text-panel-toggle-italic {
