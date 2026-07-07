@@ -10,7 +10,7 @@
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
      >
-     <link rel="stylesheet" href="style.css?v=planner-storage-488">
+     <link rel="stylesheet" href="style.css?v=planner-storage-491">
 </head>
 <body>
      <main class="planner-desk">
@@ -43,11 +43,6 @@
                          <span class="control-panel-tab-label">Notebook</span>
                          <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
                     </button>
-                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Dates" aria-controls="defaults-panel" data-control-panel-tab="defaults">
-                         <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">Dates</span>
-                         <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
-                    </button>
                     <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Format selected widget" aria-controls="object-panel" data-control-panel-tab="object-selected" disabled aria-disabled="true">
                          <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
                          <span class="control-panel-tab-label">Format</span>
@@ -59,68 +54,9 @@
                     <div data-keyboard-controls></div>
                </div>
 
-               <div class="control-panel-page main-menu-panel defaults-panel" id="defaults-panel" role="tabpanel" data-control-panel-page="defaults" hidden>
-                    <div class="keyboard-control-section defaults-section">
-                         <label class="widget-panel-row text-panel-control">
-                              <span class="widget-panel-title">Week Start</span>
-                              <select class="native-select" data-default-control="date-week-start" aria-label="Default calendar week start">
-                                   <option value="monday" selected>Monday</option>
-                                   <option value="sunday">Sunday</option>
-                              </select>
-                         </label>
-                         <label class="widget-panel-row text-panel-control">
-                              <span class="widget-panel-title">Time Format</span>
-                              <select class="native-select" data-default-control="date-time-format" aria-label="Default calendar time format">
-                                   <option value="12">12hr - 11:00a / 3:30p</option>
-                                   <option value="24" selected>24hr - 11:00 / 15:30</option>
-                              </select>
-                         </label>
-                         <div class="date-order-control">
-                              <span class="widget-panel-title">Date Order</span>
-                              <div class="date-order-picker" data-date-order-picker aria-label="Default date order"></div>
-                         </div>
-                         <div class="date-format-defaults">
-                              <span class="widget-panel-title">Year</span>
-                              <div class="control-choice-group" aria-label="Default year format">
-                                   <label class="control-choice">
-                                        <input type="radio" name="date-year-format-default" data-default-control="date-year-format" value="yyyy" checked>
-                                        <span>YYYY</span>
-                                   </label>
-                                   <label class="control-choice">
-                                        <input type="radio" name="date-year-format-default" data-default-control="date-year-format" value="yy">
-                                        <span>YY</span>
-                                   </label>
-                              </div>
-                              <span class="widget-panel-title">Month</span>
-                              <div class="control-choice-group" aria-label="Default month format">
-                                   <label class="control-choice">
-                                        <input type="radio" name="date-month-format-default" data-default-control="date-month-format" value="full" checked>
-                                        <span>Month Name</span>
-                                   </label>
-                                   <label class="control-choice">
-                                        <input type="radio" name="date-month-format-default" data-default-control="date-month-format" value="ddd">
-                                        <span>DDD</span>
-                                   </label>
-                              </div>
-                              <span class="widget-panel-title">Day</span>
-                              <div class="control-choice-group" aria-label="Default day format">
-                                   <label class="control-choice">
-                                        <input type="radio" name="date-day-format-default" data-default-control="date-day-format" value="full">
-                                        <span>Full Day</span>
-                                   </label>
-                                   <label class="control-choice">
-                                        <input type="radio" name="date-day-format-default" data-default-control="date-day-format" value="ddd" checked>
-                                        <span>DDD</span>
-                              </label>
-                         </div>
-                    </div>
-
-               </div>
-               </div>
-
                <div class="control-panel-page main-menu-panel notebook-panel" id="notebook-panel" role="tabpanel" data-control-panel-page="notebook" hidden>
                     <div class="keyboard-control-section defaults-section notebook-defaults-section">
-                         <div class="keyboard-control-title">Notebook</div>
+                         <div class="keyboard-control-title">Pages</div>
                          <div class="control-field">
                               <span>Guides</span>
                               <div class="guide-controls">
@@ -228,26 +164,82 @@
                               <span class="page-count-status" data-page-count-status aria-live="polite"></span>
                          </div>
                     </div>
+                    <div class="keyboard-control-section defaults-section dates-defaults-section">
+                         <div class="keyboard-control-title">Dates</div>
+                         <label class="widget-panel-row text-panel-control">
+                              <span class="widget-panel-title">Week Start</span>
+                              <select class="native-select" data-default-control="date-week-start" aria-label="Default calendar week start">
+                                   <option value="monday" selected>Monday</option>
+                                   <option value="sunday">Sunday</option>
+                              </select>
+                         </label>
+                         <label class="widget-panel-row text-panel-control">
+                              <span class="widget-panel-title">Time Format</span>
+                              <select class="native-select" data-default-control="date-time-format" aria-label="Default calendar time format">
+                                   <option value="12">12hr - 11:00a / 3:30p</option>
+                                   <option value="24" selected>24hr - 11:00 / 15:30</option>
+                              </select>
+                         </label>
+                         <div class="date-order-control">
+                              <span class="widget-panel-title">Date Order</span>
+                              <div class="date-order-picker" data-date-order-picker aria-label="Default date order"></div>
+                         </div>
+                         <div class="date-format-defaults">
+                              <span class="widget-panel-title">Year</span>
+                              <div class="control-choice-group" aria-label="Default year format">
+                                   <label class="control-choice">
+                                        <input type="radio" name="date-year-format-default" data-default-control="date-year-format" value="yyyy" checked>
+                                        <span>YYYY</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="date-year-format-default" data-default-control="date-year-format" value="yy">
+                                        <span>YY</span>
+                                   </label>
+                              </div>
+                              <span class="widget-panel-title">Month</span>
+                              <div class="control-choice-group" aria-label="Default month format">
+                                   <label class="control-choice">
+                                        <input type="radio" name="date-month-format-default" data-default-control="date-month-format" value="full" checked>
+                                        <span>Month Name</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="date-month-format-default" data-default-control="date-month-format" value="ddd">
+                                        <span>DDD</span>
+                                   </label>
+                              </div>
+                              <span class="widget-panel-title">Day</span>
+                              <div class="control-choice-group" aria-label="Default day format">
+                                   <label class="control-choice">
+                                        <input type="radio" name="date-day-format-default" data-default-control="date-day-format" value="full">
+                                        <span>Full Day</span>
+                                   </label>
+                                   <label class="control-choice">
+                                        <input type="radio" name="date-day-format-default" data-default-control="date-day-format" value="ddd" checked>
+                                        <span>DDD</span>
+                                   </label>
+                              </div>
+                         </div>
+                    </div>
                </div>
 
                <div class="control-panel-page add-panel" id="add-panel" role="tabpanel" data-control-panel-page="add" hidden>
                     <button class="sticker-source" type="button" data-create-item data-create-type="sticker" data-widget-label="Sticker" aria-label="Add sticker"></button>
                     <button class="page-flag-source" type="button" data-create-item data-create-type="page-flag" data-widget-label="Page Flag" aria-label="Add page flag widget"></button>
                     <button class="toc-source" type="button" data-create-item data-create-type="toc" data-widget-label="Table of Contents" aria-label="Add table of contents widget"></button>
-                    <button class="perpetual-calendar-source" type="button" data-create-item data-create-type="perpetual-calendar" data-widget-label="Perpetual Calendar" aria-label="Add perpetual calendar widget">
-                         <span>Perpetual Calendar</span>
-                    </button>
                     <button class="mini-month-source" type="button" data-create-item data-create-type="mini-month" data-widget-label="Mini Month" aria-label="Add mini month widget">
                          <span>Mini Month</span>
                     </button>
-                    <button class="diary-view-source" type="button" data-create-item data-create-type="diary-view" data-widget-label="Daily Diary" aria-label="Add daily diary widget">
-                         <span>Daily Diary</span>
+                    <button class="full-month-source" type="button" data-create-item data-create-type="full-month" data-widget-label="Full Month" aria-label="Add full month widget">
+                         <span>Full Month</span>
                     </button>
-                    <button class="full-month-source" type="button" data-create-item data-create-type="full-month" data-widget-label="Max Month" aria-label="Add max month widget">
-                         <span>Max Month</span>
+                    <button class="perpetual-calendar-source" type="button" data-create-item data-create-type="perpetual-calendar" data-widget-label="Perpetual Calendar" aria-label="Add perpetual calendar widget">
+                         <span>Perpetual Calendar</span>
                     </button>
                     <button class="weekly-view-source" type="button" data-create-item data-create-type="weekly-view" data-widget-label="Schedule View" aria-label="Add schedule view widget">
                          <span>Schedule View</span>
+                    </button>
+                    <button class="diary-view-source" type="button" data-create-item data-create-type="diary-view" data-widget-label="Daily Diary" aria-label="Add daily diary widget">
+                         <span>Daily Diary</span>
                     </button>
                </div>
 
@@ -305,9 +297,9 @@
      <script src="config.js?v=planner-storage-212"></script>
      <script src="ui.js?v=planner-storage-240"></script>
      <script src="widgets-calendars.js?v=planner-storage-105"></script>
-     <script src="widgets.js?v=planner-storage-401"></script>
+     <script src="widgets.js?v=planner-storage-402"></script>
      <script src="storage.js?v=planner-storage-59"></script>
      <script src="controls.js?v=planner-storage-211"></script>
-     <script src="app.js?v=planner-storage-305"></script>
+     <script src="app.js?v=planner-storage-307"></script>
 </body>
 </html>

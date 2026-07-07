@@ -2463,9 +2463,7 @@ function handleMainMenuNumberKey(event) {
                enterKeyboardMenuBranch("add", "add");
           } else if (event.key === "3") {
                enterKeyboardMenuBranch("notebook", "notebook");
-          } else if (event.key === "4") {
-               enterKeyboardMenuBranch("defaults", "defaults");
-          } else if (event.key === "5" && !controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "object-selected")?.disabled) {
+          } else if (event.key === "4" && !controlPanelTabs.find((tab) => tab.dataset.controlPanelTab === "object-selected")?.disabled) {
                enterKeyboardMenuBranch("object-selected", "object-selected");
           }
           return;
@@ -2489,19 +2487,13 @@ function handleMainMenuNumberKey(event) {
           return;
      }
 
-     if (mainMenuContext === "defaults" && event.key === "4") {
+     if (mainMenuContext === "object-selected" && event.key === "4") {
           event.preventDefault();
           returnToMainMenuRoot();
           return;
      }
 
-     if (mainMenuContext === "object-selected" && event.key === "5") {
-          event.preventDefault();
-          returnToMainMenuRoot();
-          return;
-     }
-
-     if (mainMenuContext === "guide" || mainMenuContext === "add" || mainMenuContext === "notebook" || mainMenuContext === "defaults" || mainMenuContext === "object-selected") {
+     if (mainMenuContext === "guide" || mainMenuContext === "add" || mainMenuContext === "notebook" || mainMenuContext === "object-selected") {
           const tab = controlPanelTabs[Number(event.key) - 1];
 
           if (!tab || tab.disabled) {
@@ -3122,7 +3114,7 @@ function getKeyHintState() {
                mode: "Current Action > Guide",
                entries: [
                ["1", "Back"],
-               ["1-5", "Tabs"],
+               ["1-3", "Tabs"],
                ["</>", "Page Left/Right"],
                ["Enter", "Select"]
                ]
@@ -3134,7 +3126,7 @@ function getKeyHintState() {
                mode: "Current Action > Widgets",
                entries: [
                ["2", "Back"],
-               ["1-5", "Tabs"],
+               ["1-3", "Tabs"],
                ["</>", "Page Left/Right"],
                ["Enter", "Select"]
                ]
@@ -3146,19 +3138,7 @@ function getKeyHintState() {
                mode: "Current Action > Notebook",
                entries: [
                ["3", "Back"],
-               ["1-5", "Tabs"],
-               ["</>", "Page Left/Right"],
-               ["Enter", "Select"]
-               ]
-          };
-     }
-
-     if (mainMenuContext === "defaults") {
-          return {
-               mode: "Current Action > Dates",
-               entries: [
-               ["4", "Back"],
-               ["1-5", "Tabs"],
+               ["1-3", "Tabs"],
                ["</>", "Page Left/Right"],
                ["Enter", "Select"]
                ]
@@ -3182,8 +3162,8 @@ function getKeyHintState() {
           return {
                mode: "Current Action > Selected",
                entries: [
-               ["5", "Back"],
-               ["1-5", "Tabs"],
+               ["4", "Back"],
+               ["1-3", "Tabs"],
                ["Enter", "Select"],
                ["Esc", "Clear selection"]
                ]

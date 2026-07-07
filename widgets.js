@@ -549,7 +549,7 @@ function getFullMonthTocTitle(item) {
           : getCalendarYearTitle(year, dateFormats.yearFormat === "yy" ? "short" : "full");
      const title = [monthText, yearText].filter(Boolean).join(" ").trim();
 
-     return title || "Max Month";
+     return title || "Full Month";
 }
 
 function getWidgetTextPartTocTitle(item, partName) {
@@ -1481,7 +1481,7 @@ function getItemTypeLabel(type) {
           "page-flag": "Page Flag",
           toc: "Table of Contents",
           "mini-month": "Mini Month",
-          "full-month": "Max Month",
+          "full-month": "Full Month",
           "perpetual-calendar": "Perpetual Calendar",
           "weekly-view": "Schedule View",
           "diary-view": "Daily Diary"
