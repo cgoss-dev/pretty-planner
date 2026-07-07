@@ -4891,6 +4891,14 @@ function incrementPlainNumberText(value) {
 }
 
 function incrementItemPrimaryText(item) {
+     if (isCalendarItem(item) && item.dataset.dateMode === "relative") {
+          setCalendarWidgetSettings(item, {
+               dateMode: "relative",
+               dateOffset: String((Number(item.dataset.dateOffset) || 0) + 1)
+          });
+          return true;
+     }
+
      const stickerText = getStickerTextElement(item);
      const stickerNextText = stickerText && item.dataset.textEnabled === "true"
           ? incrementPlainNumberText(stickerText.textContent)
