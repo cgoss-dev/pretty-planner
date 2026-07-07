@@ -3868,12 +3868,12 @@ function makePlannerItem(type = "sticker") {
      }
 
      fillLabel.append(fillTitle, fillInput, fillSwatches);
-     dotGridLabel.replaceChildren(dotGridInput, "Dot Grid");
+     dotGridLabel.append(dotGridInput);
      textToggleLabel.classList.add("text-panel-settings-control-no-toggle");
      textToggleLabel.append(textTitle, textFontSelect);
      textSizeLabel.append(textSizeTitle, textSizeGroup);
      textColorLabel.append(textColorTitle, textColorInput, textColorSwatches);
-     textTocLabel.replaceChildren(textTocInput, "Appears in ToC");
+     textTocLabel.append(textTocInput);
      textFormatGroup.append(textFormatTitle, textBoldInput, textItalicInput, textUnderlineInput, textStrikeInput);
      textAlignLabel.append(textAlignTitle, textAlignmentGrid);
      textLineHeightLabel.append(textLineHeightSelect);
@@ -3904,8 +3904,8 @@ function makePlannerItem(type = "sticker") {
      dateOffsetStepper.append(dateOffsetPrevButton, dateOffsetInput, dateOffsetNextButton);
      dateOffsetLabel.append(dateOffsetStepper);
      calendarSizeLabel.append(calendarSizeOptions);
-     titleVisibleLabel.replaceChildren(titleVisibleInput, "Show Month/Year");
-     weekNumberLabel.replaceChildren(weekNumberInput, "Week #");
+     titleVisibleLabel.append(titleVisibleInput);
+     weekNumberLabel.append(weekNumberInput);
      if (type === "perpetual-calendar") {
           calendarAttributesGrid.append(dateModeLabel, monthLabel, dateOffsetLabel);
      } else if (type === "weekly-view") {
@@ -3920,14 +3920,14 @@ function makePlannerItem(type = "sticker") {
      startDayLabel.append(startDaySelect);
      visibleDaysLabel.append(visibleDaysSelect);
      diaryLayoutLabel.append(diaryLayoutSelect);
-     diaryMonthYearVisibleLabel.replaceChildren(diaryMonthYearVisibleInput, "Show Month/Year");
+     diaryMonthYearVisibleLabel.append(diaryMonthYearVisibleInput);
      diaryTitleLinesLabel.append(diaryTitleLinesSelect);
      timeIncrementLabel.append(timeIncrementSelect);
      startTimeLabel.append(startTimeSelect);
-     timeVisibleLabel.replaceChildren(timeVisibleInput, "Time Column");
-     weeklyMonthYearVisibleLabel.replaceChildren(weeklyMonthYearVisibleInput, "Show Month/Year");
+     timeVisibleLabel.append(timeVisibleInput);
+     weeklyMonthYearVisibleLabel.append(weeklyMonthYearVisibleInput);
      timeFormatLabel.append(timeFormatSelect);
-     shareWeekendsLabel.replaceChildren(shareWeekendsInput, "Share Weekends");
+     shareWeekendsLabel.append(shareWeekendsInput);
      weekNotesLabel.append(weekNotesSelect);
      duplicateGroupActions.append(duplicateButton, groupButton);
      layerButtonGroup.append(sendBackwardButton, bringForwardButton);

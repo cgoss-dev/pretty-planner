@@ -4769,6 +4769,10 @@ body {
      display: none;
 }
 
+.widget-panel [hidden] {
+     display: none !important;
+}
+
 .widget-panel-button,
 .widget-panel-row {
      border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
