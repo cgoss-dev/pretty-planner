@@ -5109,12 +5109,8 @@ body {
 }
 
 .widget-option-control input[type="checkbox"] {
-     grid-column: 2;
+     grid-column: auto;
      width: auto;
-}
-
-.widget-option-control input[type="checkbox"]:last-child {
-     grid-column: 3;
 }
 
 .text-panel-format {
@@ -6187,8 +6183,8 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 }
 
 .planner-sidebar .item-calendar-attributes-grid .widget-option-control input[type="checkbox"] {
-     grid-column: 2;
-     justify-self: end;
+     grid-column: auto;
+     justify-self: start;
      width: var(--color-swatch-size);
      height: var(--color-swatch-size);
 }

@@ -3042,7 +3042,9 @@ function toggleGuidesFromKeyboard(event) {
           return;
      }
 
-     if (event.key.toLowerCase() !== "x") {
+     const key = event.key.toLowerCase();
+
+     if (key !== "g") {
           return;
      }
 
@@ -3064,7 +3066,7 @@ function getKeyHintState() {
                mode: "Current Action > Place Widget",
                entries: [
                ["Enter", "Place"],
-               ["X", "Gridlines"],
+               ["G", "Gridlines"],
                ["Delete / Esc", "Cancel"]
                ]
           };
@@ -3136,7 +3138,7 @@ function getKeyHintState() {
                ["1 / Enter", "Actions"],
                ["2", "Group / Ungroup"],
                ["3", "Delete selected"],
-               ["X", "Gridlines"]
+               ["G", "Gridlines"]
                ]
           };
      }
@@ -3160,7 +3162,7 @@ function getKeyHintState() {
                ["Enter", "Actions"],
                ["Delete", "Delete selected"],
                ["Esc", "Clear selection"],
-               ["X", "Gridlines"]
+               ["G", "Gridlines"]
                ]
           };
      }
@@ -3174,7 +3176,7 @@ function getKeyHintState() {
                ["Enter", canEditText ? "Edit text" : "Actions"],
                ["Delete", "Delete widget"],
                ["Esc", "Clear selection"],
-               ["X", "Gridlines"]
+               ["G", "Gridlines"]
                ]
           };
      }
@@ -3208,7 +3210,7 @@ function getKeyHintState() {
           ["Enter", "Edit"],
           ["Q / E", "Last / Next Page"],
           ["Z", "Zoom"],
-          ["X", "Gridlines"],
+          ["G", "Gridlines"],
           ["C", "Center"]
           ]
      };

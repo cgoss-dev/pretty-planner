@@ -3864,12 +3864,12 @@ function makePlannerItem(type = "sticker") {
      }
 
      fillLabel.append(fillTitle, fillInput, fillSwatches);
-     dotGridLabel.append(dotGridInput);
+     dotGridLabel.replaceChildren(dotGridInput, "Dot Grid");
      textToggleLabel.classList.add("text-panel-settings-control-no-toggle");
      textToggleLabel.append(textTitle, textFontSelect);
      textSizeLabel.append(textSizeTitle, textSizeGroup);
      textColorLabel.append(textColorTitle, textColorInput, textColorSwatches);
-     textTocLabel.append(textTocInput);
+     textTocLabel.replaceChildren(textTocInput, "Appears in ToC");
      textFormatGroup.append(textFormatTitle, textBoldInput, textItalicInput, textUnderlineInput, textStrikeInput);
      textAlignLabel.append(textAlignTitle, textAlignmentGrid);
      textLineHeightLabel.append(textLineHeightSelect);
@@ -3900,8 +3900,8 @@ function makePlannerItem(type = "sticker") {
      dateOffsetStepper.append(dateOffsetPrevButton, dateOffsetInput, dateOffsetNextButton);
      dateOffsetLabel.append(dateOffsetStepper);
      calendarSizeLabel.append(calendarSizeOptions);
-     titleVisibleLabel.append(titleVisibleInput);
-     weekNumberLabel.append(weekNumberInput);
+     titleVisibleLabel.replaceChildren(titleVisibleInput, "Show Month/Year");
+     weekNumberLabel.replaceChildren(weekNumberInput, "Week #");
      if (type === "perpetual-calendar") {
           calendarAttributesGrid.append(dateModeLabel, monthLabel, dateOffsetLabel);
      } else if (type === "weekly-view") {
@@ -3916,14 +3916,14 @@ function makePlannerItem(type = "sticker") {
      startDayLabel.append(startDaySelect);
      visibleDaysLabel.append(visibleDaysSelect);
      diaryLayoutLabel.append(diaryLayoutSelect);
-     diaryMonthYearVisibleLabel.append(diaryMonthYearVisibleInput);
+     diaryMonthYearVisibleLabel.replaceChildren(diaryMonthYearVisibleInput, "Show Month/Year");
      diaryTitleLinesLabel.append(diaryTitleLinesSelect);
      timeIncrementLabel.append(timeIncrementSelect);
      startTimeLabel.append(startTimeSelect);
-     timeVisibleLabel.append(timeVisibleInput);
-     weeklyMonthYearVisibleLabel.append(weeklyMonthYearVisibleInput);
+     timeVisibleLabel.replaceChildren(timeVisibleInput, "Time Column");
+     weeklyMonthYearVisibleLabel.replaceChildren(weeklyMonthYearVisibleInput, "Show Month/Year");
      timeFormatLabel.append(timeFormatSelect);
-     shareWeekendsLabel.append(shareWeekendsInput);
+     shareWeekendsLabel.replaceChildren(shareWeekendsInput, "Share Weekends");
      weekNotesLabel.append(weekNotesSelect);
      duplicateGroupActions.append(duplicateButton, groupButton);
      layerButtonGroup.append(sendBackwardButton, bringForwardButton);
@@ -4366,6 +4366,7 @@ function makePlannerItem(type = "sticker") {
           applyCalendarWidgetSettingsToActionItems(item, {
                dateMode: dateModeSelect.value
           });
+          applySidebarControlVisibility(item);
      });
      const applyDateOffsetValue = (nextValue) => {
           dateOffsetInput.value = nextValue;
@@ -4373,6 +4374,7 @@ function makePlannerItem(type = "sticker") {
                dateMode: "relative",
                dateOffset: nextValue
           });
+          applySidebarControlVisibility(item);
      };
 
      dateOffsetInput.addEventListener("input", () => {
@@ -4413,6 +4415,7 @@ function makePlannerItem(type = "sticker") {
                dateMode: "fixed",
                month: monthSelect.value
           });
+          applySidebarControlVisibility(item);
      });
      displayMonthSelect.addEventListener("change", () => {
           if (item.dataset.dateMode === "relative") {
@@ -4433,6 +4436,7 @@ function makePlannerItem(type = "sticker") {
                dateMode: displayDateModeSelect.value,
                dateOffset: displayDateModeSelect.value === "relative" ? "0" : item.dataset.dateOffset
           });
+          applySidebarControlVisibility(item);
      });
      yearSelect.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
