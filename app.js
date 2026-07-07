@@ -1287,7 +1287,7 @@ function jumpNotebookSpread(spreadIndex) {
 }
 
 function handlePageTurnKey(event) {
-     // NOTE: Uses Q/E for previous/next page or menu tab, Home/End for notebook ends, with bracket and page keys kept as legacy aliases
+     // NOTE: Uses brackets/PageUp/PageDown for previous/next page or menu tab, Home/End for notebook ends
      if (
           event.defaultPrevented ||
           activeAction ||
@@ -1301,8 +1301,6 @@ function handlePageTurnKey(event) {
           return;
      }
 
-     const key = event.key.toLowerCase();
-
      if (event.key === "Home") {
           event.preventDefault();
           if (!controlPanel.classList.contains("is-open")) {
@@ -1313,14 +1311,14 @@ function handlePageTurnKey(event) {
           if (!controlPanel.classList.contains("is-open")) {
                jumpNotebookSpread(notebookSpreadCount - 1);
           }
-     } else if (key === "q" || event.key === "[" || event.key === "PageDown") {
+     } else if (event.key === "[" || event.key === "PageDown") {
           event.preventDefault();
           if (controlPanel.classList.contains("is-open")) {
                stepControlPanelTab(-1);
           } else {
                turnNotebookSpread(-1);
           }
-     } else if (key === "e" || event.key === "]" || event.key === "PageUp") {
+     } else if (event.key === "]" || event.key === "PageUp") {
           event.preventDefault();
           if (controlPanel.classList.contains("is-open")) {
                stepControlPanelTab(1);
@@ -3088,7 +3086,7 @@ function getKeyHintState() {
                entries: [
                ["1", "Back"],
                ["1-5", "Tabs"],
-               ["Q / E", "Last / Next Tab"],
+               ["[ / ]", "Last / Next Page"],
                ["Enter", "Select"]
                ]
           };
@@ -3100,7 +3098,7 @@ function getKeyHintState() {
                entries: [
                ["2", "Back"],
                ["1-5", "Tabs"],
-               ["Q / E", "Last / Next Tab"],
+               ["[ / ]", "Last / Next Page"],
                ["Enter", "Select"]
                ]
           };
@@ -3112,7 +3110,7 @@ function getKeyHintState() {
                entries: [
                ["3", "Back"],
                ["1-5", "Tabs"],
-               ["Q / E", "Last / Next Tab"],
+               ["[ / ]", "Last / Next Page"],
                ["Enter", "Select"]
                ]
           };
@@ -3124,7 +3122,7 @@ function getKeyHintState() {
                entries: [
                ["4", "Back"],
                ["1-5", "Tabs"],
-               ["Q / E", "Last / Next Tab"],
+               ["[ / ]", "Last / Next Page"],
                ["Enter", "Select"]
                ]
           };
@@ -3208,7 +3206,7 @@ function getKeyHintState() {
           entries: [
           ["Tab", "Next focus"],
           ["Enter", "Edit"],
-          ["Q / E", "Last / Next Page"],
+          ["[ / ]", "Last / Next Page"],
           ["Z", "Zoom"],
           ["G", "Gridlines"],
           ["C", "Center"]

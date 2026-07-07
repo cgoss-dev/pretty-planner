@@ -1692,19 +1692,6 @@ function renderPerpetualCalendar(item) {
                     event.stopPropagation();
                }
           });
-          row.addEventListener("click", (event) => {
-               if (typeof activeAction !== "undefined" && activeAction) {
-                    return;
-               }
-
-               if (isEditableCalendarTextEvent(event) || hasActiveWidgetTextSelection()) {
-                    return;
-               }
-
-               event.preventDefault();
-               event.stopPropagation();
-               startCalendarDayTextEditing(dayText, item);
-          });
           lineCell.append(dayText);
           row.append(numberCell, lineCell);
           calendar.append(row);
@@ -1801,19 +1788,6 @@ function renderDiaryView(item) {
                if (dayText.isContentEditable) {
                     event.stopPropagation();
                }
-          });
-          row.addEventListener("click", (event) => {
-               if (typeof activeAction !== "undefined" && activeAction) {
-                    return;
-               }
-
-               if (isEditableCalendarTextEvent(event) || hasActiveWidgetTextSelection()) {
-                    return;
-               }
-
-               event.preventDefault();
-               event.stopPropagation();
-               startCalendarDayTextEditing(dayText, item);
           });
           row.addEventListener("click", (event) => {
                if (shouldSkipNextItemClick || hasActiveWidgetTextSelection()) {

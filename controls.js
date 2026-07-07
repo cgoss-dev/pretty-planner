@@ -460,6 +460,20 @@ window.PageControls = (() => {
 window.KeyboardControls = (() => {
      const groups = [
           {
+               title: "Hotkeys",
+               controls: [
+                    { key: "Tab", action: "Next focus" },
+                    { key: "Enter", action: "Edit / select" },
+                    { key: "[", action: "Previous page or tab" },
+                    { key: "]", action: "Next page or tab" },
+                    { key: "Z", action: "Zoom" },
+                    { key: "G", action: "Gridlines" },
+                    { key: "C", action: "Center" },
+                    { key: "Escape", action: "Back / clear selection" },
+                    { key: "Delete", action: "Delete selected" }
+               ]
+          },
+          {
                title: "Text Editing",
                controls: [
                     { key: "Enter", action: "Enter text edit mode" },
