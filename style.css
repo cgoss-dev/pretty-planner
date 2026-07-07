@@ -791,7 +791,7 @@ body {
 }
 
 .keyboard-control-section + .keyboard-control-section {
-     margin-top: 8px;
+     margin-top: 16px;
 }
 
 .keyboard-control-section + .keyboard-control-section::before {
@@ -3505,6 +3505,7 @@ body {
      min-width: 0;
      min-height: 0;
      border-right: var(--border-sm) solid rgba(17, 17, 17, 0.16);
+     border-right-style: dotted;
      border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.16);
      background: var(--widget-box-fill);
      color: var(--color-gray1);
@@ -3736,6 +3737,7 @@ body {
 
 .mini-month.has-week-number-outlines .mini-month-week {
      border-right: var(--border-sm) solid rgba(17, 17, 17, 0.16);
+     border-right-style: dotted;
      border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.16);
      background: var(--calendar-tint-background);
 }
@@ -3835,6 +3837,7 @@ body {
      display: grid;
      place-items: center;
      border-right: var(--border-sm) solid rgba(17, 17, 17, 0.16);
+     border-right-style: dotted;
      font-variant-numeric: tabular-nums;
 }
 
@@ -6020,7 +6023,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 }
 
 .planner-main-menu .control-object-shell .widget-panel.is-docked .text-panel + .widget-options-panel:not([hidden]) {
-     margin-top: 8px;
+     margin-top: 16px;
 }
 
 .planner-main-menu .control-object-shell .widget-panel.is-docked .text-panel + .widget-options-panel:not([hidden])::before {

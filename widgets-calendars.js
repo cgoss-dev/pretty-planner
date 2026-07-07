@@ -1272,7 +1272,8 @@ function renderMiniMonth(item) {
           : getCalendarYearTitle(year, dateFormats.yearFormat === "yy" ? "short" : "full");
      const monthVisible = titleMonthText !== "";
      const yearVisible = titleYearText !== "";
-     const titleVisible = item.dataset.calendarTitleVisible !== "false" && (monthVisible || yearVisible);
+     const titleTextVisible = item.dataset.calendarTitleVisible !== "false" && (monthVisible || yearVisible);
+     const titleRowVisible = monthVisible || yearVisible;
      const firstDay = new Date(year, month, 1);
      const daysInMonth = new Date(year, month + 1, 0).getDate();
      const firstDayOffset = weekStart === "monday"
@@ -1302,7 +1303,7 @@ function renderMiniMonth(item) {
           return weekStartDayNumber <= daysInMonth && weekStartDayNumber + 6 >= 1;
      });
      const calendarRows = [
-          ...(titleVisible ? [0] : []),
+          ...(titleRowVisible ? [0] : []),
           1,
           ...weekRows.map((weekIndex) => weekIndex + 2)
      ];
@@ -1312,9 +1313,9 @@ function renderMiniMonth(item) {
      const visibleColumnCount = columnSlots.length;
      const visibleRowCount = calendarRows.length;
      const visibleColumnUnits = usesExpandedCalendarUnits ? getFullMonthGridUnits(item).width : visibleColumnCount;
-     const visibleRowUnits = (titleVisible ? titleRowUnits : 0) + dayNameRowUnits + (weekRows.length * weekRowUnits);
-     const maxVisibleRowUnits = (titleVisible ? titleRowUnits : 0) + dayNameRowUnits + (6 * weekRowUnits);
-     const fixedRowUnits = (titleVisible ? titleRowUnits : 0) + dayNameRowUnits;
+     const visibleRowUnits = (titleRowVisible ? titleRowUnits : 0) + dayNameRowUnits + (weekRows.length * weekRowUnits);
+     const maxVisibleRowUnits = (titleRowVisible ? titleRowUnits : 0) + dayNameRowUnits + (6 * weekRowUnits);
+     const fixedRowUnits = (titleRowVisible ? titleRowUnits : 0) + dayNameRowUnits;
 
      if (!calendar) {
           calendar = document.createElement("div");
@@ -1325,8 +1326,9 @@ function renderMiniMonth(item) {
      calendar.replaceChildren();
      calendar.classList.toggle("has-week-numbers", weekNumbersEnabled);
      calendar.classList.toggle("has-week-number-outlines", weekNumberOutlines);
-     calendar.classList.toggle("has-title-row", titleVisible);
-     calendar.classList.toggle("no-title-row", !titleVisible);
+     calendar.classList.toggle("has-title-row", titleRowVisible);
+     calendar.classList.toggle("no-title-row", !titleRowVisible);
+     calendar.classList.toggle("has-hidden-title-text", titleRowVisible && !titleTextVisible);
      calendar.style.setProperty("--mini-month-visible-columns", String(visibleColumnCount));
      calendar.style.setProperty("--mini-month-visible-rows", String(visibleRowCount));
      calendar.style.setProperty("--mini-month-visible-column-units", String(visibleColumnUnits));
@@ -1350,7 +1352,7 @@ function renderMiniMonth(item) {
 
           calendar.style.gridTemplateColumns = `var(--weekly-column-cell-width, 12px) ${contentTemplateColumns}`;
           calendar.style.gridTemplateRows = [
-               ...(titleVisible ? [`calc(var(--weekly-row-cell-height, 12px) * ${titleRowUnits})`] : []),
+               ...(titleRowVisible ? [`calc(var(--weekly-row-cell-height, 12px) * ${titleRowUnits})`] : []),
                `calc(var(--weekly-row-cell-height, 12px) * ${dayNameRowUnits})`,
                `repeat(${weekRows.length}, calc(var(--weekly-row-cell-height, 12px) * ${weekRowUnits}))`
           ].join(" ");
@@ -1401,9 +1403,10 @@ function renderMiniMonth(item) {
                          cell.dataset.calendarStyleRole = "cell";
                          titleYear.textContent = titleYearText;
                          titleMonth.textContent = titleMonthText;
-                         titleYear.hidden = !yearVisible;
-                         titleMonth.hidden = !monthVisible;
-                         cell.classList.toggle("has-title-pair", monthVisible && yearVisible);
+                         titleYear.hidden = !titleTextVisible || !yearVisible;
+                         titleMonth.hidden = !titleTextVisible || !monthVisible;
+                         cell.classList.toggle("has-title-pair", titleTextVisible && monthVisible && yearVisible);
+                         cell.classList.toggle("has-hidden-title-text", !titleTextVisible);
                          cell.append(titleMonth, titleYear);
                     } else {
                          continue;
@@ -1570,7 +1573,7 @@ function renderMiniMonth(item) {
                } else if (column > 0) {
                     const isFirstDrawColumn = column === 1;
                     const isLastDrawColumn = column === visibleColumnCount - 1;
-                    const isTopDrawRow = titleVisible ? row === 0 : calendarRow === 1;
+                    const isTopDrawRow = titleRowVisible ? row === 0 : calendarRow === 1;
                     const isBottomDrawRow = row === calendarRows.length - 1;
 
                     if (isFirstDrawColumn && isTopDrawRow) {

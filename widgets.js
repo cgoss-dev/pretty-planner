@@ -4157,7 +4157,17 @@ function makePlannerItem(type = "sticker") {
                return;
           }
 
-          if (event.target.closest(".sticker-text[contenteditable='true']")) {
+          if (event.target.closest(".sticker-text[contenteditable='true'], .calendar-day-text[contenteditable='true']")) {
+               return;
+          }
+
+          const calendarText = event.target.closest(".calendar-day-text");
+
+          if (calendarText && typeof startCalendarDayTextEditing === "function") {
+               event.preventDefault();
+               event.stopPropagation();
+               selectItem(item);
+               startCalendarDayTextEditing(calendarText, item);
                return;
           }
 
