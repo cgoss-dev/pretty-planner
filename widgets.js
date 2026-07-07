@@ -454,7 +454,7 @@ function setItemStyle(item, style) {
      controls.querySelectorAll("select").forEach(updateCustomSelectDisplay);
 }
 
-function isSidebarControlVisibleForItem(item, controlKey) {
+function isMainMenuControlVisibleForItem(item, controlKey) {
      if (!item || !controlKey || typeof isPlannerWidgetControlVisible !== "function") {
           return true;
      }
@@ -462,15 +462,15 @@ function isSidebarControlVisibleForItem(item, controlKey) {
      return isPlannerWidgetControlVisible(item.dataset.itemType, controlKey);
 }
 
-function applySidebarControlVisibility(item) {
+function applyMainMenuControlVisibility(item) {
      const controls = getWidgetPanel(item);
 
      if (!controls) {
           return;
      }
 
-     controls.querySelectorAll("[data-sidebar-control]").forEach((control) => {
-          const isVisibleForItem = isSidebarControlVisibleForItem(item, control.dataset.sidebarControl);
+     controls.querySelectorAll("[data-main-menu-control]").forEach((control) => {
+          const isVisibleForItem = isMainMenuControlVisibleForItem(item, control.dataset.mainMenuControl);
           const isVisibleForDateMode = control.dataset.dateModeVisibility
                ? control.dataset.dateModeVisibility === (item.dataset.dateMode || "fixed")
                : true;
@@ -479,7 +479,7 @@ function applySidebarControlVisibility(item) {
      });
 }
 
-window.applySidebarControlVisibility = applySidebarControlVisibility;
+window.applyMainMenuControlVisibility = applyMainMenuControlVisibility;
 
 // NOTE: Table Of Contents, And Page Ins/Rmv Rules
 function getClearPageSides() {
@@ -1514,7 +1514,7 @@ function getActionItemsTypeLabel(items) {
      return items.every((item) => item.dataset.itemType === type) ? getItemTypeLabel(type) : "Multiple";
 }
 
-function updateActionsPopupTypeLabel(controls, items) {
+function updatePopupMenuTypeLabel(controls, items) {
      const typeLabel = controls.querySelector("[data-actions-widget-type]");
 
      if (typeLabel) {
@@ -1529,7 +1529,7 @@ function positionWidgetPanel(item) {
           return;
      }
 
-     if (controls.classList.contains("is-actions-popup")) {
+     if (controls.classList.contains("is-popup-menu")) {
           return;
      }
 
@@ -1548,7 +1548,7 @@ function positionWidgetPanel(item) {
      controls.style.top = `${top}px`;
 }
 
-function positionItemActionsPopup(controls, event) {
+function positionItemPopupMenu(controls, event) {
      const deskRect = plannerDesk.getBoundingClientRect();
      const gap = 8;
      const menuWidth = controls.offsetWidth || 156;
@@ -1674,12 +1674,12 @@ function openItemMenu(item) {
           return;
      }
 
-     closeWidgetActionPopovers();
+     closeWidgetPopupMenus();
      closeItemMenu(item);
      closeItemMenus();
      objectControlsShell.append(controls);
      setControlsActionItems(controls, actionItems);
-     controls.classList.remove("is-floating", "is-actions-popup");
+     controls.classList.remove("is-floating", "is-popup-menu");
      controls.classList.add("is-docked");
      setWidgetPanelTab(controls, "text");
      item.classList.add("is-widget-panel-open");
@@ -1699,15 +1699,15 @@ function getReadableTextPartName(partName) {
 
 let selectedTextStyleTarget = null;
 
-function getPopupEventElement(event) {
+function getPopupMenuEventElement(event) {
      const target = event?.target || null;
 
      return target?.nodeType === Node.TEXT_NODE ? target.parentElement : target;
 }
 
-function getWidgetTextPopupTarget(item, event) {
+function getWidgetTextPopupMenuTarget(item, event) {
      const type = item?.dataset?.itemType || "";
-     const eventElement = getPopupEventElement(event);
+     const eventElement = getPopupMenuEventElement(event);
      const partElement = eventElement?.closest?.("[data-theme-part]");
      const rawPartName = partElement?.dataset?.themePart;
      const partName = getWidgetSharedTextPartName(type, rawPartName);
@@ -1769,7 +1769,7 @@ function getSelectedTextTargetFromRange() {
           return null;
      }
 
-     const textTarget = getWidgetTextPopupTarget(item, {
+     const textTarget = getWidgetTextPopupMenuTarget(item, {
           target: partElement
      });
 
@@ -1968,7 +1968,7 @@ function applyTextSettingsToTarget(textTarget, settings) {
      }
 }
 
-function applyPopupTextToc(item, textTarget, appearsInToc) {
+function applyPopupMenuTextToc(item, textTarget, appearsInToc) {
      if (textTarget.scope === "type") {
           setWidgetTextPartToc(textTarget.type, textTarget.partName, appearsInToc);
           getAllPlannerItems()
@@ -1993,7 +1993,7 @@ function applyPopupTextToc(item, textTarget, appearsInToc) {
      notifyTemplateChanged();
 }
 
-function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedActionItems(item)) {
+function openItemPopupMenu(item, event, actionItems = getSelectedOrGroupedActionItems(item)) {
      const controls = getWidgetPanel(item);
 
      if (!controls) {
@@ -2001,7 +2001,7 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      }
 
      setControlsActionItems(controls, actionItems);
-     closeWidgetActionPopovers();
+     closeWidgetPopupMenus();
      const popup = document.createElement("div");
      const popupTitle = document.createElement("div");
      const widgetType = document.createElement("div");
@@ -2009,7 +2009,7 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      const layoutGroup = document.createElement("div");
      const duplicateGroup = document.createElement("div");
      const layerGroup = document.createElement("div");
-     const textTarget = getWidgetTextPopupTarget(item, event);
+     const textTarget = getWidgetTextPopupMenuTarget(item, event);
      if (textTarget) {
           setSelectedTextStyleTarget(item, textTarget);
      }
@@ -2040,10 +2040,10 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      };
      const closeAfter = (action) => (button) => {
           action(button);
-          closeWidgetActionPopovers();
+          closeWidgetPopupMenus();
      };
 
-     popup.className = "widget-action-popover widget-panel is-floating is-actions-popup";
+     popup.className = "widget-popup-menu widget-panel is-floating is-popup-menu";
      popup.dataset.ownerId = item.dataset.templateId;
      popup.setAttribute("role", "menu");
      popupTitle.className = "item-actions-menu-title title";
@@ -2075,7 +2075,7 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      const deleteButton = makeButton("Delete", closeAfter(() => deleteItem(item)), "widget-panel-danger");
 
      if (textTarget && item.dataset.itemType === "sticker") {
-          textGroup.append(makeButton("Appears in ToC", closeAfter(() => applyPopupTextToc(item, textTarget, !textTarget.appearsInToc)), textTarget.appearsInToc ? "is-active" : ""));
+          textGroup.append(makeButton("Appears in ToC", closeAfter(() => applyPopupMenuTextToc(item, textTarget, !textTarget.appearsInToc)), textTarget.appearsInToc ? "is-active" : ""));
      }
      if (isPageFlagItem(item)) {
           duplicateGroup.append(flipButton);
@@ -2089,13 +2089,13 @@ function openItemActionsPopup(item, event, actionItems = getSelectedOrGroupedAct
      }
      popup.append(layerGroup, duplicateGroup, groupAction, deleteButton);
      plannerDesk.append(popup);
-     positionItemActionsPopup(popup, event);
+     positionItemPopupMenu(popup, event);
      updateObjectControlsState();
      updateClipboardControls();
 }
 
-function closeWidgetActionPopovers() {
-     document.querySelectorAll(".widget-action-popover").forEach((popup) => popup.remove());
+function closeWidgetPopupMenus() {
+     document.querySelectorAll(".widget-popup-menu").forEach((popup) => popup.remove());
 }
 
 function closeItemMenu(item) {
@@ -2108,7 +2108,7 @@ function closeItemMenu(item) {
 
      closeCustomSelects(controls);
      clearSelectFocus(controls);
-     controls.classList.remove("is-floating", "is-docked", "is-actions-popup");
+     controls.classList.remove("is-floating", "is-docked", "is-popup-menu");
      controls.removeAttribute("style");
      clearControlsActionItems(controls);
      item.append(controls);
@@ -2190,7 +2190,7 @@ function selectItem(item, shouldAdd = false) {
 }
 
 function clearSelection() {
-     closeWidgetActionPopovers();
+     closeWidgetPopupMenus();
      selectedItems.forEach((item) => clearItemSelectionClasses(item));
      selectedItems = new Set();
      selectedItem = null;
@@ -2206,12 +2206,12 @@ function closeItemMenus(exceptItem = null) {
 }
 
 function closeFloatingWidgetPanelsFromOutsidePointer(event) {
-     // NOTE: Dismisses right-click widget popups when the pointer starts outside the popup
-     if (event.target.closest(".widget-panel, .widget-action-popover")) {
+     // NOTE: Dismisses right-click widget popup menus when the pointer starts outside the popup menu
+     if (event.target.closest(".widget-panel, .widget-popup-menu")) {
           return;
      }
 
-     closeWidgetActionPopovers();
+     closeWidgetPopupMenus();
      document.querySelectorAll(".planner-item.is-widget-panel-open").forEach((item) => {
           const controls = getWidgetPanel(item);
 
@@ -2365,7 +2365,7 @@ function applyCalendarWidgetSettingsToActionItems(item, settings) {
           }
      });
      if (Object.hasOwn(settings, "dateMode")) {
-          applySidebarControlVisibility(item);
+          applyMainMenuControlVisibility(item);
      }
      notifyTemplateChanged();
 }
@@ -2461,17 +2461,21 @@ function createWidgetSelectStepper(select) {
 function setWidgetPanelTab(controls, tabName) {
      closeCustomSelects(controls);
      clearSelectFocus(controls);
-     controls.dataset.activeWidgetPanelTab = tabName;
+     const visiblePanelNames = controls.classList.contains("is-docked") && (tabName === "text" || tabName === "widget")
+          ? ["text", "widget"]
+          : [tabName];
+
+     controls.dataset.activeWidgetPanelTab = visiblePanelNames.join("-");
      controls.querySelector(".widget-panel-tabs")?.removeAttribute("hidden");
 
      controls.querySelectorAll("[data-widget-panel-tab]").forEach((tab) => {
-          const isActive = tab.dataset.widgetPanelTab === tabName;
+          const isActive = visiblePanelNames.includes(tab.dataset.widgetPanelTab);
 
           tab.classList.toggle("is-active", isActive);
           tab.setAttribute("aria-selected", String(isActive));
      });
      controls.querySelectorAll("[data-widget-panel-page]").forEach((panel) => {
-          panel.hidden = panel.dataset.widgetPanelPage !== tabName;
+          panel.hidden = !visiblePanelNames.includes(panel.dataset.widgetPanelPage);
      });
 }
 
@@ -3030,7 +3034,7 @@ function getMovedControlPanelBox(clientX, clientY) {
 
 function startControlPanelMove(event) {
      if (
-          controlPanel.closest("[data-planner-sidebar]") ||
+          controlPanel.closest("[data-planner-main-menu]") ||
           activeAction ||
           event.button !== 0 ||
           event.target.closest("button, input, select, textarea, [contenteditable='true'], .custom-select")
@@ -3164,7 +3168,6 @@ function makePlannerItem(type = "sticker") {
      const textPanel = document.createElement("div");
      const widgetPanel = document.createElement("div");
      const calendarAttributesGrid = document.createElement("div");
-     const timeWidgetGroup = document.createElement("div");
      const duplicateButton = document.createElement("button");
      const sequenceButton = document.createElement("button");
      const duplicateGroupActions = document.createElement("div");
@@ -3304,7 +3307,7 @@ function makePlannerItem(type = "sticker") {
      layoutActionTitle.textContent = "Layout";
      displayDateRow.className = "item-calendar-display-row";
      displayYearLabel.className = "item-calendar-display-control";
-     displayYearLabel.dataset.sidebarControl = "options.display-year";
+     displayYearLabel.dataset.mainMenuControl = "options.display-year";
      displayYearLabel.textContent = "Year";
      displayYearSelect.dataset.widgetControl = "display-year";
      displayYearSelect.setAttribute("aria-label", "Display year");
@@ -3316,7 +3319,7 @@ function makePlannerItem(type = "sticker") {
           displayYearSelect.append(option);
      }
      displayMonthLabel.className = "item-calendar-display-control";
-     displayMonthLabel.dataset.sidebarControl = "options.display-month";
+     displayMonthLabel.dataset.mainMenuControl = "options.display-month";
      displayMonthLabel.dataset.dateModeVisibility = "fixed";
      displayMonthLabel.textContent = "Month";
      displayMonthSelect.dataset.widgetControl = "display-month";
@@ -3329,7 +3332,7 @@ function makePlannerItem(type = "sticker") {
           displayMonthSelect.append(option);
      });
      displayDateModeLabel.className = "item-calendar-display-control";
-     displayDateModeLabel.dataset.sidebarControl = "options.display-date-mode";
+     displayDateModeLabel.dataset.mainMenuControl = "options.display-date-mode";
      displayDateModeLabel.textContent = "Date Type";
      displayDateModeSelect.dataset.widgetControl = "display-date-mode";
      displayDateModeSelect.setAttribute("aria-label", "Display date mode");
@@ -3344,13 +3347,13 @@ function makePlannerItem(type = "sticker") {
           displayDateModeSelect.append(option);
      });
      displayDayLabel.className = "item-calendar-display-control";
-     displayDayLabel.dataset.sidebarControl = "options.display-day";
+     displayDayLabel.dataset.mainMenuControl = "options.display-day";
      displayDayLabel.textContent = type === "diary-view" ? "Week #" : "Day";
      displayDaySelect.dataset.widgetControl = "display-day";
      displayDaySelect.setAttribute("aria-label", type === "diary-view" ? "Display week number" : "Display start day");
      syncStartDayOptions(displayDaySelect, new Date().getFullYear(), new Date().getMonth(), "1");
      displayWeekNumberLabel.className = "item-calendar-display-control";
-     displayWeekNumberLabel.dataset.sidebarControl = "options.display-week-number";
+     displayWeekNumberLabel.dataset.mainMenuControl = "options.display-week-number";
      displayWeekNumberLabel.textContent = "Week #";
      displayWeekNumberSelect.dataset.widgetControl = "display-week-number";
      displayWeekNumberSelect.setAttribute("aria-label", "Display week numbers");
@@ -3365,7 +3368,7 @@ function makePlannerItem(type = "sticker") {
           displayWeekNumberSelect.append(option);
      });
      displayTitleVisibleLabel.className = "item-calendar-display-control";
-     displayTitleVisibleLabel.dataset.sidebarControl = "options.display-title-visible";
+     displayTitleVisibleLabel.dataset.mainMenuControl = "options.display-title-visible";
      displayTitleVisibleLabel.textContent = "Month/Year";
      displayTitleVisibleSelect.dataset.widgetControl = "display-title-visible";
      displayTitleVisibleSelect.setAttribute("aria-label", "Display month and year row");
@@ -3380,7 +3383,7 @@ function makePlannerItem(type = "sticker") {
           displayTitleVisibleSelect.append(option);
      });
      displayWeekStartLabel.className = "item-calendar-display-control";
-     displayWeekStartLabel.dataset.sidebarControl = "options.display-week-start";
+     displayWeekStartLabel.dataset.mainMenuControl = "options.display-week-start";
      displayWeekStartLabel.textContent = "Week Start";
      displayWeekStartSelect.dataset.widgetControl = "display-week-start";
      displayWeekStartSelect.setAttribute("aria-label", "Display week start");
@@ -3406,38 +3409,37 @@ function makePlannerItem(type = "sticker") {
      widgetPanelSectionTitle.className = "widget-panel-section-title section-title";
      widgetPanelSectionTitle.textContent = "Options";
      calendarAttributesGrid.className = "item-calendar-attributes-grid";
-     timeWidgetGroup.className = "widget-option-time-group";
      duplicateButton.className = "widget-panel-button";
      duplicateButton.type = "button";
      duplicateButton.textContent = "Duplicate";
-     duplicateButton.dataset.sidebarControl = "actions.duplicate";
+     duplicateButton.dataset.mainMenuControl = "actions.duplicate";
      duplicateButton.setAttribute("aria-label", "Duplicate sticker");
      duplicateGroupActions.className = "item-action-row";
      sequenceButton.className = "widget-panel-button";
      sequenceButton.type = "button";
      sequenceButton.textContent = "Sequence";
-     sequenceButton.dataset.sidebarControl = "actions.duplicate";
+     sequenceButton.dataset.mainMenuControl = "actions.sequence";
      sequenceButton.setAttribute("aria-label", "Duplicate and sequence sticker");
      groupActions.className = "item-action-row item-single-action-row";
      groupButton.className = "widget-panel-button";
      groupButton.type = "button";
      groupButton.textContent = "Group";
      groupButton.dataset.widgetAction = "group";
-     groupButton.dataset.sidebarControl = "actions.group";
+     groupButton.dataset.mainMenuControl = "actions.group";
      groupButton.setAttribute("aria-label", "Group selected stickers");
      layerButtonGroup.className = "item-layer-actions";
      bringForwardButton.className = "widget-panel-button";
      bringForwardButton.type = "button";
      bringForwardButton.textContent = "Bring Fwd";
-     bringForwardButton.dataset.sidebarControl = "actions.bring-forward";
+     bringForwardButton.dataset.mainMenuControl = "actions.bring-forward";
      bringForwardButton.setAttribute("aria-label", "Bring selected item forward");
      sendBackwardButton.className = "widget-panel-button";
      sendBackwardButton.type = "button";
      sendBackwardButton.textContent = "Send Bwd";
-     sendBackwardButton.dataset.sidebarControl = "actions.send-backward";
+     sendBackwardButton.dataset.mainMenuControl = "actions.send-backward";
      sendBackwardButton.setAttribute("aria-label", "Send selected item backward");
      fillLabel.className = "widget-panel-row color-panel-control";
-     fillLabel.dataset.sidebarControl = "text.fill";
+     fillLabel.dataset.mainMenuControl = "text.fill";
      fillTitle.className = "widget-panel-title";
      fillTitle.textContent = "Fill";
      fillInput.className = "native-select";
@@ -3446,7 +3448,7 @@ function makePlannerItem(type = "sticker") {
      fillSwatches.className = "color-panel-swatches";
      fillSwatches.dataset.styleSwatches = "fill";
      dotGridLabel.className = "widget-panel-row";
-     dotGridLabel.dataset.sidebarControl = "options.dot-grid";
+     dotGridLabel.dataset.mainMenuControl = "options.dot-grid";
      dotGridLabel.textContent = "Dot Grid";
      dotGridInput.type = "checkbox";
      dotGridInput.dataset.styleControl = "dot-grid";
@@ -3459,11 +3461,11 @@ function makePlannerItem(type = "sticker") {
      textElement.setAttribute("aria-label", "Sticker text");
      tocElement.className = "toc-widget";
      textToggleLabel.className = "widget-panel-row text-panel-control text-panel-settings-control";
-     textToggleLabel.dataset.sidebarControl = "text.font";
+     textToggleLabel.dataset.mainMenuControl = "text.font";
      textTitle.className = "widget-panel-title";
      textTitle.textContent = "Typeface";
      textSizeLabel.className = "widget-panel-row text-panel-control text-panel-size-control";
-     textSizeLabel.dataset.sidebarControl = "text.size";
+     textSizeLabel.dataset.mainMenuControl = "text.size";
      textSizeTitle.className = "widget-panel-title";
      textSizeTitle.textContent = "Text Size";
      textSizeGroup.className = "text-panel-size-options";
@@ -3511,7 +3513,7 @@ function makePlannerItem(type = "sticker") {
           textFontSelect.append(option);
      });
      textColorLabel.className = "widget-panel-row text-panel-control color-panel-control";
-     textColorLabel.dataset.sidebarControl = "text.color";
+     textColorLabel.dataset.mainMenuControl = "text.color";
      textColorTitle.className = "widget-panel-title";
      textColorTitle.textContent = "Text Color";
      textColorInput.className = "native-select";
@@ -3520,13 +3522,13 @@ function makePlannerItem(type = "sticker") {
      textColorSwatches.className = "color-panel-swatches";
      textColorSwatches.dataset.textSwatches = "color";
      textTocLabel.className = "widget-panel-row text-panel-control text-panel-toc-control";
-     textTocLabel.dataset.sidebarControl = "options.appears-in-toc";
+     textTocLabel.dataset.mainMenuControl = "options.appears-in-toc";
      textTocLabel.textContent = "Appears in ToC";
      textTocInput.type = "checkbox";
      textTocInput.dataset.textControl = "appears-in-toc";
      textTocInput.setAttribute("aria-label", "Selected text appears in Table of Contents");
      textFormatGroup.className = "text-panel-format text-panel-control";
-     textFormatGroup.dataset.sidebarControl = "text.format";
+     textFormatGroup.dataset.mainMenuControl = "text.format";
      textFormatTitle.className = "widget-panel-title";
      textFormatTitle.textContent = "Text Style";
      textBoldInput.className = "text-panel-toggle text-panel-toggle-bold";
@@ -3554,7 +3556,7 @@ function makePlannerItem(type = "sticker") {
      textStrikeInput.setAttribute("aria-label", "Strikethrough sticker text");
      textStrikeInput.setAttribute("aria-pressed", "false");
      textAlignLabel.className = "widget-panel-row text-panel-control text-panel-align-control";
-     textAlignLabel.dataset.sidebarControl = "text.align";
+     textAlignLabel.dataset.mainMenuControl = "text.align";
      textAlignTitle.className = "widget-panel-title";
      textAlignTitle.textContent = "Alignment";
      textAlignmentGrid.className = "text-panel-alignment-grid";
@@ -3608,7 +3610,7 @@ function makePlannerItem(type = "sticker") {
           textAlignmentGrid.append(button);
      });
      textLineHeightLabel.className = "widget-panel-row text-panel-control text-panel-size-control";
-     textLineHeightLabel.dataset.sidebarControl = "text.line-height";
+     textLineHeightLabel.dataset.mainMenuControl = "text.line-height";
      textLineHeightLabel.textContent = "Line Height";
      textLineHeightSelect.dataset.textControl = "line-height";
      textLineHeightSelect.setAttribute("aria-label", "Text line height in grid cells");
@@ -3622,16 +3624,16 @@ function makePlannerItem(type = "sticker") {
      deleteButton.className = "widget-panel-button widget-panel-danger";
      deleteButton.type = "button";
      deleteButton.textContent = "Delete";
-     deleteButton.dataset.sidebarControl = "actions.delete";
+     deleteButton.dataset.mainMenuControl = "actions.delete";
      deleteButton.setAttribute("aria-label", "Delete planner item");
      weekNumberLabel.className = "widget-panel-row widget-option-control";
-     weekNumberLabel.dataset.sidebarControl = "options.week-number-format";
+     weekNumberLabel.dataset.mainMenuControl = "options.week-number-format";
      weekNumberLabel.textContent = "Week #";
      weekNumberInput.type = "checkbox";
      weekNumberInput.dataset.widgetControl = "week-number-format";
      weekNumberInput.setAttribute("aria-label", "Show week number column");
      weekStartLabel.className = "widget-panel-row widget-option-control";
-     weekStartLabel.dataset.sidebarControl = "options.week-start";
+     weekStartLabel.dataset.mainMenuControl = "options.week-start";
      weekStartLabel.textContent = "Week Start";
      weekStartSelect.dataset.widgetControl = "week-start";
      weekStartSelect.setAttribute("aria-label", "Calendar week start");
@@ -3643,7 +3645,7 @@ function makePlannerItem(type = "sticker") {
           weekStartSelect.append(option);
      });
      weekdayLabelLabel.className = "widget-panel-row widget-option-control";
-     weekdayLabelLabel.dataset.sidebarControl = "options.weekday-label-format";
+     weekdayLabelLabel.dataset.mainMenuControl = "options.weekday-label-format";
      weekdayLabelLabel.textContent = "Weekdays";
      weekdayLabelSelect.dataset.widgetControl = "weekday-label-format";
      weekdayLabelSelect.setAttribute("aria-label", "Weekday label format");
@@ -3659,7 +3661,7 @@ function makePlannerItem(type = "sticker") {
           weekdayLabelSelect.append(option);
      });
      dateModeLabel.className = "widget-panel-row widget-option-control";
-     dateModeLabel.dataset.sidebarControl = "options.date-mode";
+     dateModeLabel.dataset.mainMenuControl = "options.date-mode";
      dateModeLabel.textContent = "Display Date";
      dateModeSelect.dataset.widgetControl = "date-mode";
      dateModeSelect.setAttribute("aria-label", "Calendar display date mode");
@@ -3674,7 +3676,7 @@ function makePlannerItem(type = "sticker") {
           dateModeSelect.append(option);
      });
      dateOffsetLabel.className = "widget-panel-row widget-option-control";
-     dateOffsetLabel.dataset.sidebarControl = "options.date-offset";
+     dateOffsetLabel.dataset.mainMenuControl = "options.date-offset";
      dateOffsetLabel.dataset.dateModeVisibility = "relative";
      dateOffsetLabel.textContent = "Offset";
      dateOffsetStepper.className = "date-offset-stepper";
@@ -3693,7 +3695,7 @@ function makePlannerItem(type = "sticker") {
      dateOffsetNextButton.textContent = "›";
      dateOffsetNextButton.setAttribute("aria-label", "Increase current offset");
      calendarSizeLabel.className = "widget-panel-row widget-option-control calendar-size-control";
-     calendarSizeLabel.dataset.sidebarControl = "options.page-size";
+     calendarSizeLabel.dataset.mainMenuControl = "options.page-size";
      calendarSizeLabel.textContent = "Size";
      calendarSizeOptions.className = "calendar-size-options";
      calendarSizeOptions.setAttribute("role", "group");
@@ -3713,14 +3715,14 @@ function makePlannerItem(type = "sticker") {
           calendarSizeOptions.append(button);
      });
      titleVisibleLabel.className = "widget-panel-row widget-option-control";
-     titleVisibleLabel.dataset.sidebarControl = "options.calendar-title-visible";
+     titleVisibleLabel.dataset.mainMenuControl = "options.calendar-title-visible";
      titleVisibleLabel.textContent = "Show Month/Year";
      titleVisibleInput.type = "checkbox";
      titleVisibleInput.dataset.widgetControl = "calendar-title-visible";
      titleVisibleInput.setAttribute("aria-label", "Show calendar month and year row");
      titleVisibleInput.checked = true;
      monthLabel.className = "widget-panel-row widget-option-control";
-     monthLabel.dataset.sidebarControl = "options.month";
+     monthLabel.dataset.mainMenuControl = "options.month";
      monthLabel.dataset.dateModeVisibility = "fixed";
      monthLabel.textContent = "Month";
      monthSelect.dataset.widgetControl = "month";
@@ -3733,7 +3735,8 @@ function makePlannerItem(type = "sticker") {
           monthSelect.append(option);
      });
      yearLabel.className = "widget-panel-row widget-option-control";
-     yearLabel.dataset.sidebarControl = "options.year";
+     yearLabel.dataset.mainMenuControl = "options.year";
+     yearLabel.dataset.dateModeVisibility = "fixed";
      yearLabel.textContent = "Year";
      yearSelect.dataset.widgetControl = "year";
      yearSelect.setAttribute("aria-label", "Calendar year");
@@ -3745,12 +3748,12 @@ function makePlannerItem(type = "sticker") {
           yearSelect.append(option);
      }
      startDayLabel.className = "widget-panel-row widget-option-control";
-     startDayLabel.dataset.sidebarControl = "options.start-day";
+     startDayLabel.dataset.mainMenuControl = "options.start-day";
      startDayLabel.textContent = type === "diary-view" ? "Week #" : "Day";
      startDaySelect.dataset.widgetControl = "start-day";
      startDaySelect.setAttribute("aria-label", type === "diary-view" ? "Daily Diary week number" : "Schedule View start day");
      visibleDaysLabel.className = "widget-panel-row widget-option-control";
-     visibleDaysLabel.dataset.sidebarControl = "options.visible-days";
+     visibleDaysLabel.dataset.mainMenuControl = "options.visible-days";
      visibleDaysLabel.textContent = "Duration";
      visibleDaysSelect.dataset.widgetControl = "visible-days";
      visibleDaysSelect.setAttribute("aria-label", "Schedule View visible days");
@@ -3762,7 +3765,7 @@ function makePlannerItem(type = "sticker") {
           visibleDaysSelect.append(option);
      }
      diaryLayoutLabel.className = "widget-panel-row widget-option-control";
-     diaryLayoutLabel.dataset.sidebarControl = "options.diary-layout";
+     diaryLayoutLabel.dataset.mainMenuControl = "options.diary-layout";
      diaryLayoutLabel.textContent = "Layout";
      diaryLayoutSelect.dataset.widgetControl = "diary-layout";
      diaryLayoutSelect.setAttribute("aria-label", "Daily Diary layout");
@@ -3777,14 +3780,14 @@ function makePlannerItem(type = "sticker") {
           diaryLayoutSelect.append(option);
      });
      diaryMonthYearVisibleLabel.className = "widget-panel-row widget-option-control";
-     diaryMonthYearVisibleLabel.dataset.sidebarControl = "options.diary-month-year-visible";
+     diaryMonthYearVisibleLabel.dataset.mainMenuControl = "options.diary-month-year-visible";
      diaryMonthYearVisibleLabel.textContent = "Show Month/Year";
      diaryMonthYearVisibleInput.type = "checkbox";
      diaryMonthYearVisibleInput.checked = false;
      diaryMonthYearVisibleInput.dataset.widgetControl = "diary-month-year-visible";
      diaryMonthYearVisibleInput.setAttribute("aria-label", "Show month and year in Daily Diary titles");
      diaryTitleLinesLabel.className = "widget-panel-row widget-option-control";
-     diaryTitleLinesLabel.dataset.sidebarControl = "options.diary-title-lines";
+     diaryTitleLinesLabel.dataset.mainMenuControl = "options.diary-title-lines";
      diaryTitleLinesLabel.textContent = "Title Lines";
      diaryTitleLinesSelect.dataset.widgetControl = "diary-title-lines";
      diaryTitleLinesSelect.setAttribute("aria-label", "Daily Diary title lines");
@@ -3799,7 +3802,7 @@ function makePlannerItem(type = "sticker") {
           diaryTitleLinesSelect.append(option);
      });
      timeIncrementLabel.className = "widget-panel-row widget-option-control";
-     timeIncrementLabel.dataset.sidebarControl = "options.time-increment";
+     timeIncrementLabel.dataset.mainMenuControl = "options.time-increment";
      timeIncrementLabel.textContent = "Increments";
      timeIncrementSelect.dataset.widgetControl = "time-increment";
      timeIncrementSelect.setAttribute("aria-label", "Schedule View time increment");
@@ -3815,26 +3818,26 @@ function makePlannerItem(type = "sticker") {
           timeIncrementSelect.append(option);
      });
      startTimeLabel.className = "widget-panel-row widget-option-control";
-     startTimeLabel.dataset.sidebarControl = "options.start-time";
+     startTimeLabel.dataset.mainMenuControl = "options.start-time";
      startTimeLabel.textContent = "Start";
      startTimeSelect.dataset.widgetControl = "start-time";
      startTimeSelect.setAttribute("aria-label", "Schedule View start time");
      timeVisibleLabel.className = "widget-panel-row widget-option-control";
-     timeVisibleLabel.dataset.sidebarControl = "options.time-visible";
+     timeVisibleLabel.dataset.mainMenuControl = "options.time-visible";
      timeVisibleLabel.textContent = "Time Column";
      timeVisibleInput.type = "checkbox";
      timeVisibleInput.checked = true;
      timeVisibleInput.dataset.widgetControl = "time-visible";
      timeVisibleInput.setAttribute("aria-label", "Show Schedule View time column");
      weeklyMonthYearVisibleLabel.className = "widget-panel-row widget-option-control";
-     weeklyMonthYearVisibleLabel.dataset.sidebarControl = "options.weekly-month-year-visible";
+     weeklyMonthYearVisibleLabel.dataset.mainMenuControl = "options.weekly-month-year-visible";
      weeklyMonthYearVisibleLabel.textContent = "Show Month/Year";
      weeklyMonthYearVisibleInput.type = "checkbox";
      weeklyMonthYearVisibleInput.checked = false;
      weeklyMonthYearVisibleInput.dataset.widgetControl = "weekly-month-year-visible";
      weeklyMonthYearVisibleInput.setAttribute("aria-label", "Show month and year in Schedule View dates");
      timeFormatLabel.className = "widget-panel-row widget-option-control";
-     timeFormatLabel.dataset.sidebarControl = "options.time-format";
+     timeFormatLabel.dataset.mainMenuControl = "options.time-format";
      timeFormatLabel.textContent = "Format";
      timeFormatSelect.dataset.widgetControl = "time-format";
      timeFormatSelect.setAttribute("aria-label", "Schedule View time format");
@@ -3849,13 +3852,13 @@ function makePlannerItem(type = "sticker") {
           timeFormatSelect.append(option);
      });
      shareWeekendsLabel.className = "widget-panel-row widget-option-control";
-     shareWeekendsLabel.dataset.sidebarControl = "options.share-weekends";
+     shareWeekendsLabel.dataset.mainMenuControl = "options.share-weekends";
      shareWeekendsLabel.textContent = "Share Weekends";
      shareWeekendsInput.type = "checkbox";
      shareWeekendsInput.dataset.widgetControl = "share-weekends";
      shareWeekendsInput.setAttribute("aria-label", "Share Saturday and Sunday in one column");
      weekNotesLabel.className = "widget-panel-row widget-option-control";
-     weekNotesLabel.dataset.sidebarControl = "options.week-notes";
+     weekNotesLabel.dataset.mainMenuControl = "options.week-notes";
      weekNotesLabel.textContent = "Week Notes";
      weekNotesSelect.dataset.widgetControl = "week-notes";
      weekNotesSelect.setAttribute("aria-label", "Week notes column");
@@ -3919,16 +3922,26 @@ function makePlannerItem(type = "sticker") {
      calendarSizeLabel.append(calendarSizeOptions);
      titleVisibleLabel.append(titleVisibleInput);
      weekNumberLabel.append(weekNumberInput);
-     if (type === "perpetual-calendar") {
-          calendarAttributesGrid.append(dateModeLabel, monthLabel, dateOffsetLabel);
-     } else if (type === "weekly-view") {
-          calendarAttributesGrid.append(calendarSizeLabel, weekdayLabelLabel, weekNotesLabel, dateModeLabel, monthLabel, dateOffsetLabel, yearLabel, startDayLabel);
-     } else if (type === "diary-view") {
-          calendarAttributesGrid.append(weekdayLabelLabel, dateModeLabel, monthLabel, dateOffsetLabel, yearLabel, startDayLabel);
-     } else if (type === "full-month") {
-          calendarAttributesGrid.append(calendarSizeLabel, weekdayLabelLabel, weekNotesLabel, dateModeLabel, monthLabel, dateOffsetLabel, yearLabel, weekNumberLabel);
-     } else {
-          calendarAttributesGrid.append(weekdayLabelLabel, shareWeekendsLabel, dateModeLabel, monthLabel, dateOffsetLabel, yearLabel, weekNumberLabel);
+     if (isCalendarItemType(type)) {
+          calendarAttributesGrid.append(
+               calendarSizeLabel,
+               weekdayLabelLabel,
+               shareWeekendsLabel,
+               weekNotesLabel,
+               dateModeLabel,
+               monthLabel,
+               dateOffsetLabel,
+               yearLabel,
+               startDayLabel,
+               weekNumberLabel,
+               visibleDaysLabel,
+               diaryLayoutLabel,
+               diaryTitleLinesLabel,
+               timeVisibleLabel,
+               startTimeLabel,
+               timeIncrementLabel,
+               timeFormatLabel
+          );
      }
      startDayLabel.append(startDaySelect);
      visibleDaysLabel.append(visibleDaysSelect);
@@ -3959,20 +3972,10 @@ function makePlannerItem(type = "sticker") {
                ? weeklyMonthYearVisibleLabel
                : (type === "diary-view" ? diaryMonthYearVisibleLabel : titleVisibleLabel);
 
-          widgetPanel.append(monthYearVisibilityLabel);
+          widgetPanel.append(monthYearVisibilityLabel, ...Array.from(calendarAttributesGrid.children));
      }
      if (type === "sticker") {
           widgetPanel.append(dotGridLabel);
-     }
-     if (isCalendarItemType(type) && type !== "weekly-view") {
-          widgetPanel.append(...Array.from(calendarAttributesGrid.children));
-     }
-     if (type === "weekly-view") {
-          timeWidgetGroup.append(timeVisibleLabel, startTimeLabel, timeIncrementLabel, visibleDaysLabel);
-          widgetPanel.append(...Array.from(calendarAttributesGrid.children), ...Array.from(timeWidgetGroup.children));
-     }
-     if (type === "diary-view") {
-          widgetPanel.append(...Array.from(calendarAttributesGrid.children), visibleDaysLabel, diaryLayoutLabel, diaryTitleLinesLabel);
      }
      [monthSelect, yearSelect, startDaySelect, visibleDaysSelect, startTimeSelect].forEach(createWidgetSelectStepper);
      controlTabs.append(textTab);
@@ -4204,7 +4207,7 @@ function makePlannerItem(type = "sticker") {
 
           const rect = item.getBoundingClientRect();
 
-          openItemActionsPopup(item, {
+          openItemPopupMenu(item, {
                clientX: rect.left + (rect.width / 2),
                clientY: rect.top + Math.min(rect.height / 2, 36)
           });
@@ -4219,7 +4222,7 @@ function makePlannerItem(type = "sticker") {
 
           closeItemMenus(item);
           updateGroupButton(groupButton, actionItems);
-          openItemActionsPopup(item, event, actionItems);
+          openItemPopupMenu(item, event, actionItems);
      });
      controls.addEventListener("pointerdown", (event) => {
           startFloatingControlsMove(controls, event);
@@ -4287,7 +4290,7 @@ function makePlannerItem(type = "sticker") {
           const textTarget = getSelectedTextStyleTarget(item);
 
           if (textTarget) {
-               applyPopupTextToc(textTarget.item, textTarget, textTocInput.checked);
+               applyPopupMenuTextToc(textTarget.item, textTarget, textTocInput.checked);
                setSelectedTextStyleTarget(textTarget.item, {
                     ...textTarget,
                     appearsInToc: textTocInput.checked
@@ -4547,7 +4550,7 @@ function makePlannerItem(type = "sticker") {
           event.stopPropagation();
           deleteItem(item);
      });
-     applySidebarControlVisibility(item);
+     applyMainMenuControlVisibility(item);
 
      return item;
 }
@@ -4890,13 +4893,37 @@ function incrementPlainNumberText(value) {
      return String(Number(text) + 1);
 }
 
-function incrementItemPrimaryText(item) {
-     if (isCalendarItem(item) && item.dataset.dateMode === "relative") {
+function incrementCalendarSequenceDate(item) {
+     if (!isCalendarItem(item)) {
+          return false;
+     }
+
+     if (item.dataset.dateMode === "relative") {
           setCalendarWidgetSettings(item, {
                dateMode: "relative",
                dateOffset: String((Number(item.dataset.dateOffset) || 0) + 1)
           });
           return true;
+     }
+
+     const currentMonth = Number(item.dataset.month);
+     const currentYear = Number(item.dataset.year);
+     const month = Number.isFinite(currentMonth) ? currentMonth : new Date().getMonth();
+     const year = Number.isFinite(currentYear) ? currentYear : new Date().getFullYear();
+     const nextMonth = (month + 1) % 12;
+     const nextYear = year + (nextMonth === 0 ? 1 : 0);
+
+     setCalendarWidgetSettings(item, {
+          dateMode: "fixed",
+          month: String(nextMonth),
+          year: String(nextYear)
+     });
+     return true;
+}
+
+function incrementItemPrimaryText(item) {
+     if (isCalendarItem(item)) {
+          return incrementCalendarSequenceDate(item);
      }
 
      const stickerText = getStickerTextElement(item);
@@ -5109,7 +5136,43 @@ function updateMarqueeSelection(selectionBox) {
      selectItems(Array.from(nextSelection));
 }
 
+function canStartViewPan(event) {
+     return event.button === 1 && viewZoomIndex > 0 && !event.target.closest(".control-panel, .widget-panel");
+}
+
+function preventMiddleMouseAutoscroll(event) {
+     if (canStartViewPan(event)) {
+          event.preventDefault();
+     }
+}
+
+function startViewPan(event) {
+     event.preventDefault();
+     event.stopPropagation();
+     closeItemMenus();
+     activeAction = {
+          type: "pan-view",
+          startX: event.clientX,
+          startY: event.clientY,
+          startPanX: viewPanOffsetX,
+          startPanY: viewPanOffsetY,
+          startRootPanX: getRootPixelValue("--view-pan-x"),
+          startRootPanY: getRootPixelValue("--view-pan-y")
+     };
+     document.documentElement.classList.add("is-view-panning");
+
+     try {
+          plannerDesk.setPointerCapture(event.pointerId);
+     } catch {
+     }
+}
+
 function startMarquee(event) {
+     if (canStartViewPan(event)) {
+          startViewPan(event);
+          return;
+     }
+
      if (event.button !== 0) {
           return;
      }
@@ -5249,6 +5312,18 @@ function moveActiveItem(event) {
           return;
      }
 
+     if (activeAction.type === "pan-view") {
+          event.preventDefault();
+          const deltaX = event.clientX - activeAction.startX;
+          const deltaY = event.clientY - activeAction.startY;
+
+          viewPanOffsetX = activeAction.startPanX + deltaX;
+          viewPanOffsetY = activeAction.startPanY + deltaY;
+          setRootNumber("--view-pan-x", `${activeAction.startRootPanX + deltaX}px`);
+          setRootNumber("--view-pan-y", `${activeAction.startRootPanY + deltaY}px`);
+          return;
+     }
+
      if (activeAction.type === "control-panel-move") {
           activeAction.hasMoved = true;
           setControlPanelBox(getMovedControlPanelBox(event.clientX, event.clientY));
@@ -5371,6 +5446,19 @@ function endActiveItem(event) {
      document.removeEventListener("pointercancel", endActiveItem, true);
      document.removeEventListener("mousemove", moveActiveItem, true);
      document.removeEventListener("mouseup", endActiveItem, true);
+
+     if (activeAction.type === "pan-view") {
+          try {
+               plannerDesk.releasePointerCapture(event.pointerId);
+          } catch {
+          }
+
+          document.documentElement.classList.remove("is-view-panning");
+          activeAction = null;
+          refreshPageItemViews();
+          scheduleKeyboardCursorUpdate();
+          return;
+     }
 
      if (activeAction.type === "control-panel-move" || activeAction.type === "control-panel-resize") {
           try {

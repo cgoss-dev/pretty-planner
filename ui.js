@@ -1485,7 +1485,7 @@ function syncObjectControlsTab(tabName) {
 
 function getObjectControlWidgetPanelPageNames(tabName) {
      return {
-          "object-selected": ["text"]
+          "object-selected": ["text", "widget"]
      }[tabName] || [];
 }
 
@@ -1625,11 +1625,11 @@ function updateObjectControlsState() {
      }
 }
 
-let activeSidebarReorderRow = null;
-let activeSidebarReorderPointerId = null;
+let activeMainMenuReorderRow = null;
+let activeMainMenuReorderPointerId = null;
 
-function getSidebarReorderRow(target) {
-     if (!target?.closest || !plannerSidebar?.contains(target)) {
+function getMainMenuReorderRow(target) {
+     if (!target?.closest || !plannerMainMenu?.contains(target)) {
           return null;
      }
 
@@ -1642,13 +1642,13 @@ function getSidebarReorderRow(target) {
      return row;
 }
 
-function isSidebarReorderInteractiveTarget(target) {
+function isMainMenuReorderInteractiveTarget(target) {
      return Boolean(target?.closest?.(
           "button, input, select, textarea, [contenteditable='true'], .custom-select, .button-select, .date-offset-stepper, .color-panel-swatches, .text-panel-size-options, .calendar-size-options, .text-panel-alignment-grid, .control-choice-group, .date-order-picker"
      ));
 }
 
-function isSidebarReorderTitlePointer(row, target, event) {
+function isMainMenuReorderTitlePointer(row, target, event) {
      const title = target.closest?.(".widget-panel-title, .palette-preview-label, .keyboard-control-title") || row.querySelector(":scope > .widget-panel-title, :scope > span, :scope > .palette-preview-label");
 
      if (title) {
@@ -1665,69 +1665,69 @@ function isSidebarReorderTitlePointer(row, target, event) {
      return event.clientX >= rowRect.left && event.clientX <= rowRect.left + titleWidth;
 }
 
-function clearSidebarReorderState() {
-     if (activeSidebarReorderRow) {
-          activeSidebarReorderRow.classList.remove("is-sidebar-row-dragging");
-          delete activeSidebarReorderRow.dataset.sidebarReorderReady;
+function clearMainMenuReorderState() {
+     if (activeMainMenuReorderRow) {
+          activeMainMenuReorderRow.classList.remove("is-main-menu-row-dragging");
+          delete activeMainMenuReorderRow.dataset.mainMenuReorderReady;
      }
-     plannerSidebar?.querySelectorAll(".is-sidebar-row-drop-target").forEach((row) => row.classList.remove("is-sidebar-row-drop-target"));
-     activeSidebarReorderRow = null;
-     activeSidebarReorderPointerId = null;
+     plannerMainMenu?.querySelectorAll(".is-main-menu-row-drop-target").forEach((row) => row.classList.remove("is-main-menu-row-drop-target"));
+     activeMainMenuReorderRow = null;
+     activeMainMenuReorderPointerId = null;
 }
 
-function moveSidebarReorderRow(clientY) {
-     if (!activeSidebarReorderRow?.parentElement) {
+function moveMainMenuReorderRow(clientY) {
+     if (!activeMainMenuReorderRow?.parentElement) {
           return;
      }
 
-     const parent = activeSidebarReorderRow.parentElement;
-     const rows = Array.from(parent.children).filter((child) => child !== activeSidebarReorderRow && getSidebarReorderRow(child) === child && !child.hidden);
+     const parent = activeMainMenuReorderRow.parentElement;
+     const rows = Array.from(parent.children).filter((child) => child !== activeMainMenuReorderRow && getMainMenuReorderRow(child) === child && !child.hidden);
      const nextRow = rows.find((row) => {
           const rect = row.getBoundingClientRect();
 
           return clientY < rect.top + (rect.height / 2);
      });
 
-     rows.forEach((row) => row.classList.toggle("is-sidebar-row-drop-target", row === nextRow));
-     parent.insertBefore(activeSidebarReorderRow, nextRow || null);
+     rows.forEach((row) => row.classList.toggle("is-main-menu-row-drop-target", row === nextRow));
+     parent.insertBefore(activeMainMenuReorderRow, nextRow || null);
 }
 
-function initializeSidebarRowReorder() {
-     if (!plannerSidebar || plannerSidebar.dataset.sidebarRowReorderReady === "true") {
+function initializeMainMenuRowReorder() {
+     if (!plannerMainMenu || plannerMainMenu.dataset.mainMenuRowReorderReady === "true") {
           return;
      }
 
-     plannerSidebar.dataset.sidebarRowReorderReady = "true";
-     plannerSidebar.addEventListener("pointerdown", (event) => {
-          const row = getSidebarReorderRow(event.target);
-          const isTitlePointer = row ? isSidebarReorderTitlePointer(row, event.target, event) : false;
+     plannerMainMenu.dataset.mainMenuRowReorderReady = "true";
+     plannerMainMenu.addEventListener("pointerdown", (event) => {
+          const row = getMainMenuReorderRow(event.target);
+          const isTitlePointer = row ? isMainMenuReorderTitlePointer(row, event.target, event) : false;
 
-          if (event.button !== 0 || !row || !isTitlePointer || (isSidebarReorderInteractiveTarget(event.target) && !isTitlePointer)) {
+          if (event.button !== 0 || !row || !isTitlePointer || (isMainMenuReorderInteractiveTarget(event.target) && !isTitlePointer)) {
                return;
           }
 
           event.preventDefault();
-          activeSidebarReorderRow = row;
-          activeSidebarReorderPointerId = event.pointerId;
-          row.classList.add("is-sidebar-row-dragging");
-          row.dataset.sidebarReorderReady = "true";
+          activeMainMenuReorderRow = row;
+          activeMainMenuReorderPointerId = event.pointerId;
+          row.classList.add("is-main-menu-row-dragging");
+          row.dataset.mainMenuReorderReady = "true";
      }, true);
      document.addEventListener("pointermove", (event) => {
-          if (!activeSidebarReorderRow || event.pointerId !== activeSidebarReorderPointerId) {
+          if (!activeMainMenuReorderRow || event.pointerId !== activeMainMenuReorderPointerId) {
                return;
           }
 
           event.preventDefault();
-          moveSidebarReorderRow(event.clientY);
+          moveMainMenuReorderRow(event.clientY);
      }, true);
      document.addEventListener("pointerup", (event) => {
-          if (activeSidebarReorderRow && event.pointerId === activeSidebarReorderPointerId) {
-               clearSidebarReorderState();
+          if (activeMainMenuReorderRow && event.pointerId === activeMainMenuReorderPointerId) {
+               clearMainMenuReorderState();
           }
      }, true);
      document.addEventListener("pointercancel", (event) => {
-          if (activeSidebarReorderRow && event.pointerId === activeSidebarReorderPointerId) {
-               clearSidebarReorderState();
+          if (activeMainMenuReorderRow && event.pointerId === activeMainMenuReorderPointerId) {
+               clearMainMenuReorderState();
           }
      }, true);
 }
@@ -1749,6 +1749,8 @@ function updateControlPanelFocusState() {
 
 function openControlPanel() {
      controlPanel.classList.add("is-open");
+     plannerMainMenu?.classList.add("is-open");
+     mainMenuToggleButton?.setAttribute("aria-expanded", "true");
      plannerDesk.classList.add("has-open-control-panel");
      updateControlPanelFocusState();
      renderKeyHints();
@@ -1759,6 +1761,8 @@ function closeControlPanel() {
      clearSelectFocus(controlPanel);
      setColorMatrixOpen(false);
      controlPanel.classList.remove("is-open");
+     plannerMainMenu?.classList.remove("is-open");
+     mainMenuToggleButton?.setAttribute("aria-expanded", "false");
      plannerDesk.classList.remove("has-open-control-panel");
      updateControlPanelFocusState();
      renderKeyHints();
@@ -1903,7 +1907,7 @@ const ControlPanel = {
      syncAllChoiceInputs: syncAllSettingChoiceInputs,
      syncChoiceInputs: syncSettingChoiceInputs,
      syncObjectControlsTab: syncObjectControlsTab,
-     initializeSidebarRowReorder,
+     initializeMainMenuRowReorder,
      updatePanelSteps: updateControlPanelSteps
 };
 

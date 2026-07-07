@@ -462,10 +462,11 @@ window.KeyboardControls = (() => {
           {
                title: "Hotkeys",
                controls: [
+                    { key: "M", action: "Main Menu" },
+                    { key: "</>", action: "Page Left/Right" },
+                    { key: "SHIFT + </>", action: "First/Last Page" },
                     { key: "Tab", action: "Next focus" },
                     { key: "Enter", action: "Edit / select" },
-                    { key: "[", action: "Previous page or tab" },
-                    { key: "]", action: "Next page or tab" },
                     { key: "Z", action: "Zoom" },
                     { key: "G", action: "Gridlines" },
                     { key: "C", action: "Center" },

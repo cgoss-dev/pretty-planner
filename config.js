@@ -73,9 +73,10 @@
                          height: 42
                     }
                },
-               sidebarControlVisibility: {
+               widgetControls: {
                     sticker: {
                          "actions.duplicate": true,
+                         "actions.sequence": true,
                          "actions.group": true,
                          "actions.send-backward": true,
                          "actions.bring-forward": true,
@@ -92,6 +93,7 @@
                     },
                     toc: {
                          "actions.duplicate": true,
+                         "actions.sequence": true,
                          "actions.group": true,
                          "actions.send-backward": true,
                          "actions.bring-forward": true,
@@ -107,6 +109,7 @@
                     },
                     "page-flag": {
                          "actions.duplicate": true,
+                         "actions.sequence": true,
                          "actions.group": true,
                          "actions.send-backward": true,
                          "actions.bring-forward": true,
@@ -122,6 +125,7 @@
                     },
                     "mini-month": {
                          "actions.duplicate": true,
+                         "actions.sequence": true,
                          "actions.group": true,
                          "actions.send-backward": true,
                          "actions.bring-forward": true,
@@ -149,6 +153,7 @@
                     },
                     "full-month": {
                          "actions.duplicate": true,
+                         "actions.sequence": true,
                          "actions.group": true,
                          "actions.send-backward": true,
                          "actions.bring-forward": true,
@@ -178,6 +183,7 @@
                     },
                     "perpetual-calendar": {
                          "actions.duplicate": true,
+                         "actions.sequence": true,
                          "actions.group": true,
                          "actions.send-backward": true,
                          "actions.bring-forward": true,
@@ -200,6 +206,7 @@
                     },
                     "weekly-view": {
                          "actions.duplicate": true,
+                         "actions.sequence": true,
                          "actions.group": true,
                          "actions.send-backward": true,
                          "actions.bring-forward": true,
@@ -232,6 +239,7 @@
                     },
                     "diary-view": {
                          "actions.duplicate": true,
+                         "actions.sequence": true,
                          "actions.group": true,
                          "actions.send-backward": true,
                          "actions.bring-forward": true,

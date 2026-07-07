@@ -161,8 +161,8 @@
      --menu-fill: rgba(255, 255, 255, 0.95);
      --menu-width: clamp(250px, 30vw, 350px);
      --menu-width-safe: min(var(--menu-width), calc(100vw - 32px));
-     --planner-sidebar-width: clamp(260px, 24vw, 340px);
-     --planner-sidebar-gap: 8px;
+     --planner-main-menu-width: clamp(260px, 24vw, 340px);
+     --planner-main-menu-gap: 8px;
      --notebook-layout-width: 132vw;
 
      --notebook-width: 1220px;
@@ -237,6 +237,11 @@ body {
      background-repeat:
           no-repeat,
           no-repeat;
+}
+
+.is-view-panning .planner-desk,
+.is-view-panning .planner-desk * {
+     cursor: grabbing !important;
 }
 
 .notebook-stage {
@@ -697,7 +702,7 @@ body {
      display: none;
 }
 
-.sidebar-menu-panel {
+.main-menu-panel {
      grid-template-columns: 1fr;
 }
 
@@ -777,11 +782,25 @@ body {
 
 .keyboard-control-section {
      display: grid;
+     position: relative;
      gap: 9px;
      padding: 7px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
      border-radius: 6px;
      background: rgba(255, 255, 255, 0.28);
+}
+
+.keyboard-control-section + .keyboard-control-section {
+     margin-top: 8px;
+}
+
+.keyboard-control-section + .keyboard-control-section::before {
+     content: "";
+     position: absolute;
+     top: -9px;
+     left: 0;
+     right: 0;
+     border-top: var(--border-sm) solid rgba(17, 17, 17, 0.18);
 }
 
 .defaults-section {
@@ -1686,11 +1705,11 @@ body {
      z-index: 360;
 }
 
-.widget-panel.is-actions-popup:has(.custom-select[open]) {
+.widget-panel.is-popup-menu:has(.custom-select[open]) {
      z-index: 380;
 }
 
-.planner-sidebar .control-panel-page:has(.custom-select[open]) {
+.planner-main-menu .control-panel-page:has(.custom-select[open]) {
      overflow: auto;
 }
 
@@ -4564,7 +4583,7 @@ body {
      display: block;
 }
 
-/* NOTE: Selection Controls And Action Popups */
+/* NOTE: Selection Controls And Popup Menus */
 .widget-panel {
      position: absolute;
      z-index: 45;
@@ -4621,17 +4640,17 @@ body {
      cursor: grabbing;
 }
 
-.widget-panel.is-actions-popup {
+.widget-panel.is-popup-menu {
      width: 220px !important;
      inline-size: 220px !important;
      min-width: 220px !important;
 }
 
-.widget-panel.is-actions-popup .widget-panel-tabs {
+.widget-panel.is-popup-menu .widget-panel-tabs {
      display: none;
 }
 
-.widget-panel.is-actions-popup .widget-panel-page {
+.widget-panel.is-popup-menu .widget-panel-page {
      gap: 12px;
      padding: 6px;
      border-radius: 8px;
@@ -4655,7 +4674,7 @@ body {
      text-align: center;
 }
 
-.widget-panel.is-actions-popup .item-actions-widget-type {
+.widget-panel.is-popup-menu .item-actions-widget-type {
      display: block;
 }
 
@@ -4673,12 +4692,12 @@ body {
      border-top: var(--border-sm) solid rgba(17, 17, 17, 0.14);
 }
 
-.widget-panel.is-actions-popup > .item-layout-action-group {
+.widget-panel.is-popup-menu > .item-layout-action-group {
      padding-top: 0;
      border-top: 0;
 }
 
-.widget-panel.is-actions-popup > .item-text-role-action-group {
+.widget-panel.is-popup-menu > .item-text-role-action-group {
      padding-top: 0;
      border-top: 0;
 }
@@ -5181,8 +5200,8 @@ body {
 
 .text-panel-alignment-grid {
      display: grid;
-     grid-template-columns: repeat(3, calc(var(--color-swatch-size) * 2));
-     grid-template-rows: repeat(3, calc(var(--color-swatch-size) * 2));
+     grid-template-columns: repeat(3, calc(var(--color-swatch-size) * 1.5));
+     grid-template-rows: repeat(3, calc(var(--color-swatch-size) * 1.5));
      gap: 3px;
      justify-content: center;
 }
@@ -5190,12 +5209,12 @@ body {
 .text-panel-alignment-button {
      display: grid;
      place-items: center;
-     min-width: calc(var(--color-swatch-size) * 2);
-     width: calc(var(--color-swatch-size) * 2);
-     max-width: calc(var(--color-swatch-size) * 2);
-     min-height: calc(var(--color-swatch-size) * 2);
-     height: calc(var(--color-swatch-size) * 2);
-     max-height: calc(var(--color-swatch-size) * 2);
+     min-width: calc(var(--color-swatch-size) * 1.5);
+     width: calc(var(--color-swatch-size) * 1.5);
+     max-width: calc(var(--color-swatch-size) * 1.5);
+     min-height: calc(var(--color-swatch-size) * 1.5);
+     height: calc(var(--color-swatch-size) * 1.5);
+     max-height: calc(var(--color-swatch-size) * 1.5);
      padding: 3px;
      border: var(--palette-swatch-border);
      border-radius: var(--palette-swatch-radius);
@@ -5221,7 +5240,7 @@ body {
 
 .text-panel-alignment-glyph {
      display: block;
-     font: 700 var(--font-size-sm) var(--font-noto-sans-mono);
+     font: 700 var(--font-size-md) var(--font-noto-sans-mono);
      line-height: 1;
 }
 
@@ -5272,7 +5291,7 @@ body {
      color: var(--tertiary-01);
 }
 
-.widget-panel.is-actions-popup > .widget-panel-danger {
+.widget-panel.is-popup-menu > .widget-panel-danger {
      width: 100%;
 }
 
@@ -5320,7 +5339,7 @@ body {
      box-shadow: none;
 }
 
-.widget-panel.is-actions-popup .widget-panel-page,
+.widget-panel.is-popup-menu .widget-panel-page,
 .widget-panel-page {
      border: 0;
      border-radius: 0;
@@ -5478,7 +5497,7 @@ body {
      text-align: center;
 }
 
-.widget-panel.is-actions-popup .item-actions-widget-type {
+.widget-panel.is-popup-menu .item-actions-widget-type {
      padding-bottom: 0;
      border-bottom: 0;
 }
@@ -5752,8 +5771,8 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
      display: none;
 }
 
-/* NOTE: Docked Planner Sidebar */
-.planner-sidebar {
+/* NOTE: Docked Main Menu */
+.planner-main-menu {
      position: absolute;
      z-index: 260;
      top: 14px;
@@ -5763,8 +5782,8 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
      grid-template-columns: minmax(0, 1fr);
      grid-template-rows: auto minmax(0, 1fr);
      align-content: start;
-     gap: var(--planner-sidebar-gap);
-     width: var(--planner-sidebar-width);
+     gap: var(--planner-main-menu-gap);
+     width: var(--planner-main-menu-width);
      max-width: calc(100vw - 28px);
      padding: 8px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
@@ -5773,15 +5792,30 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
      color: var(--color-gray1);
      filter: drop-shadow(0 8px 12px rgba(17, 17, 17, 0.12));
      backdrop-filter: blur(8px);
+     transition: width 160ms ease, filter 160ms ease, background-color 160ms ease;
+     overflow: hidden;
 }
 
-.planner-sidebar-title {
-     margin: 0;
-     padding-bottom: 0;
-     border-bottom: 0;
+.planner-main-menu:not(.is-open) {
+     bottom: auto;
+     width: auto;
+     min-width: 0;
+     grid-template-rows: auto;
+     background: rgba(255, 255, 255, 0.74);
+     filter: drop-shadow(0 6px 8px rgba(17, 17, 17, 0.08));
 }
 
-.planner-sidebar .hint-panel {
+.planner-main-menu-title {
+     margin: -4px;
+     border: 0;
+     padding: 4px;
+     background: transparent;
+     color: inherit;
+     text-align: left;
+     cursor: pointer;
+}
+
+.planner-main-menu .hint-panel {
      position: static;
      z-index: auto;
      align-self: start;
@@ -5800,12 +5834,12 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
      backdrop-filter: none;
 }
 
-.planner-sidebar .guide-panel .hint-panel {
+.planner-main-menu .guide-panel .hint-panel {
      padding-bottom: 8px;
      border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
 }
 
-.planner-sidebar .control-panel {
+.planner-main-menu .control-panel {
      position: static;
      z-index: auto;
      left: auto;
@@ -5833,24 +5867,28 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
      backdrop-filter: none;
 }
 
-.planner-sidebar .hint-panel {
+.planner-main-menu .hint-panel {
      display: grid;
 }
 
-.planner-sidebar .hint-mode,
-.planner-sidebar .hint-row {
+.planner-main-menu .hint-mode,
+.planner-main-menu .hint-row {
      justify-self: start;
      text-align: left;
 }
 
-.planner-sidebar .control-panel {
+.planner-main-menu .control-panel {
      display: grid;
 }
 
-.planner-sidebar .control-panel.is-open,
-.planner-sidebar .control-panel:not(.is-open),
-body.is-single-page-viewport .planner-sidebar .control-panel,
-body.is-single-page-viewport .planner-sidebar .control-panel:not(.is-open) {
+.planner-main-menu:not(.is-open) .control-panel {
+     display: none;
+}
+
+.planner-main-menu .control-panel.is-open,
+.planner-main-menu .control-panel:not(.is-open),
+body.is-single-page-viewport .planner-main-menu .control-panel,
+body.is-single-page-viewport .planner-main-menu .control-panel:not(.is-open) {
      width: 100% !important;
      inline-size: 100% !important;
      min-width: 0 !important;
@@ -5863,12 +5901,12 @@ body.is-single-page-viewport .planner-sidebar .control-panel:not(.is-open) {
      padding: 0;
 }
 
-.planner-sidebar .control-panel-title {
+.planner-main-menu .control-panel-title {
      display: none;
 }
 
-.planner-sidebar .control-panel-tabs,
-body.is-single-page-viewport .planner-sidebar .control-panel-tabs {
+.planner-main-menu .control-panel-tabs,
+body.is-single-page-viewport .planner-main-menu .control-panel-tabs {
      grid-column: 1;
      grid-row: 1;
      display: grid;
@@ -5880,9 +5918,9 @@ body.is-single-page-viewport .planner-sidebar .control-panel-tabs {
      border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
 }
 
-.planner-sidebar .control-panel-tab,
-.planner-sidebar .control-panel-tab[aria-selected="true"],
-.planner-sidebar .control-panel:not(.is-open) .control-panel-tab[aria-selected="true"] {
+.planner-main-menu .control-panel-tab,
+.planner-main-menu .control-panel-tab[aria-selected="true"],
+.planner-main-menu .control-panel:not(.is-open) .control-panel-tab[aria-selected="true"] {
      display: grid;
      width: 100%;
      min-width: 0;
@@ -5891,29 +5929,29 @@ body.is-single-page-viewport .planner-sidebar .control-panel-tabs {
      grid-template-columns: minmax(0, 1fr);
 }
 
-.planner-sidebar .control-panel-tab[data-control-panel-tab^="object-"]:disabled {
+.planner-main-menu .control-panel-tab[data-control-panel-tab^="object-"]:disabled {
      display: grid;
 }
 
-.planner-sidebar .control-panel.is-open .control-panel-tab.is-active,
-.planner-sidebar .control-panel.is-open .control-panel-tab[aria-selected="true"] {
+.planner-main-menu .control-panel.is-open .control-panel-tab.is-active,
+.planner-main-menu .control-panel.is-open .control-panel-tab[aria-selected="true"] {
      border-color: rgba(17, 17, 17, 0.2);
 }
 
-.planner-sidebar .control-panel-tab-step,
-.planner-sidebar .control-panel-tab[aria-selected="true"] .control-panel-tab-step,
-.planner-sidebar .control-panel:not(.is-open) .control-panel-tab[aria-selected="true"] .control-panel-tab-step {
+.planner-main-menu .control-panel-tab-step,
+.planner-main-menu .control-panel-tab[aria-selected="true"] .control-panel-tab-step,
+.planner-main-menu .control-panel:not(.is-open) .control-panel-tab[aria-selected="true"] .control-panel-tab-step {
      display: none;
 }
 
-.planner-sidebar .control-panel-tab-label {
+.planner-main-menu .control-panel-tab-label {
      overflow: hidden;
      text-overflow: ellipsis;
      white-space: nowrap;
 }
 
-.planner-sidebar .control-panel-page,
-body.is-single-page-viewport .planner-sidebar .control-panel-page {
+.planner-main-menu .control-panel-page,
+body.is-single-page-viewport .planner-main-menu .control-panel-page {
      grid-column: 1;
      grid-row: 2;
      gap: 14px;
@@ -5930,25 +5968,25 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      backdrop-filter: none;
 }
 
-.planner-sidebar .control-panel:not(.is-open) .control-panel-page {
+.planner-main-menu .control-panel:not(.is-open) .control-panel-page {
      display: none !important;
 }
 
-.planner-sidebar .control-panel.is-open .control-panel-page:not([hidden]) {
+.planner-main-menu .control-panel.is-open .control-panel-page:not([hidden]) {
      display: grid;
 }
 
-.planner-sidebar .control-panel.is-open .control-panel-page.add-panel:not([hidden]) {
+.planner-main-menu .control-panel.is-open .control-panel-page.add-panel:not([hidden]) {
      display: flex;
 }
 
-.planner-sidebar .control-panel.is-resize-ns,
-.planner-sidebar .control-panel.is-resizing,
-.planner-sidebar .control-panel.is-dragging {
+.planner-main-menu .control-panel.is-resize-ns,
+.planner-main-menu .control-panel.is-resizing,
+.planner-main-menu .control-panel.is-dragging {
      cursor: default;
 }
 
-.planner-sidebar .widget-panel.is-docked .widget-panel-page:not([hidden]) {
+.planner-main-menu .widget-panel.is-docked .widget-panel-page:not([hidden]) {
      display: grid;
      width: 100%;
      min-width: 0;
@@ -5958,32 +5996,22 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      padding: 0;
 }
 
-.planner-sidebar .object-control-panel-page,
-.planner-sidebar .control-object-shell {
+.planner-main-menu .object-control-panel-page,
+.planner-main-menu .control-object-shell {
      min-height: 0;
 }
 
-.planner-sidebar .control-object-shell {
+.planner-main-menu .control-object-shell {
      align-content: start;
      gap: 6px;
 }
 
-.planner-sidebar .control-object-shell .widget-panel-tabs {
-     margin: 0 -4px;
-     padding: 4px 4px 7px;
-     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.14);
+.planner-main-menu .control-object-shell .widget-panel-tabs {
+     display: none;
 }
 
-.planner-sidebar .control-object-shell .widget-panel-tab {
-     background: var(--color-white);
-}
-
-.planner-sidebar .control-object-shell .widget-panel-tab.is-active,
-.planner-sidebar .control-object-shell .widget-panel-tab[aria-selected="true"] {
-     background: var(--color-gray4);
-}
-
-.planner-sidebar .control-object-shell .widget-panel.is-docked .widget-panel-page:not([hidden]) {
+.planner-main-menu .control-object-shell .widget-panel.is-docked .widget-panel-page:not([hidden]) {
+     position: relative;
      gap: 9px;
      padding: 7px;
      border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
@@ -5991,11 +6019,24 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      background: var(--color-white);
 }
 
-.planner-sidebar .widget-panel.is-docked .widget-panel-page[hidden] {
+.planner-main-menu .control-object-shell .widget-panel.is-docked .text-panel + .widget-options-panel:not([hidden]) {
+     margin-top: 8px;
+}
+
+.planner-main-menu .control-object-shell .widget-panel.is-docked .text-panel + .widget-options-panel:not([hidden])::before {
+     content: "";
+     position: absolute;
+     top: -9px;
+     left: 0;
+     right: 0;
+     border-top: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+}
+
+.planner-main-menu .widget-panel.is-docked .widget-panel-page[hidden] {
      display: none;
 }
 
-.planner-sidebar .widget-panel-row {
+.planner-main-menu .widget-panel-row {
      width: 100%;
      min-width: 0;
      min-height: calc(var(--color-swatch-size) + 16px);
@@ -6005,113 +6046,123 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      padding: 7px 0;
 }
 
-.planner-sidebar .widget-panel-title {
+.planner-main-menu .widget-panel-title {
      grid-column: auto;
 }
 
-.planner-sidebar .widget-panel-row > .widget-panel-title,
-.planner-sidebar .text-panel-format > .widget-panel-title,
-.planner-sidebar .control-field > span:first-child,
-.planner-sidebar .palette-preview > .palette-preview-label,
-.planner-sidebar .date-format-defaults > span:first-child,
-.planner-sidebar .date-order-control > span:first-child {
+.planner-main-menu .control-object-shell .widget-panel-section-title {
+     display: block;
+     padding: 0 0 6px;
+     border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+     color: var(--color-gray1);
+     font: 700 var(--font-size-sm) var(--font-noto-sans-mono);
+     line-height: 1.1;
+     text-align: center;
+}
+
+.planner-main-menu .widget-panel-row > .widget-panel-title,
+.planner-main-menu .text-panel-format > .widget-panel-title,
+.planner-main-menu .control-field > span:first-child,
+.planner-main-menu .palette-preview > .palette-preview-label,
+.planner-main-menu .date-format-defaults > span:first-child,
+.planner-main-menu .date-order-control > span:first-child {
      cursor: grab;
 }
 
-.planner-sidebar .widget-panel.is-docked .text-panel > .widget-panel-row,
-.planner-sidebar .widget-panel.is-docked .widget-options-panel > .widget-panel-row,
-.planner-sidebar .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid > .widget-panel-row,
-.planner-sidebar .widget-panel.is-docked .text-panel > .text-panel-format {
+.planner-main-menu .widget-panel.is-docked .text-panel > .widget-panel-row,
+.planner-main-menu .widget-panel.is-docked .widget-options-panel > .widget-panel-row,
+.planner-main-menu .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid > .widget-panel-row,
+.planner-main-menu .widget-panel.is-docked .text-panel > .text-panel-format {
      cursor: grab;
 }
 
-.planner-sidebar .is-sidebar-row-dragging {
+.planner-main-menu .is-main-menu-row-dragging {
      opacity: 0.55;
      cursor: grabbing;
      user-select: none;
 }
 
-.planner-sidebar .is-sidebar-row-drop-target {
+.planner-main-menu .is-main-menu-row-drop-target {
      outline: var(--border-sm) dashed rgba(17, 17, 17, 0.28);
      outline-offset: 2px;
 }
 
-.planner-sidebar .widget-panel-row .custom-select,
-.planner-sidebar .widget-panel-row .button-select {
+.planner-main-menu .widget-panel-row .custom-select,
+.planner-main-menu .widget-panel-row .button-select {
      grid-column: 2;
      justify-self: stretch;
      width: 100%;
 }
 
-.planner-sidebar .color-panel-control {
+.planner-main-menu .color-panel-control {
      grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
 }
 
-.planner-sidebar .color-panel-control .custom-select,
-.planner-sidebar .color-panel-control .button-select {
+.planner-main-menu .color-panel-control .custom-select,
+.planner-main-menu .color-panel-control .button-select {
      grid-column: 2;
      justify-self: stretch;
      width: 100%;
 }
 
-.planner-sidebar .color-panel-swatches {
+.planner-main-menu .color-panel-swatches {
      grid-column: 2;
      grid-template-columns: repeat(4, var(--color-swatch-size));
      max-width: 100%;
 }
 
-.planner-sidebar .text-panel-settings-control {
+.planner-main-menu .text-panel-settings-control {
      min-height: 42px;
 }
 
-.planner-sidebar .text-panel-size-control {
+.planner-main-menu .text-panel-size-control {
      min-height: 44px;
 }
 
-.planner-sidebar .text-panel-format {
+.planner-main-menu .text-panel-format {
      grid-template-columns: minmax(76px, max-content) repeat(2, minmax(0, 96px));
      align-items: center;
      justify-content: start;
 }
 
-.planner-sidebar .defaults-panel .text-panel-format {
+.planner-main-menu .defaults-panel .text-panel-format {
      grid-template-columns: 76px repeat(2, minmax(0, 96px));
      column-gap: 8px;
 }
 
-.planner-sidebar .text-panel-format .widget-panel-title {
+.planner-main-menu .text-panel-format .widget-panel-title {
      grid-row: 1 / span 2;
      align-self: center;
 }
 
-.planner-sidebar .text-panel-align-control {
+.planner-main-menu .text-panel-align-control {
      grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
      align-items: center;
      min-height: calc((var(--color-swatch-size) * 6) + 30px);
 }
 
-.planner-sidebar .text-panel-alignment-grid {
+.planner-main-menu .text-panel-alignment-grid {
      justify-content: start;
      align-self: center;
 }
 
-.planner-sidebar .widget-options-panel .widget-option-group {
+.planner-main-menu .widget-options-panel .widget-option-group {
      display: grid;
      gap: 8px;
      max-height: none;
 }
 
-.planner-sidebar .widget-option-time-group {
+.planner-main-menu .widget-option-time-group {
      gap: 8px;
 }
 
-.planner-sidebar .widget-panel.is-docked .text-panel > .widget-panel-row,
-.planner-sidebar .widget-panel.is-docked .widget-options-panel > .widget-panel-row,
-.planner-sidebar .widget-panel.is-docked .text-panel > .text-panel-format,
-.planner-sidebar .widget-panel.is-docked .widget-options-panel > .text-panel-format,
-.planner-sidebar .widget-panel.is-docked .text-panel > .color-panel-control,
-.planner-sidebar .widget-panel.is-docked .widget-options-panel > .color-panel-control,
-.planner-sidebar .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid > .widget-panel-row {
+.planner-main-menu .widget-panel.is-docked .text-panel > .widget-panel-row,
+.planner-main-menu .widget-panel.is-docked .widget-options-panel > .widget-panel-row,
+.planner-main-menu .widget-panel.is-docked .text-panel > .text-panel-format,
+.planner-main-menu .widget-panel.is-docked .widget-options-panel > .text-panel-format,
+.planner-main-menu .widget-panel.is-docked .text-panel > .color-panel-control,
+.planner-main-menu .widget-panel.is-docked .widget-options-panel > .color-panel-control,
+.planner-main-menu .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid > .widget-panel-row {
      min-height: var(--color-swatch-size);
      grid-template-columns: 112px minmax(0, 1fr);
      align-items: center;
@@ -6123,42 +6174,42 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      box-shadow: none;
 }
 
-.planner-sidebar .widget-panel.is-docked .text-panel > .text-panel-format,
-.planner-sidebar .widget-panel.is-docked .widget-options-panel > .text-panel-format {
+.planner-main-menu .widget-panel.is-docked .text-panel > .text-panel-format,
+.planner-main-menu .widget-panel.is-docked .widget-options-panel > .text-panel-format {
      grid-template-columns: 112px repeat(2, minmax(0, 1fr));
 }
 
-.planner-sidebar .widget-panel.is-docked .text-panel > .text-panel-format .widget-panel-title,
-.planner-sidebar .widget-panel.is-docked .widget-options-panel > .text-panel-format .widget-panel-title {
+.planner-main-menu .widget-panel.is-docked .text-panel > .text-panel-format .widget-panel-title,
+.planner-main-menu .widget-panel.is-docked .widget-options-panel > .text-panel-format .widget-panel-title {
      grid-row: 1 / span 2;
 }
 
-.planner-sidebar .widget-panel.is-docked .widget-panel-row .custom-select,
-.planner-sidebar .widget-panel.is-docked .widget-panel-row .button-select,
-.planner-sidebar .widget-panel.is-docked .widget-panel-row .date-offset-stepper {
+.planner-main-menu .widget-panel.is-docked .widget-panel-row .custom-select,
+.planner-main-menu .widget-panel.is-docked .widget-panel-row .button-select,
+.planner-main-menu .widget-panel.is-docked .widget-panel-row .date-offset-stepper {
      grid-column: 2;
      justify-self: stretch;
      width: 100%;
 }
 
-.planner-sidebar .widget-panel.is-docked .text-panel > .color-panel-control,
-.planner-sidebar .widget-panel.is-docked .widget-options-panel > .color-panel-control {
+.planner-main-menu .widget-panel.is-docked .text-panel > .color-panel-control,
+.planner-main-menu .widget-panel.is-docked .widget-options-panel > .color-panel-control {
      grid-template-columns: 112px minmax(0, 1fr);
 }
 
-.planner-sidebar .widget-panel.is-docked .text-panel > .color-panel-control .color-panel-swatches,
-.planner-sidebar .widget-panel.is-docked .widget-options-panel > .color-panel-control .color-panel-swatches {
+.planner-main-menu .widget-panel.is-docked .text-panel > .color-panel-control .color-panel-swatches,
+.planner-main-menu .widget-panel.is-docked .widget-options-panel > .color-panel-control .color-panel-swatches {
      grid-column: 2;
 }
 
-.planner-sidebar .item-calendar-attributes-grid {
+.planner-main-menu .item-calendar-attributes-grid {
      grid-template-columns: minmax(0, 1fr);
      grid-auto-rows: minmax(calc(var(--color-swatch-size) + 22px), auto);
      gap: 8px;
      max-height: none;
 }
 
-.planner-sidebar .item-calendar-attributes-grid .widget-option-control {
+.planner-main-menu .item-calendar-attributes-grid .widget-option-control {
      grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
      align-items: center;
      gap: 8px;
@@ -6167,11 +6218,11 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      overflow: visible;
 }
 
-.planner-sidebar .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid {
+.planner-main-menu .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid {
      gap: 8px;
 }
 
-.planner-sidebar .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid > .widget-option-control {
+.planner-main-menu .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid > .widget-option-control {
      min-height: var(--color-swatch-size);
      grid-template-columns: 112px minmax(0, 1fr);
      padding: 0;
@@ -6181,16 +6232,16 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
      box-shadow: none;
 }
 
-.planner-sidebar .item-calendar-attributes-grid .widget-option-control .custom-select,
-.planner-sidebar .item-calendar-attributes-grid .widget-option-control .button-select,
-.planner-sidebar .item-calendar-attributes-grid .widget-option-control select,
-.planner-sidebar .item-calendar-attributes-grid .widget-option-control .date-offset-stepper {
+.planner-main-menu .item-calendar-attributes-grid .widget-option-control .custom-select,
+.planner-main-menu .item-calendar-attributes-grid .widget-option-control .button-select,
+.planner-main-menu .item-calendar-attributes-grid .widget-option-control select,
+.planner-main-menu .item-calendar-attributes-grid .widget-option-control .date-offset-stepper {
      grid-column: 2;
      justify-self: stretch;
      width: 100%;
 }
 
-.planner-sidebar .item-calendar-attributes-grid .widget-option-control input[type="checkbox"] {
+.planner-main-menu .item-calendar-attributes-grid .widget-option-control input[type="checkbox"] {
      grid-column: auto;
      justify-self: start;
      width: var(--color-swatch-size);
@@ -6199,11 +6250,11 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 
 @media (max-width: 760px) {
      :root {
-          --planner-sidebar-width: min(360px, calc(100vw - 24px));
-          --planner-sidebar-gap: 6px;
+          --planner-main-menu-width: min(360px, calc(100vw - 24px));
+          --planner-main-menu-gap: 6px;
      }
 
-     .planner-sidebar {
+     .planner-main-menu {
           position: fixed;
           top: auto;
           left: 12px;
@@ -6215,47 +6266,47 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
           grid-template-rows: auto minmax(0, 1fr);
      }
 
-     .planner-sidebar .hint-panel {
+     .planner-main-menu .hint-panel {
           max-height: none;
           overflow: auto;
      }
 
-     .planner-sidebar .control-panel-page,
-     body.is-single-page-viewport .planner-sidebar .control-panel-page {
+     .planner-main-menu .control-panel-page,
+     body.is-single-page-viewport .planner-main-menu .control-panel-page {
           max-height: 44vh;
      }
 
-     .planner-sidebar .control-panel-tabs,
-     body.is-single-page-viewport .planner-sidebar .control-panel-tabs {
+     .planner-main-menu .control-panel-tabs,
+     body.is-single-page-viewport .planner-main-menu .control-panel-tabs {
           grid-template-columns: repeat(5, minmax(0, 1fr));
           padding: 6px 0;
      }
 
-     .planner-sidebar .control-panel-tab,
-     .planner-sidebar .control-panel-tab[aria-selected="true"],
-     .planner-sidebar .control-panel:not(.is-open) .control-panel-tab[aria-selected="true"] {
+     .planner-main-menu .control-panel-tab,
+     .planner-main-menu .control-panel-tab[aria-selected="true"],
+     .planner-main-menu .control-panel:not(.is-open) .control-panel-tab[aria-selected="true"] {
           min-height: 30px;
           padding: 4px;
           text-align: center;
      }
 
-     .planner-sidebar .control-panel-tab-label {
+     .planner-main-menu .control-panel-tab-label {
           white-space: nowrap;
      }
 
-     .planner-sidebar .widget-panel-row,
-     .planner-sidebar .color-panel-control,
-     .planner-sidebar .text-panel-align-control {
+     .planner-main-menu .widget-panel-row,
+     .planner-main-menu .color-panel-control,
+     .planner-main-menu .text-panel-align-control {
           grid-template-columns: minmax(70px, max-content) minmax(0, 1fr);
      }
 
-     .planner-sidebar .text-panel-format {
+     .planner-main-menu .text-panel-format {
           grid-template-columns: 70px repeat(2, minmax(0, 96px));
           column-gap: 15px;
           justify-content: start;
      }
 
-     .planner-sidebar .defaults-panel .text-panel-format {
+     .planner-main-menu .defaults-panel .text-panel-format {
           grid-template-columns: 76px repeat(2, minmax(0, 96px));
           column-gap: 8px;
      }
@@ -6263,11 +6314,11 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
 
 @media (min-width: 900px) {
      :root {
-          --notebook-layout-width: calc(100vw - var(--planner-sidebar-width) - 56px);
+          --notebook-layout-width: calc(100vw - var(--planner-main-menu-width) - 56px);
      }
 
      .notebook-stage {
-          transform: translateX(calc((var(--planner-sidebar-width) + 28px) / 2));
+          transform: translateX(calc((var(--planner-main-menu-width) + 28px) / 2));
      }
 }
 
@@ -6499,7 +6550,7 @@ body.is-single-page-viewport .planner-sidebar .control-panel-page {
           border-radius: 0;
      }
 
-     .planner-sidebar,
+     .planner-main-menu,
      .control-panel,
      .sticker-source,
      .page-flag-source {

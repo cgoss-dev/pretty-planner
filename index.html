@@ -22,8 +22,8 @@
           </div>
 
           <div class="zoom-toast" data-zoom-toast aria-live="polite" aria-atomic="true">100%</div>
-          <aside class="planner-sidebar" data-planner-sidebar aria-label="Planner sidebar">
-               <div class="panel-title title planner-sidebar-title">Sidebar Menu</div>
+          <aside class="planner-main-menu" data-planner-main-menu aria-label="Planner main menu">
+               <button class="panel-title title planner-main-menu-title" type="button" data-main-menu-toggle aria-expanded="false">Main Menu</button>
 
           <form class="control-panel" aria-label="Planner settings panel">
                <div class="panel-title title control-panel-title">Settings Panel</div>
@@ -55,12 +55,11 @@
                     </button>
                </div>
 
-               <div class="control-panel-page sidebar-menu-panel guide-panel" id="guide-panel" role="tabpanel" data-control-panel-page="guide" hidden>
-                    <aside class="hint-panel" data-hint-panel aria-label="Available keyboard controls" aria-live="polite"></aside>
+               <div class="control-panel-page main-menu-panel guide-panel" id="guide-panel" role="tabpanel" data-control-panel-page="guide" hidden>
                     <div data-keyboard-controls></div>
                </div>
 
-               <div class="control-panel-page sidebar-menu-panel defaults-panel" id="defaults-panel" role="tabpanel" data-control-panel-page="defaults" hidden>
+               <div class="control-panel-page main-menu-panel defaults-panel" id="defaults-panel" role="tabpanel" data-control-panel-page="defaults" hidden>
                     <div class="keyboard-control-section defaults-section">
                          <label class="widget-panel-row text-panel-control">
                               <span class="widget-panel-title">Week Start</span>
@@ -119,7 +118,7 @@
                </div>
                </div>
 
-               <div class="control-panel-page sidebar-menu-panel notebook-panel" id="notebook-panel" role="tabpanel" data-control-panel-page="notebook" hidden>
+               <div class="control-panel-page main-menu-panel notebook-panel" id="notebook-panel" role="tabpanel" data-control-panel-page="notebook" hidden>
                     <div class="keyboard-control-section defaults-section notebook-defaults-section">
                          <div class="keyboard-control-title">Notebook</div>
                          <div class="control-field">

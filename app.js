@@ -1,7 +1,8 @@
 // NOTE: Things The App Grabs From The HTML
 const pages = Array.from(document.querySelectorAll("[data-page]"));
 const plannerDesk = document.querySelector(".planner-desk");
-const plannerSidebar = document.querySelector("[data-planner-sidebar]");
+const plannerMainMenu = document.querySelector("[data-planner-main-menu]");
+const mainMenuToggleButton = document.querySelector("[data-main-menu-toggle]");
 const controlPanel = document.querySelector(".control-panel");
 const notebook = document.querySelector(".notebook");
 const sourceItems = Array.from(document.querySelectorAll("[data-create-item]"));
@@ -146,7 +147,7 @@ let nextTemplateItemId = 1;
 let nextGroupId = 1;
 let plannerClipboard = null;
 let plannerAction = "browse";
-let sidebarContext = "root";
+let mainMenuContext = "root";
 let lastMousePageTurnButton = null;
 let lastMousePageTurnTime = 0;
 let shouldSkipNextClear = false;
@@ -356,12 +357,14 @@ function setPlannerWidgetTextPartToc(type, partName, appearsInToc) {
      plannerDefaultSettings.widgetTextToc[type][partName] = appearsInToc ? "true" : "false";
 }
 
-function getPlannerWidgetControlVisibility(type) {
-     return widgetPanel.sidebarControlVisibility?.[type] || {};
+function getPlannerWidgetControls(type) {
+     return widgetPanel.widgetControls?.[type] || {};
 }
 
 function isPlannerWidgetControlVisible(type, controlKey) {
-     return getPlannerWidgetControlVisibility(type)[controlKey] !== false;
+     const controls = getPlannerWidgetControls(type);
+
+     return Object.prototype.hasOwnProperty.call(controls, controlKey) && controls[controlKey] !== false;
 }
 
 window.getPlannerDefaultTextSettings = getPlannerDefaultTextSettings;
@@ -369,7 +372,7 @@ window.getPlannerWidgetTextPartStyle = getPlannerWidgetTextPartStyle;
 window.setPlannerWidgetTextPartStyle = setPlannerWidgetTextPartStyle;
 window.getPlannerWidgetTextPartToc = getPlannerWidgetTextPartToc;
 window.setPlannerWidgetTextPartToc = setPlannerWidgetTextPartToc;
-window.getPlannerWidgetControlVisibility = getPlannerWidgetControlVisibility;
+window.getPlannerWidgetControls = getPlannerWidgetControls;
 window.isPlannerWidgetControlVisible = isPlannerWidgetControlVisible;
 
 function getPlannerDefaultItemStyle(type = "sticker") {
@@ -417,7 +420,7 @@ function applyPlannerDefaultsToDateWidgets() {
 
 function applyHintPanelVisibility() {
      if (hintPanel) {
-          hintPanel.hidden = plannerDefaultSettings.hintPanel === "off" && !plannerSidebar?.contains(hintPanel);
+          hintPanel.hidden = plannerDefaultSettings.hintPanel === "off" && !plannerMainMenu?.contains(hintPanel);
      }
 }
 
@@ -855,12 +858,12 @@ function syncViewTargetCenter(zoomAnchor = null) {
                return;
           }
 
-          const sidebarRect = plannerSidebar && getComputedStyle(plannerSidebar).display !== "none"
-               ? plannerSidebar.getBoundingClientRect()
+          const mainMenuRect = plannerMainMenu && getComputedStyle(plannerMainMenu).display !== "none"
+               ? plannerMainMenu.getBoundingClientRect()
                : null;
-          const sidebarClearance = sidebarRect ? Math.max(0, sidebarRect.left - deskRect.left) : 0;
-          const contentLeft = sidebarRect && sidebarRect.right > deskRect.left
-               ? Math.min(sidebarRect.right + sidebarClearance, deskRect.right)
+          const mainMenuClearance = mainMenuRect ? Math.max(0, mainMenuRect.left - deskRect.left) : 0;
+          const contentLeft = mainMenuRect && mainMenuRect.right > deskRect.left
+               ? Math.min(mainMenuRect.right + mainMenuClearance, deskRect.right)
                : deskRect.left;
           const deskCenter = contentLeft + Math.max(0, deskRect.right - contentLeft) / 2;
           const deskMiddle = deskRect.top + deskRect.height / 2 + notebookStageY;
@@ -1287,38 +1290,41 @@ function jumpNotebookSpread(spreadIndex) {
 }
 
 function handlePageTurnKey(event) {
-     // NOTE: Uses brackets/PageUp/PageDown for previous/next page or menu tab, Home/End for notebook ends
+     // NOTE: Uses comma/period for previous/next page, chevrons or Home/End for notebook ends
+     const isBookStartKey = event.key === "Home" || event.key === "<" || (event.shiftKey && event.code === "Comma");
+     const isBookEndKey = event.key === "End" || event.key === ">" || (event.shiftKey && event.code === "Period");
+
      if (
           event.defaultPrevented ||
           activeAction ||
           event.altKey ||
           event.ctrlKey ||
           event.metaKey ||
-          event.shiftKey ||
+          (event.shiftKey && !isBookStartKey && !isBookEndKey) ||
           isTypingFieldShortcutTarget(event.target) ||
           isPanelControlShortcutTarget(event.target)
      ) {
           return;
      }
 
-     if (event.key === "Home") {
+     if (isBookStartKey) {
           event.preventDefault();
           if (!controlPanel.classList.contains("is-open")) {
                jumpNotebookSpread(0);
           }
-     } else if (event.key === "End") {
+     } else if (isBookEndKey) {
           event.preventDefault();
           if (!controlPanel.classList.contains("is-open")) {
                jumpNotebookSpread(notebookSpreadCount - 1);
           }
-     } else if (event.key === "[" || event.key === "PageDown") {
+     } else if (event.key === "," || event.key === "PageDown") {
           event.preventDefault();
           if (controlPanel.classList.contains("is-open")) {
                stepControlPanelTab(-1);
           } else {
                turnNotebookSpread(-1);
           }
-     } else if (event.key === "]" || event.key === "PageUp") {
+     } else if (event.key === "." || event.key === "PageUp") {
           event.preventDefault();
           if (controlPanel.classList.contains("is-open")) {
                stepControlPanelTab(1);
@@ -2315,7 +2321,7 @@ function handleSelectedTextEditKey(event) {
      if (!selectedItems.has(actionItem)) {
           selectItem(actionItem);
      }
-     openItemActionsPopup(actionItem, {
+     openItemPopupMenu(actionItem, {
           clientX: rect.left + (rect.width / 2),
           clientY: rect.top + Math.min(rect.height / 2, 36)
      });
@@ -2328,42 +2334,73 @@ function syncCurrentActionUi() {
 }
 
 function enterBrowseAction() {
-     // NOTE: Returns to the base planner action and closes any sidebar panel
+     // NOTE: Returns to the base planner action and closes any main menu panel
      plannerAction = "browse";
-     sidebarContext = "root";
+     mainMenuContext = "root";
      syncCurrentActionUi();
      closeControlPanel();
      renderKeyHints();
 }
 
 function enterKeyboardMenuBranch(branch, tabName) {
-     // NOTE: Opens a numbered sidebar context backed by a control panel tab
-     sidebarContext = branch;
+     // NOTE: Opens a numbered main menu context backed by a control panel tab
+     mainMenuContext = branch;
      syncCurrentActionUi();
      selectControlPanelTab(tabName);
      openControlPanel();
      renderKeyHints();
 }
 
-function returnToSidebarRoot() {
-     // NOTE: Goes one level up from a sidebar context to the top-level sidebar choices
-     sidebarContext = "root";
+function returnToMainMenuRoot() {
+     // NOTE: Goes one level up from a main menu context to the top-level choices
+     mainMenuContext = "root";
      closeControlPanel();
      renderKeyHints();
 }
 
+function toggleMainMenu() {
+     if (controlPanel.classList.contains("is-open")) {
+          returnToMainMenuRoot();
+          return;
+     }
+
+     enterKeyboardMenuBranch("guide", "guide");
+}
+
+function toggleMainMenuFromKeyboard(event) {
+     if (
+          event.defaultPrevented ||
+          activeAction ||
+          event.repeat ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          isTypingFieldShortcutTarget(event.target)
+     ) {
+          return;
+     }
+
+     if (event.key.toLowerCase() !== "m") {
+          return;
+     }
+
+     event.preventDefault();
+     toggleMainMenu();
+}
+
 function openSelectedObjectActionsFromKeyboard() {
-     // NOTE: Opens selected object actions popup from actions > Object via number key
+     // NOTE: Opens selected object popup menu from actions > Object via number key
      if (!selectedItem || !selectedItems.size) {
           return false;
      }
 
      const rect = selectedItem.getBoundingClientRect();
 
-     sidebarContext = "object";
+     mainMenuContext = "object";
      syncCurrentActionUi();
      closeControlPanel();
-     openItemActionsPopup(selectedItem, {
+     openItemPopupMenu(selectedItem, {
           clientX: rect.left + (rect.width / 2),
           clientY: rect.top + Math.min(rect.height / 2, 36)
      });
@@ -2395,12 +2432,12 @@ function deleteSelectedItemsFromKeyboard() {
      }
 
      deleteItem(selectedItem);
-     sidebarContext = "root";
+     mainMenuContext = "root";
      renderKeyHints();
      return true;
 }
 
-function handleSidebarNumberKey(event) {
+function handleMainMenuNumberKey(event) {
      // NOTE: Uses number keys for the current action stack and context-specific choices
      if (
           event.defaultPrevented ||
@@ -2418,7 +2455,7 @@ function handleSidebarNumberKey(event) {
           return;
      }
 
-     if (sidebarContext === "root") {
+     if (mainMenuContext === "root") {
           event.preventDefault();
           if (event.key === "1") {
                enterKeyboardMenuBranch("guide", "guide");
@@ -2434,37 +2471,37 @@ function handleSidebarNumberKey(event) {
           return;
      }
 
-     if (sidebarContext === "guide" && event.key === "1") {
+     if (mainMenuContext === "guide" && event.key === "1") {
           event.preventDefault();
-          returnToSidebarRoot();
+          returnToMainMenuRoot();
           return;
      }
 
-     if (sidebarContext === "add" && event.key === "2") {
+     if (mainMenuContext === "add" && event.key === "2") {
           event.preventDefault();
-          returnToSidebarRoot();
+          returnToMainMenuRoot();
           return;
      }
 
-     if (sidebarContext === "notebook" && event.key === "3") {
+     if (mainMenuContext === "notebook" && event.key === "3") {
           event.preventDefault();
-          returnToSidebarRoot();
+          returnToMainMenuRoot();
           return;
      }
 
-     if (sidebarContext === "defaults" && event.key === "4") {
+     if (mainMenuContext === "defaults" && event.key === "4") {
           event.preventDefault();
-          returnToSidebarRoot();
+          returnToMainMenuRoot();
           return;
      }
 
-     if (sidebarContext === "object-selected" && event.key === "5") {
+     if (mainMenuContext === "object-selected" && event.key === "5") {
           event.preventDefault();
-          returnToSidebarRoot();
+          returnToMainMenuRoot();
           return;
      }
 
-     if (sidebarContext === "guide" || sidebarContext === "add" || sidebarContext === "notebook" || sidebarContext === "defaults" || sidebarContext === "object-selected") {
+     if (mainMenuContext === "guide" || mainMenuContext === "add" || mainMenuContext === "notebook" || mainMenuContext === "defaults" || mainMenuContext === "object-selected") {
           const tab = controlPanelTabs[Number(event.key) - 1];
 
           if (!tab || tab.disabled) {
@@ -2478,10 +2515,10 @@ function handleSidebarNumberKey(event) {
           return;
      }
 
-     if (sidebarContext === "object") {
+     if (mainMenuContext === "object") {
           event.preventDefault();
           if (event.key === "4") {
-               returnToSidebarRoot();
+               returnToMainMenuRoot();
           } else if (event.key === "1") {
                openSelectedObjectActionsFromKeyboard();
           } else if (event.key === "2") {
@@ -2496,7 +2533,7 @@ function handleSidebarNumberKey(event) {
 
 function handleNumberedMenuTabKey(event) {
      // NOTE: Backward wrapper for the numeric current action stack
-     handleSidebarNumberKey(event);
+     handleMainMenuNumberKey(event);
 }
 
 function handleSelectedDeleteKey(event) {
@@ -2520,7 +2557,7 @@ function handleSelectedDeleteKey(event) {
 
      event.preventDefault();
      deleteItem(selectedItem);
-     sidebarContext = "root";
+     mainMenuContext = "root";
      renderKeyHints();
 }
 
@@ -2564,9 +2601,9 @@ function handleCancelKey(event) {
      }
 
      event.preventDefault();
-     if (document.querySelector(".widget-action-popover")) {
-          if (typeof closeWidgetActionPopovers === "function") {
-               closeWidgetActionPopovers();
+     if (document.querySelector(".widget-popup-menu")) {
+          if (typeof closeWidgetPopupMenus === "function") {
+               closeWidgetPopupMenus();
           }
           renderKeyHints();
           return;
@@ -3080,55 +3117,55 @@ function getKeyHintState() {
           };
      }
 
-     if (sidebarContext === "guide") {
+     if (mainMenuContext === "guide") {
           return {
                mode: "Current Action > Guide",
                entries: [
                ["1", "Back"],
                ["1-5", "Tabs"],
-               ["[ / ]", "Last / Next Page"],
+               ["</>", "Page Left/Right"],
                ["Enter", "Select"]
                ]
           };
      }
 
-     if (sidebarContext === "add") {
+     if (mainMenuContext === "add") {
           return {
                mode: "Current Action > Widgets",
                entries: [
                ["2", "Back"],
                ["1-5", "Tabs"],
-               ["[ / ]", "Last / Next Page"],
+               ["</>", "Page Left/Right"],
                ["Enter", "Select"]
                ]
           };
      }
 
-     if (sidebarContext === "notebook") {
+     if (mainMenuContext === "notebook") {
           return {
                mode: "Current Action > Notebook",
                entries: [
                ["3", "Back"],
                ["1-5", "Tabs"],
-               ["[ / ]", "Last / Next Page"],
+               ["</>", "Page Left/Right"],
                ["Enter", "Select"]
                ]
           };
      }
 
-     if (sidebarContext === "defaults") {
+     if (mainMenuContext === "defaults") {
           return {
                mode: "Current Action > Dates",
                entries: [
                ["4", "Back"],
                ["1-5", "Tabs"],
-               ["[ / ]", "Last / Next Page"],
+               ["</>", "Page Left/Right"],
                ["Enter", "Select"]
                ]
           };
      }
 
-     if (sidebarContext === "object") {
+     if (mainMenuContext === "object") {
           return {
                mode: "Current Action > Object",
                entries: [
@@ -3141,7 +3178,7 @@ function getKeyHintState() {
           };
      }
 
-     if (sidebarContext === "object-selected") {
+     if (mainMenuContext === "object-selected") {
           return {
                mode: "Current Action > Selected",
                entries: [
@@ -3206,8 +3243,10 @@ function getKeyHintState() {
           entries: [
           ["Tab", "Next focus"],
           ["Enter", "Edit"],
-          ["[ / ]", "Last / Next Page"],
+          ["</>", "Page Left/Right"],
+          ["SHIFT + </>", "First/Last Page"],
           ["Z", "Zoom"],
+          ["M", "Main Menu"],
           ["G", "Gridlines"],
           ["C", "Center"]
           ]
@@ -3226,7 +3265,7 @@ function renderKeyHints() {
 
      modeRow.className = "hint-mode subtitle";
      modeRow.textContent = hintState.mode;
-     if (!plannerSidebar?.contains(hintPanel)) {
+     if (!plannerMainMenu?.contains(hintPanel)) {
           const panelTitle = document.createElement("div");
 
           panelTitle.className = "panel-title title hint-panel-title";
@@ -3265,7 +3304,7 @@ function syncControlPanelHintAnchor() {
           return;
      }
 
-     if (plannerSidebar?.contains(controlPanel)) {
+     if (plannerMainMenu?.contains(controlPanel)) {
           return;
      }
 
@@ -3524,7 +3563,7 @@ initializeCustomSelects();
 initializeNotebookControlSections();
 initializeControlSections(controlPanel);
 initializePalettePreview();
-ControlPanel.initializeSidebarRowReorder();
+ControlPanel.initializeMainMenuRowReorder();
 updateControlPanelSteps();
 updateObjectControlsState();
 updateControlPanelFocusState();
@@ -3676,6 +3715,8 @@ document.addEventListener("pointerdown", hideKeyboardCursorForPointer, true);
 document.addEventListener("pointerdown", closeColorMatrixFromOutsidePointer, true);
 document.addEventListener("pointerdown", closeFloatingWidgetPanelsFromOutsidePointer, true);
 plannerDesk.addEventListener("pointerdown", startMarquee);
+plannerDesk.addEventListener("mousedown", preventMiddleMouseAutoscroll);
+plannerDesk.addEventListener("auxclick", preventMiddleMouseAutoscroll);
 plannerDesk.addEventListener("pointermove", updateDeskResizeCursor);
 plannerDesk.addEventListener("pointerleave", () => {
      plannerDesk.style.cursor = "";
@@ -3730,6 +3771,7 @@ document.addEventListener("click", (event) => {
 document.addEventListener("pointerdown", closeHexPopoverFromOutsidePointer, true);
 document.addEventListener("mousedown", handleMousePageTurnButton, true);
 document.addEventListener("auxclick", handleMousePageTurnButton, true);
+mainMenuToggleButton?.addEventListener("click", toggleMainMenu);
 document.addEventListener("keydown", (event) => {
      handleUndoShortcut(event);
      handleClipboardShortcut(event);
@@ -3743,6 +3785,7 @@ document.addEventListener("keydown", (event) => {
      handleMenuEnterKey(event);
      handleSelectedTextEditKey(event);
      handleKeyboardCursorActivateKey(event);
+     toggleMainMenuFromKeyboard(event);
      handleNumberedMenuTabKey(event);
      handleSelectedDeleteKey(event);
      handleCancelKey(event);
