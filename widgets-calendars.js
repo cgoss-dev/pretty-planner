@@ -1337,6 +1337,7 @@ function renderMiniMonth(item) {
      calendar.style.setProperty("--mini-month-week-row-count", String(weekRows.length));
      calendar.style.setProperty("--mini-month-day-column-count", String(displayColumns.length + (weekNotesEnabled ? 1 : 0)));
      if (usesExpandedCalendarUnits) {
+          calendar.style.width = "100%";
           const dayColumnUnits = shareWeekends ? 5 : 30 / displayColumns.length;
           const contentTemplateColumns = contentColumnSlots.map((slot) => {
                if (slot.type === "notes") {
@@ -1353,6 +1354,7 @@ function renderMiniMonth(item) {
                `repeat(${weekRows.length}, calc(var(--weekly-row-cell-height, 12px) * ${weekRowUnits}))`
           ].join(" ");
      } else {
+          calendar.style.removeProperty("width");
           calendar.style.gridTemplateColumns = `repeat(${visibleColumnCount}, calc(100% / ${visibleColumnCount}))`;
           calendar.style.gridTemplateRows = `repeat(${visibleRowUnits}, calc(100% / ${visibleRowUnits}))`;
      }
