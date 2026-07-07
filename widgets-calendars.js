@@ -673,22 +673,23 @@ function getWeekStartDate(date, weekStart) {
      return nextDate;
 }
 
-function getCalendarWeekNumber(date, weekStart) {
-     if (weekStart === "monday") {
-          const nextDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-          const day = nextDate.getDay() || 7;
+function getCalendarWeekNumber(date, weekStart, displayYear = date.getFullYear()) {
+     const weekStartDate = getWeekStartDate(date, weekStart);
+     const weekDate = weekStartDate.getFullYear() < displayYear
+          ? new Date(displayYear, 0, 1)
+          : weekStartDate;
+     const yearStart = new Date(displayYear, 0, 1);
+     const firstFullWeekStart = getWeekStartDate(yearStart, weekStart);
 
-          nextDate.setDate(nextDate.getDate() + 4 - day);
-
-          const yearStart = new Date(nextDate.getFullYear(), 0, 1);
-
-          return Math.ceil((((nextDate - yearStart) / 86400000) + 1) / 7);
+     if (firstFullWeekStart < yearStart) {
+          firstFullWeekStart.setDate(firstFullWeekStart.getDate() + 7);
      }
 
-     const weekStartDate = getWeekStartDate(date, weekStart);
-     const yearStart = getWeekStartDate(new Date(weekStartDate.getFullYear(), 0, 1), weekStart);
+     if (weekDate < firstFullWeekStart) {
+          return 1;
+     }
 
-     return Math.floor((weekStartDate - yearStart) / 604800000) + 1;
+     return Math.floor((weekDate - firstFullWeekStart) / 604800000) + (firstFullWeekStart.getTime() === yearStart.getTime() ? 1 : 2);
 }
 
 function setCalendarDayNote(item, dayKey, value) {
@@ -1426,7 +1427,7 @@ function renderMiniMonth(item) {
                          cell.title = cell.dataset.weekName;
                          weekNumberLabel.className = "weekNumber";
                          weekNumberLabel.dataset.themePart = "weekNumber";
-                         weekNumberLabel.textContent = String(getCalendarWeekNumber(weekDate, weekStart));
+                         weekNumberLabel.textContent = String(getCalendarWeekNumber(weekDate, weekStart, year));
                          cell.append(weekNumberLabel);
                     }
                } else if (columnSlot.type === "notes") {
