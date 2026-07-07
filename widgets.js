@@ -2359,6 +2359,9 @@ function applyCalendarWidgetSettingsToActionItems(item, settings) {
                setCalendarWidgetSettings(targetItem, settings);
           }
      });
+     if (Object.hasOwn(settings, "dateMode")) {
+          applySidebarControlVisibility(item);
+     }
      notifyTemplateChanged();
 }
 
@@ -3307,6 +3310,7 @@ function makePlannerItem(type = "sticker") {
      }
      displayMonthLabel.className = "item-calendar-display-control";
      displayMonthLabel.dataset.sidebarControl = "options.display-month";
+     displayMonthLabel.dataset.dateModeVisibility = "fixed";
      displayMonthLabel.textContent = "Month";
      displayMonthSelect.dataset.widgetControl = "display-month";
      displayMonthSelect.setAttribute("aria-label", "Display month");
@@ -4366,7 +4370,6 @@ function makePlannerItem(type = "sticker") {
           applyCalendarWidgetSettingsToActionItems(item, {
                dateMode: dateModeSelect.value
           });
-          applySidebarControlVisibility(item);
      });
      const applyDateOffsetValue = (nextValue) => {
           dateOffsetInput.value = nextValue;
@@ -4374,7 +4377,6 @@ function makePlannerItem(type = "sticker") {
                dateMode: "relative",
                dateOffset: nextValue
           });
-          applySidebarControlVisibility(item);
      };
 
      dateOffsetInput.addEventListener("input", () => {
@@ -4415,7 +4417,6 @@ function makePlannerItem(type = "sticker") {
                dateMode: "fixed",
                month: monthSelect.value
           });
-          applySidebarControlVisibility(item);
      });
      displayMonthSelect.addEventListener("change", () => {
           if (item.dataset.dateMode === "relative") {
@@ -4436,7 +4437,6 @@ function makePlannerItem(type = "sticker") {
                dateMode: displayDateModeSelect.value,
                dateOffset: displayDateModeSelect.value === "relative" ? "0" : item.dataset.dateOffset
           });
-          applySidebarControlVisibility(item);
      });
      yearSelect.addEventListener("change", () => {
           applyCalendarWidgetSettingsToActionItems(item, {
