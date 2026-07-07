@@ -3550,7 +3550,7 @@ window.prettyPlanner = {
      serializeTemplate: serializePlannerTemplate,
      snapViewToPage,
      turnNotebookSpread,
-     version: "planner-storage-151"
+     version: "planner-storage-152"
 };
 window.perfectPlanner = window.prettyPlanner;
 
