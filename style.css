@@ -104,7 +104,7 @@
      --view-zoom: 1;
      --view-pan-x: 0px;
      --view-pan-y: 0px;
-     --dot-grid-color: color-mix(in srgb, var(--color-gray4) 25%, transparent);
+     --dot-grid-color: var(--color-gray4);
      --dot-grid-size-x: calc(100% / 34);
      --dot-grid-size-y: calc(100% / 44);
      --dot-grid-half-size-x: calc(50% / 34);
