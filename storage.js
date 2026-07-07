@@ -3,6 +3,7 @@ function getPageId(page) {
      return page === pages[0] ? "left" : "right";
 }
 
+// NOTE: Page templates use grid units so saved widgets survive paper, zoom, and viewport changes.
 function getGridTemplateBox(item, page) {
      const grid = getGridSize(page);
      const origin = getGridSnapOrigin(page);
@@ -16,6 +17,7 @@ function getGridTemplateBox(item, page) {
      };
 }
 
+// NOTE: Desk items are not tied to paper, so their frame is saved as a percentage of the desk.
 function getDeskTemplateBox(item) {
      const deskRect = plannerDesk.getBoundingClientRect();
      const box = getItemBox(item);
@@ -63,6 +65,10 @@ function resizePageTemplateItems(items) {
      });
 }
 
+// NOTE: Converts a live widget into portable storage/template data.
+// 1. Capture shared widget metadata, style, and text settings.
+// 2. Add calendar-only settings only when the item can render calendar state.
+// 3. Save page widgets in grid units and desk widgets as normalized frames.
 function serializePlannerItem(item) {
      const pageId = item.dataset.pageId || "";
      const page = pageId ? pages.find((plannerPage) => getPageId(plannerPage) === pageId) || null : null;
@@ -168,6 +174,7 @@ function serializePlannerItem(item) {
      };
 }
 
+// NOTE: Public export shape for consumers that need the whole visible planner layout.
 function serializePlannerTemplate() {
      return {
           schemaVersion: templateSchemaVersion,
@@ -235,6 +242,7 @@ function readPlannerState() {
                return getEmptyPlannerState();
           }
 
+          // Migrate old saves forward the first time a valid legacy key is found.
           if (!storedState && legacyStoredState) {
                writePlannerState(state);
           }
@@ -260,6 +268,7 @@ function writePlannerState(state) {
      }
 }
 
+// NOTE: Save enough state to undo the last meaningful storage write.
 let plannerUndoState = null;
 let isApplyingPlannerUndo = false;
 
@@ -317,6 +326,7 @@ function normalizeStoredViewFocusIndex(value) {
      return storedIndex >= 2 ? 1 : 0;
 }
 
+// NOTE: Stores user-facing controls separately from the current book so settings follow paper changes.
 function serializePlannerSettings() {
      return {
           paper: paperSelect?.value || "letter",
@@ -375,6 +385,7 @@ function restoreSavedSettings() {
      restorePlannerSettings(readPlannerState().settings);
 }
 
+// NOTE: A book is the current paper-size-specific planner: page count, spread position, and widgets.
 function serializePlannerBook() {
      return {
           schemaVersion: plannerStateSchemaVersion,
@@ -698,6 +709,7 @@ function restorePlannerItemSettings(item, itemData) {
      }
 }
 
+// NOTE: Rebuilds a saved widget, then places it using the coordinate system it was saved with.
 function restorePlannerItem(itemData) {
      const type = normalizePlannerItemType(itemData.type || "sticker");
      const isPagePlacement = itemData.placement === "page" || itemData.page;
@@ -787,6 +799,7 @@ function getStoredPageCount(book) {
      return normalizeNotebookPageCount(Math.max(fallbackPageCount, highestPageNumber + 1, minNotebookPageCount));
 }
 
+// NOTE: Restores one paper-size-specific book and falls back to an empty planner if saved data is bad.
 function restorePlannerBook(paperKey = plannerConfig.paperKey) {
      const book = getStoredBook(paperKey);
      let removedUnsupportedItems = false;
