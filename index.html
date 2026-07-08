@@ -1,299 +1,657 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-     <meta charset="UTF-8">
-     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>pretty-planner</title>
-     <link rel="preconnect" href="https://fonts.googleapis.com">
-     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-     <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
-     >
-     <link rel="stylesheet" href="style.css?v=planner-storage-502">
-</head>
-<body>
-     <main class="planner-desk">
-          <div class="zoom-toast" data-zoom-toast aria-live="polite" aria-atomic="true">100%</div>
-          <aside class="planner-main-menu" data-planner-main-menu aria-label="Planner main menu">
-               <button class="panel-title title planner-main-menu-title" type="button" data-main-menu-toggle aria-expanded="false">Main Menu</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pretty-planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
+    />
+    <link rel="stylesheet" href="style.css?v=planner-storage-502" />
+  </head>
+  <body>
+    <main class="planner-desk">
+      <div
+        class="zoom-toast"
+        data-zoom-toast
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        100%
+      </div>
+      <aside
+        class="planner-main-menu"
+        data-planner-main-menu
+        aria-label="Planner main menu"
+      >
+        <button
+          class="panel-title title planner-main-menu-title"
+          type="button"
+          data-main-menu-toggle
+          aria-expanded="false"
+        >
+          Main Menu
+        </button>
 
-          <form class="control-panel" aria-label="Planner settings panel">
-               <div class="control-panel-tabs" role="tablist" aria-label="Planner settings panel tabs">
-                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Guide" aria-controls="guide-panel" data-control-panel-tab="guide">
-                         <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">Guide</span>
-                         <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
-                    </button>
-                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Widgets" aria-controls="add-panel" data-control-panel-tab="add">
-                         <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">Widgets</span>
-                         <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
-                    </button>
-                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Notebook" aria-controls="notebook-panel" data-control-panel-tab="notebook">
-                         <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">Notebook</span>
-                         <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
-                    </button>
-                    <button class="control-panel-tab" type="button" role="tab" aria-selected="false" aria-label="Format selected widget" aria-controls="object-panel" data-control-panel-tab="object-selected" disabled aria-disabled="true">
-                         <span class="control-panel-tab-step control-panel-tab-step-prev" data-control-panel-step="-1" aria-label="Previous tab"></span>
-                         <span class="control-panel-tab-label">Format</span>
-                         <span class="control-panel-tab-step control-panel-tab-step-next" data-control-panel-step="1" aria-label="Next tab"></span>
-                    </button>
-               </div>
-
-               <div class="control-panel-page main-menu-panel guide-panel" id="guide-panel" role="tabpanel" data-control-panel-page="guide" hidden>
-                    <div data-keyboard-controls></div>
-               </div>
-
-               <div class="control-panel-page main-menu-panel notebook-panel" id="notebook-panel" role="tabpanel" data-control-panel-page="notebook" hidden>
-                    <div class="keyboard-control-section defaults-section notebook-defaults-section">
-                         <div class="keyboard-control-title">Pages</div>
-                         <div class="control-field">
-                              <span>Guides</span>
-                              <div class="guide-controls">
-                                   <label class="control-choice" data-guide-option="thirds">
-                                        <span>1/3</span>
-                                        <input type="checkbox" data-guide="thirds">
-                                   </label>
-                                   <label class="control-choice" data-guide-option="fourths">
-                                        <span>1/4</span>
-                                        <input type="checkbox" data-guide="fourths" checked>
-                                   </label>
-                              </div>
-                         </div>
-
-                         <div class="control-field">
-                              <span>Paper</span>
-                              <select class="native-select" data-setting="paper">
-                                   <option value="letter">Letter (8.5 x 11 in)</option>
-                                   <option value="half-letter">Half Letter (5.5 x 8.5 in)</option>
-                              </select>
-                              <div class="control-choice-group" aria-label="Paper">
-                                   <label class="control-choice">
-                                        <input type="radio" name="paper-choice" data-control-choice="paper" value="letter" checked>
-                                        <span>Letter</span>
-                                   </label>
-                                   <label class="control-choice">
-                                        <input type="radio" name="paper-choice" data-control-choice="paper" value="half-letter">
-                                        <span>Half Letter</span>
-                                   </label>
-                              </div>
-                         </div>
-
-                         <div class="control-field">
-                              <span>Desk</span>
-                              <select class="native-select" data-setting="desk-color">
-                                   <option value="pink">Pink</option>
-                                   <option value="gray">Gray</option>
-                                   <option value="black">Black</option>
-                                   <option value="white">White</option>
-                                   <option value="wood-white">White Wood</option>
-                                   <option value="wood-brown" selected>Brown Wood</option>
-                              </select>
-                              <div class="control-choice-group" aria-label="Desk">
-                                   <label class="control-choice">
-                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="pink">
-                                        <span>Pink</span>
-                                   </label>
-                                   <label class="control-choice">
-                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="gray">
-                                        <span>Gray</span>
-                                   </label>
-                                   <label class="control-choice">
-                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="black">
-                                        <span>Black</span>
-                                   </label>
-                                   <label class="control-choice">
-                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="white">
-                                        <span>White</span>
-                                   </label>
-                                   <label class="control-choice">
-                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="wood-white">
-                                        <span>White Wood</span>
-                                   </label>
-                                   <label class="control-choice">
-                                        <input type="radio" name="desk-choice" data-control-choice="desk-color" value="wood-brown" checked>
-                                        <span>Brown Wood</span>
-                                   </label>
-                              </div>
-                         </div>
-
-                         <div class="palette-preview" aria-label="Palette preview">
-                              <span class="palette-preview-label">Paper Color</span>
-                              <select class="paper-color-select" data-setting="paper-color" aria-label="Paper color">
-                                   <option value="White" selected>White</option>
-                                   <option value="Custom">Custom</option>
-                              </select>
-                              <div class="palette-swatches" data-palette-preview-swatches></div>
-                         </div>
-
-                         <div class="palette-preview" aria-label="Accent color preview">
-                              <span class="palette-preview-label">Accent Color</span>
-                              <select class="accent-color-select" data-setting="accent-color" aria-label="Accent color">
-                                   <option value="Red" selected>Red</option>
-                                   <option value="Orange">Orange</option>
-                                   <option value="Amber">Amber</option>
-                                   <option value="Gold">Gold</option>
-                                   <option value="Yellow">Yellow</option>
-                                   <option value="Lime">Lime</option>
-                                   <option value="Green">Green</option>
-                                   <option value="Sky">Sky</option>
-                                   <option value="Blue">Blue</option>
-                                   <option value="Violet">Violet</option>
-                                   <option value="Purple">Purple</option>
-                                   <option value="Magenta">Magenta</option>
-                                   <option value="Custom">Custom</option>
-                              </select>
-                              <div class="palette-swatches" data-accent-palette-swatches></div>
-                         </div>
-
-                         <div class="page-panel-actions">
-                              <button class="control-action-button" type="button" data-insert-page>Insert Page</button>
-                              <button class="control-action-button" type="button" data-delete-page>Delete Page</button>
-                              <button class="control-action-button" type="button" data-clear-page>Empty Page</button>
-                              <button class="control-action-button" type="button" data-clear-book>Empty Book</button>
-                              <span class="page-count-status" data-page-count-status aria-live="polite"></span>
-                         </div>
-                    </div>
-                    <div class="keyboard-control-section defaults-section dates-defaults-section">
-                         <div class="keyboard-control-title">Dates</div>
-                         <label class="widget-panel-row text-panel-control">
-                              <span class="widget-panel-title">Week Start</span>
-                              <select class="native-select" data-default-control="date-week-start" aria-label="Default calendar week start">
-                                   <option value="monday" selected>Monday</option>
-                                   <option value="sunday">Sunday</option>
-                              </select>
-                         </label>
-                         <label class="widget-panel-row text-panel-control">
-                              <span class="widget-panel-title">Time Format</span>
-                              <select class="native-select" data-default-control="date-time-format" aria-label="Default calendar time format">
-                                   <option value="12">12hr - 11:00a / 3:30p</option>
-                                   <option value="24" selected>24hr - 11:00 / 15:30</option>
-                              </select>
-                         </label>
-                         <div class="date-order-control">
-                              <span class="widget-panel-title">Date Order</span>
-                              <div class="date-order-picker" data-date-order-picker aria-label="Default date order"></div>
-                         </div>
-                         <div class="date-format-defaults">
-                              <span class="widget-panel-title">Year</span>
-                              <div class="control-choice-group" aria-label="Default year format">
-                                   <label class="control-choice">
-                                        <input type="radio" name="date-year-format-default" data-default-control="date-year-format" value="yyyy" checked>
-                                        <span>YYYY</span>
-                                   </label>
-                                   <label class="control-choice">
-                                        <input type="radio" name="date-year-format-default" data-default-control="date-year-format" value="yy">
-                                        <span>YY</span>
-                                   </label>
-                              </div>
-                              <span class="widget-panel-title">Month</span>
-                              <div class="control-choice-group" aria-label="Default month format">
-                                   <label class="control-choice">
-                                        <input type="radio" name="date-month-format-default" data-default-control="date-month-format" value="full" checked>
-                                        <span>Month Name</span>
-                                   </label>
-                                   <label class="control-choice">
-                                        <input type="radio" name="date-month-format-default" data-default-control="date-month-format" value="ddd">
-                                        <span>DDD</span>
-                                   </label>
-                              </div>
-                              <span class="widget-panel-title">Day</span>
-                              <div class="control-choice-group" aria-label="Default day format">
-                                   <label class="control-choice">
-                                        <input type="radio" name="date-day-format-default" data-default-control="date-day-format" value="full">
-                                        <span>Full Day</span>
-                                   </label>
-                                   <label class="control-choice">
-                                        <input type="radio" name="date-day-format-default" data-default-control="date-day-format" value="ddd" checked>
-                                        <span>DDD</span>
-                                   </label>
-                              </div>
-                         </div>
-                    </div>
-               </div>
-
-               <div class="control-panel-page add-panel" id="add-panel" role="tabpanel" data-control-panel-page="add" hidden>
-                    <button class="sticker-source" type="button" data-create-item data-create-type="sticker" data-widget-label="Sticker" aria-label="Add sticker"></button>
-                    <button class="page-flag-source" type="button" data-create-item data-create-type="page-flag" data-widget-label="Page Flag" aria-label="Add page flag widget">
-                         <span>Page<br>Flag</span>
-                    </button>
-                    <button class="toc-source" type="button" data-create-item data-create-type="toc" data-widget-label="Table of Contents" aria-label="Add table of contents widget"></button>
-                    <button class="diary-view-source" type="button" data-create-item data-create-type="diary-view" data-widget-label="Daily Diary" aria-label="Add daily diary widget">
-                         <span>Daily<br>Diary</span>
-                    </button>
-                    <button class="mini-month-source" type="button" data-create-item data-create-type="mini-month" data-widget-label="Mini Month" aria-label="Add mini month widget">
-                         <span>Mini<br>Month</span>
-                    </button>
-                    <button class="full-month-source" type="button" data-create-item data-create-type="full-month" data-widget-label="Full Month" aria-label="Add full month widget">
-                         <span>Full<br>Month</span>
-                    </button>
-                    <button class="perpetual-calendar-source" type="button" data-create-item data-create-type="perpetual-calendar" data-widget-label="Perpetual Calendar" aria-label="Add perpetual calendar widget">
-                         <span>Perpetual Calendar</span>
-                    </button>
-                    <button class="weekly-view-source" type="button" data-create-item data-create-type="weekly-view" data-widget-label="Schedule View" aria-label="Add schedule view widget">
-                         <span>Schedule<br>View</span>
-                    </button>
-               </div>
-
-               <div class="control-panel-page object-control-panel-page" id="object-panel" role="tabpanel" data-control-panel-page="object" hidden>
-                    <div class="control-object-shell is-inactive" data-object-controls-shell>
-                         <div class="control-object-empty" data-object-controls-empty>Select a widget</div>
-                    </div>
-               </div>
-
-          </form>
-          </aside>
-          <div class="page-grid-cursor" data-page-grid-cursor aria-hidden="true"></div>
-
-          <div class="color-panel-matrix-popover" data-color-panel-matrix hidden>
-               <div class="color-panel-matrix-title">Color Panel</div>
-               <div class="color-panel-popup-row" data-color-panel-popup-row></div>
-               <div class="color-panel-matrix" data-color-panel-matrix-grid></div>
+        <form class="control-panel" aria-label="Planner settings panel">
+          <div
+            class="control-panel-tabs"
+            role="tablist"
+            aria-label="Planner settings panel tabs"
+          >
+            <button
+              class="control-panel-tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-label="Guide"
+              aria-controls="guide-panel"
+              data-control-panel-tab="guide"
+            >
+              <span
+                class="control-panel-tab-step control-panel-tab-step-prev"
+                data-control-panel-step="-1"
+                aria-label="Previous tab"
+              ></span>
+              <span class="control-panel-tab-label">Guide</span>
+              <span
+                class="control-panel-tab-step control-panel-tab-step-next"
+                data-control-panel-step="1"
+                aria-label="Next tab"
+              ></span>
+            </button>
+            <button
+              class="control-panel-tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-label="Widgets"
+              aria-controls="add-panel"
+              data-control-panel-tab="add"
+            >
+              <span
+                class="control-panel-tab-step control-panel-tab-step-prev"
+                data-control-panel-step="-1"
+                aria-label="Previous tab"
+              ></span>
+              <span class="control-panel-tab-label">Widgets</span>
+              <span
+                class="control-panel-tab-step control-panel-tab-step-next"
+                data-control-panel-step="1"
+                aria-label="Next tab"
+              ></span>
+            </button>
+            <button
+              class="control-panel-tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-label="Notebook"
+              aria-controls="notebook-panel"
+              data-control-panel-tab="notebook"
+            >
+              <span
+                class="control-panel-tab-step control-panel-tab-step-prev"
+                data-control-panel-step="-1"
+                aria-label="Previous tab"
+              ></span>
+              <span class="control-panel-tab-label">Notebook</span>
+              <span
+                class="control-panel-tab-step control-panel-tab-step-next"
+                data-control-panel-step="1"
+                aria-label="Next tab"
+              ></span>
+            </button>
+            <button
+              class="control-panel-tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-label="Format selected widget"
+              aria-controls="object-panel"
+              data-control-panel-tab="object-selected"
+              disabled
+              aria-disabled="true"
+            >
+              <span
+                class="control-panel-tab-step control-panel-tab-step-prev"
+                data-control-panel-step="-1"
+                aria-label="Previous tab"
+              ></span>
+              <span class="control-panel-tab-label">Format</span>
+              <span
+                class="control-panel-tab-step control-panel-tab-step-next"
+                data-control-panel-step="1"
+                aria-label="Next tab"
+              ></span>
+            </button>
           </div>
 
-          <div class="notebook-stage">
-               <section class="notebook" aria-label="Open pretty-planner notebook">
-                    <span class="notebook-spine-edge notebook-spine-edge-top" aria-hidden="true"></span>
-                    <span class="notebook-spine-edge notebook-spine-edge-bottom" aria-hidden="true"></span>
-                    <div class="page page-left" data-page data-turn-page="previous">
-                         <span class="page-number" data-page-number></span>
-                         <span class="page-behind-number" data-page-behind-number></span>
-                         <span class="page-corner-fold">
-                              <span class="page-corner-fold-bottom" aria-hidden="true"></span>
-                              <span class="page-corner-fold-number page-corner-fold-number-bottom" data-page-fold-behind-number></span>
-                              <span class="page-corner-fold-top" aria-hidden="true"></span>
-                              <svg class="page-corner-fold-top-border" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                                   <path class="page-corner-fold-top-border-path" pathLength="100"></path>
-                              </svg>
-                              <span class="page-corner-fold-number page-corner-fold-number-top" data-page-fold-number></span>
-                         </span>
-                    </div>
-                    <div class="page page-right" data-page data-turn-page="next">
-                         <span class="page-number" data-page-number></span>
-                         <span class="page-behind-number" data-page-behind-number></span>
-                         <span class="page-corner-fold">
-                              <span class="page-corner-fold-bottom" aria-hidden="true"></span>
-                              <span class="page-corner-fold-number page-corner-fold-number-bottom" data-page-fold-behind-number></span>
-                              <span class="page-corner-fold-top" aria-hidden="true"></span>
-                              <svg class="page-corner-fold-top-border" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                                   <path class="page-corner-fold-top-border-path" pathLength="100"></path>
-                              </svg>
-                              <span class="page-corner-fold-number page-corner-fold-number-top" data-page-fold-number></span>
-                         </span>
-                    </div>
-                    <div class="page-turn-sheet" data-page-turn-sheet aria-hidden="true"></div>
-               </section>
+          <div
+            class="control-panel-page main-menu-panel guide-panel"
+            id="guide-panel"
+            role="tabpanel"
+            data-control-panel-page="guide"
+            hidden
+          >
+            <div data-keyboard-controls></div>
           </div>
-     </main>
 
-     <script src="config.js?v=planner-storage-214"></script>
-     <script src="ui.js?v=planner-storage-240"></script>
-     <script src="widgets-calendars.js?v=planner-storage-105"></script>
-     <script src="widgets.js?v=planner-storage-405"></script>
-     <script src="storage.js?v=planner-storage-61"></script>
-     <script src="controls.js?v=planner-storage-215"></script>
-     <script src="app.js?v=planner-storage-310"></script>
-</body>
+          <div
+            class="control-panel-page main-menu-panel notebook-panel"
+            id="notebook-panel"
+            role="tabpanel"
+            data-control-panel-page="notebook"
+            hidden
+          >
+            <div
+              class="keyboard-control-section defaults-section notebook-defaults-section"
+            >
+              <div class="keyboard-control-title">Pages</div>
+              <div class="control-field">
+                <span>Guides</span>
+                <div class="guide-controls">
+                  <label class="control-choice" data-guide-option="thirds">
+                    <span>1/3</span>
+                    <input type="checkbox" data-guide="thirds" />
+                  </label>
+                  <label class="control-choice" data-guide-option="fourths">
+                    <span>1/4</span>
+                    <input type="checkbox" data-guide="fourths" checked />
+                  </label>
+                </div>
+              </div>
+
+              <div class="control-field">
+                <span>Paper</span>
+                <select class="native-select" data-setting="paper">
+                  <option value="letter">Letter (8.5 x 11 in)</option>
+                  <option value="half-letter">
+                    Half Letter (5.5 x 8.5 in)
+                  </option>
+                </select>
+                <div class="control-choice-group" aria-label="Paper">
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="paper-choice"
+                      data-control-choice="paper"
+                      value="letter"
+                      checked
+                    />
+                    <span>Letter</span>
+                  </label>
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="paper-choice"
+                      data-control-choice="paper"
+                      value="half-letter"
+                    />
+                    <span>Half Letter</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="control-field">
+                <span>Desk</span>
+                <select class="native-select" data-setting="desk-color">
+                  <option value="pink">Pink</option>
+                  <option value="gray">Gray</option>
+                  <option value="black">Black</option>
+                  <option value="white">White</option>
+                  <option value="wood-white">White Wood</option>
+                  <option value="wood-brown" selected>Brown Wood</option>
+                </select>
+                <div class="control-choice-group" aria-label="Desk">
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="desk-choice"
+                      data-control-choice="desk-color"
+                      value="pink"
+                    />
+                    <span>Pink</span>
+                  </label>
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="desk-choice"
+                      data-control-choice="desk-color"
+                      value="gray"
+                    />
+                    <span>Gray</span>
+                  </label>
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="desk-choice"
+                      data-control-choice="desk-color"
+                      value="black"
+                    />
+                    <span>Black</span>
+                  </label>
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="desk-choice"
+                      data-control-choice="desk-color"
+                      value="white"
+                    />
+                    <span>White</span>
+                  </label>
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="desk-choice"
+                      data-control-choice="desk-color"
+                      value="wood-white"
+                    />
+                    <span>White Wood</span>
+                  </label>
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="desk-choice"
+                      data-control-choice="desk-color"
+                      value="wood-brown"
+                      checked
+                    />
+                    <span>Brown Wood</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="palette-preview" aria-label="Palette preview">
+                <span class="palette-preview-label">Paper Color</span>
+                <select
+                  class="paper-color-select"
+                  data-setting="paper-color"
+                  aria-label="Paper color"
+                >
+                  <option value="White" selected>White</option>
+                  <option value="Custom">Custom</option>
+                </select>
+                <div
+                  class="palette-swatches"
+                  data-palette-preview-swatches
+                ></div>
+              </div>
+
+              <div class="palette-preview" aria-label="Accent color preview">
+                <span class="palette-preview-label">Accent Color</span>
+                <select
+                  class="accent-color-select"
+                  data-setting="accent-color"
+                  aria-label="Accent color"
+                >
+                  <option value="Red" selected>Red</option>
+                  <option value="Orange">Orange</option>
+                  <option value="Amber">Amber</option>
+                  <option value="Gold">Gold</option>
+                  <option value="Yellow">Yellow</option>
+                  <option value="Lime">Lime</option>
+                  <option value="Green">Green</option>
+                  <option value="Sky">Sky</option>
+                  <option value="Blue">Blue</option>
+                  <option value="Violet">Violet</option>
+                  <option value="Purple">Purple</option>
+                  <option value="Magenta">Magenta</option>
+                  <option value="Custom">Custom</option>
+                </select>
+                <div
+                  class="palette-swatches"
+                  data-accent-palette-swatches
+                ></div>
+              </div>
+
+              <div class="page-panel-actions">
+                <button
+                  class="control-action-button"
+                  type="button"
+                  data-insert-page
+                >
+                  Insert Page
+                </button>
+                <button
+                  class="control-action-button"
+                  type="button"
+                  data-delete-page
+                >
+                  Delete Page
+                </button>
+                <button
+                  class="control-action-button"
+                  type="button"
+                  data-clear-page
+                >
+                  Empty Page
+                </button>
+                <button
+                  class="control-action-button"
+                  type="button"
+                  data-clear-book
+                >
+                  Empty Book
+                </button>
+                <span
+                  class="page-count-status"
+                  data-page-count-status
+                  aria-live="polite"
+                ></span>
+              </div>
+            </div>
+            <div
+              class="keyboard-control-section defaults-section dates-defaults-section"
+            >
+              <div class="keyboard-control-title">Dates</div>
+              <label class="widget-panel-row text-panel-control">
+                <span class="widget-panel-title">Week Start</span>
+                <select
+                  class="native-select"
+                  data-default-control="date-week-start"
+                  aria-label="Default calendar week start"
+                >
+                  <option value="monday" selected>Monday</option>
+                  <option value="sunday">Sunday</option>
+                </select>
+              </label>
+              <label class="widget-panel-row text-panel-control">
+                <span class="widget-panel-title">Time Format</span>
+                <select
+                  class="native-select"
+                  data-default-control="date-time-format"
+                  aria-label="Default calendar time format"
+                >
+                  <option value="12">12hr - 11:00a / 3:30p</option>
+                  <option value="24" selected>24hr - 11:00 / 15:30</option>
+                </select>
+              </label>
+              <div class="date-order-control">
+                <span class="widget-panel-title">Date Order</span>
+                <div
+                  class="date-order-picker"
+                  data-date-order-picker
+                  aria-label="Default date order"
+                ></div>
+              </div>
+              <div class="date-format-defaults">
+                <span class="widget-panel-title">Year</span>
+                <div
+                  class="control-choice-group"
+                  aria-label="Default year format"
+                >
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="date-year-format-default"
+                      data-default-control="date-year-format"
+                      value="yyyy"
+                      checked
+                    />
+                    <span>YYYY</span>
+                  </label>
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="date-year-format-default"
+                      data-default-control="date-year-format"
+                      value="yy"
+                    />
+                    <span>YY</span>
+                  </label>
+                </div>
+                <span class="widget-panel-title">Month</span>
+                <div
+                  class="control-choice-group"
+                  aria-label="Default month format"
+                >
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="date-month-format-default"
+                      data-default-control="date-month-format"
+                      value="full"
+                      checked
+                    />
+                    <span>Month Name</span>
+                  </label>
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="date-month-format-default"
+                      data-default-control="date-month-format"
+                      value="ddd"
+                    />
+                    <span>DDD</span>
+                  </label>
+                </div>
+                <span class="widget-panel-title">Day</span>
+                <div
+                  class="control-choice-group"
+                  aria-label="Default day format"
+                >
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="date-day-format-default"
+                      data-default-control="date-day-format"
+                      value="full"
+                    />
+                    <span>Full Day</span>
+                  </label>
+                  <label class="control-choice">
+                    <input
+                      type="radio"
+                      name="date-day-format-default"
+                      data-default-control="date-day-format"
+                      value="ddd"
+                      checked
+                    />
+                    <span>DDD</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="control-panel-page add-panel"
+            id="add-panel"
+            role="tabpanel"
+            data-control-panel-page="add"
+            hidden
+          >
+            <button
+              class="sticker-source"
+              type="button"
+              data-create-item
+              data-create-type="sticker"
+              data-widget-label="Sticker"
+              aria-label="Add sticker"
+            ></button>
+            <button
+              class="page-flag-source"
+              type="button"
+              data-create-item
+              data-create-type="page-flag"
+              data-widget-label="Page Flag"
+              aria-label="Add page flag widget"
+            >
+              <span>Page<br />Flag</span>
+            </button>
+            <button
+              class="toc-source"
+              type="button"
+              data-create-item
+              data-create-type="toc"
+              data-widget-label="Table of Contents"
+              aria-label="Add table of contents widget"
+            ></button>
+            <button
+              class="diary-view-source"
+              type="button"
+              data-create-item
+              data-create-type="diary-view"
+              data-widget-label="Daily Diary"
+              aria-label="Add daily diary widget"
+            >
+              <span>Daily<br />Diary</span>
+            </button>
+            <button
+              class="mini-month-source"
+              type="button"
+              data-create-item
+              data-create-type="mini-month"
+              data-widget-label="Mini Month"
+              aria-label="Add mini month widget"
+            >
+              <span>Mini<br />Month</span>
+            </button>
+            <button
+              class="full-month-source"
+              type="button"
+              data-create-item
+              data-create-type="full-month"
+              data-widget-label="Full Month"
+              aria-label="Add full month widget"
+            >
+              <span>Full<br />Month</span>
+            </button>
+            <button
+              class="perpetual-calendar-source"
+              type="button"
+              data-create-item
+              data-create-type="perpetual-calendar"
+              data-widget-label="Perpetual Calendar"
+              aria-label="Add perpetual calendar widget"
+            >
+              <span>Perpetual Calendar</span>
+            </button>
+            <button
+              class="weekly-view-source"
+              type="button"
+              data-create-item
+              data-create-type="weekly-view"
+              data-widget-label="Schedule View"
+              aria-label="Add schedule view widget"
+            >
+              <span>Schedule<br />View</span>
+            </button>
+          </div>
+
+          <div
+            class="control-panel-page object-control-panel-page"
+            id="object-panel"
+            role="tabpanel"
+            data-control-panel-page="object"
+            hidden
+          >
+            <div
+              class="control-object-shell is-inactive"
+              data-object-controls-shell
+            >
+              <div class="control-object-empty" data-object-controls-empty>
+                Select a widget
+              </div>
+            </div>
+          </div>
+        </form>
+      </aside>
+      <div
+        class="page-grid-cursor"
+        data-page-grid-cursor
+        aria-hidden="true"
+      ></div>
+
+      <div class="color-panel-matrix-popover" data-color-panel-matrix hidden>
+        <div class="color-panel-matrix-title">Color Panel</div>
+        <div class="color-panel-popup-row" data-color-panel-popup-row></div>
+        <div class="color-panel-matrix" data-color-panel-matrix-grid></div>
+      </div>
+
+      <div class="notebook-stage">
+        <section class="notebook" aria-label="Open pretty-planner notebook">
+          <span
+            class="notebook-spine-edge notebook-spine-edge-top"
+            aria-hidden="true"
+          ></span>
+          <span
+            class="notebook-spine-edge notebook-spine-edge-bottom"
+            aria-hidden="true"
+          ></span>
+          <div class="page page-left" data-page data-turn-page="previous">
+            <span class="page-number" data-page-number></span>
+            <span class="page-behind-number" data-page-behind-number></span>
+            <span class="page-corner-fold">
+              <span class="page-corner-fold-bottom" aria-hidden="true"></span>
+              <span
+                class="page-corner-fold-number page-corner-fold-number-bottom"
+                data-page-fold-behind-number
+              ></span>
+              <span class="page-corner-fold-top" aria-hidden="true"></span>
+              <svg
+                class="page-corner-fold-top-border"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <path
+                  class="page-corner-fold-top-border-path"
+                  pathLength="100"
+                ></path>
+              </svg>
+              <span
+                class="page-corner-fold-number page-corner-fold-number-top"
+                data-page-fold-number
+              ></span>
+            </span>
+          </div>
+          <div class="page page-right" data-page data-turn-page="next">
+            <span class="page-number" data-page-number></span>
+            <span class="page-behind-number" data-page-behind-number></span>
+            <span class="page-corner-fold">
+              <span class="page-corner-fold-bottom" aria-hidden="true"></span>
+              <span
+                class="page-corner-fold-number page-corner-fold-number-bottom"
+                data-page-fold-behind-number
+              ></span>
+              <span class="page-corner-fold-top" aria-hidden="true"></span>
+              <svg
+                class="page-corner-fold-top-border"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <path
+                  class="page-corner-fold-top-border-path"
+                  pathLength="100"
+                ></path>
+              </svg>
+              <span
+                class="page-corner-fold-number page-corner-fold-number-top"
+                data-page-fold-number
+              ></span>
+            </span>
+          </div>
+          <div
+            class="page-turn-sheet"
+            data-page-turn-sheet
+            aria-hidden="true"
+          ></div>
+        </section>
+      </div>
+    </main>
+
+    <script src="config.js?v=planner-storage-214"></script>
+    <script src="ui.js?v=planner-storage-240"></script>
+    <script src="widgets-calendars.js?v=planner-storage-105"></script>
+    <script src="widgets.js?v=planner-storage-405"></script>
+    <script src="storage.js?v=planner-storage-61"></script>
+    <script src="controls.js?v=planner-storage-215"></script>
+    <script src="app.js?v=planner-storage-310"></script>
+  </body>
 </html>
