@@ -596,7 +596,7 @@ body {
 .control-panel-page {
   display: grid;
   align-content: start;
-  gap: 14px;
+  gap: var(--menu-gap);
   width: 100%;
   min-width: min(600px, calc(100vw - 32px));
   max-width: calc(100vw - 32px);
@@ -604,9 +604,9 @@ body {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: 8px;
+  padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-  border-radius: 7px 7px 8px 8px;
+  border-radius: var(--menu-radius);
   background: var(--active-controls-color);
   backdrop-filter: blur(8px);
 }
@@ -617,7 +617,7 @@ body {
 
 .control-object-shell {
   display: grid;
-  gap: 8px;
+  gap: var(--menu-gap);
   min-height: 210px;
 }
 
@@ -628,7 +628,7 @@ body {
 .control-object-shell.is-inactive {
   place-items: center;
   border: var(--border-sm) solid rgba(17, 17, 17, 0.12);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   color: var(--color-gray3);
 }
 
@@ -647,7 +647,7 @@ body {
 }
 
 .notebook-panel {
-  gap: 16px;
+  gap: var(--menu-gap);
 }
 
 .notebook-panel > .keyboard-control-section + .keyboard-control-section {
@@ -656,7 +656,7 @@ body {
 
 .control-section {
   display: grid;
-  gap: 10px;
+  gap: var(--menu-gap);
   min-width: 0;
 }
 
@@ -680,9 +680,9 @@ body {
   min-width: var(--color-swatch-size);
   height: var(--color-swatch-size);
   min-height: 0;
-  padding: 0 4px;
+  padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.42);
   color: var(--color-gray1);
   cursor: pointer;
@@ -709,13 +709,13 @@ body {
 .control-section-body {
   display: grid;
   align-content: start;
-  gap: 6px;
+  gap: var(--menu-gap);
   grid-column: 1 / -1;
   grid-row: 2;
   min-width: 0;
-  padding: 7px;
+  padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.28);
 }
 
@@ -736,20 +736,20 @@ body {
   display: grid;
   position: relative;
   gap: var(--menu-gap);
-  padding: 7px;
+  padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.28);
 }
 
 .keyboard-control-section + .keyboard-control-section {
-  margin-top: 16px;
+  margin-top: var(--menu-gap);
 }
 
 .keyboard-control-section + .keyboard-control-section::before {
   content: "";
   position: absolute;
-  top: -9px;
+  top: calc(var(--menu-gap) * -1);
   left: 0;
   right: 0;
   border-top: var(--menu-divider);
@@ -760,7 +760,7 @@ body {
 }
 
 .dates-defaults-section .keyboard-control-title {
-  padding-bottom: 5px;
+  padding-bottom: var(--menu-gap);
 }
 
 .dates-defaults-section .widget-panel-row {
@@ -840,9 +840,9 @@ body {
 
 .date-order-chip {
   min-height: var(--color-swatch-size);
-  padding: 3px 6px;
+  padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: var(--color-white);
   color: var(--color-gray1);
   cursor: grab;
@@ -873,7 +873,7 @@ body {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 4px 8px;
+  gap: var(--menu-gap);
   margin: 0;
 }
 
@@ -894,9 +894,9 @@ body {
   place-items: center;
   min-width: 32px;
   min-height: 24px;
-  padding: 3px 6px;
+  padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-  border-radius: 5px;
+  border-radius: var(--menu-radius);
   background: var(--color-white);
   color: var(--color-gray1);
   font: 700 var(--font-size-sm) var(--font-noto-sans-mono);
@@ -909,7 +909,7 @@ body {
 .control-field,
 .guide-controls {
   display: grid;
-  gap: 4px;
+  gap: var(--menu-gap);
   color: var(--color-gray1);
   font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
 }
@@ -919,7 +919,7 @@ body {
   min-height: var(--color-swatch-size);
   padding: 0 24px;
   border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   appearance: none;
   background:
     linear-gradient(45deg, transparent 50%, var(--color-gray2) 50%)
@@ -936,7 +936,7 @@ body {
 .control-choice-group {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
-  gap: 6px;
+  gap: var(--menu-gap);
 }
 
 .guide-controls {
@@ -956,9 +956,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: var(--menu-gap);
-  padding: 3px 6px;
+  padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.32);
   color: var(--color-gray1);
   cursor: pointer;
@@ -1037,7 +1037,7 @@ body {
   min-height: var(--color-swatch-size);
   padding: 0 24px;
   border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background:
     linear-gradient(45deg, transparent 50%, var(--color-gray2) 50%)
       calc(100% - 13px) 50% / 5px 5px no-repeat,
@@ -1072,7 +1072,7 @@ body {
   display: grid;
   width: 100%;
   max-height: var(--select-focus-options-height, 240px);
-  border-radius: 0 0 6px 6px;
+  border-radius: 0 0 var(--menu-radius) var(--menu-radius);
   background: var(--menu-fill);
   filter: drop-shadow(0 8px 10px rgba(17, 17, 17, 0.12));
   overflow-y: auto;
@@ -1087,7 +1087,7 @@ body {
 
 .custom-select-option {
   min-height: var(--color-swatch-size);
-  padding: 3px 6px;
+  padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
   border-top: 0;
   background: var(--menu-fill);
@@ -1098,22 +1098,22 @@ body {
 }
 
 .custom-select-option:last-child {
-  border-radius: 0 0 6px 6px;
+  border-radius: 0 0 var(--menu-radius) var(--menu-radius);
 }
 
 .button-select {
   display: grid;
   grid-template-columns: repeat(var(--button-select-count, 2), minmax(0, 1fr));
-  gap: 3px;
+  gap: var(--menu-gap);
   min-width: 0;
 }
 
 .button-select-option {
   min-width: 0;
   min-height: var(--color-swatch-size);
-  padding: 3px 6px;
+  padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-  border-radius: 5px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.48);
   color: var(--color-gray1);
   cursor: pointer;
@@ -1130,7 +1130,7 @@ body {
 .widget-option-time-group .custom-select[open] .custom-select-options {
   top: auto;
   bottom: calc(100% - 1px);
-  border-radius: 6px 6px 0 0;
+  border-radius: var(--menu-radius) var(--menu-radius) 0 0;
   animation-name: select-options-slide-up;
 }
 
@@ -1142,7 +1142,7 @@ body {
 .widget-option-time-group
   .custom-select[open]
   .custom-select-option:first-child {
-  border-radius: 6px 6px 0 0;
+  border-radius: var(--menu-radius) var(--menu-radius) 0 0;
 }
 
 .widget-option-time-group
@@ -1153,16 +1153,16 @@ body {
 
 .color-panel-control {
   display: grid;
-  gap: 7px;
-  padding: 7px;
+  gap: var(--menu-gap);
+  padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.28);
 }
 
 .palette-preview {
   display: grid;
-  gap: 4px;
+  gap: var(--menu-gap);
   color: var(--color-gray1);
   font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
 }
@@ -1170,9 +1170,9 @@ body {
 /* NOTE: Color Swatches, Hex Picker, And Color Matrix */
 .palette-preview .palette-swatches {
   grid-template-columns: var(--color-swatch-size);
-  padding: 7px;
+  padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.28);
 }
 
@@ -1189,8 +1189,8 @@ body {
     auto-fit,
     minmax(calc(var(--color-swatch-size) * 2), 1fr)
   );
-  gap: 6px;
-  padding: 7px;
+  gap: var(--menu-gap);
+  padding: var(--menu-gap);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -1200,7 +1200,7 @@ body {
 .item-calendar-display-control {
   position: relative;
   display: grid;
-  gap: 4px;
+  gap: var(--menu-gap);
   min-width: 0;
   color: var(--color-gray1);
   font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
@@ -1329,28 +1329,28 @@ body {
   overflow: hidden;
 }
 
-.color-panel-hex {
+[data-color-panel-hex] {
   position: fixed;
   z-index: 300;
   display: grid;
   grid-template-columns: repeat(4, var(--color-swatch-size));
   gap: var(--menu-gap);
   width: max-content;
-  padding: 7px;
+  padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: var(--menu-fill);
   filter: drop-shadow(0 10px 12px rgba(17, 17, 17, 0.14));
 }
 
-.color-panel-hex[hidden] {
+[data-color-panel-hex][hidden] {
   display: none;
 }
 
-.color-panel-hex label {
+[data-color-panel-hex] label {
   display: grid;
   justify-items: center;
-  gap: 3px;
+  gap: var(--menu-gap);
   min-width: 0;
   outline: 0;
   color: var(--color-gray1);
@@ -1367,12 +1367,12 @@ body {
   grid-column: 1 / -1;
 }
 
-.color-panel-hex label > span:first-child {
+[data-color-panel-hex] label > span:first-child {
   display: block;
   min-height: 10px;
 }
 
-.color-panel-hex input,
+[data-color-panel-hex] input,
 .color-panel-hex-preview {
   display: grid;
   place-items: center;
@@ -1389,11 +1389,11 @@ body {
   text-align: center;
 }
 
-.color-panel-hex input[readonly] {
+[data-color-panel-hex] input[readonly] {
   caret-color: transparent;
 }
 
-.color-panel-hex input.is-hex-cell-active {
+[data-color-panel-hex] input.is-hex-cell-active {
   outline: var(--border-md) solid var(--accent-ring);
   outline-offset: 2px;
 }
@@ -1407,7 +1407,7 @@ body {
   width: 100%;
 }
 
-.color-panel-hex input::placeholder {
+[data-color-panel-hex] input::placeholder {
   color: var(--color-gray3);
 }
 
@@ -1485,14 +1485,13 @@ body {
       12,
       var(--matrix-swatch-size)
     );
-  column-gap: 3px;
-  row-gap: 6px;
+  gap: var(--menu-gap);
   width: max-content;
   max-width: calc(100vw - 28px);
   max-height: calc(100vh - 28px);
-  padding: 8px;
+  padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: var(--menu-fill);
   filter: drop-shadow(0 10px 16px rgba(17, 17, 17, 0.18));
   opacity: 0;
@@ -1528,7 +1527,7 @@ body {
   display: block;
   width: 100%;
   height: var(--border-sm);
-  margin-top: 5px;
+  margin-top: var(--menu-gap);
   background: rgba(17, 17, 17, 0.18);
 }
 
@@ -1560,13 +1559,13 @@ body {
       var(--matrix-swatch-size)
     );
   grid-auto-rows: var(--matrix-swatch-size);
-  gap: 3px;
+  gap: var(--menu-gap);
   width: max-content;
   max-width: none;
-  max-height: calc((var(--matrix-swatch-size) * 10) + (3px * 9));
+  max-height: calc((var(--matrix-swatch-size) * 10) + (var(--menu-gap) * 9));
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding-right: 4px;
+  padding-right: var(--menu-gap);
 }
 
 .color-panel-matrix-label,
@@ -2627,8 +2626,8 @@ body {
   align-items: flex-start;
   justify-content: center;
   align-content: flex-start;
-  gap: 18px 14px;
-  padding: 10px 8px 18px;
+  gap: var(--menu-gap);
+  padding: var(--menu-gap);
 }
 
 .add-panel-actions,
@@ -2638,17 +2637,17 @@ body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 132px));
   justify-content: center;
-  gap: 8px;
-  margin-top: 2px;
+  gap: var(--menu-gap);
+  margin-top: var(--menu-gap);
 }
 
 .page-panel-actions {
   border-top: var(--border-sm) solid rgba(17, 17, 17, 0.16);
-  padding-top: 8px;
+  padding-top: var(--menu-gap);
 }
 
 .add-panel-actions {
-  margin-top: 42px;
+  margin-top: var(--menu-gap);
 }
 
 .page-count-status {
@@ -2661,9 +2660,9 @@ body {
 
 .control-action-button {
   min-height: var(--color-swatch-size);
-  padding: 3px 6px;
+  padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.42);
   color: var(--color-gray1);
   cursor: pointer;
@@ -2719,7 +2718,7 @@ body {
 
 .add-panel .perpetual-calendar-source,
 .add-panel .weekly-view-source {
-  margin-block: 4px;
+  margin-block: var(--menu-gap);
 }
 
 .add-panel .sticker-source:hover,
@@ -2750,7 +2749,7 @@ body {
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 8px;
+  padding: var(--menu-gap);
   background: transparent;
   color: var(--color-gray1);
   font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
@@ -4851,7 +4850,7 @@ body {
   transform: translate(calc(100% + 8px), 0);
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--menu-radius);
   background: transparent;
   box-shadow: 0 10px 18px rgba(17, 17, 17, 0.16);
   gap: 0;
@@ -4865,7 +4864,7 @@ body {
   top: auto;
   display: grid;
   align-content: start;
-  gap: 6px;
+  gap: var(--menu-gap);
   width: 100% !important;
   inline-size: 100% !important;
   min-width: 0 !important;
@@ -4877,7 +4876,7 @@ body {
 .control-object-shell .widget-panel-tabs {
   display: flex;
   justify-content: center;
-  margin-bottom: 2px;
+  margin-bottom: var(--menu-gap);
 }
 
 .widget-panel.is-popup-menu {
@@ -4897,12 +4896,12 @@ body {
 
 .widget-panel.is-popup-menu .widget-panel-page {
   gap: var(--menu-gap);
-  padding: 6px;
-  border-radius: 8px;
+  padding: var(--menu-gap);
+  border-radius: var(--menu-radius);
 }
 
 .item-actions-menu-title {
-  padding: 0 0 4px;
+  padding: 0 0 var(--menu-gap);
   color: var(--color-gray1);
   font-family: inherit;
   font-size: var(--font-size-md);
@@ -4927,7 +4926,7 @@ body {
 
 .item-layout-action-group,
 .item-text-role-action-group {
-  padding-top: 12px;
+  padding-top: var(--menu-gap);
   border-top: var(--menu-divider);
 }
 
@@ -4963,9 +4962,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--menu-gap);
   width: 100%;
-  margin-bottom: 6px;
+  margin-bottom: var(--menu-gap);
   overflow: visible;
 }
 
@@ -4975,9 +4974,9 @@ body {
   width: auto;
   min-width: 0;
   min-height: var(--color-swatch-size);
-  padding: 4px 8px;
+  padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: var(--menu-fill);
   color: var(--color-gray1);
   cursor: pointer;
@@ -5003,11 +5002,11 @@ body {
 
 .widget-panel-page {
   display: grid;
-  gap: 12px;
+  gap: var(--menu-gap);
   width: 100%;
-  padding: 8px;
+  padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-  border-radius: 7px 7px 8px 8px;
+  border-radius: var(--menu-radius);
   background: var(--menu-fill);
 }
 
@@ -5194,7 +5193,7 @@ body {
 .text-panel-alignment-button {
   min-width: 0;
   min-height: var(--menu-control-size);
-  padding: 0 6px;
+  padding: 0 var(--menu-gap);
   border: var(--menu-border);
   border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.48);
@@ -5253,16 +5252,16 @@ body {
 
 .widget-option-group {
   display: grid;
-  gap: 9px;
-  padding: 6px;
+  gap: var(--menu-gap);
+  padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.3);
 }
 
 .widget-option-time-group {
   display: grid;
-  gap: 6px;
+  gap: var(--menu-gap);
 }
 
 .widget-option-group .widget-option-control {
@@ -5272,15 +5271,15 @@ body {
 .item-calendar-attributes-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
+  gap: var(--menu-gap);
 }
 
 .item-calendar-attributes-grid .widget-option-control {
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: 5px;
+  gap: var(--menu-gap);
   min-width: 0;
-  padding: 6px;
+  padding: var(--menu-gap);
 }
 
 .item-calendar-attributes-grid .widget-option-control select,
@@ -5297,7 +5296,7 @@ body {
   grid-column: auto;
   justify-self: stretch;
   width: 100%;
-  padding: 0 6px;
+  padding: 0 var(--menu-gap);
   text-align: center;
   appearance: textfield;
   background: rgba(255, 255, 255, 0.48);
@@ -5345,7 +5344,7 @@ body {
   place-items: center;
   min-width: 0;
   min-height: var(--menu-control-size);
-  padding: 0 6px;
+  padding: 0 var(--menu-gap);
   border: var(--menu-border);
   border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.48);
@@ -5428,7 +5427,7 @@ body {
 
 .text-panel-toggle {
   min-height: var(--menu-control-size);
-  padding: 0 6px;
+  padding: 0 var(--menu-gap);
   border: var(--menu-border);
   border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.48);
@@ -5581,7 +5580,7 @@ body {
 .widget-panel-tab {
   min-height: var(--color-swatch-size);
   border-color: rgba(17, 17, 17, 0.2);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.82);
   color: var(--color-gray1);
   font-weight: 400;
@@ -5598,7 +5597,7 @@ body {
 .control-panel-page,
 .widget-panel.is-popup-menu {
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-  border-radius: 7px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.82);
   color: var(--color-gray1);
   filter: drop-shadow(0 8px 12px rgba(17, 17, 17, 0.12));
@@ -5606,13 +5605,13 @@ body {
 }
 
 .control-panel-page {
-  border-radius: 7px 7px 8px 8px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.82);
 }
 
 .widget-panel.is-popup-menu {
-  gap: 4px;
-  padding: 8px;
+  gap: var(--menu-gap);
+  padding: var(--menu-gap);
   box-shadow: none;
 }
 
@@ -5663,13 +5662,13 @@ body {
 .palette-preview .palette-swatches,
 .widget-panel-row {
   border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: var(--color-white);
 }
 
 .control-panel-page.is-sectioned-panel,
 .widget-panel-page.is-sectioned-panel {
-  gap: 8px;
+  gap: var(--menu-gap);
 }
 
 .control-panel-page.is-sectioned-panel
@@ -5682,7 +5681,7 @@ body {
 }
 
 .control-section-body {
-  gap: 9px;
+  gap: var(--menu-gap);
 }
 
 .control-panel select,
@@ -5702,7 +5701,7 @@ body {
 
 .item-actions-widget-type,
 .keyboard-control-title {
-  padding: 0 0 6px;
+  padding: 0 0 var(--menu-gap);
   border: 0;
   border-bottom: var(--menu-divider);
   border-radius: 0;
@@ -5758,10 +5757,10 @@ body {
   grid-template-rows: auto minmax(0, 1fr);
   align-content: start;
   align-items: stretch;
-  gap: 4px;
-  padding: 8px;
+  gap: var(--menu-gap);
+  padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-  border-radius: 7px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.82);
   transform: none;
   transition: none;
@@ -5781,7 +5780,7 @@ body {
   max-height: none !important;
   grid-template-columns: 1fr;
   grid-template-rows: auto auto;
-  padding: 8px;
+  padding: var(--menu-gap);
 }
 
 .control-panel:not(.is-open) .control-panel-page {
@@ -5794,7 +5793,7 @@ body {
   flex-direction: column;
   align-items: stretch;
   justify-content: start;
-  gap: 4px;
+  gap: var(--menu-gap);
   width: 100%;
   min-width: 0;
   margin: 0;
@@ -5806,7 +5805,7 @@ body {
   width: 100%;
   min-width: 112px;
   min-height: var(--color-swatch-size);
-  border-radius: 5px;
+  border-radius: var(--menu-radius);
   border-bottom-color: rgba(17, 17, 17, 0.2);
   background: rgba(255, 255, 255, 0.82);
 }
@@ -5823,7 +5822,7 @@ body {
   min-width: 0;
   max-width: none;
   height: 100%;
-  border-radius: 7px;
+  border-radius: var(--menu-radius);
   background: transparent;
   overflow: auto;
 }
@@ -5970,9 +5969,9 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
   gap: var(--menu-gap);
   width: var(--main-menu-width);
   max-width: calc(100vw - 28px);
-  padding: 8px;
+  padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-  border-radius: 7px;
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.86);
   color: var(--color-gray1);
   font-family: var(--font-annotation-mono);
@@ -5995,9 +5994,9 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
 }
 
 .planner-main-menu-title {
-  margin: -4px;
+  margin: calc(var(--menu-gap) * -1);
   border: 0;
-  padding: 4px;
+  padding: var(--menu-gap);
   background: transparent;
   color: inherit;
   font-family: inherit;
@@ -6050,7 +6049,7 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   align-content: start;
-  gap: 6px;
+  gap: var(--menu-gap);
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -6082,9 +6081,9 @@ body.is-single-page-viewport .planner-main-menu .control-panel-tabs {
   grid-row: 1;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 4px;
+  gap: var(--menu-gap);
   width: 100%;
-  padding: 8px 0;
+  padding: var(--menu-gap) 0;
   border-top: var(--menu-divider);
   border-bottom: var(--menu-divider);
 }
@@ -6098,7 +6097,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-tabs {
   width: 100%;
   min-width: 0;
   min-height: 30px;
-  padding: 4px;
+  padding: var(--menu-gap);
   font-family: inherit;
   grid-template-columns: minmax(0, 1fr);
 }
@@ -6136,7 +6135,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-tabs {
 body.is-single-page-viewport .planner-main-menu .control-panel-page {
   grid-column: 1;
   grid-row: 2;
-  gap: 14px;
+  gap: var(--menu-gap);
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -6200,9 +6199,9 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   .widget-panel-page:not([hidden]) {
   position: relative;
   gap: var(--menu-gap);
-  padding: 7px;
+  padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
-  border-radius: 6px;
+  border-radius: var(--menu-radius);
   background: var(--color-white);
 }
 
@@ -6211,7 +6210,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   .widget-panel.is-docked
   .text-panel
   + .widget-options-panel:not([hidden]) {
-  margin-top: 16px;
+  margin-top: var(--menu-gap);
 }
 
 .planner-main-menu
@@ -6221,7 +6220,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   + .widget-options-panel:not([hidden])::before {
   content: "";
   position: absolute;
-  top: -9px;
+  top: calc(var(--menu-gap) * -1);
   left: 0;
   right: 0;
   border-top: var(--menu-divider);
@@ -6407,7 +6406,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   .planner-main-menu .control-panel-tabs,
   body.is-single-page-viewport .planner-main-menu .control-panel-tabs {
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    padding: 6px 0;
+    padding: var(--menu-gap) 0;
   }
 
   .planner-main-menu .control-panel-tab,
@@ -6416,7 +6415,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
     .control-panel:not(.is-open)
     .control-panel-tab[aria-selected="true"] {
     min-height: 30px;
-    padding: 4px;
+    padding: var(--menu-gap);
     text-align: center;
   }
 
