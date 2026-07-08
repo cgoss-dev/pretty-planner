@@ -775,9 +775,9 @@ body {
   border: 0;
   border-radius: 0;
   background: transparent;
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
+  gap: 0;
 }
 
 .dates-defaults-section .widget-panel-title {
@@ -794,9 +794,9 @@ body {
 
 .date-order-control {
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
+  gap: 0;
 }
 
 .date-order-picker {
@@ -807,9 +807,9 @@ body {
 
 .date-format-defaults {
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 6px 8px;
+  gap: 6px 0;
 }
 
 .date-format-defaults .control-choice-group {
@@ -819,9 +819,9 @@ body {
 .notebook-defaults-section .control-field,
 .notebook-defaults-section .palette-preview {
   display: grid;
-  grid-template-columns: 84px minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 6px 8px;
+  gap: 6px 0;
 }
 
 .notebook-defaults-section .control-field > .control-choice-group,
@@ -1227,9 +1227,9 @@ body {
 
 .palette-preview-row {
   display: grid;
-  grid-template-columns: 54px minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 6px;
+  gap: 0;
 }
 
 .palette-preview-label,
