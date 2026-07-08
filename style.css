@@ -77,6 +77,8 @@
   --font-size-sm: 10px;
   --menu-control-size: 24px;
   --menu-gap: 4px;
+  --menu-label-width: 60px;
+  --menu-row-gap: calc(var(--menu-gap) * 3);
   --menu-radius: 4px;
   --menu-border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
   --menu-divider: var(--border-sm) solid var(--color-gray4);
@@ -677,8 +679,8 @@ body {
   align-items: center;
   justify-content: center;
   width: calc(var(--color-swatch-size) * var(--section-button-units, 1));
-  min-width: var(--color-swatch-size);
-  height: var(--color-swatch-size);
+  min-width: var(--menu-control-size);
+  height: var(--menu-control-size);
   min-height: 0;
   padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
@@ -709,7 +711,7 @@ body {
 .control-section-body {
   display: grid;
   align-content: start;
-  gap: var(--menu-gap);
+  gap: var(--menu-row-gap);
   grid-column: 1 / -1;
   grid-row: 2;
   min-width: 0;
@@ -735,7 +737,7 @@ body {
 .keyboard-control-section {
   display: grid;
   position: relative;
-  gap: var(--menu-gap);
+  gap: var(--menu-row-gap);
   padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
   border-radius: var(--menu-radius);
@@ -768,7 +770,7 @@ body {
   border: 0;
   border-radius: 0;
   background: transparent;
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: var(--menu-label-width) minmax(0, 1fr);
   align-items: center;
   gap: var(--menu-gap);
 }
@@ -787,7 +789,7 @@ body {
 
 .date-order-control {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: var(--menu-label-width) minmax(0, 1fr);
   align-items: center;
   gap: var(--menu-gap);
 }
@@ -800,7 +802,7 @@ body {
 
 .date-format-defaults {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: var(--menu-label-width) minmax(0, 1fr);
   align-items: center;
   gap: var(--menu-gap);
 }
@@ -812,7 +814,7 @@ body {
 .notebook-defaults-section .control-field,
 .notebook-defaults-section .palette-preview {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: var(--menu-label-width) minmax(0, 1fr);
   align-items: center;
   gap: var(--menu-gap);
 }
@@ -839,7 +841,7 @@ body {
 }
 
 .date-order-chip {
-  min-height: var(--color-swatch-size);
+  min-height: var(--menu-control-size);
   padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
   border-radius: var(--menu-radius);
@@ -916,8 +918,8 @@ body {
 
 .control-panel select {
   min-width: 0;
-  min-height: var(--color-swatch-size);
-  padding: 0 24px;
+  min-height: var(--menu-control-size);
+  padding: 0 var(--menu-control-size);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
   border-radius: var(--menu-radius);
   appearance: none;
@@ -951,7 +953,7 @@ body {
 
 .control-choice {
   position: relative;
-  min-height: var(--color-swatch-size);
+  min-height: var(--menu-control-size);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1034,8 +1036,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--color-swatch-size);
-  padding: 0 24px;
+  min-height: var(--menu-control-size);
+  padding: 0 var(--menu-control-size);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
   border-radius: var(--menu-radius);
   background:
@@ -1086,7 +1088,7 @@ body {
 }
 
 .custom-select-option {
-  min-height: var(--color-swatch-size);
+  min-height: var(--menu-control-size);
   padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
   border-top: 0;
@@ -1110,7 +1112,7 @@ body {
 
 .button-select-option {
   min-width: 0;
-  min-height: var(--color-swatch-size);
+  min-height: var(--menu-control-size);
   padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
   border-radius: var(--menu-radius);
@@ -1220,7 +1222,7 @@ body {
 
 .palette-preview-row {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: var(--menu-label-width) minmax(0, 1fr);
   align-items: center;
   gap: var(--menu-gap);
 }
@@ -2659,7 +2661,7 @@ body {
 }
 
 .control-action-button {
-  min-height: var(--color-swatch-size);
+  min-height: var(--menu-control-size);
   padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
   border-radius: var(--menu-radius);
@@ -4973,7 +4975,7 @@ body {
   flex: 0 1 auto;
   width: auto;
   min-width: 0;
-  min-height: var(--color-swatch-size);
+  min-height: var(--menu-control-size);
   padding: 0 var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
   border-radius: var(--menu-radius);
@@ -5103,7 +5105,7 @@ body {
 }
 
 .widget-panel-row select {
-  padding: 0 28px;
+  padding: 0 var(--menu-control-size);
   appearance: none;
   background:
     linear-gradient(45deg, transparent 50%, var(--color-gray2) 50%)
@@ -5180,6 +5182,10 @@ body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--menu-gap);
+}
+
+.text-panel-style-options .text-panel-toggle {
+  text-align: center;
 }
 
 .calendar-size-options {
@@ -5370,7 +5376,6 @@ body {
 .item-calendar-attributes-grid .widget-option-control input[type="checkbox"] {
   grid-column: auto;
   justify-self: start;
-  width: auto;
 }
 
 .widget-option-group-title {
@@ -5412,7 +5417,6 @@ body {
 
 .widget-option-control input[type="checkbox"] {
   grid-column: auto;
-  width: auto;
 }
 
 .text-panel-format {
@@ -5514,6 +5518,7 @@ body {
   min-width: var(--menu-control-size);
   height: var(--menu-control-size);
   min-height: var(--menu-control-size);
+  margin: 0;
 }
 
 .text-panel-alignment-glyph {
@@ -5578,7 +5583,7 @@ body {
 
 .control-panel-tab,
 .widget-panel-tab {
-  min-height: var(--color-swatch-size);
+  min-height: var(--menu-control-size);
   border-color: rgba(17, 17, 17, 0.2);
   border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.82);
@@ -5804,7 +5809,7 @@ body {
 .control-panel:not(.is-open) .control-panel-tab[aria-selected="true"] {
   width: 100%;
   min-width: 112px;
-  min-height: var(--color-swatch-size);
+  min-height: var(--menu-control-size);
   border-radius: var(--menu-radius);
   border-bottom-color: rgba(17, 17, 17, 0.2);
   background: rgba(255, 255, 255, 0.82);
@@ -6186,7 +6191,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 
 .planner-main-menu .control-object-shell {
   align-content: start;
-  gap: var(--menu-gap);
+  gap: var(--menu-row-gap);
 }
 
 .planner-main-menu .control-object-shell .widget-panel-tabs {
@@ -6198,7 +6203,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   .widget-panel.is-docked
   .widget-panel-page:not([hidden]) {
   position: relative;
-  gap: var(--menu-gap);
+  gap: var(--menu-row-gap);
   padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
   border-radius: var(--menu-radius);
@@ -6210,7 +6215,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   .widget-panel.is-docked
   .text-panel
   + .widget-options-panel:not([hidden]) {
-  margin-top: var(--menu-gap);
+  margin-top: var(--menu-row-gap);
 }
 
 .planner-main-menu
@@ -6220,7 +6225,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   + .widget-options-panel:not([hidden])::before {
   content: "";
   position: absolute;
-  top: calc(var(--menu-gap) * -1);
+  top: calc(var(--menu-row-gap) * -1);
   left: 0;
   right: 0;
   border-top: var(--menu-divider);
@@ -6233,8 +6238,8 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 .planner-main-menu .widget-panel-row {
   width: 100%;
   min-width: 0;
-  min-height: var(--color-swatch-size);
-  grid-template-columns: max-content minmax(0, 1fr);
+  min-height: var(--menu-control-size);
+  grid-template-columns: var(--menu-label-width) minmax(0, 1fr);
   align-items: center;
   gap: var(--menu-gap);
   padding: 0;
@@ -6275,7 +6280,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 }
 
 .planner-main-menu .color-panel-control {
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: var(--menu-label-width) minmax(0, 1fr);
 }
 
 .planner-main-menu .color-panel-control .custom-select,
@@ -6292,7 +6297,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 }
 
 .planner-main-menu .text-panel-format {
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: var(--menu-label-width) minmax(0, 1fr);
   align-items: center;
   gap: var(--menu-gap);
   justify-content: start;
@@ -6303,7 +6308,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 }
 
 .planner-main-menu .text-panel-align-control {
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: var(--menu-label-width) minmax(0, 1fr);
   align-items: center;
   gap: var(--menu-gap);
 }
@@ -6315,7 +6320,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 
 .planner-main-menu .widget-options-panel .widget-option-group {
   display: grid;
-  gap: var(--menu-gap);
+  gap: var(--menu-row-gap);
   max-height: none;
 }
 
@@ -6332,15 +6337,15 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 .planner-main-menu .item-calendar-attributes-grid {
   grid-template-columns: minmax(0, 1fr);
   grid-auto-rows: minmax(calc(var(--color-swatch-size) + 22px), auto);
-  gap: var(--menu-gap);
+  gap: var(--menu-row-gap);
   max-height: none;
 }
 
 .planner-main-menu .item-calendar-attributes-grid .widget-option-control {
-  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-columns: var(--menu-label-width) minmax(0, 1fr);
   align-items: center;
   gap: var(--menu-gap);
-  min-height: var(--color-swatch-size);
+  min-height: var(--menu-control-size);
   padding: 0;
   overflow: visible;
 }
@@ -6349,7 +6354,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   .widget-panel.is-docked
   .widget-options-panel
   > .item-calendar-attributes-grid {
-  gap: var(--menu-gap);
+  gap: var(--menu-row-gap);
 }
 
 .planner-main-menu
@@ -6426,11 +6431,11 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   .planner-main-menu .widget-panel-row,
   .planner-main-menu .color-panel-control,
   .planner-main-menu .text-panel-align-control {
-    grid-template-columns: max-content minmax(0, 1fr);
+    grid-template-columns: var(--menu-label-width) minmax(0, 1fr);
   }
 
   .planner-main-menu .text-panel-format {
-    grid-template-columns: max-content minmax(0, 1fr);
+    grid-template-columns: var(--menu-label-width) minmax(0, 1fr);
     gap: var(--menu-gap);
     justify-content: start;
   }

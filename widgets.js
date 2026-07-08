@@ -4549,8 +4549,8 @@ function makePlannerItem(type = "sticker") {
   timeFormatSelect.dataset.widgetControl = "time-format";
   timeFormatSelect.setAttribute("aria-label", "Schedule View time format");
   [
-    ["12", "12hr - 11:00a / 3:30p"],
-    ["24", "24hr - 11:00 / 15:30"],
+    ["12", "12hr"],
+    ["24", "24hr"],
   ].forEach(([value, label]) => {
     const option = document.createElement("option");
 
