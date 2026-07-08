@@ -27,7 +27,6 @@ const controlPanelPages = Array.from(document.querySelectorAll("[data-control-pa
 const controlPanelStepButtons = Array.from(document.querySelectorAll("[data-control-panel-step]"));
 const objectControlsShell = document.querySelector("[data-object-controls-shell]");
 const objectControlsEmpty = document.querySelector("[data-object-controls-empty]");
-const pageSnapButtons = Array.from(document.querySelectorAll("[data-page-snap]"));
 const zoomToast = document.querySelector("[data-zoom-toast]");
 const hintPanel = document.querySelector("[data-hint-panel]");
 const defaultControls = Array.from(document.querySelectorAll("[data-default-control]"));
@@ -78,13 +77,9 @@ const maxNotebookPageCount = notebookControls.maxPageCount;
 const calendarMonthNames = calendarControls.monthNames;
 const calendarYearRange = calendarControls.yearRange;
 const viewZoomLevels = viewControls.zoomLevels;
-const viewFocusPoints = viewControls.focusPoints;
-const viewVerticalFocusPoints = viewControls.verticalFocusPoints;
 const initialNotebookPageCount = notebookControls.initialPageCount;
 const initialNotebookSpreadCount = notebookControls.initialSpreadCount;
 let viewZoomIndex = 0;
-let viewFocusIndex = 0;
-let viewVerticalFocusIndex = 1;
 let notebookPageCount = initialNotebookPageCount;
 let currentSpreadIndex = 0;
 let notebookSpreadCount = initialNotebookSpreadCount;
@@ -380,6 +375,7 @@ function getPlannerDefaultItemStyle(type = "sticker") {
           fillColor: plannerDefaultSettings.grid.fill,
           borderColor: fixedWidgetLineColor,
           borderWidth: fixedWidgetLineWeight,
+          borderEnabled: "true",
           dotGrid: plannerDefaultSettings.grid.dotGrid
      };
 }
@@ -813,7 +809,6 @@ function applyViewControls(zoomAnchor = null) {
      const zoom = viewZoomLevels[viewZoomIndex];
      const shouldCenterFocusedPage = isSinglePageViewport || viewZoomIndex > 0;
 
-     document.documentElement.dataset.viewFocus = viewFocusPoints[viewFocusIndex];
      setRootNumber("--view-zoom", zoom.value);
      setRootNumber("--view-pan-x", "0px");
      setRootNumber("--view-pan-y", "0px");
@@ -827,7 +822,6 @@ function applyViewControls(zoomAnchor = null) {
                scheduleKeyboardCursorUpdate();
           });
      }
-     updatePageSnapButtons();
      scheduleKeyboardCursorUpdate();
 }
 
@@ -836,20 +830,9 @@ function syncViewTargetCenter(zoomAnchor = null) {
 
      responsiveViewFrame = window.requestAnimationFrame(() => {
           const notebookRect = notebook.getBoundingClientRect();
-          const leftPageRect = pages[0] ? pages[0].getBoundingClientRect() : null;
-          const rightPageRect = pages[1] ? pages[1].getBoundingClientRect() : null;
           const deskRect = plannerDesk.getBoundingClientRect();
-          const horizontalTargets = {
-               left: leftPageRect ? leftPageRect.left + leftPageRect.width / 2 : notebookRect.left + notebookRect.width / 4,
-               right: rightPageRect ? rightPageRect.left + rightPageRect.width / 2 : notebookRect.left + (notebookRect.width * 0.75)
-          };
-          const verticalTargets = {
-               top: notebookRect.top + notebookRect.height / 4,
-               mid: notebookRect.top + notebookRect.height / 2,
-               bottom: notebookRect.top + (notebookRect.height * 0.75)
-          };
-          const targetX = horizontalTargets[viewFocusPoints[viewFocusIndex]];
-          const targetY = verticalTargets[viewVerticalFocusPoints[viewVerticalFocusIndex]];
+          const targetX = notebookRect.left + notebookRect.width / 2;
+          const targetY = notebookRect.top + notebookRect.height / 2;
           const currentPanX = getRootPixelValue("--view-pan-x");
           const currentPanY = getRootPixelValue("--view-pan-y");
           const notebookStageY = getRootPixelValue("--notebook-stage-y");
@@ -920,11 +903,6 @@ function applyResponsiveViewMode() {
      isSinglePageViewport = nextIsSinglePageViewport;
      syncResponsiveViewportClass();
      resetViewPanOffset();
-     if (isSinglePageViewport) {
-          viewFocusIndex = 0;
-     } else {
-          viewFocusIndex = clamp(viewFocusIndex, 0, viewFocusPoints.length - 1);
-     }
 
      applyPlannerConfig();
      applyViewControls();
@@ -964,7 +942,6 @@ function changeViewZoom(direction, zoomAnchor = null) {
      viewZoomIndex = nextZoomIndex;
      if (direction === "out") {
           resetViewPanOffset();
-          viewVerticalFocusIndex = 1;
      }
      applyViewControls(direction === "in" ? zoomAnchor : null);
      showZoomToast();
@@ -981,10 +958,6 @@ function cycleViewZoom() {
      viewZoomIndex = nextZoomIndex;
      if (viewZoomIndex === 0) {
           resetViewPanOffset();
-          viewVerticalFocusIndex = viewVerticalFocusPoints.indexOf("mid");
-          if (viewVerticalFocusIndex === -1) {
-               viewVerticalFocusIndex = 0;
-          }
      }
      applyViewControls();
      showZoomToast();
@@ -1030,84 +1003,6 @@ function resetViewPanOffset() {
      viewPanOffsetY = 0;
 }
 
-function moveViewFocus(direction) {
-     const step = direction === "next" ? 1 : -1;
-     const nextFocusIndex = clamp(viewFocusIndex + step, 0, viewFocusPoints.length - 1);
-
-     if (nextFocusIndex === viewFocusIndex || !isPageSideAvailable(viewFocusPoints[nextFocusIndex])) {
-          return;
-     }
-
-     resetViewPanOffset();
-     viewFocusIndex = nextFocusIndex;
-     applyViewControls();
-}
-
-function moveViewVerticalFocus(direction) {
-     const step = direction === "next" ? 1 : -1;
-
-     resetViewPanOffset();
-     viewVerticalFocusIndex = clamp(viewVerticalFocusIndex + step, 0, viewVerticalFocusPoints.length - 1);
-     applyViewControls();
-}
-
-function snapViewToPage(pageSide) {
-     const nextFocusIndex = viewFocusPoints.indexOf(pageSide);
-
-     if (nextFocusIndex === -1 || !isPageSideAvailable(pageSide)) {
-          return;
-     }
-
-     resetViewPanOffset();
-     viewFocusIndex = nextFocusIndex;
-     applyViewControls();
-}
-
-function updatePageSnapButtons() {
-     const canUseHorizontalSnapControls = isSinglePageViewport || viewZoomIndex > 0;
-     const canUseVerticalSnapControls = viewZoomIndex > 0;
-
-     pageSnapButtons.forEach((button) => {
-          const direction = button.dataset.pageSnap;
-
-          if ((direction === "previous" || direction === "next") && !canUseHorizontalSnapControls) {
-               button.hidden = true;
-               return;
-          }
-
-          if ((direction === "up" || direction === "down") && !canUseVerticalSnapControls) {
-               button.hidden = true;
-               return;
-          }
-
-          if (direction === "previous") {
-               button.hidden = viewFocusIndex <= 0;
-          } else if (direction === "next") {
-               const nextFocusIndex = viewFocusIndex + 1;
-
-               button.hidden = viewFocusIndex >= viewFocusPoints.length - 1 || !isPageSideAvailable(viewFocusPoints[nextFocusIndex]);
-          } else if (direction === "up") {
-               button.hidden = viewVerticalFocusIndex <= 0;
-          } else {
-               button.hidden = viewVerticalFocusIndex >= viewVerticalFocusPoints.length - 1;
-          }
-     });
-     updatePageActionButtons();
-}
-
-function movePageSnap(direction) {
-     if (direction === "previous" || direction === "next") {
-          moveViewFocus(direction);
-          return;
-     }
-
-     PageControls.movePageSnap({
-          direction,
-          moveViewFocus,
-          moveViewVerticalFocus
-     });
-}
-
 function getCurrentSpreadPageNumber(side = "left") {
      return PageControls.getCurrentSpreadPageNumber({ currentSpreadIndex, side });
 }
@@ -1147,19 +1042,17 @@ function formatPageNumber(pageNumber) {
 }
 
 function getFocusedPageSide() {
-     return PageControls.getFocusedPageSide({ viewFocusPoints, viewFocusIndex });
+     return PageControls.getFocusedPageSide();
 }
 
 function getFocusedPageNumber() {
-     return PageControls.getFocusedPageNumber({ currentSpreadIndex, viewFocusPoints, viewFocusIndex });
+     return PageControls.getFocusedPageNumber({ currentSpreadIndex });
 }
 
 function setNotebookPageCount(pageCount) {
      const pageState = PageControls.getNotebookPageCountState({
           pageCount,
           currentSpreadIndex,
-          viewFocusIndex,
-          viewFocusPoints,
           initialNotebookPageCount,
           minNotebookPageCount,
           maxNotebookPageCount,
@@ -1169,7 +1062,6 @@ function setNotebookPageCount(pageCount) {
      notebookPageCount = pageState.notebookPageCount;
      notebookSpreadCount = pageState.notebookSpreadCount;
      currentSpreadIndex = pageState.currentSpreadIndex;
-     viewFocusIndex = pageState.viewFocusIndex;
 }
 
 function setFocusedPageNumber(pageNumber) {
@@ -1177,12 +1069,10 @@ function setFocusedPageNumber(pageNumber) {
           pageNumber,
           notebookPageCount,
           notebookSpreadCount,
-          viewFocusPoints,
           clamp
      });
 
      currentSpreadIndex = pageState.currentSpreadIndex;
-     viewFocusIndex = pageState.viewFocusIndex;
 }
 
 function getItemSpreadIndex(item) {
@@ -1256,7 +1146,6 @@ function syncNotebookSpread() {
      PageControls.syncNotebookSpread({
           updatePageLabels,
           updateSpreadItemVisibility,
-          updatePageSnapButtons,
           refreshPageItemViews
      });
 }
@@ -2980,69 +2869,6 @@ function handlePageFocusNavigationKey(event) {
      moveKeyboardCursor(direction);
 }
 
-function cycleViewCenter() {
-     // NOTE: Cycles center targets: 100% swaps pages; zoomed views cycle page halves
-     if (viewZoomIndex === 0) {
-          snapViewToPage(getFocusedPageSide() === "left" ? "right" : "left");
-          syncKeyboardCursorWithFocusedPage();
-          return;
-     }
-
-     const verticalCycle = ["top", "bottom"];
-     const availableTargets = viewFocusPoints.flatMap((pageSide) => (
-          isPageSideAvailable(pageSide)
-               ? verticalCycle.map((vertical) => ({ pageSide, vertical }))
-               : []
-     ));
-     const currentTargetIndex = availableTargets.findIndex(({ pageSide, vertical }) => (
-          pageSide === getFocusedPageSide() &&
-          vertical === viewVerticalFocusPoints[viewVerticalFocusIndex]
-     ));
-     const nextTarget = currentTargetIndex === -1
-          ? availableTargets.find(({ pageSide, vertical }) => pageSide === getFocusedPageSide() && vertical === "top")
-          : availableTargets[(currentTargetIndex + 1) % availableTargets.length];
-
-     if (!nextTarget) {
-          return;
-     }
-
-     resetViewPanOffset();
-     viewFocusIndex = viewFocusPoints.indexOf(nextTarget.pageSide);
-     viewVerticalFocusIndex = viewVerticalFocusPoints.indexOf(nextTarget.vertical);
-     if (viewFocusIndex === -1) {
-          viewFocusIndex = 0;
-     }
-     if (viewVerticalFocusIndex === -1) {
-          viewVerticalFocusIndex = 1;
-     }
-     applyViewControls();
-     syncKeyboardCursorWithFocusedPage();
-}
-
-function handleViewFocusToggleKey(event) {
-     // NOTE: Cycles page centering with C without stealing WASD from cursor movement
-     if (
-          event.defaultPrevented ||
-          activeAction ||
-          controlPanel.classList.contains("is-open") ||
-          event.altKey ||
-          event.ctrlKey ||
-          event.metaKey ||
-          event.shiftKey ||
-          isTextInputShortcutTarget(event.target)
-     ) {
-          return;
-     }
-
-     if (event.key.toLowerCase() !== "c") {
-          return;
-     }
-
-     event.preventDefault();
-     cycleViewCenter();
-     renderKeyHints();
-}
-
 function getKeyboardGroupItems() {
      // NOTE: Gets the current selection that can be grouped or ungrouped from the keyboard
      if (!selectedItems.size) {
@@ -3227,8 +3053,7 @@ function getKeyHintState() {
           ["SHIFT + </>", "First/Last Page"],
           ["Z", "Zoom"],
           ["M", "Main Menu"],
-          ["G", "Gridlines"],
-          ["C", "Center"]
+          ["G", "Gridlines"]
           ]
      };
 }
@@ -3410,8 +3235,6 @@ function applyPlannerConfig() {
      setRootNumber("--page-screen-height", `${screenPageHeightInches / referencePaper.height * 100}%`);
      setRootNumber("--page-spread-width", `${pageSpreadWidth}%`);
      setRootNumber("--page-spine-gap-ratio", pageSpineGapWidth / 100);
-     setRootNumber("--page-spine-x-left-focus", `${50 - pageLeftInset}%`);
-     setRootNumber("--page-spine-x-right-focus", `${50 + pageLeftInset}%`);
      setRootNumber("--page-turn-left", `${pageLeftInset}%`);
      setRootNumber("--page-turn-right", `${50 + pageLeftInset}%`);
      setRootNumber("--page-spread-left-left", `${pageSpineGapWidth}%`);
@@ -3528,9 +3351,8 @@ function initializeDefaultControls() {
 // NOTE: Start The App And Connect The Buttons
 window.prettyPlanner = {
      serializeTemplate: serializePlannerTemplate,
-     snapViewToPage,
      turnNotebookSpread,
-     version: "planner-storage-152"
+     version: "planner-storage-155"
 };
 window.perfectPlanner = window.prettyPlanner;
 
@@ -3552,9 +3374,6 @@ syncCurrentActionUi();
 applyPlannerConfig();
 restorePlannerBook(plannerConfig.paperKey);
 syncNotebookSpread();
-if (isSinglePageViewport) {
-     viewFocusIndex = 0;
-}
 applyViewControls();
 renderKeyHints();
 syncControlPanelSnap();
@@ -3608,9 +3427,6 @@ document.addEventListener("click", (event) => {
      activeColorMatrixToggle = toggle;
      setColorMatrixOpen(shouldOpen);
 }, true);
-pageSnapButtons.forEach((button) => {
-     button.addEventListener("click", () => movePageSnap(button.dataset.pageSnap));
-});
 PageControls.bindPageTurnControls({
      pages,
      getGridMetrics: () => ({
@@ -3742,7 +3558,6 @@ document.addEventListener("click", (event) => {
      if (
           !event.target.closest(".planner-item") &&
           !event.target.closest(".control-panel") &&
-          !event.target.closest(".page-snap-controls") &&
           !event.target.closest("[data-color-panel-matrix], [data-color-panel-hex]")
      ) {
           clearSelection();
@@ -3771,7 +3586,6 @@ document.addEventListener("keydown", (event) => {
      handleCancelKey(event);
      handleViewZoomKey(event);
      handlePageFocusNavigationKey(event);
-     handleViewFocusToggleKey(event);
      toggleGroupFromKeyboard(event);
      toggleGuidesFromKeyboard(event);
      if (!event.defaultPrevented && isCancelKey(event)) {

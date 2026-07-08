@@ -416,11 +416,12 @@ function clampTocBox(item, page, box) {
 
 function setItemStyle(item, style) {
      item.dataset.fillColor = style.fillColor || item.dataset.fillColor || "var(--color-white)";
-     item.dataset.borderColor = "#ccc";
-     item.dataset.borderWidth = "1";
+     item.dataset.borderColor = style.borderColor || item.dataset.borderColor || "#ccc";
+     item.dataset.borderWidth = style.borderWidth || item.dataset.borderWidth || "1";
+     item.dataset.borderEnabled = style.borderEnabled || item.dataset.borderEnabled || "true";
      item.dataset.dotGrid = style.dotGrid || item.dataset.dotGrid || "false";
      const hasClearFill = item.dataset.fillColor === "transparent";
-     const hasClearBorder = false;
+     const hasClearBorder = item.dataset.borderEnabled !== "true";
 
      item.dataset.hasClearFill = String(hasClearFill);
      item.dataset.hasClearBorder = String(hasClearBorder);
@@ -435,17 +436,34 @@ function setItemStyle(item, style) {
      } else {
           item.style.removeProperty("--calendar-tint-alpha");
      }
-     item.style.setProperty("--sticker-border-color", item.dataset.borderColor);
+     item.style.setProperty("--sticker-border-color", hasClearBorder ? "transparent" : item.dataset.borderColor);
      item.style.setProperty("--sticker-border-size", `${item.dataset.borderWidth}px`);
 
      const controls = getWidgetPanel(item) || item;
      const fillInput = controls.querySelector("[data-style-control='fill']");
      const fillSwatches = controls.querySelector("[data-style-swatches='fill']");
+     const borderEnabledInput = controls.querySelector("[data-style-control='border-enabled']");
+     const borderColorInput = controls.querySelector("[data-style-control='border-color']");
+     const borderColorSwatches = controls.querySelector("[data-style-swatches='border-color']");
      const dotGridInput = controls.querySelector("[data-style-control='dot-grid']");
 
      if (fillInput) {
           setPaletteControlValue(fillInput, fillSwatches, item.dataset.fillColor);
      }
+
+     if (borderEnabledInput) {
+          borderEnabledInput.checked = item.dataset.borderEnabled === "true";
+     }
+
+     updateBorderWidthControls(controls, item.dataset.borderWidth);
+
+     if (borderColorInput) {
+          setPaletteControlValue(borderColorInput, borderColorSwatches, item.dataset.borderColor);
+     }
+
+     controls.querySelectorAll("[data-border-dependent='true']").forEach((control) => {
+          control.hidden = item.dataset.borderEnabled !== "true" || !isMainMenuControlVisibleForItem(item, control.dataset.mainMenuControl);
+     });
 
      if (dotGridInput) {
           dotGridInput.checked = item.dataset.dotGrid === "true";
@@ -474,8 +492,11 @@ function applyMainMenuControlVisibility(item) {
           const isVisibleForDateMode = control.dataset.dateModeVisibility
                ? control.dataset.dateModeVisibility === (item.dataset.dateMode || "fixed")
                : true;
+          const isVisibleForBorderMode = control.dataset.borderDependent
+               ? item.dataset.borderEnabled === "true"
+               : true;
 
-          control.hidden = !isVisibleForItem || !isVisibleForDateMode;
+          control.hidden = !isVisibleForItem || !isVisibleForDateMode || !isVisibleForBorderMode;
      });
 }
 
@@ -1090,6 +1111,15 @@ function updateTextToggleControl(control, isActive) {
 function updateTextSizeControls(controls, size) {
      controls.querySelectorAll("[data-text-size-value]").forEach((button) => {
           const isActive = button.dataset.textSizeValue === String(size);
+
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", String(isActive));
+     });
+}
+
+function updateBorderWidthControls(controls, width) {
+     controls.querySelectorAll("[data-border-width-value]").forEach((button) => {
+          const isActive = button.dataset.borderWidthValue === String(width);
 
           button.classList.toggle("is-active", isActive);
           button.setAttribute("aria-pressed", String(isActive));
@@ -2340,6 +2370,7 @@ function applyStyleToActionItems(item, style) {
                fillColor: style.fillColor ?? targetItem.dataset.fillColor,
                borderColor: style.borderColor ?? targetItem.dataset.borderColor,
                borderWidth: style.borderWidth ?? targetItem.dataset.borderWidth,
+               borderEnabled: style.borderEnabled ?? targetItem.dataset.borderEnabled,
                dotGrid: style.dotGrid ?? targetItem.dataset.dotGrid
           });
      });
@@ -2624,7 +2655,8 @@ function applyStyleToCalendarStyleTarget(item, style) {
                targetItem.dataset.themeMode = "custom";
                setItemStyle(targetItem, {
                     borderColor: style.borderColor,
-                    borderWidth: style.borderWidth
+                    borderWidth: style.borderWidth,
+                    borderEnabled: style.borderEnabled
                });
           });
           return true;
@@ -3180,6 +3212,15 @@ function makePlannerItem(type = "sticker") {
      const fillTitle = document.createElement("span");
      const fillInput = document.createElement("select");
      const fillSwatches = document.createElement("div");
+     const borderToggleLabel = document.createElement("label");
+     const borderToggleInput = document.createElement("input");
+     const borderSizeLabel = document.createElement("div");
+     const borderSizeTitle = document.createElement("span");
+     const borderSizeGroup = document.createElement("div");
+     const borderColorLabel = document.createElement("label");
+     const borderColorTitle = document.createElement("span");
+     const borderColorInput = document.createElement("select");
+     const borderColorSwatches = document.createElement("div");
      const dotGridLabel = document.createElement("label");
      const dotGridInput = document.createElement("input");
      const textElement = document.createElement("div");
@@ -3447,6 +3488,45 @@ function makePlannerItem(type = "sticker") {
      fillInput.setAttribute("aria-label", "Sticker fill palette");
      fillSwatches.className = "color-panel-swatches";
      fillSwatches.dataset.styleSwatches = "fill";
+     borderToggleLabel.className = "widget-panel-row text-panel-control";
+     borderToggleLabel.dataset.mainMenuControl = "text.border";
+     borderToggleLabel.textContent = "Borders";
+     borderToggleInput.type = "checkbox";
+     borderToggleInput.dataset.styleControl = "border-enabled";
+     borderToggleInput.setAttribute("aria-label", "Show widget borders");
+     borderSizeLabel.className = "widget-panel-row text-panel-control text-panel-size-control";
+     borderSizeLabel.dataset.mainMenuControl = "text.border-size";
+     borderSizeLabel.dataset.borderDependent = "true";
+     borderSizeTitle.className = "widget-panel-title";
+     borderSizeTitle.textContent = "Border Size";
+     borderSizeGroup.className = "text-panel-size-options";
+     borderSizeGroup.setAttribute("role", "group");
+     borderSizeGroup.setAttribute("aria-label", "Widget border size");
+     [
+          ["1", "1px"],
+          ["3", "3px"],
+          ["5", "5px"]
+     ].forEach(([value, label]) => {
+          const button = document.createElement("button");
+
+          button.className = "text-panel-size-button";
+          button.type = "button";
+          button.textContent = label;
+          button.dataset.borderWidthValue = value;
+          button.setAttribute("aria-label", `${label} border size`);
+          button.setAttribute("aria-pressed", "false");
+          borderSizeGroup.append(button);
+     });
+     borderColorLabel.className = "widget-panel-row text-panel-control color-panel-control";
+     borderColorLabel.dataset.mainMenuControl = "text.border-color";
+     borderColorLabel.dataset.borderDependent = "true";
+     borderColorTitle.className = "widget-panel-title";
+     borderColorTitle.textContent = "Border Color";
+     borderColorInput.className = "native-select";
+     borderColorInput.dataset.styleControl = "border-color";
+     borderColorInput.setAttribute("aria-label", "Widget border palette");
+     borderColorSwatches.className = "color-panel-swatches";
+     borderColorSwatches.dataset.styleSwatches = "border-color";
      dotGridLabel.className = "widget-panel-row";
      dotGridLabel.dataset.mainMenuControl = "options.dot-grid";
      dotGridLabel.textContent = "Dot Grid";
@@ -3473,10 +3553,10 @@ function makePlannerItem(type = "sticker") {
      textSizeGroup.setAttribute("aria-label", "Sticker text size");
      [
           ["10", "SM: 10px"],
-          ["30", "MD: 30px"],
-          ["60", "LG: 60px"],
-          ["90", "1X: 90px"],
-          ["120", "2X: 120px"]
+          ["25", "MD: 25px"],
+          ["50", "LG: 50px"],
+          ["75", "1X: 75px"],
+          ["100", "2X: 100px"]
      ].forEach(([value, label]) => {
           const button = document.createElement("button");
 
@@ -3884,6 +3964,9 @@ function makePlannerItem(type = "sticker") {
      }
 
      fillLabel.append(fillTitle, fillInput, fillSwatches);
+     borderToggleLabel.append(borderToggleInput);
+     borderSizeLabel.append(borderSizeTitle, borderSizeGroup);
+     borderColorLabel.append(borderColorTitle, borderColorInput, borderColorSwatches);
      dotGridLabel.append(dotGridInput);
      textToggleLabel.classList.add("text-panel-settings-control-no-toggle");
      textToggleLabel.append(textTitle, textFontSelect);
@@ -3893,7 +3976,7 @@ function makePlannerItem(type = "sticker") {
      textFormatGroup.append(textFormatTitle, textBoldInput, textItalicInput, textUnderlineInput, textStrikeInput);
      textAlignLabel.append(textAlignTitle, textAlignmentGrid);
      textLineHeightLabel.append(textLineHeightSelect);
-     textPanel.append(textPanelTitle, fillLabel, textColorLabel, textToggleLabel, textLineHeightLabel, textSizeLabel, textFormatGroup, textAlignLabel);
+     textPanel.append(textPanelTitle, fillLabel, borderToggleLabel, borderSizeLabel, borderColorLabel, textColorLabel, textToggleLabel, textLineHeightLabel, textSizeLabel, textFormatGroup, textAlignLabel);
      monthLabel.append(monthSelect);
      yearLabel.append(yearSelect);
      displayYearLabel.append(displayYearSelect);
@@ -3986,7 +4069,7 @@ function makePlannerItem(type = "sticker") {
      if (hasWidgetControls) {
           controls.append(widgetPanel);
      }
-     controls.querySelectorAll("select:not([data-style-control='fill']):not([data-text-control='color']):not([data-stepper-select='true'])").forEach((select) => {
+     controls.querySelectorAll("select:not([data-style-control='fill']):not([data-style-control='border-color']):not([data-text-control='color']):not([data-stepper-select='true'])").forEach((select) => {
           makeCustomSelect(select);
           select.addEventListener("change", () => updateCustomSelectDisplay(select));
      });
@@ -4009,6 +4092,26 @@ function makePlannerItem(type = "sticker") {
                fillColor: nextColor
           });
           setPaletteControlValue(fillInput, fillSwatches, nextColor);
+     });
+     setPaletteSelectionHandler(borderColorInput, (nextColor) => {
+          borderColorInput.dataset.currentColor = nextColor;
+          applyStyleToActionItems(item, {
+               borderColor: nextColor
+          });
+          setPaletteControlValue(borderColorInput, borderColorSwatches, nextColor);
+     });
+     borderColorSwatches.addEventListener("palettecolorselect", (event) => {
+          const nextColor = event.detail?.color;
+
+          if (!nextColor) {
+               return;
+          }
+
+          borderColorInput.dataset.currentColor = nextColor;
+          applyStyleToActionItems(item, {
+               borderColor: nextColor
+          });
+          setPaletteControlValue(borderColorInput, borderColorSwatches, nextColor);
      });
      setPaletteSelectionHandler(textColorInput, (nextColor) => {
           textColorInput.dataset.currentColor = nextColor;
@@ -4046,6 +4149,7 @@ function makePlannerItem(type = "sticker") {
           fillColor: "var(--color-white)",
           borderColor: "#ccc",
           borderWidth: "1",
+          borderEnabled: "true",
           dotGrid: "false"
      });
      setStickerTextSettings(item, typeof getPlannerDefaultTextSettings === "function"
@@ -4282,6 +4386,18 @@ function makePlannerItem(type = "sticker") {
      dotGridInput.addEventListener("change", () => {
           applyStyleToActionItems(item, {
                dotGrid: dotGridInput.checked ? "true" : "false"
+          });
+     });
+     borderToggleInput.addEventListener("change", () => {
+          applyStyleToActionItems(item, {
+               borderEnabled: borderToggleInput.checked ? "true" : "false"
+          });
+     });
+     borderSizeGroup.querySelectorAll("[data-border-width-value]").forEach((button) => {
+          button.addEventListener("click", () => {
+               applyStyleToActionItems(item, {
+                    borderWidth: button.dataset.borderWidthValue
+               });
           });
      });
      textSizeGroup.querySelectorAll("[data-text-size-value]").forEach((button) => {
@@ -4571,6 +4687,7 @@ function copyItemConfiguration(source, target) {
           fillColor: source.dataset.fillColor,
           borderColor: source.dataset.borderColor,
           borderWidth: source.dataset.borderWidth,
+          borderEnabled: source.dataset.borderEnabled,
           dotGrid: source.dataset.dotGrid
      });
      if (source.dataset.themeMode) {

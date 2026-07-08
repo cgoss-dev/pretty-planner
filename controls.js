@@ -99,22 +99,20 @@ window.PageControls = (() => {
           return isPageNumberAvailable({ pageNumber, notebookPageCount }) ? String(pageNumber) : "";
      }
 
-     function getFocusedPageSide({ viewFocusPoints, viewFocusIndex }) {
-          return viewFocusPoints[viewFocusIndex] || "left";
+     function getFocusedPageSide() {
+          return "left";
      }
 
-     function getFocusedPageNumber({ currentSpreadIndex, viewFocusPoints, viewFocusIndex }) {
+     function getFocusedPageNumber({ currentSpreadIndex }) {
           return getCurrentSpreadPageNumber({
                currentSpreadIndex,
-               side: getFocusedPageSide({ viewFocusPoints, viewFocusIndex })
+               side: getFocusedPageSide()
           });
      }
 
      function getNotebookPageCountState({
           pageCount,
           currentSpreadIndex,
-          viewFocusIndex,
-          viewFocusPoints,
           initialNotebookPageCount,
           minNotebookPageCount,
           maxNotebookPageCount,
@@ -129,39 +127,20 @@ window.PageControls = (() => {
           });
           const notebookSpreadCount = getSpreadCountForPageCount(notebookPageCount);
           const nextSpreadIndex = clamp(currentSpreadIndex, 0, notebookSpreadCount - 1);
-          const focusedSide = getFocusedPageSide({ viewFocusPoints, viewFocusIndex });
-          const nextFocusIndex = isPageSideAvailable({
-               side: focusedSide,
-               spreadIndex: nextSpreadIndex,
-               notebookPageCount
-          }) ? viewFocusIndex : 0;
 
           return {
                currentSpreadIndex: nextSpreadIndex,
                notebookPageCount,
-               notebookSpreadCount,
-               viewFocusIndex: nextFocusIndex
+               notebookSpreadCount
           };
      }
 
-     function getFocusedPageState({ pageNumber, notebookPageCount, notebookSpreadCount, viewFocusPoints, clamp }) {
+     function getFocusedPageState({ pageNumber, notebookPageCount, notebookSpreadCount, clamp }) {
           const nextPageNumber = clamp(Math.round(Number(pageNumber)) || 0, 0, notebookPageCount - 1);
-          const nextSide = getPageSideForPageNumber(nextPageNumber);
-          const nextFocusIndex = viewFocusPoints.indexOf(nextSide);
 
           return {
-               currentSpreadIndex: clamp(Math.floor(nextPageNumber / 2), 0, notebookSpreadCount - 1),
-               viewFocusIndex: nextFocusIndex === -1 ? 0 : nextFocusIndex
+               currentSpreadIndex: clamp(Math.floor(nextPageNumber / 2), 0, notebookSpreadCount - 1)
           };
-     }
-
-     function movePageSnap({ direction, moveViewFocus, moveViewVerticalFocus }) {
-          if (direction === "previous" || direction === "next") {
-               moveViewFocus(direction);
-               return;
-          }
-
-          moveViewVerticalFocus(direction === "up" ? "previous" : "next");
      }
 
      function updatePageActionButtons({
@@ -218,10 +197,9 @@ window.PageControls = (() => {
           updateObjectControlsState();
      }
 
-     function syncNotebookSpread({ updatePageLabels, updateSpreadItemVisibility, updatePageSnapButtons, refreshPageItemViews }) {
+     function syncNotebookSpread({ updatePageLabels, updateSpreadItemVisibility, refreshPageItemViews }) {
           updatePageLabels();
           updateSpreadItemVisibility();
-          updatePageSnapButtons();
           requestAnimationFrame(refreshPageItemViews);
      }
 
@@ -268,14 +246,8 @@ window.PageControls = (() => {
           }, PlannerRootControls.controls.pageCornerFlip.animation.spreadSyncDelayMs);
      }
 
-     function getClearPageSides({ viewFocusPoints, viewFocusIndex }) {
-          const focus = getFocusedPageSide({ viewFocusPoints, viewFocusIndex });
-
-          if (focus === "left" || focus === "right") {
-               return [focus];
-          }
-
-          return ["left", "right"];
+     function getClearPageSides() {
+          return [getFocusedPageSide()];
      }
 
      function insertFocusedPage({
@@ -443,7 +415,6 @@ window.PageControls = (() => {
                ...PlannerRootControls.controls.pageNumbers.layering,
                ...PlannerRootControls.controls.pageCornerFlip.layering
           },
-          movePageSnap,
           normalizeNotebookPageCount,
           clearCurrentBook,
           clearFocusedPage,
@@ -462,24 +433,16 @@ window.KeyboardControls = (() => {
           {
                title: "Hotkeys",
                controls: [
-                    { key: "M", action: "Main Menu" },
+                    { key: "M", action: "Open/Close Main Menu" },
                     { key: "</>", action: "Page Left/Right" },
-                    { key: "SHIFT + </>", action: "First/Last Page" },
-                    { key: "Tab", action: "Next focus" },
-                    { key: "Enter", action: "Edit / select" },
+                    { key: "Shift + </>", action: "First/Last Page" },
+                    { key: "Tab", action: "Next Element" },
+                    { key: "Shift+Tab", action: "Last Element" },
+                    { key: "Enter", action: "Edit/Select" },
+                    { key: "Escape", action: "Back/clear Selection" },
+                    { key: "G", action: "Gridlines On/Off" },
                     { key: "Z", action: "Zoom" },
-                    { key: "G", action: "Gridlines" },
-                    { key: "C", action: "Center" },
-                    { key: "Escape", action: "Back / clear selection" },
-                    { key: "Delete", action: "Delete selected" }
-               ]
-          },
-          {
-               title: "Text Editing",
-               controls: [
-                    { key: "Enter", action: "Enter text edit mode" },
-                    { key: "Shift+Enter", action: "Start a new line" },
-                    { key: "Escape", action: "Finish editing" }
+                    { key: "Delete", action: "Delete Selected" }
                ]
           }
      ];

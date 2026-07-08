@@ -82,6 +82,7 @@ function serializePlannerItem(item) {
                fillColor: item.dataset.fillColor || null,
                borderColor: item.dataset.borderColor || null,
                borderWidth: item.dataset.borderWidth || null,
+               borderEnabled: item.dataset.borderEnabled || null,
                dotGrid: item.dataset.dotGrid || null,
                pageFlagSide: item.dataset.pageFlagSide || null,
                themeMode: item.dataset.themeMode || null
@@ -601,7 +602,7 @@ function restorePlannerItemSettings(item, itemData) {
      const text = itemData.text || {};
      const widget = itemData.widget || {};
 
-     if (style.fillColor || style.borderColor || style.borderWidth || style.dotGrid) {
+     if (style.fillColor || style.borderColor || style.borderWidth || style.borderEnabled || style.dotGrid) {
           if (style.themeMode) {
                item.dataset.themeMode = style.themeMode;
           }
@@ -610,6 +611,7 @@ function restorePlannerItemSettings(item, itemData) {
                fillColor: style.fillColor || item.dataset.fillColor,
                borderColor: style.borderColor || item.dataset.borderColor,
                borderWidth: style.borderWidth || item.dataset.borderWidth,
+               borderEnabled: style.borderEnabled || item.dataset.borderEnabled,
                dotGrid: style.dotGrid || item.dataset.dotGrid
           });
      }
