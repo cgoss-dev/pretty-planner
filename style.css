@@ -82,6 +82,7 @@
   --control-padding-x: 6px;
   --control-border: var(--border-sm) solid
     rgba(17, 17, 17, var(--control-border-alpha));
+  --menu-divider: var(--border-sm) solid var(--color-gray4);
   --color-swatch-size: var(--control-size);
   --palette-swatch-gap: var(--control-gap);
   --palette-swatch-radius: var(--control-radius);
@@ -742,7 +743,7 @@ body {
 .keyboard-control-section {
   display: grid;
   position: relative;
-  gap: 9px;
+  gap: var(--control-gap);
   padding: 7px;
   border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
   border-radius: 6px;
@@ -759,7 +760,7 @@ body {
   top: -9px;
   left: 0;
   right: 0;
-  border-top: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+  border-top: var(--menu-divider);
 }
 
 .defaults-section {
@@ -802,14 +803,14 @@ body {
 .date-order-picker {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
+  gap: var(--control-gap);
 }
 
 .date-format-defaults {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 6px 0;
+  gap: var(--control-gap) 0;
 }
 
 .date-format-defaults .control-choice-group {
@@ -821,7 +822,7 @@ body {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 6px 0;
+  gap: var(--control-gap) 0;
 }
 
 .notebook-defaults-section .control-field > .control-choice-group,
@@ -1237,6 +1238,10 @@ body {
   color: var(--color-gray1);
   font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
   line-height: 1;
+}
+
+.control-title-line {
+  display: block;
 }
 
 .palette-matrix-toggle {
@@ -4913,7 +4918,7 @@ body {
 }
 
 .widget-panel.is-popup-menu .widget-panel-page {
-  gap: 12px;
+  gap: var(--control-gap);
   padding: 6px;
   border-radius: 8px;
 }
@@ -4930,7 +4935,7 @@ body {
 .item-actions-widget-type {
   display: none;
   padding: 0 0 8px;
-  border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+  border-bottom: var(--menu-divider);
   color: var(--color-gray2);
   font-family: inherit;
   font-size: var(--font-size-sm);
@@ -4949,13 +4954,13 @@ body {
 .item-text-role-action-group {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: var(--control-gap);
 }
 
 .item-layout-action-group,
 .item-text-role-action-group {
   padding-top: 12px;
-  border-top: var(--border-sm) solid rgba(17, 17, 17, 0.14);
+  border-top: var(--menu-divider);
 }
 
 .widget-panel.is-popup-menu > .item-layout-action-group {
@@ -6068,7 +6073,7 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
 
 .planner-main-menu .guide-panel .hint-panel {
   padding-bottom: 8px;
-  border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+  border-bottom: var(--menu-divider);
 }
 
 .planner-main-menu .control-panel {
@@ -6123,8 +6128,8 @@ body.is-single-page-viewport .planner-main-menu .control-panel-tabs {
   gap: 4px;
   width: 100%;
   padding: 8px 0;
-  border-top: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-  border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+  border-top: var(--menu-divider);
+  border-bottom: var(--menu-divider);
 }
 
 .planner-main-menu .control-panel-tab,
@@ -6214,7 +6219,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   min-width: 0;
   max-height: none;
   overflow: visible;
-  gap: 6px;
+  gap: var(--control-gap);
   padding: 0;
 }
 
@@ -6225,7 +6230,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 
 .planner-main-menu .control-object-shell {
   align-content: start;
-  gap: 6px;
+  gap: var(--control-gap);
 }
 
 .planner-main-menu .control-object-shell .widget-panel-tabs {
@@ -6237,7 +6242,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   .widget-panel.is-docked
   .widget-panel-page:not([hidden]) {
   position: relative;
-  gap: 9px;
+  gap: var(--control-gap);
   padding: 7px;
   border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
   border-radius: 6px;
@@ -6262,7 +6267,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   top: -9px;
   left: 0;
   right: 0;
-  border-top: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+  border-top: var(--menu-divider);
 }
 
 .planner-main-menu .widget-panel.is-docked .widget-panel-page[hidden] {
@@ -6296,7 +6301,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 .planner-main-menu .control-object-shell .widget-panel-section-title {
   display: block;
   padding: 0 0 6px;
-  border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+  border-bottom: var(--menu-divider);
   color: var(--color-gray1);
   font-family: inherit;
   font-size: var(--font-size-md);
@@ -6355,12 +6360,12 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 
 .planner-main-menu .widget-options-panel .widget-option-group {
   display: grid;
-  gap: 8px;
+  gap: var(--control-gap);
   max-height: none;
 }
 
 .planner-main-menu .widget-option-time-group {
-  gap: 8px;
+  gap: var(--control-gap);
 }
 
 .planner-main-menu .date-offset-stepper {
@@ -6372,7 +6377,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 .planner-main-menu .item-calendar-attributes-grid {
   grid-template-columns: minmax(0, 1fr);
   grid-auto-rows: minmax(calc(var(--color-swatch-size) + 22px), auto);
-  gap: 8px;
+  gap: var(--control-gap);
   max-height: none;
 }
 
@@ -6389,7 +6394,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   .widget-panel.is-docked
   .widget-options-panel
   > .item-calendar-attributes-grid {
-  gap: 8px;
+  gap: var(--control-gap);
 }
 
 .planner-main-menu

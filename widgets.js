@@ -54,6 +54,26 @@ function normalizeIntegerEntryValue(value, fallbackValue = "0") {
   return String(Number.parseInt(sanitizedValue, 10) || 0);
 }
 
+function setStackedControlTitle(element, lines) {
+  element.textContent = "";
+  lines.forEach((line) => {
+    const titleLine = document.createElement("span");
+
+    titleLine.className = "control-title-line";
+    titleLine.textContent = line;
+    element.append(titleLine);
+  });
+}
+
+function setControlTitle(element, title) {
+  if (Array.isArray(title)) {
+    setStackedControlTitle(element, title);
+    return;
+  }
+
+  element.textContent = title;
+}
+
 function getThemeFillValue(theme, fillSlot) {
   const defaultGrid =
     typeof getPlannerDefaultGridSettings === "function"
@@ -3979,7 +3999,7 @@ function makePlannerItem(type = "sticker") {
   displayDateRow.className = "item-calendar-display-row";
   displayYearLabel.className = "item-calendar-display-control";
   displayYearLabel.dataset.mainMenuControl = "options.display-year";
-  displayYearLabel.textContent = "Year";
+  setControlTitle(displayYearLabel, "Year");
   displayYearSelect.dataset.widgetControl = "display-year";
   displayYearSelect.setAttribute("aria-label", "Display year");
   for (
@@ -3996,7 +4016,7 @@ function makePlannerItem(type = "sticker") {
   displayMonthLabel.className = "item-calendar-display-control";
   displayMonthLabel.dataset.mainMenuControl = "options.display-month";
   displayMonthLabel.dataset.dateModeVisibility = "fixed";
-  displayMonthLabel.textContent = "Month";
+  setControlTitle(displayMonthLabel, "Month");
   displayMonthSelect.dataset.widgetControl = "display-month";
   displayMonthSelect.setAttribute("aria-label", "Display month");
   calendarMonthNames.forEach((monthName, index) => {
@@ -4008,7 +4028,7 @@ function makePlannerItem(type = "sticker") {
   });
   displayDateModeLabel.className = "item-calendar-display-control";
   displayDateModeLabel.dataset.mainMenuControl = "options.display-date-mode";
-  displayDateModeLabel.textContent = "Date Type";
+  setControlTitle(displayDateModeLabel, ["Date", "Type"]);
   displayDateModeSelect.dataset.widgetControl = "display-date-mode";
   displayDateModeSelect.setAttribute("aria-label", "Display date mode");
   [
@@ -4023,7 +4043,10 @@ function makePlannerItem(type = "sticker") {
   });
   displayDayLabel.className = "item-calendar-display-control";
   displayDayLabel.dataset.mainMenuControl = "options.display-day";
-  displayDayLabel.textContent = type === "diary-view" ? "Week #" : "Day";
+  setControlTitle(
+    displayDayLabel,
+    type === "diary-view" ? ["Week", "#"] : "Day",
+  );
   displayDaySelect.dataset.widgetControl = "display-day";
   displayDaySelect.setAttribute(
     "aria-label",
@@ -4038,7 +4061,7 @@ function makePlannerItem(type = "sticker") {
   displayWeekNumberLabel.className = "item-calendar-display-control";
   displayWeekNumberLabel.dataset.mainMenuControl =
     "options.display-week-number";
-  displayWeekNumberLabel.textContent = "Week #";
+  setControlTitle(displayWeekNumberLabel, ["Week", "#"]);
   displayWeekNumberSelect.dataset.widgetControl = "display-week-number";
   displayWeekNumberSelect.setAttribute("aria-label", "Display week numbers");
   [
@@ -4054,7 +4077,7 @@ function makePlannerItem(type = "sticker") {
   displayTitleVisibleLabel.className = "item-calendar-display-control";
   displayTitleVisibleLabel.dataset.mainMenuControl =
     "options.display-title-visible";
-  displayTitleVisibleLabel.textContent = "Month/Year";
+  setControlTitle(displayTitleVisibleLabel, ["Month", "Year"]);
   displayTitleVisibleSelect.dataset.widgetControl = "display-title-visible";
   displayTitleVisibleSelect.setAttribute(
     "aria-label",
@@ -4072,7 +4095,7 @@ function makePlannerItem(type = "sticker") {
   });
   displayWeekStartLabel.className = "item-calendar-display-control";
   displayWeekStartLabel.dataset.mainMenuControl = "options.display-week-start";
-  displayWeekStartLabel.textContent = "Week Start";
+  setControlTitle(displayWeekStartLabel, ["Week", "Start"]);
   displayWeekStartSelect.dataset.widgetControl = "display-week-start";
   displayWeekStartSelect.setAttribute("aria-label", "Display week start");
   [
@@ -4130,7 +4153,7 @@ function makePlannerItem(type = "sticker") {
   fillLabel.className = "widget-panel-row color-panel-control";
   fillLabel.dataset.mainMenuControl = "text.fill";
   fillTitle.className = "widget-panel-title";
-  fillTitle.textContent = "Fill";
+  setControlTitle(fillTitle, "Fill");
   fillInput.className = "native-select";
   fillInput.dataset.styleControl = "fill";
   fillInput.setAttribute("aria-label", "Sticker fill palette");
@@ -4138,7 +4161,7 @@ function makePlannerItem(type = "sticker") {
   fillSwatches.dataset.styleSwatches = "fill";
   borderToggleLabel.className = "widget-panel-row text-panel-control";
   borderToggleLabel.dataset.mainMenuControl = "text.border";
-  borderToggleLabel.textContent = "Borders";
+  setControlTitle(borderToggleLabel, "Borders");
   borderToggleInput.type = "checkbox";
   borderToggleInput.dataset.styleControl = "border-enabled";
   borderToggleInput.setAttribute("aria-label", "Show widget borders");
@@ -4147,7 +4170,7 @@ function makePlannerItem(type = "sticker") {
   borderSizeLabel.dataset.mainMenuControl = "text.border-size";
   borderSizeLabel.dataset.borderDependent = "true";
   borderSizeTitle.className = "widget-panel-title";
-  borderSizeTitle.textContent = "Border Size";
+  setControlTitle(borderSizeTitle, ["Border", "Size"]);
   borderSizeGroup.className = "text-panel-size-options";
   borderSizeGroup.setAttribute("role", "group");
   borderSizeGroup.setAttribute("aria-label", "Widget border size");
@@ -4171,7 +4194,7 @@ function makePlannerItem(type = "sticker") {
   borderColorLabel.dataset.mainMenuControl = "text.border-color";
   borderColorLabel.dataset.borderDependent = "true";
   borderColorTitle.className = "widget-panel-title";
-  borderColorTitle.textContent = "Border Color";
+  setControlTitle(borderColorTitle, ["Border", "Color"]);
   borderColorInput.className = "native-select";
   borderColorInput.dataset.styleControl = "border-color";
   borderColorInput.setAttribute("aria-label", "Widget border palette");
@@ -4179,7 +4202,7 @@ function makePlannerItem(type = "sticker") {
   borderColorSwatches.dataset.styleSwatches = "border-color";
   dotGridLabel.className = "widget-panel-row";
   dotGridLabel.dataset.mainMenuControl = "options.dot-grid";
-  dotGridLabel.textContent = "Dot Grid";
+  setControlTitle(dotGridLabel, ["Dot", "Grid"]);
   dotGridInput.type = "checkbox";
   dotGridInput.dataset.styleControl = "dot-grid";
   dotGridInput.setAttribute("aria-label", "Show sticker dot grid");
@@ -4194,12 +4217,12 @@ function makePlannerItem(type = "sticker") {
     "widget-panel-row text-panel-control text-panel-settings-control";
   textToggleLabel.dataset.mainMenuControl = "text.font";
   textTitle.className = "widget-panel-title";
-  textTitle.textContent = "Typeface";
+  setControlTitle(textTitle, "Typeface");
   textSizeLabel.className =
     "widget-panel-row text-panel-control text-panel-size-control";
   textSizeLabel.dataset.mainMenuControl = "text.size";
   textSizeTitle.className = "widget-panel-title";
-  textSizeTitle.textContent = "Text Size";
+  setControlTitle(textSizeTitle, ["Text", "Size"]);
   textSizeGroup.className = "text-panel-size-options";
   textSizeGroup.setAttribute("role", "group");
   textSizeGroup.setAttribute("aria-label", "Sticker text size");
@@ -4248,7 +4271,7 @@ function makePlannerItem(type = "sticker") {
     "widget-panel-row text-panel-control color-panel-control";
   textColorLabel.dataset.mainMenuControl = "text.color";
   textColorTitle.className = "widget-panel-title";
-  textColorTitle.textContent = "Text Color";
+  setControlTitle(textColorTitle, ["Text", "Color"]);
   textColorInput.className = "native-select";
   textColorInput.dataset.textControl = "color";
   textColorInput.setAttribute("aria-label", "Sticker text palette");
@@ -4257,7 +4280,7 @@ function makePlannerItem(type = "sticker") {
   textTocLabel.className =
     "widget-panel-row text-panel-control text-panel-toc-control";
   textTocLabel.dataset.mainMenuControl = "options.appears-in-toc";
-  textTocLabel.textContent = "Appears in ToC";
+  setControlTitle(textTocLabel, ["Appears", "in ToC"]);
   textTocInput.type = "checkbox";
   textTocInput.dataset.textControl = "appears-in-toc";
   textTocInput.setAttribute(
@@ -4267,7 +4290,7 @@ function makePlannerItem(type = "sticker") {
   textFormatGroup.className = "text-panel-format text-panel-control";
   textFormatGroup.dataset.mainMenuControl = "text.style";
   textFormatTitle.className = "widget-panel-title";
-  textFormatTitle.textContent = "Text Style";
+  setControlTitle(textFormatTitle, ["Text", "Style"]);
   textBoldInput.className = "text-panel-toggle text-panel-toggle-bold";
   textBoldInput.type = "button";
   textBoldInput.textContent = "Bold";
@@ -4297,7 +4320,7 @@ function makePlannerItem(type = "sticker") {
     "widget-panel-row text-panel-control text-panel-align-control";
   textAlignLabel.dataset.mainMenuControl = "text.align";
   textAlignTitle.className = "widget-panel-title";
-  textAlignTitle.textContent = "Alignment";
+  setControlTitle(textAlignTitle, "Alignment");
   textAlignmentGrid.className = "text-panel-alignment-grid";
   textAlignmentGrid.setAttribute("role", "group");
   textAlignmentGrid.setAttribute("aria-label", "Text placement");
@@ -4351,7 +4374,7 @@ function makePlannerItem(type = "sticker") {
   textLineHeightLabel.className =
     "widget-panel-row text-panel-control text-panel-size-control";
   textLineHeightLabel.dataset.mainMenuControl = "text.line-height";
-  textLineHeightLabel.textContent = "Line Height";
+  setControlTitle(textLineHeightLabel, ["Line", "Height"]);
   textLineHeightSelect.dataset.textControl = "line-height";
   textLineHeightSelect.setAttribute(
     "aria-label",
@@ -4371,13 +4394,13 @@ function makePlannerItem(type = "sticker") {
   deleteButton.setAttribute("aria-label", "Delete planner item");
   weekNumberLabel.className = "widget-panel-row widget-option-control";
   weekNumberLabel.dataset.mainMenuControl = "options.week-number-format";
-  weekNumberLabel.textContent = "Week #";
+  setControlTitle(weekNumberLabel, ["Week", "#"]);
   weekNumberInput.type = "checkbox";
   weekNumberInput.dataset.widgetControl = "week-number-format";
   weekNumberInput.setAttribute("aria-label", "Show week number column");
   weekStartLabel.className = "widget-panel-row widget-option-control";
   weekStartLabel.dataset.mainMenuControl = "options.week-start";
-  weekStartLabel.textContent = "Week Start";
+  setControlTitle(weekStartLabel, ["Week", "Start"]);
   weekStartSelect.dataset.widgetControl = "week-start";
   weekStartSelect.setAttribute("aria-label", "Calendar week start");
   ["monday", "sunday"].forEach((value) => {
@@ -4389,7 +4412,7 @@ function makePlannerItem(type = "sticker") {
   });
   weekdayLabelLabel.className = "widget-panel-row widget-option-control";
   weekdayLabelLabel.dataset.mainMenuControl = "options.weekday-label-format";
-  weekdayLabelLabel.textContent = "Weekdays";
+  setControlTitle(weekdayLabelLabel, "Weekdays");
   weekdayLabelSelect.dataset.widgetControl = "weekday-label-format";
   weekdayLabelSelect.setAttribute("aria-label", "Weekday label format");
   [
@@ -4405,7 +4428,7 @@ function makePlannerItem(type = "sticker") {
   });
   dateModeLabel.className = "widget-panel-row widget-option-control";
   dateModeLabel.dataset.mainMenuControl = "options.date-mode";
-  dateModeLabel.textContent = "Display Date";
+  setControlTitle(dateModeLabel, ["Display", "Date"]);
   dateModeSelect.dataset.widgetControl = "date-mode";
   dateModeSelect.setAttribute("aria-label", "Calendar display date mode");
   [
@@ -4421,7 +4444,7 @@ function makePlannerItem(type = "sticker") {
   dateOffsetLabel.className = "widget-panel-row widget-option-control";
   dateOffsetLabel.dataset.mainMenuControl = "options.date-offset";
   dateOffsetLabel.dataset.dateModeVisibility = "relative";
-  dateOffsetLabel.textContent = "Offset";
+  setControlTitle(dateOffsetLabel, "Offset");
   dateOffsetStepper.className = "date-offset-stepper";
   dateOffsetPrevButton.className =
     "date-offset-stepper-button date-offset-stepper-button-prev";
@@ -4446,7 +4469,7 @@ function makePlannerItem(type = "sticker") {
   calendarSizeLabel.className =
     "widget-panel-row widget-option-control calendar-size-control";
   calendarSizeLabel.dataset.mainMenuControl = "options.page-size";
-  calendarSizeLabel.textContent = "Size";
+  setControlTitle(calendarSizeLabel, "Size");
   calendarSizeOptions.className = "calendar-size-options";
   calendarSizeOptions.setAttribute("role", "group");
   calendarSizeOptions.setAttribute("aria-label", "Calendar size");
@@ -4466,7 +4489,7 @@ function makePlannerItem(type = "sticker") {
   });
   titleVisibleLabel.className = "widget-panel-row widget-option-control";
   titleVisibleLabel.dataset.mainMenuControl = "options.calendar-title-visible";
-  titleVisibleLabel.textContent = "Show Month/Year";
+  setControlTitle(titleVisibleLabel, ["Show", "Mo/Yr"]);
   titleVisibleInput.type = "checkbox";
   titleVisibleInput.dataset.widgetControl = "calendar-title-visible";
   titleVisibleInput.setAttribute(
@@ -4477,7 +4500,7 @@ function makePlannerItem(type = "sticker") {
   monthLabel.className = "widget-panel-row widget-option-control";
   monthLabel.dataset.mainMenuControl = "options.month";
   monthLabel.dataset.dateModeVisibility = "fixed";
-  monthLabel.textContent = "Month";
+  setControlTitle(monthLabel, "Month");
   monthSelect.dataset.widgetControl = "month";
   monthSelect.setAttribute("aria-label", "Calendar month");
   calendarMonthNames.forEach((monthName, index) => {
@@ -4490,7 +4513,7 @@ function makePlannerItem(type = "sticker") {
   yearLabel.className = "widget-panel-row widget-option-control";
   yearLabel.dataset.mainMenuControl = "options.year";
   yearLabel.dataset.dateModeVisibility = "fixed";
-  yearLabel.textContent = "Year";
+  setControlTitle(yearLabel, "Year");
   yearSelect.dataset.widgetControl = "year";
   yearSelect.setAttribute("aria-label", "Calendar year");
   for (
@@ -4506,7 +4529,7 @@ function makePlannerItem(type = "sticker") {
   }
   startDayLabel.className = "widget-panel-row widget-option-control";
   startDayLabel.dataset.mainMenuControl = "options.start-day";
-  startDayLabel.textContent = type === "diary-view" ? "Week #" : "Day";
+  setControlTitle(startDayLabel, type === "diary-view" ? ["Week", "#"] : "Day");
   startDaySelect.dataset.widgetControl = "start-day";
   startDaySelect.setAttribute(
     "aria-label",
@@ -4516,7 +4539,7 @@ function makePlannerItem(type = "sticker") {
   );
   visibleDaysLabel.className = "widget-panel-row widget-option-control";
   visibleDaysLabel.dataset.mainMenuControl = "options.visible-days";
-  visibleDaysLabel.textContent = "Duration";
+  setControlTitle(visibleDaysLabel, "Duration");
   visibleDaysSelect.dataset.widgetControl = "visible-days";
   visibleDaysSelect.setAttribute("aria-label", "Schedule View visible days");
   for (let dayCount = 1; dayCount <= 7; dayCount += 1) {
@@ -4528,7 +4551,7 @@ function makePlannerItem(type = "sticker") {
   }
   diaryLayoutLabel.className = "widget-panel-row widget-option-control";
   diaryLayoutLabel.dataset.mainMenuControl = "options.diary-layout";
-  diaryLayoutLabel.textContent = "Layout";
+  setControlTitle(diaryLayoutLabel, "Layout");
   diaryLayoutSelect.dataset.widgetControl = "diary-layout";
   diaryLayoutSelect.setAttribute("aria-label", "Daily Diary layout");
   [
@@ -4545,7 +4568,7 @@ function makePlannerItem(type = "sticker") {
     "widget-panel-row widget-option-control";
   diaryMonthYearVisibleLabel.dataset.mainMenuControl =
     "options.diary-month-year-visible";
-  diaryMonthYearVisibleLabel.textContent = "Show Month/Year";
+  setControlTitle(diaryMonthYearVisibleLabel, ["Show", "Mo/Yr"]);
   diaryMonthYearVisibleInput.type = "checkbox";
   diaryMonthYearVisibleInput.checked = false;
   diaryMonthYearVisibleInput.dataset.widgetControl = "diary-month-year-visible";
@@ -4555,7 +4578,7 @@ function makePlannerItem(type = "sticker") {
   );
   diaryTitleLinesLabel.className = "widget-panel-row widget-option-control";
   diaryTitleLinesLabel.dataset.mainMenuControl = "options.diary-title-lines";
-  diaryTitleLinesLabel.textContent = "Title Lines";
+  setControlTitle(diaryTitleLinesLabel, ["Title", "Lines"]);
   diaryTitleLinesSelect.dataset.widgetControl = "diary-title-lines";
   diaryTitleLinesSelect.setAttribute("aria-label", "Daily Diary title lines");
   [
@@ -4570,7 +4593,7 @@ function makePlannerItem(type = "sticker") {
   });
   timeIncrementLabel.className = "widget-panel-row widget-option-control";
   timeIncrementLabel.dataset.mainMenuControl = "options.time-increment";
-  timeIncrementLabel.textContent = "Increments";
+  setControlTitle(timeIncrementLabel, "Increments");
   timeIncrementSelect.dataset.widgetControl = "time-increment";
   timeIncrementSelect.setAttribute(
     "aria-label",
@@ -4589,12 +4612,12 @@ function makePlannerItem(type = "sticker") {
   });
   startTimeLabel.className = "widget-panel-row widget-option-control";
   startTimeLabel.dataset.mainMenuControl = "options.start-time";
-  startTimeLabel.textContent = "Start";
+  setControlTitle(startTimeLabel, "Start");
   startTimeSelect.dataset.widgetControl = "start-time";
   startTimeSelect.setAttribute("aria-label", "Schedule View start time");
   timeVisibleLabel.className = "widget-panel-row widget-option-control";
   timeVisibleLabel.dataset.mainMenuControl = "options.time-visible";
-  timeVisibleLabel.textContent = "Time Column";
+  setControlTitle(timeVisibleLabel, ["Time", "Column"]);
   timeVisibleInput.type = "checkbox";
   timeVisibleInput.checked = true;
   timeVisibleInput.dataset.widgetControl = "time-visible";
@@ -4603,7 +4626,7 @@ function makePlannerItem(type = "sticker") {
     "widget-panel-row widget-option-control";
   weeklyMonthYearVisibleLabel.dataset.mainMenuControl =
     "options.weekly-month-year-visible";
-  weeklyMonthYearVisibleLabel.textContent = "Show Month/Year";
+  setControlTitle(weeklyMonthYearVisibleLabel, ["Show", "Mo/Yr"]);
   weeklyMonthYearVisibleInput.type = "checkbox";
   weeklyMonthYearVisibleInput.checked = false;
   weeklyMonthYearVisibleInput.dataset.widgetControl =
@@ -4614,7 +4637,7 @@ function makePlannerItem(type = "sticker") {
   );
   timeFormatLabel.className = "widget-panel-row widget-option-control";
   timeFormatLabel.dataset.mainMenuControl = "options.time-format";
-  timeFormatLabel.textContent = "Format";
+  setControlTitle(timeFormatLabel, "Format");
   timeFormatSelect.dataset.widgetControl = "time-format";
   timeFormatSelect.setAttribute("aria-label", "Schedule View time format");
   [
@@ -4629,7 +4652,7 @@ function makePlannerItem(type = "sticker") {
   });
   shareWeekendsLabel.className = "widget-panel-row widget-option-control";
   shareWeekendsLabel.dataset.mainMenuControl = "options.share-weekends";
-  shareWeekendsLabel.textContent = "Share Weekends";
+  setControlTitle(shareWeekendsLabel, ["Share", "Weekends"]);
   shareWeekendsInput.type = "checkbox";
   shareWeekendsInput.dataset.widgetControl = "share-weekends";
   shareWeekendsInput.setAttribute(
@@ -4638,7 +4661,7 @@ function makePlannerItem(type = "sticker") {
   );
   weekNotesLabel.className = "widget-panel-row widget-option-control";
   weekNotesLabel.dataset.mainMenuControl = "options.week-notes";
-  weekNotesLabel.textContent = "Week Notes";
+  setControlTitle(weekNotesLabel, ["Week", "Notes"]);
   weekNotesSelect.dataset.widgetControl = "week-notes";
   weekNotesSelect.setAttribute("aria-label", "Week notes column");
   [
