@@ -504,7 +504,7 @@ window.applyMainMenuControlVisibility = applyMainMenuControlVisibility;
 
 // NOTE: Table Of Contents, And Page Ins/Rmv Rules
 function getClearPageSides() {
-     return PageControls.getClearPageSides({ viewFocusPoints, viewFocusIndex });
+     return PageControls.getClearPageSides();
 }
 
 function isStickerTextItemType(type) {

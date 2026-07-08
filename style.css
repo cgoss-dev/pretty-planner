@@ -4485,6 +4485,7 @@ body {
      width: 220px !important;
      inline-size: 220px !important;
      min-width: 220px !important;
+     font-family: var(--font-annotation-mono);
 }
 
 .widget-panel.is-popup-menu .widget-panel-tabs {
@@ -4500,6 +4501,7 @@ body {
 .item-actions-menu-title {
      padding: 0 0 4px;
      color: var(--color-gray1);
+     font-family: inherit;
      font-size: var(--font-size-md);
      line-height: 1;
      text-align: center;
@@ -4510,7 +4512,10 @@ body {
      padding: 0 0 8px;
      border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      color: var(--color-gray2);
-     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-sm);
+     font-style: normal;
+     font-weight: 400;
      line-height: 1;
      text-align: center;
 }
@@ -4546,7 +4551,10 @@ body {
 .item-actions-section-title {
      grid-column: 1 / -1;
      color: var(--color-gray2);
-     font: 700 var(--font-size-sm) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-sm);
+     font-style: normal;
+     font-weight: 700;
      line-height: 1;
      text-align: center;
 }
@@ -4585,7 +4593,10 @@ body {
      background: var(--menu-fill);
      color: var(--color-gray1);
      cursor: pointer;
-     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-sm);
+     font-style: normal;
+     font-weight: 400;
      line-height: 1.1;
      text-align: center;
 }
@@ -4638,7 +4649,10 @@ body {
      border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
      background: var(--color-white);
      color: var(--color-gray1);
-     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-sm);
+     font-style: normal;
+     font-weight: 400;
 }
 
 .widget-panel-button,
@@ -4690,7 +4704,10 @@ body {
      border-radius: 6px;
      background: rgba(255, 255, 255, 0.48);
      color: var(--color-gray1);
-     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-sm);
+     font-style: normal;
+     font-weight: 400;
 }
 
 .widget-panel-row select {
@@ -4738,7 +4755,10 @@ body {
 .widget-panel-field::before {
      content: attr(data-field-label);
      color: var(--color-gray1);
-     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-sm);
+     font-style: normal;
+     font-weight: 400;
      line-height: 1;
 }
 
@@ -4779,7 +4799,10 @@ body {
      background: rgba(255, 255, 255, 0.48);
      color: var(--color-gray1);
      cursor: pointer;
-     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-sm);
+     font-style: normal;
+     font-weight: 400;
      line-height: 1;
 }
 
@@ -4888,19 +4911,16 @@ body {
 
 .date-offset-stepper-button {
      width: var(--color-swatch-size);
-     min-width: var(--color-swatch-size);
-     max-width: var(--color-swatch-size);
      height: var(--color-swatch-size);
-     min-height: var(--color-swatch-size);
-     max-height: var(--color-swatch-size);
-     inline-size: var(--color-swatch-size);
-     block-size: var(--color-swatch-size);
      padding: 0;
      border: 1px solid var(--color-gray4);
      border-radius: 4px;
      background: rgba(255, 255, 255, 0.72);
      color: var(--color-gray1);
-     font: 600 var(--font-size-md) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-md);
+     font-style: normal;
+     font-weight: 600;
      line-height: 1;
      cursor: pointer;
 }
@@ -4925,7 +4945,10 @@ body {
      border-radius: 6px;
      background: rgba(255, 255, 255, 0.48);
      color: var(--color-gray1);
-     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-sm);
+     font-style: normal;
+     font-weight: 400;
      line-height: 1;
      text-align: center;
 }
@@ -4944,7 +4967,10 @@ body {
 
 .widget-option-group-title {
      color: var(--color-gray1);
-     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-sm);
+     font-style: normal;
+     font-weight: 400;
      line-height: 1.1;
 }
 
@@ -4998,7 +5024,10 @@ body {
      border-radius: 5px;
      background: rgba(255, 255, 255, 0.48);
      color: var(--color-gray1);
-     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-sm);
+     font-style: normal;
+     font-weight: 400;
      text-align: left;
      cursor: pointer;
 }
@@ -5081,7 +5110,10 @@ body {
 
 .text-panel-alignment-glyph {
      display: block;
-     font: 700 var(--font-size-md) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-md);
+     font-style: normal;
+     font-weight: 700;
      line-height: 1;
 }
 
@@ -5203,7 +5235,10 @@ body {
 .control-choice,
 .control-action-button,
 .widget-panel-button {
-     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-sm);
+     font-style: normal;
+     font-weight: 400;
      line-height: 1;
 }
 
@@ -5263,14 +5298,19 @@ body {
      border-radius: 0;
      background: transparent;
      color: var(--color-gray1);
-     font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-sm);
+     font-style: normal;
+     font-weight: 400;
      line-height: 1.1;
      text-align: center;
 }
 
 .planner-main-menu .keyboard-control-title {
-     font: 400 var(--menu-font-size-lg) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--menu-font-size-lg);
      font-style: normal;
+     font-weight: 400;
      line-height: 1;
 }
 
@@ -5285,7 +5325,10 @@ body {
      border: 0;
      background: transparent;
      color: var(--color-gray1);
-     font: 700 var(--font-size-sm) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--font-size-sm);
+     font-style: normal;
+     font-weight: 700;
      line-height: 1.1;
      text-align: center;
 }
@@ -5327,10 +5370,6 @@ body {
 
 .control-panel.is-open {
      transform: none;
-}
-
-.control-panel-title {
-     grid-column: 1 / -1;
 }
 
 .control-panel:not(.is-open) {
@@ -5529,6 +5568,7 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
      border-radius: 7px;
      background: rgba(255, 255, 255, 0.86);
      color: var(--color-gray1);
+     font-family: var(--font-annotation-mono);
      filter: drop-shadow(0 8px 12px rgba(17, 17, 17, 0.12));
      backdrop-filter: blur(8px);
      transition: width 160ms ease, filter 160ms ease, background-color 160ms ease;
@@ -5550,6 +5590,7 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
      padding: 4px;
      background: transparent;
      color: inherit;
+     font-family: inherit;
      font-size: var(--font-size-1x);
      font-style: normal;
      font-weight: 400;
@@ -5608,6 +5649,7 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
      transform: none;
      transition: none;
      backdrop-filter: none;
+     --active-controls-color: var(--color-white);
 }
 
 .planner-main-menu .hint-panel {
@@ -5620,31 +5662,7 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
      text-align: left;
 }
 
-.planner-main-menu .control-panel {
-     display: grid;
-}
-
 .planner-main-menu:not(.is-open) .control-panel {
-     display: none;
-}
-
-.planner-main-menu .control-panel.is-open,
-.planner-main-menu .control-panel:not(.is-open),
-body.is-single-page-viewport .planner-main-menu .control-panel,
-body.is-single-page-viewport .planner-main-menu .control-panel:not(.is-open) {
-     width: 100% !important;
-     inline-size: 100% !important;
-     min-width: 0 !important;
-     max-width: none !important;
-     height: 100% !important;
-     min-height: 0 !important;
-     max-height: none !important;
-     grid-template-columns: minmax(0, 1fr);
-     grid-template-rows: auto minmax(0, 1fr);
-     padding: 0;
-}
-
-.planner-main-menu .control-panel-title {
      display: none;
 }
 
@@ -5669,6 +5687,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-tabs {
      min-width: 0;
      min-height: 30px;
      padding: 4px;
+     font-family: inherit;
      grid-template-columns: minmax(0, 1fr);
 }
 
@@ -5782,11 +5801,21 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 .planner-main-menu .widget-panel-row {
      width: 100%;
      min-width: 0;
-     min-height: calc(var(--color-swatch-size) + 16px);
-     grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
+     min-height: var(--color-swatch-size);
+     grid-template-columns: 112px minmax(0, 1fr);
      align-items: center;
      gap: 8px;
-     padding: 7px 0;
+     padding: 0;
+}
+
+.planner-main-menu .widget-panel.is-docked .widget-panel-row,
+.planner-main-menu .widget-panel.is-docked .text-panel-format,
+.planner-main-menu .widget-panel.is-docked .color-panel-control,
+.planner-main-menu .widget-panel.is-docked .widget-option-control {
+     border: 0;
+     border-radius: 0;
+     background: transparent;
+     box-shadow: none;
 }
 
 .planner-main-menu .widget-panel-title {
@@ -5798,8 +5827,10 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
      padding: 0 0 6px;
      border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      color: var(--color-gray1);
-     font: 400 var(--menu-font-size-lg) var(--font-noto-sans-mono);
+     font-family: inherit;
+     font-size: var(--menu-font-size-lg);
      font-style: normal;
+     font-weight: 400;
      line-height: 1;
      text-align: center;
 }
@@ -5839,7 +5870,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 }
 
 .planner-main-menu .color-panel-control {
-     grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
+     grid-template-columns: 112px minmax(0, 1fr);
 }
 
 .planner-main-menu .color-panel-control .custom-select,
@@ -5855,16 +5886,8 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
      max-width: 100%;
 }
 
-.planner-main-menu .text-panel-settings-control {
-     min-height: 42px;
-}
-
-.planner-main-menu .text-panel-size-control {
-     min-height: 44px;
-}
-
 .planner-main-menu .text-panel-format {
-     grid-template-columns: minmax(76px, max-content) repeat(2, minmax(0, 96px));
+     grid-template-columns: 112px repeat(2, minmax(0, 1fr));
      align-items: center;
      justify-content: start;
 }
@@ -5875,9 +5898,8 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 }
 
 .planner-main-menu .text-panel-align-control {
-     grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
+     grid-template-columns: 112px minmax(0, 1fr);
      align-items: center;
-     min-height: calc((var(--color-swatch-size) * 6) + 30px);
 }
 
 .planner-main-menu .text-panel-alignment-grid {
@@ -5895,50 +5917,10 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
      gap: 8px;
 }
 
-.planner-main-menu .widget-panel.is-docked .text-panel > .widget-panel-row,
-.planner-main-menu .widget-panel.is-docked .widget-options-panel > .widget-panel-row,
-.planner-main-menu .widget-panel.is-docked .text-panel > .text-panel-format,
-.planner-main-menu .widget-panel.is-docked .widget-options-panel > .text-panel-format,
-.planner-main-menu .widget-panel.is-docked .text-panel > .color-panel-control,
-.planner-main-menu .widget-panel.is-docked .widget-options-panel > .color-panel-control,
-.planner-main-menu .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid > .widget-panel-row {
-     min-height: var(--color-swatch-size);
-     grid-template-columns: 112px minmax(0, 1fr);
-     align-items: center;
-     gap: 8px;
-     padding: 0;
-     border: 0;
-     border-radius: 0;
-     background: transparent;
-     box-shadow: none;
-}
-
-.planner-main-menu .widget-panel.is-docked .text-panel > .text-panel-format,
-.planner-main-menu .widget-panel.is-docked .widget-options-panel > .text-panel-format {
-     grid-template-columns: 112px repeat(2, minmax(0, 1fr));
-}
-
-.planner-main-menu .widget-panel.is-docked .text-panel > .text-panel-format .widget-panel-title,
-.planner-main-menu .widget-panel.is-docked .widget-options-panel > .text-panel-format .widget-panel-title {
-     grid-row: 1 / span 2;
-}
-
-.planner-main-menu .widget-panel.is-docked .widget-panel-row .custom-select,
-.planner-main-menu .widget-panel.is-docked .widget-panel-row .button-select,
-.planner-main-menu .widget-panel.is-docked .widget-panel-row .date-offset-stepper {
+.planner-main-menu .date-offset-stepper {
      grid-column: 2;
      justify-self: stretch;
      width: 100%;
-}
-
-.planner-main-menu .widget-panel.is-docked .text-panel > .color-panel-control,
-.planner-main-menu .widget-panel.is-docked .widget-options-panel > .color-panel-control {
-     grid-template-columns: 112px minmax(0, 1fr);
-}
-
-.planner-main-menu .widget-panel.is-docked .text-panel > .color-panel-control .color-panel-swatches,
-.planner-main-menu .widget-panel.is-docked .widget-options-panel > .color-panel-control .color-panel-swatches {
-     grid-column: 2;
 }
 
 .planner-main-menu .item-calendar-attributes-grid {
@@ -5949,26 +5931,16 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 }
 
 .planner-main-menu .item-calendar-attributes-grid .widget-option-control {
-     grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
+     grid-template-columns: 112px minmax(0, 1fr);
      align-items: center;
      gap: 8px;
-     min-height: calc(var(--color-swatch-size) + 22px);
-     padding: 9px 7px;
+     min-height: var(--color-swatch-size);
+     padding: 0;
      overflow: visible;
 }
 
 .planner-main-menu .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid {
      gap: 8px;
-}
-
-.planner-main-menu .widget-panel.is-docked .widget-options-panel > .item-calendar-attributes-grid > .widget-option-control {
-     min-height: var(--color-swatch-size);
-     grid-template-columns: 112px minmax(0, 1fr);
-     padding: 0;
-     border: 0;
-     border-radius: 0;
-     background: transparent;
-     box-shadow: none;
 }
 
 .planner-main-menu .item-calendar-attributes-grid .widget-option-control .custom-select,

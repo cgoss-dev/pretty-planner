@@ -308,25 +308,6 @@ function setSelectValue(select, value) {
      }
 }
 
-function normalizeStoredViewFocusIndex(value) {
-     if (value === "right") {
-          return 1;
-     }
-
-     if (value === "left") {
-          return 0;
-     }
-
-     const storedIndex = Number(value);
-
-     if (!Number.isFinite(storedIndex)) {
-          return 0;
-     }
-
-     // Previous saves used 0 = left, 1 = center, 2 = right.
-     return storedIndex >= 2 ? 1 : 0;
-}
-
 // NOTE: Stores user-facing controls separately from the current book so settings follow paper changes.
 function serializePlannerSettings() {
      return {
@@ -339,10 +320,7 @@ function serializePlannerSettings() {
           defaults: typeof serializePlannerDefaults === "function" ? serializePlannerDefaults() : null,
           guides: Object.fromEntries(guideInputs.map((input) => [input.dataset.guide, input.checked])),
           view: {
-               zoomIndex: viewZoomIndex,
-               focusIndex: viewFocusIndex,
-               focusSide: viewFocusPoints[viewFocusIndex],
-               verticalFocusIndex: viewVerticalFocusIndex
+               zoomIndex: viewZoomIndex
           }
      };
 }
@@ -377,8 +355,6 @@ function restorePlannerSettings(settings) {
      }
      if (settings.view && typeof settings.view === "object") {
           viewZoomIndex = clamp(Number(settings.view.zoomIndex) || 0, 0, viewZoomLevels.length - 1);
-          viewFocusIndex = normalizeStoredViewFocusIndex(settings.view.focusSide ?? settings.view.focusIndex);
-          viewVerticalFocusIndex = clamp(Number(settings.view.verticalFocusIndex) || 1, 0, viewVerticalFocusPoints.length - 1);
      }
 }
 
@@ -811,9 +787,6 @@ function restorePlannerBook(paperKey = plannerConfig.paperKey) {
           clearCurrentBookItems();
           setNotebookPageCount(getStoredPageCount(book));
           currentSpreadIndex = clamp(Number(book?.spread?.currentIndex) || 0, 0, notebookSpreadCount - 1);
-          if (!isPageSideAvailable(getFocusedPageSide())) {
-               viewFocusIndex = 0;
-          }
           if (book && Array.isArray(book.items)) {
                book.items.forEach((itemData) => {
                     try {
@@ -833,7 +806,6 @@ function restorePlannerBook(paperKey = plannerConfig.paperKey) {
           clearCurrentBookItems();
           setNotebookPageCount(initialNotebookPageCount);
           currentSpreadIndex = 0;
-          viewFocusIndex = 0;
      } finally {
           isRestoringPlannerState = false;
           syncNextGroupId();
