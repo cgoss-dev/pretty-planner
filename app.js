@@ -3915,7 +3915,6 @@ initializeCustomSelects();
 initializeNotebookControlSections();
 initializeControlSections(controlPanel);
 initializePalettePreview();
-ControlPanel.initializeMainMenuRowReorder();
 updateControlPanelSteps();
 updateObjectControlsState();
 updateControlPanelFocusState();

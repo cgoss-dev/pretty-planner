@@ -67,7 +67,9 @@ function populatePaletteSelect(select, selectedPalette = "tertiary") {
 }
 
 function getSwatchInk(color, allowWhite = true) {
-  return allowWhite && color.ink === "var(--color-white)"
+  const ink = color.ink || getReadableSwatchInk(color.value);
+
+  return allowWhite && ink === "var(--color-white)"
     ? "var(--color-white)"
     : "var(--color-gray1)";
 }
@@ -116,6 +118,85 @@ function getColorPanelPopupColors() {
 
 function getColorPanelUtilityColors() {
   return [getClearPaletteColor()].filter(Boolean);
+}
+
+function resolveCssColorToken(colorValue) {
+  const value = String(colorValue || "").trim();
+  const variableMatch = value.match(/^var\((--[^),\s]+)\)$/);
+
+  if (!variableMatch || typeof getComputedStyle !== "function") {
+    return value;
+  }
+
+  return (
+    getComputedStyle(document.documentElement)
+      .getPropertyValue(variableMatch[1])
+      .trim() || value
+  );
+}
+
+function getRgbFromColorValue(colorValue) {
+  const value = resolveCssColorToken(colorValue);
+  const shortHexMatch = value.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
+  const hexMatch = value.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i);
+  const rgbMatch = value.match(
+    /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i,
+  );
+
+  if (shortHexMatch) {
+    return shortHexMatch.slice(1).map((channel) => {
+      return Number.parseInt(`${channel}${channel}`, 16);
+    });
+  }
+
+  if (hexMatch) {
+    return hexMatch.slice(1).map((channel) => Number.parseInt(channel, 16));
+  }
+
+  if (rgbMatch) {
+    return rgbMatch.slice(1, 4).map((channel) => clampHexChannel(channel));
+  }
+
+  return null;
+}
+
+function getRgbFromColorMix(colorValue) {
+  const match = String(colorValue || "").match(
+    /^color-mix\(in srgb,\s*(.+?)\s+([\d.]+)%\s*,\s*(.+?)\s*\)$/i,
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const firstRgb = getRgbFromColorValue(match[1]);
+  const secondRgb = getRgbFromColorValue(match[3]);
+  const firstWeight = Math.max(0, Math.min(100, Number(match[2]))) / 100;
+
+  if (!firstRgb || !secondRgb || !Number.isFinite(firstWeight)) {
+    return null;
+  }
+
+  return firstRgb.map((channel, index) =>
+    Math.round(channel * firstWeight + secondRgb[index] * (1 - firstWeight)),
+  );
+}
+
+function getReadableSwatchInk(colorValue) {
+  if (!colorValue || colorValue === "transparent") {
+    return "var(--color-gray1)";
+  }
+
+  const rgb =
+    getRgbFromColorMix(colorValue) || getRgbFromColorValue(colorValue);
+
+  if (!rgb) {
+    return "var(--color-gray1)";
+  }
+
+  const luminance = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
+
+  return luminance < 128 ? "var(--color-white)" : "var(--color-gray1)";
 }
 
 function hexToAlphaColor(hexValue, alphaValue) {
@@ -1927,174 +2008,6 @@ function updateObjectControlsState() {
   }
 }
 
-let activeMainMenuReorderRow = null;
-let activeMainMenuReorderPointerId = null;
-
-function getMainMenuReorderRow(target) {
-  if (!target?.closest || !plannerMainMenu?.contains(target)) {
-    return null;
-  }
-
-  const row = target.closest(
-    ".widget-panel-row, .text-panel-format, .control-field, .palette-preview, .date-format-defaults, .date-order-control",
-  );
-
-  if (!row || row.closest(".add-panel") || row.matches("[data-create-item]")) {
-    return null;
-  }
-
-  return row;
-}
-
-function isMainMenuReorderInteractiveTarget(target) {
-  return Boolean(
-    target?.closest?.(
-      "button, input, select, textarea, [contenteditable='true'], .custom-select, .button-select, .date-offset-stepper, .color-panel-swatches, .text-panel-size-options, .calendar-size-options, .text-panel-alignment-grid, .control-choice-group, .date-order-picker",
-    ),
-  );
-}
-
-function isMainMenuReorderTitlePointer(row, target, event) {
-  const title =
-    target.closest?.(
-      ".widget-panel-title, .palette-preview-label, .keyboard-control-title",
-    ) ||
-    row.querySelector(
-      ":scope > .widget-panel-title, :scope > span, :scope > .palette-preview-label",
-    );
-
-  if (title) {
-    const rect = title.getBoundingClientRect();
-
-    if (
-      event.clientX >= rect.left &&
-      event.clientX <= rect.right &&
-      event.clientY >= rect.top &&
-      event.clientY <= rect.bottom
-    ) {
-      return true;
-    }
-  }
-
-  const rowRect = row.getBoundingClientRect();
-  const titleWidth = Math.min(118, Math.max(72, rowRect.width * 0.38));
-
-  return (
-    event.clientX >= rowRect.left && event.clientX <= rowRect.left + titleWidth
-  );
-}
-
-function clearMainMenuReorderState() {
-  if (activeMainMenuReorderRow) {
-    activeMainMenuReorderRow.classList.remove("is-main-menu-row-dragging");
-    delete activeMainMenuReorderRow.dataset.mainMenuReorderReady;
-  }
-  plannerMainMenu
-    ?.querySelectorAll(".is-main-menu-row-drop-target")
-    .forEach((row) => row.classList.remove("is-main-menu-row-drop-target"));
-  activeMainMenuReorderRow = null;
-  activeMainMenuReorderPointerId = null;
-}
-
-function moveMainMenuReorderRow(clientY) {
-  if (!activeMainMenuReorderRow?.parentElement) {
-    return;
-  }
-
-  const parent = activeMainMenuReorderRow.parentElement;
-  const rows = Array.from(parent.children).filter(
-    (child) =>
-      child !== activeMainMenuReorderRow &&
-      getMainMenuReorderRow(child) === child &&
-      !child.hidden,
-  );
-  const nextRow = rows.find((row) => {
-    const rect = row.getBoundingClientRect();
-
-    return clientY < rect.top + rect.height / 2;
-  });
-
-  rows.forEach((row) =>
-    row.classList.toggle("is-main-menu-row-drop-target", row === nextRow),
-  );
-  parent.insertBefore(activeMainMenuReorderRow, nextRow || null);
-}
-
-function initializeMainMenuRowReorder() {
-  if (
-    !plannerMainMenu ||
-    plannerMainMenu.dataset.mainMenuRowReorderReady === "true"
-  ) {
-    return;
-  }
-
-  plannerMainMenu.dataset.mainMenuRowReorderReady = "true";
-  plannerMainMenu.addEventListener(
-    "pointerdown",
-    (event) => {
-      const row = getMainMenuReorderRow(event.target);
-      const isTitlePointer = row
-        ? isMainMenuReorderTitlePointer(row, event.target, event)
-        : false;
-
-      if (
-        event.button !== 0 ||
-        !row ||
-        !isTitlePointer ||
-        (isMainMenuReorderInteractiveTarget(event.target) && !isTitlePointer)
-      ) {
-        return;
-      }
-
-      event.preventDefault();
-      activeMainMenuReorderRow = row;
-      activeMainMenuReorderPointerId = event.pointerId;
-      row.classList.add("is-main-menu-row-dragging");
-      row.dataset.mainMenuReorderReady = "true";
-    },
-    true,
-  );
-  document.addEventListener(
-    "pointermove",
-    (event) => {
-      if (
-        !activeMainMenuReorderRow ||
-        event.pointerId !== activeMainMenuReorderPointerId
-      ) {
-        return;
-      }
-
-      event.preventDefault();
-      moveMainMenuReorderRow(event.clientY);
-    },
-    true,
-  );
-  document.addEventListener(
-    "pointerup",
-    (event) => {
-      if (
-        activeMainMenuReorderRow &&
-        event.pointerId === activeMainMenuReorderPointerId
-      ) {
-        clearMainMenuReorderState();
-      }
-    },
-    true,
-  );
-  document.addEventListener(
-    "pointercancel",
-    (event) => {
-      if (
-        activeMainMenuReorderRow &&
-        event.pointerId === activeMainMenuReorderPointerId
-      ) {
-        clearMainMenuReorderState();
-      }
-    },
-    true,
-  );
-}
-
 function updateClipboardControls() {
   document
     .querySelectorAll("[data-clipboard-action='paste']")
@@ -2279,7 +2192,6 @@ const ControlPanel = {
   syncAllChoiceInputs: syncAllSettingChoiceInputs,
   syncChoiceInputs: syncSettingChoiceInputs,
   syncObjectControlsTab: syncObjectControlsTab,
-  initializeMainMenuRowReorder,
   updatePanelSteps: updateControlPanelSteps,
 };
 

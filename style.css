@@ -6300,40 +6300,6 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   text-align: center;
 }
 
-.planner-main-menu .widget-panel-row > .widget-panel-title,
-.planner-main-menu .text-panel-format > .widget-panel-title,
-.planner-main-menu .control-field > span:first-child,
-.planner-main-menu .palette-preview > .palette-preview-label,
-.planner-main-menu .date-format-defaults > span:first-child,
-.planner-main-menu .date-order-control > span:first-child {
-  cursor: grab;
-}
-
-.planner-main-menu .widget-panel.is-docked .text-panel > .widget-panel-row,
-.planner-main-menu
-  .widget-panel.is-docked
-  .widget-options-panel
-  > .widget-panel-row,
-.planner-main-menu
-  .widget-panel.is-docked
-  .widget-options-panel
-  > .item-calendar-attributes-grid
-  > .widget-panel-row,
-.planner-main-menu .widget-panel.is-docked .text-panel > .text-panel-format {
-  cursor: grab;
-}
-
-.planner-main-menu .is-main-menu-row-dragging {
-  opacity: 0.55;
-  cursor: grabbing;
-  user-select: none;
-}
-
-.planner-main-menu .is-main-menu-row-drop-target {
-  outline: var(--border-sm) dashed rgba(17, 17, 17, 0.28);
-  outline-offset: 2px;
-}
-
 .planner-main-menu .widget-panel-row .custom-select,
 .planner-main-menu .widget-panel-row .button-select {
   grid-column: 2;

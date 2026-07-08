@@ -3208,8 +3208,8 @@ function setCalendarWidgetSettings(item, settings = {}) {
     weekNotesSelect.value = item.dataset.weekNotes;
   }
 
-  if (typeof applySidebarControlVisibility === "function") {
-    applySidebarControlVisibility(item);
+  if (typeof applyMainMenuControlVisibility === "function") {
+    applyMainMenuControlVisibility(item);
   }
 
   const rebuiltSelects = new Set(
