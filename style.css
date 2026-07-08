@@ -70,14 +70,22 @@
   --font-sofia-sans-ec: "Sofia Sans Extra Condensed", sans-serif;
   --font-symbol:
     "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", sans-serif;
-  --font-size-1x: 7.5rem;
-  --font-size-lg: clamp(2rem, 2rem, 2rem);
-  --font-size-md: clamp(1.5rem, 1.5rem, 1.5rem);
-  --font-size-sm: clamp(1rem, 1rem, 1rem);
-  --color-swatch-size: 24px;
-  --palette-swatch-gap: 3px;
-  --palette-swatch-radius: 4px;
-  --palette-swatch-border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
+  --font-size-2x: 80px;
+  --font-size-1x: 60px;
+  --font-size-lg: 40px;
+  --font-size-md: 20px;
+  --font-size-sm: 10px;
+  --control-size: 24px;
+  --control-gap: 4px;
+  --control-radius: 4px;
+  --control-border-alpha: 0.2;
+  --control-padding-x: 6px;
+  --control-border: var(--border-sm) solid
+    rgba(17, 17, 17, var(--control-border-alpha));
+  --color-swatch-size: var(--control-size);
+  --palette-swatch-gap: var(--control-gap);
+  --palette-swatch-radius: var(--control-radius);
+  --palette-swatch-border: var(--control-border);
   --arrow-button-size: 42px;
   --arrow-font: var(--font-symbol);
   --arrow-font-size: var(--font-size-lg);
@@ -5063,7 +5071,7 @@ body {
 
 .widget-panel-button,
 .widget-panel-row {
-  border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
+  border: var(--control-border);
   background: var(--color-white);
   color: var(--color-gray1);
   font-family: inherit;
@@ -5074,8 +5082,8 @@ body {
 
 .widget-panel-button,
 .widget-panel-row {
-  min-height: var(--color-swatch-size);
-  border-radius: 6px;
+  min-height: var(--control-size);
+  border-radius: var(--control-radius);
 }
 
 .widget-panel-button {
@@ -5086,7 +5094,7 @@ body {
 .item-layer-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
+  gap: var(--control-gap);
 }
 
 .item-single-action-row {
@@ -5108,17 +5116,17 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 132px);
   align-items: end;
-  gap: 8px;
-  padding: 7px;
+  gap: var(--control-gap);
+  padding: var(--control-gap);
 }
 
 .widget-panel-row input,
 .widget-panel-row select {
   width: 100%;
   min-width: 0;
-  min-height: var(--color-swatch-size);
-  border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-  border-radius: 6px;
+  min-height: var(--control-size);
+  border: var(--control-border);
+  border-radius: var(--control-radius);
   background: rgba(255, 255, 255, 0.48);
   color: var(--color-gray1);
   font-family: inherit;
@@ -5147,12 +5155,12 @@ body {
 }
 
 .widget-panel-row .custom-select summary {
-  min-height: var(--color-swatch-size);
+  min-height: var(--control-size);
   font-size: var(--font-size-sm);
 }
 
 .widget-panel-row .custom-select-option {
-  min-height: var(--color-swatch-size);
+  min-height: var(--control-size);
   font-size: var(--font-size-sm);
 }
 
@@ -5167,7 +5175,7 @@ body {
 
 .widget-panel-field {
   display: grid;
-  gap: 3px;
+  gap: var(--control-gap);
   min-width: 0;
 }
 
@@ -5198,23 +5206,23 @@ body {
 .text-panel-size-options {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 3px;
+  gap: var(--control-gap);
 }
 
 .calendar-size-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 3px;
+  gap: var(--control-gap);
 }
 
 .text-panel-size-button,
 .calendar-size-button,
 .text-panel-alignment-button {
   min-width: 0;
-  min-height: var(--color-swatch-size);
-  padding: 3px;
-  border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-  border-radius: 5px;
+  min-height: var(--control-size);
+  padding: 0 var(--control-padding-x);
+  border: var(--control-border);
+  border-radius: var(--control-radius);
   background: rgba(255, 255, 255, 0.48);
   color: var(--color-gray1);
   cursor: pointer;
@@ -5315,7 +5323,7 @@ body {
   grid-column: auto;
   justify-self: stretch;
   width: 100%;
-  padding: 0 8px;
+  padding: 0 var(--control-padding-x);
   text-align: center;
   appearance: textfield;
   background: rgba(255, 255, 255, 0.48);
@@ -5323,21 +5331,19 @@ body {
 
 .date-offset-stepper {
   display: grid;
-  grid-template-columns: var(--color-swatch-size) minmax(0, 1fr) var(
-      --color-swatch-size
-    );
+  grid-template-columns: var(--control-size) minmax(0, 1fr) var(--control-size);
   align-items: center;
-  gap: 4px;
+  gap: var(--control-gap);
   width: 100%;
   min-width: 0;
 }
 
 .date-offset-stepper-button {
-  width: var(--color-swatch-size);
-  height: var(--color-swatch-size);
+  width: var(--control-size);
+  height: var(--control-size);
   padding: 0;
-  border: 1px solid var(--color-gray4);
-  border-radius: 4px;
+  border: var(--control-border);
+  border-radius: var(--control-radius);
   background: rgba(255, 255, 255, 0.72);
   color: var(--color-gray1);
   font-family: inherit;
@@ -5362,10 +5368,10 @@ body {
   display: grid;
   place-items: center;
   min-width: 0;
-  min-height: var(--color-swatch-size);
-  padding: 0 8px;
-  border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-  border-radius: 6px;
+  min-height: var(--control-size);
+  padding: 0 var(--control-padding-x);
+  border: var(--control-border);
+  border-radius: var(--control-radius);
   background: rgba(255, 255, 255, 0.48);
   color: var(--color-gray1);
   font-family: inherit;
@@ -5437,18 +5443,18 @@ body {
 .text-panel-format {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 4px;
-  padding: 7px;
+  gap: var(--control-gap);
+  padding: var(--control-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
-  border-radius: 6px;
+  border-radius: var(--control-radius);
   background: var(--color-white);
 }
 
 .text-panel-toggle {
-  min-height: var(--color-swatch-size);
-  padding: 3px 6px;
-  border: var(--border-sm) solid rgba(17, 17, 17, 0.22);
-  border-radius: 5px;
+  min-height: var(--control-size);
+  padding: 0 var(--control-padding-x);
+  border: var(--control-border);
+  border-radius: var(--control-radius);
   background: rgba(255, 255, 255, 0.48);
   color: var(--color-gray1);
   font-family: inherit;
@@ -5487,7 +5493,7 @@ body {
 .text-panel-align-control {
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: 5px;
+  gap: var(--control-gap);
   min-height: auto;
 }
 
@@ -5499,7 +5505,7 @@ body {
   display: grid;
   grid-template-columns: repeat(3, calc(var(--color-swatch-size) * 1.5));
   grid-template-rows: repeat(3, calc(var(--color-swatch-size) * 1.5));
-  gap: 3px;
+  gap: var(--control-gap);
   justify-content: center;
 }
 
@@ -5512,9 +5518,9 @@ body {
   min-height: calc(var(--color-swatch-size) * 1.5);
   height: calc(var(--color-swatch-size) * 1.5);
   max-height: calc(var(--color-swatch-size) * 1.5);
-  padding: 3px;
-  border: var(--palette-swatch-border);
-  border-radius: var(--palette-swatch-radius);
+  padding: 0;
+  border: var(--control-border);
+  border-radius: var(--control-radius);
 }
 
 .planner-desk button,
@@ -5522,17 +5528,17 @@ body {
 .widget-panel button,
 .button-select-option,
 .text-panel-alignment-button {
-  min-width: var(--color-swatch-size);
-  min-height: var(--color-swatch-size);
+  min-width: var(--control-size);
+  min-height: var(--control-size);
 }
 
 .planner-desk input[type="checkbox"],
 .control-panel input[type="checkbox"],
 .widget-panel input[type="checkbox"] {
-  width: var(--color-swatch-size);
-  min-width: var(--color-swatch-size);
-  height: var(--color-swatch-size);
-  min-height: var(--color-swatch-size);
+  width: var(--control-size);
+  min-width: var(--control-size);
+  height: var(--control-size);
+  min-height: var(--control-size);
 }
 
 .text-panel-alignment-glyph {
@@ -5651,9 +5657,9 @@ body {
 .control-action-button,
 .widget-panel-button,
 .keyboard-control-key {
-  min-height: var(--color-swatch-size);
-  border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
-  border-radius: 5px;
+  min-height: var(--control-size);
+  border: var(--control-border);
+  border-radius: var(--control-radius);
   background: var(--color-white);
   color: var(--color-gray1);
 }
@@ -6267,9 +6273,9 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   width: 100%;
   min-width: 0;
   min-height: var(--color-swatch-size);
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
+  gap: 0;
   padding: 0;
 }
 
@@ -6308,7 +6314,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 }
 
 .planner-main-menu .color-panel-control {
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
 }
 
 .planner-main-menu .color-panel-control .custom-select,
@@ -6325,8 +6331,9 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 }
 
 .planner-main-menu .text-panel-format {
-  grid-template-columns: 112px repeat(2, minmax(0, 1fr));
+  grid-template-columns: max-content repeat(2, minmax(0, 1fr));
   align-items: center;
+  column-gap: 0;
   justify-content: start;
 }
 
@@ -6336,8 +6343,9 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 }
 
 .planner-main-menu .text-panel-align-control {
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
+  gap: 0;
 }
 
 .planner-main-menu .text-panel-alignment-grid {
@@ -6369,9 +6377,9 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 }
 
 .planner-main-menu .item-calendar-attributes-grid .widget-option-control {
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
+  gap: 0;
   min-height: var(--color-swatch-size);
   padding: 0;
   overflow: visible;
@@ -6408,8 +6416,8 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   input[type="checkbox"] {
   grid-column: auto;
   justify-self: start;
-  width: var(--color-swatch-size);
-  height: var(--color-swatch-size);
+  width: var(--control-size);
+  height: var(--control-size);
 }
 
 @media (max-width: 760px) {
@@ -6463,12 +6471,12 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   .planner-main-menu .widget-panel-row,
   .planner-main-menu .color-panel-control,
   .planner-main-menu .text-panel-align-control {
-    grid-template-columns: minmax(70px, max-content) minmax(0, 1fr);
+    grid-template-columns: max-content minmax(0, 1fr);
   }
 
   .planner-main-menu .text-panel-format {
-    grid-template-columns: 70px repeat(2, minmax(0, 96px));
-    column-gap: 15px;
+    grid-template-columns: max-content repeat(2, minmax(0, 96px));
+    column-gap: 0;
     justify-content: start;
   }
 }
