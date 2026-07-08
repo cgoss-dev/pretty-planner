@@ -4135,10 +4135,10 @@ function makePlannerItem(type = "sticker") {
   textSizeGroup.setAttribute("aria-label", "Sticker text size");
   [
     ["10", "SM: 10px"],
-    ["25", "MD: 25px"],
-    ["50", "LG: 50px"],
-    ["75", "1X: 75px"],
-    ["100", "2X: 100px"],
+    ["15", "MD: 15px"],
+    ["25", "LG: 25px"],
+    ["50", "1X: 50px"],
+    ["75", "2X: 75px"],
   ].forEach(([value, label]) => {
     const button = document.createElement("button");
 
