@@ -2822,12 +2822,6 @@ function handleCancelKey(event) {
     return;
   }
 
-  if (document.querySelector(".widget-panel.is-floating")) {
-    closeItemMenus();
-    renderKeyHints();
-    return;
-  }
-
   if (stepBackWidgetFocus()) {
     return;
   }

@@ -75,18 +75,14 @@
   --font-size-lg: 40px;
   --font-size-md: 20px;
   --font-size-sm: 10px;
-  --control-size: 24px;
-  --control-gap: 4px;
-  --control-radius: 4px;
-  --control-border-alpha: 0.2;
-  --control-padding-x: 6px;
-  --control-border: var(--border-sm) solid
-    rgba(17, 17, 17, var(--control-border-alpha));
+  --menu-control-size: 24px;
+  --menu-gap: 4px;
+  --menu-radius: 4px;
+  --menu-border: var(--border-sm) solid rgba(17, 17, 17, 0.2);
   --menu-divider: var(--border-sm) solid var(--color-gray4);
-  --color-swatch-size: var(--control-size);
-  --palette-swatch-gap: var(--control-gap);
-  --palette-swatch-radius: var(--control-radius);
-  --palette-swatch-border: var(--control-border);
+  --main-menu-width: 320px;
+  --popup-menu-width: 220px;
+  --color-swatch-size: var(--menu-control-size);
   --arrow-button-size: 42px;
   --arrow-font: var(--font-symbol);
   --arrow-font-size: var(--font-size-lg);
@@ -174,10 +170,6 @@
   --page-left-shift: 0px;
   --page-right-shift: 0px;
   --menu-fill: rgba(255, 255, 255, 0.95);
-  --menu-width: clamp(250px, 30vw, 350px);
-  --menu-width-safe: min(var(--menu-width), calc(100vw - 32px));
-  --planner-main-menu-width: clamp(260px, 24vw, 340px);
-  --planner-main-menu-gap: 8px;
   --notebook-layout-width: 132vw;
 
   --notebook-width: 1220px;
@@ -376,7 +368,7 @@ body {
 
 .hint-coordinates {
   padding: 4px 6px;
-  border: var(--border-sm) solid var(--menu-border);
+  border: var(--menu-border);
   border-radius: 5px;
   background: var(--color-white);
   color: var(--color-gray1);
@@ -743,7 +735,7 @@ body {
 .keyboard-control-section {
   display: grid;
   position: relative;
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
   padding: 7px;
   border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
   border-radius: 6px;
@@ -803,14 +795,14 @@ body {
 .date-order-picker {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
 }
 
 .date-format-defaults {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: var(--control-gap) 0;
+  gap: var(--menu-gap) 0;
 }
 
 .date-format-defaults .control-choice-group {
@@ -822,7 +814,7 @@ body {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: var(--control-gap) 0;
+  gap: var(--menu-gap) 0;
 }
 
 .notebook-defaults-section .control-field > .control-choice-group,
@@ -1251,7 +1243,7 @@ body {
   height: var(--color-swatch-size);
   padding: 0;
   border: var(--arrow-border);
-  border-radius: var(--palette-swatch-radius);
+  border-radius: var(--menu-radius);
   background: var(--arrow-control-fill);
   color: var(--arrow-color);
   cursor: pointer;
@@ -1281,7 +1273,7 @@ body {
 .color-panel-swatches {
   display: grid;
   grid-template-columns: var(--color-swatch-size);
-  gap: var(--palette-swatch-gap);
+  gap: var(--menu-gap);
   justify-content: start;
   width: var(--color-swatch-size);
   max-width: 100%;
@@ -1310,7 +1302,7 @@ body {
   height: var(--color-swatch-size);
   padding: 0;
   border: var(--border-sm) solid transparent;
-  border-radius: var(--palette-swatch-radius);
+  border-radius: var(--menu-radius);
   background:
     linear-gradient(rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0.56))
       padding-box,
@@ -1342,7 +1334,7 @@ body {
   z-index: 300;
   display: grid;
   grid-template-columns: repeat(4, var(--color-swatch-size));
-  gap: var(--palette-swatch-gap);
+  gap: var(--menu-gap);
   width: max-content;
   padding: 7px;
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
@@ -1388,8 +1380,8 @@ body {
   height: var(--color-swatch-size);
   min-width: 0;
   padding: 0;
-  border: var(--palette-swatch-border);
-  border-radius: var(--palette-swatch-radius);
+  border: var(--menu-border);
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.56);
   color: var(--color-gray1);
   font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
@@ -1430,8 +1422,8 @@ body {
   min-width: 0;
   width: var(--color-swatch-size);
   height: var(--color-swatch-size);
-  border: var(--palette-swatch-border);
-  border-radius: var(--palette-swatch-radius);
+  border: var(--menu-border);
+  border-radius: var(--menu-radius);
   background: var(--swatch);
   color: var(--swatch-ink, var(--color-gray1));
   font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
@@ -1546,7 +1538,7 @@ body {
   grid-auto-flow: column;
   grid-template-columns: var(--matrix-label-width);
   grid-auto-columns: var(--color-swatch-size);
-  gap: var(--palette-swatch-gap);
+  gap: var(--menu-gap);
   justify-self: start;
   width: max-content;
 }
@@ -4856,9 +4848,6 @@ body {
   right: 0;
   top: 0;
   display: none;
-  width: var(--menu-width-safe) !important;
-  inline-size: var(--menu-width-safe) !important;
-  min-width: min(300px, calc(100vw - 32px)) !important;
   transform: translate(calc(100% + 8px), 0);
   padding: 0;
   border: 0;
@@ -4891,25 +4880,14 @@ body {
   margin-bottom: 2px;
 }
 
-.widget-panel.is-floating {
+.widget-panel.is-popup-menu {
   z-index: 45;
   right: auto;
-  width: var(--menu-width-safe) !important;
-  inline-size: var(--menu-width-safe) !important;
-  min-width: min(300px, calc(100vw - 32px)) !important;
   display: grid;
+  width: var(--popup-menu-width) !important;
+  inline-size: var(--popup-menu-width) !important;
+  min-width: var(--popup-menu-width) !important;
   transform: none;
-  cursor: grab;
-}
-
-.widget-panel.is-floating.is-dragging {
-  cursor: grabbing;
-}
-
-.widget-panel.is-popup-menu {
-  width: 220px !important;
-  inline-size: 220px !important;
-  min-width: 220px !important;
   font-family: var(--font-annotation-mono);
 }
 
@@ -4918,7 +4896,7 @@ body {
 }
 
 .widget-panel.is-popup-menu .widget-panel-page {
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
   padding: 6px;
   border-radius: 8px;
 }
@@ -4934,38 +4912,23 @@ body {
 
 .item-actions-widget-type {
   display: none;
-  padding: 0 0 8px;
-  border-bottom: var(--menu-divider);
-  color: var(--color-gray2);
-  font-family: inherit;
-  font-size: var(--font-size-sm);
-  font-style: normal;
-  font-weight: 400;
-  line-height: 1;
-  text-align: center;
 }
 
 .widget-panel.is-popup-menu .item-actions-widget-type {
   display: block;
 }
 
-.item-widget-action-group,
 .item-layout-action-group,
 .item-text-role-action-group {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
 }
 
 .item-layout-action-group,
 .item-text-role-action-group {
   padding-top: 12px;
   border-top: var(--menu-divider);
-}
-
-.widget-panel.is-popup-menu > .item-layout-action-group {
-  padding-top: 0;
-  border-top: 0;
 }
 
 .widget-panel.is-popup-menu > .item-text-role-action-group {
@@ -5076,7 +5039,7 @@ body {
 
 .widget-panel-button,
 .widget-panel-row {
-  border: var(--control-border);
+  border: var(--menu-border);
   background: var(--color-white);
   color: var(--color-gray1);
   font-family: inherit;
@@ -5087,8 +5050,8 @@ body {
 
 .widget-panel-button,
 .widget-panel-row {
-  min-height: var(--control-size);
-  border-radius: var(--control-radius);
+  min-height: var(--menu-control-size);
+  border-radius: var(--menu-radius);
 }
 
 .widget-panel-button {
@@ -5099,7 +5062,7 @@ body {
 .item-layer-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
 }
 
 .item-single-action-row {
@@ -5121,17 +5084,17 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 132px);
   align-items: end;
-  gap: var(--control-gap);
-  padding: var(--control-gap);
+  gap: var(--menu-gap);
+  padding: var(--menu-gap);
 }
 
 .widget-panel-row input,
 .widget-panel-row select {
   width: 100%;
   min-width: 0;
-  min-height: var(--control-size);
-  border: var(--control-border);
-  border-radius: var(--control-radius);
+  min-height: var(--menu-control-size);
+  border: var(--menu-border);
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.48);
   color: var(--color-gray1);
   font-family: inherit;
@@ -5160,12 +5123,12 @@ body {
 }
 
 .widget-panel-row .custom-select summary {
-  min-height: var(--control-size);
+  min-height: var(--menu-control-size);
   font-size: var(--font-size-sm);
 }
 
 .widget-panel-row .custom-select-option {
-  min-height: var(--control-size);
+  min-height: var(--menu-control-size);
   font-size: var(--font-size-sm);
 }
 
@@ -5180,7 +5143,7 @@ body {
 
 .widget-panel-field {
   display: grid;
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
   min-width: 0;
 }
 
@@ -5211,23 +5174,23 @@ body {
 .text-panel-size-options {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
 }
 
 .calendar-size-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
 }
 
 .text-panel-size-button,
 .calendar-size-button,
 .text-panel-alignment-button {
   min-width: 0;
-  min-height: var(--control-size);
-  padding: 0 var(--control-padding-x);
-  border: var(--control-border);
-  border-radius: var(--control-radius);
+  min-height: var(--menu-control-size);
+  padding: 0 6px;
+  border: var(--menu-border);
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.48);
   color: var(--color-gray1);
   cursor: pointer;
@@ -5328,7 +5291,7 @@ body {
   grid-column: auto;
   justify-self: stretch;
   width: 100%;
-  padding: 0 var(--control-padding-x);
+  padding: 0 6px;
   text-align: center;
   appearance: textfield;
   background: rgba(255, 255, 255, 0.48);
@@ -5336,19 +5299,21 @@ body {
 
 .date-offset-stepper {
   display: grid;
-  grid-template-columns: var(--control-size) minmax(0, 1fr) var(--control-size);
+  grid-template-columns: var(--menu-control-size) minmax(0, 1fr) var(
+      --menu-control-size
+    );
   align-items: center;
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
   width: 100%;
   min-width: 0;
 }
 
 .date-offset-stepper-button {
-  width: var(--control-size);
-  height: var(--control-size);
+  width: var(--menu-control-size);
+  height: var(--menu-control-size);
   padding: 0;
-  border: var(--control-border);
-  border-radius: var(--control-radius);
+  border: var(--menu-border);
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.72);
   color: var(--color-gray1);
   font-family: inherit;
@@ -5373,10 +5338,10 @@ body {
   display: grid;
   place-items: center;
   min-width: 0;
-  min-height: var(--control-size);
-  padding: 0 var(--control-padding-x);
-  border: var(--control-border);
-  border-radius: var(--control-radius);
+  min-height: var(--menu-control-size);
+  padding: 0 6px;
+  border: var(--menu-border);
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.48);
   color: var(--color-gray1);
   font-family: inherit;
@@ -5448,18 +5413,18 @@ body {
 .text-panel-format {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--control-gap);
-  padding: var(--control-gap);
+  gap: var(--menu-gap);
+  padding: var(--menu-gap);
   border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
-  border-radius: var(--control-radius);
+  border-radius: var(--menu-radius);
   background: var(--color-white);
 }
 
 .text-panel-toggle {
-  min-height: var(--control-size);
-  padding: 0 var(--control-padding-x);
-  border: var(--control-border);
-  border-radius: var(--control-radius);
+  min-height: var(--menu-control-size);
+  padding: 0 6px;
+  border: var(--menu-border);
+  border-radius: var(--menu-radius);
   background: rgba(255, 255, 255, 0.48);
   color: var(--color-gray1);
   font-family: inherit;
@@ -5498,7 +5463,7 @@ body {
 .text-panel-align-control {
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
   min-height: auto;
 }
 
@@ -5510,7 +5475,7 @@ body {
   display: grid;
   grid-template-columns: repeat(3, calc(var(--color-swatch-size) * 1.5));
   grid-template-rows: repeat(3, calc(var(--color-swatch-size) * 1.5));
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
   justify-content: center;
 }
 
@@ -5524,8 +5489,8 @@ body {
   height: calc(var(--color-swatch-size) * 1.5);
   max-height: calc(var(--color-swatch-size) * 1.5);
   padding: 0;
-  border: var(--control-border);
-  border-radius: var(--control-radius);
+  border: var(--menu-border);
+  border-radius: var(--menu-radius);
 }
 
 .planner-desk button,
@@ -5533,17 +5498,17 @@ body {
 .widget-panel button,
 .button-select-option,
 .text-panel-alignment-button {
-  min-width: var(--control-size);
-  min-height: var(--control-size);
+  min-width: var(--menu-control-size);
+  min-height: var(--menu-control-size);
 }
 
 .planner-desk input[type="checkbox"],
 .control-panel input[type="checkbox"],
 .widget-panel input[type="checkbox"] {
-  width: var(--control-size);
-  min-width: var(--control-size);
-  height: var(--control-size);
-  min-height: var(--control-size);
+  width: var(--menu-control-size);
+  min-width: var(--menu-control-size);
+  height: var(--menu-control-size);
+  min-height: var(--menu-control-size);
 }
 
 .text-panel-alignment-glyph {
@@ -5584,11 +5549,6 @@ body {
 .planner-item-perpetual-calendar.is-widget-panel-open .widget-option-control,
 .planner-item-weekly-view.is-widget-panel-open .widget-option-control,
 .planner-item-diary-view.is-widget-panel-open .widget-option-control,
-.widget-panel-mini-month.is-floating .widget-option-control,
-.widget-panel-full-month.is-floating .widget-option-control,
-.widget-panel-perpetual-calendar.is-floating .widget-option-control,
-.widget-panel-weekly-view.is-floating .widget-option-control,
-.widget-panel-diary-view.is-floating .widget-option-control,
 .widget-panel-mini-month.is-docked .widget-option-control,
 .widget-panel-full-month.is-docked .widget-option-control,
 .widget-panel-perpetual-calendar.is-docked .widget-option-control,
@@ -5630,7 +5590,7 @@ body {
 }
 
 .control-panel-page,
-.widget-panel.is-floating {
+.widget-panel.is-popup-menu {
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.82);
@@ -5644,7 +5604,7 @@ body {
   background: rgba(255, 255, 255, 0.82);
 }
 
-.widget-panel.is-floating {
+.widget-panel.is-popup-menu {
   gap: 4px;
   padding: 8px;
   box-shadow: none;
@@ -5662,9 +5622,9 @@ body {
 .control-action-button,
 .widget-panel-button,
 .keyboard-control-key {
-  min-height: var(--control-size);
-  border: var(--control-border);
-  border-radius: var(--control-radius);
+  min-height: var(--menu-control-size);
+  border: var(--menu-border);
+  border-radius: var(--menu-radius);
   background: var(--color-white);
   color: var(--color-gray1);
 }
@@ -5738,7 +5698,7 @@ body {
 .keyboard-control-title {
   padding: 0 0 6px;
   border: 0;
-  border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
+  border-bottom: var(--menu-divider);
   border-radius: 0;
   background: transparent;
   color: var(--color-gray1);
@@ -5758,11 +5718,6 @@ body {
   line-height: 1;
 }
 
-.widget-panel.is-popup-menu .item-actions-widget-type {
-  padding-bottom: 6px;
-  border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
-}
-
 .item-actions-section-title {
   justify-self: stretch;
   padding: 0;
@@ -5779,10 +5734,6 @@ body {
 
 .widget-panel-section-title {
   display: none;
-}
-
-.item-layout-action-group {
-  border-top-color: rgba(17, 17, 17, 0.18);
 }
 
 /* NOTE: Floating Control Panel With Side Tabs */
@@ -6010,8 +5961,8 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   align-content: start;
-  gap: var(--planner-main-menu-gap);
-  width: var(--planner-main-menu-width);
+  gap: calc(var(--menu-gap) * 2);
+  width: var(--main-menu-width);
   max-width: calc(100vw - 28px);
   padding: 8px;
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
@@ -6219,7 +6170,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   min-width: 0;
   max-height: none;
   overflow: visible;
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
   padding: 0;
 }
 
@@ -6230,7 +6181,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 
 .planner-main-menu .control-object-shell {
   align-content: start;
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
 }
 
 .planner-main-menu .control-object-shell .widget-panel-tabs {
@@ -6242,7 +6193,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   .widget-panel.is-docked
   .widget-panel-page:not([hidden]) {
   position: relative;
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
   padding: 7px;
   border: var(--border-sm) solid rgba(17, 17, 17, 0.14);
   border-radius: 6px;
@@ -6360,12 +6311,12 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 
 .planner-main-menu .widget-options-panel .widget-option-group {
   display: grid;
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
   max-height: none;
 }
 
 .planner-main-menu .widget-option-time-group {
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
 }
 
 .planner-main-menu .date-offset-stepper {
@@ -6377,7 +6328,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 .planner-main-menu .item-calendar-attributes-grid {
   grid-template-columns: minmax(0, 1fr);
   grid-auto-rows: minmax(calc(var(--color-swatch-size) + 22px), auto);
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
   max-height: none;
 }
 
@@ -6394,7 +6345,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   .widget-panel.is-docked
   .widget-options-panel
   > .item-calendar-attributes-grid {
-  gap: var(--control-gap);
+  gap: var(--menu-gap);
 }
 
 .planner-main-menu
@@ -6421,16 +6372,11 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   input[type="checkbox"] {
   grid-column: auto;
   justify-self: start;
-  width: var(--control-size);
-  height: var(--control-size);
+  width: var(--menu-control-size);
+  height: var(--menu-control-size);
 }
 
 @media (max-width: 760px) {
-  :root {
-    --planner-main-menu-width: min(360px, calc(100vw - 24px));
-    --planner-main-menu-gap: 6px;
-  }
-
   .planner-main-menu {
     position: fixed;
     top: auto;
@@ -6488,13 +6434,11 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 
 @media (min-width: 900px) {
   :root {
-    --notebook-layout-width: calc(
-      100vw - var(--planner-main-menu-width) - 56px
-    );
+    --notebook-layout-width: calc(100vw - var(--main-menu-width) - 56px);
   }
 
   .notebook-stage {
-    transform: translateX(calc((var(--planner-main-menu-width) + 28px) / 2));
+    transform: translateX(calc((var(--main-menu-width) + 28px) / 2));
   }
 }
 

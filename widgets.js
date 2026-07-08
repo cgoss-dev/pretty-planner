@@ -54,20 +54,16 @@ function normalizeIntegerEntryValue(value, fallbackValue = "0") {
   return String(Number.parseInt(sanitizedValue, 10) || 0);
 }
 
-function setStackedControlTitle(element, lines) {
-  element.textContent = "";
-  lines.forEach((line) => {
-    const titleLine = document.createElement("span");
-
-    titleLine.className = "control-title-line";
-    titleLine.textContent = line;
-    element.append(titleLine);
-  });
-}
-
 function setControlTitle(element, title) {
   if (Array.isArray(title)) {
-    setStackedControlTitle(element, title);
+    element.textContent = "";
+    title.forEach((line) => {
+      const titleLine = document.createElement("span");
+
+      titleLine.className = "control-title-line";
+      titleLine.textContent = line;
+      element.append(titleLine);
+    });
     return;
   }
 
@@ -1071,7 +1067,6 @@ function refreshPageItemViews() {
       if (isCalendarItem(item)) {
         applyCalendarPartStyles(item);
       }
-      positionWidgetPanel(item);
     }
   });
 }
@@ -1896,36 +1891,6 @@ function updatePopupMenuTypeLabel(controls, items) {
   }
 }
 
-function positionWidgetPanel(item) {
-  const controls = getWidgetPanel(item);
-
-  if (!controls || !controls.classList.contains("is-floating")) {
-    return;
-  }
-
-  if (controls.classList.contains("is-popup-menu")) {
-    return;
-  }
-
-  const itemRect = item.getBoundingClientRect();
-  const deskRect = plannerDesk.getBoundingClientRect();
-  const menuWidth = controls.offsetWidth || 148;
-  const menuHeight = controls.offsetHeight || 0;
-  const gap = 8;
-  const preferRight = itemRect.right + gap + menuWidth <= deskRect.right;
-  const left = preferRight
-    ? itemRect.right - deskRect.left + gap
-    : itemRect.left - deskRect.left - menuWidth - gap;
-  const top = clamp(
-    itemRect.top - deskRect.top,
-    gap,
-    Math.max(gap, deskRect.height - menuHeight - gap),
-  );
-
-  controls.style.left = `${Math.max(gap, left)}px`;
-  controls.style.top = `${top}px`;
-}
-
 function positionItemPopupMenu(controls, event) {
   const deskRect = plannerDesk.getBoundingClientRect();
   const gap = 8;
@@ -1944,67 +1909,6 @@ function positionItemPopupMenu(controls, event) {
 
   controls.style.left = `${x}px`;
   controls.style.top = `${y}px`;
-}
-
-function getFloatingControlsBox(controls) {
-  const deskRect = plannerDesk.getBoundingClientRect();
-  const rect = controls.getBoundingClientRect();
-
-  return {
-    x: rect.left - deskRect.left,
-    y: rect.top - deskRect.top,
-    width: rect.width,
-    height: rect.height,
-  };
-}
-
-function setFloatingControlsBox(controls, box) {
-  controls.style.left = `${box.x}px`;
-  controls.style.top = `${box.y}px`;
-}
-
-function getMovedFloatingControlsBox(clientX, clientY) {
-  const deskRect = plannerDesk.getBoundingClientRect();
-  const current = activeAction.box;
-  const rawX = clientX - deskRect.left - activeAction.offsetX;
-  const rawY = clientY - deskRect.top - activeAction.offsetY;
-  const gap = 8;
-
-  return {
-    ...current,
-    x: clamp(rawX, gap, Math.max(gap, deskRect.width - current.width - gap)),
-    y: clamp(rawY, gap, Math.max(gap, deskRect.height - current.height - gap)),
-  };
-}
-
-function startFloatingControlsMove(controls, event) {
-  if (
-    activeAction ||
-    event.button !== 0 ||
-    !controls.classList.contains("is-floating") ||
-    event.target.closest(
-      "button, input, select, textarea, [contenteditable='true'], .custom-select",
-    )
-  ) {
-    return;
-  }
-
-  const box = getFloatingControlsBox(controls);
-
-  activeAction = {
-    type: "pending-controls-move",
-    controls,
-    box,
-    startX: event.clientX,
-    startY: event.clientY,
-    offsetX: event.clientX - controls.getBoundingClientRect().left,
-    offsetY: event.clientY - controls.getBoundingClientRect().top,
-    didMove: false,
-  };
-
-  try {
-    controls.setPointerCapture(event.pointerId);
-  } catch {}
 }
 
 function getSelectedOrGroupedActionItems(item) {
@@ -2071,7 +1975,7 @@ function openItemMenu(item) {
   closeItemMenus();
   objectControlsShell.append(controls);
   setControlsActionItems(controls, actionItems);
-  controls.classList.remove("is-floating", "is-popup-menu");
+  controls.classList.remove("is-popup-menu");
   controls.classList.add("is-docked");
   setWidgetPanelTab(controls, "text");
   item.classList.add("is-widget-panel-open");
@@ -2437,7 +2341,6 @@ function openItemPopupMenu(
   const popupTitle = document.createElement("div");
   const widgetType = document.createElement("div");
   const textGroup = document.createElement("div");
-  const layoutGroup = document.createElement("div");
   const duplicateGroup = document.createElement("div");
   const layerGroup = document.createElement("div");
   const textTarget = getWidgetTextPopupMenuTarget(item, event);
@@ -2474,7 +2377,7 @@ function openItemPopupMenu(
     closeWidgetPopupMenus();
   };
 
-  popup.className = "widget-popup-menu widget-panel is-floating is-popup-menu";
+  popup.className = "widget-popup-menu widget-panel is-popup-menu";
   popup.dataset.ownerId = item.dataset.templateId;
   popup.setAttribute("role", "menu");
   popupTitle.className = "item-actions-menu-title title";
@@ -2482,7 +2385,6 @@ function openItemPopupMenu(
   widgetType.className = "item-actions-widget-type subtitle";
   widgetType.textContent = getActionItemsTypeLabel(actionItems);
   textGroup.className = "item-text-role-action-group";
-  layoutGroup.className = "item-action-row item-layout-action-group";
   duplicateGroup.className = "item-action-row";
   const groupAction = document.createElement("div");
 
@@ -2572,7 +2474,7 @@ function closeItemMenu(item) {
 
   closeCustomSelects(controls);
   clearSelectFocus(controls);
-  controls.classList.remove("is-floating", "is-docked", "is-popup-menu");
+  controls.classList.remove("is-docked", "is-popup-menu");
   controls.removeAttribute("style");
   clearControlsActionItems(controls);
   item.append(controls);
@@ -2697,15 +2599,6 @@ function closeFloatingWidgetPanelsFromOutsidePointer(event) {
   }
 
   closeWidgetPopupMenus();
-  document
-    .querySelectorAll(".planner-item.is-widget-panel-open")
-    .forEach((item) => {
-      const controls = getWidgetPanel(item);
-
-      if (controls?.classList.contains("is-floating")) {
-        closeItemMenu(item);
-      }
-    });
 }
 
 function syncSelectionToActionItems(items, preferredItem = null) {
@@ -5159,18 +5052,7 @@ function makePlannerItem(type = "sticker") {
     updateGroupButton(groupButton, actionItems);
     openItemPopupMenu(item, event, actionItems);
   });
-  controls.addEventListener("pointerdown", (event) => {
-    startFloatingControlsMove(controls, event);
-    event.stopPropagation();
-  });
   controls.addEventListener("click", (event) => {
-    if (controls.dataset.skipNextClick === "true") {
-      delete controls.dataset.skipNextClick;
-      event.preventDefault();
-      event.stopPropagation();
-      return;
-    }
-
     event.stopPropagation();
   });
   controls.addEventListener("keydown", handleWidgetPanelButtonKey);
@@ -6398,29 +6280,6 @@ function moveActiveItem(event) {
     return;
   }
 
-  if (activeAction.type === "pending-controls-move") {
-    const deltaX = event.clientX - activeAction.startX;
-    const deltaY = event.clientY - activeAction.startY;
-
-    if (Math.hypot(deltaX, deltaY) < moveStartThreshold) {
-      return;
-    }
-
-    event.preventDefault();
-    activeAction.type = "controls-move";
-    activeAction.didMove = true;
-    activeAction.controls.classList.add("is-dragging");
-  }
-
-  if (activeAction.type === "controls-move") {
-    activeAction.didMove = true;
-    setFloatingControlsBox(
-      activeAction.controls,
-      getMovedFloatingControlsBox(event.clientX, event.clientY),
-    );
-    return;
-  }
-
   if (activeAction.type === "select") {
     updateMarqueeSelection(
       setMarqueeBox(
@@ -6576,22 +6435,6 @@ function endActiveItem(event) {
     }
 
     controlPanel.classList.remove("is-dragging", "is-resizing");
-    activeAction = null;
-    return;
-  }
-
-  if (
-    activeAction.type === "pending-controls-move" ||
-    activeAction.type === "controls-move"
-  ) {
-    try {
-      activeAction.controls.releasePointerCapture(event.pointerId);
-    } catch {}
-
-    activeAction.controls.classList.remove("is-dragging");
-    if (activeAction.didMove) {
-      activeAction.controls.dataset.skipNextClick = "true";
-    }
     activeAction = null;
     return;
   }
