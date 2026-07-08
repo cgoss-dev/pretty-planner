@@ -55,19 +55,32 @@ function normalizeIntegerEntryValue(value, fallbackValue = "0") {
 }
 
 function setControlTitle(element, title) {
+  const shouldWrapTitle =
+    element.classList.contains("widget-panel-row") ||
+    element.classList.contains("item-calendar-display-control");
+  const titleElement = shouldWrapTitle
+    ? document.createElement("span")
+    : element;
+
+  element.textContent = "";
+
+  if (shouldWrapTitle) {
+    titleElement.className = "widget-panel-title";
+    element.append(titleElement);
+  }
+
   if (Array.isArray(title)) {
-    element.textContent = "";
     title.forEach((line) => {
       const titleLine = document.createElement("span");
 
       titleLine.className = "control-title-line";
       titleLine.textContent = line;
-      element.append(titleLine);
+      titleElement.append(titleLine);
     });
     return;
   }
 
-  element.textContent = title;
+  titleElement.textContent = title;
 }
 
 function getThemeFillValue(theme, fillSlot) {
@@ -3782,6 +3795,7 @@ function makePlannerItem(type = "sticker") {
   const textTocInput = document.createElement("input");
   const textFormatGroup = document.createElement("div");
   const textFormatTitle = document.createElement("span");
+  const textFormatOptions = document.createElement("div");
   const textBoldInput = document.createElement("button");
   const textItalicInput = document.createElement("button");
   const textUnderlineInput = document.createElement("button");
@@ -4184,6 +4198,7 @@ function makePlannerItem(type = "sticker") {
   textFormatGroup.dataset.mainMenuControl = "text.style";
   textFormatTitle.className = "widget-panel-title";
   setControlTitle(textFormatTitle, ["Text", "Style"]);
+  textFormatOptions.className = "text-panel-style-options";
   textBoldInput.className = "text-panel-toggle text-panel-toggle-bold";
   textBoldInput.type = "button";
   textBoldInput.textContent = "Bold";
@@ -4592,13 +4607,13 @@ function makePlannerItem(type = "sticker") {
   textSizeLabel.append(textSizeTitle, textSizeGroup);
   textColorLabel.append(textColorTitle, textColorInput, textColorSwatches);
   textTocLabel.append(textTocInput);
-  textFormatGroup.append(
-    textFormatTitle,
+  textFormatOptions.append(
     textBoldInput,
     textItalicInput,
     textUnderlineInput,
     textStrikeInput,
   );
+  textFormatGroup.append(textFormatTitle, textFormatOptions);
   textAlignLabel.append(textAlignTitle, textAlignmentGrid);
   textLineHeightLabel.append(textLineHeightSelect);
   textPanel.append(

@@ -770,7 +770,7 @@ body {
   background: transparent;
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 0;
+  gap: var(--menu-gap);
 }
 
 .dates-defaults-section .widget-panel-title {
@@ -789,7 +789,7 @@ body {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 0;
+  gap: var(--menu-gap);
 }
 
 .date-order-picker {
@@ -802,7 +802,7 @@ body {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: var(--menu-gap) 0;
+  gap: var(--menu-gap);
 }
 
 .date-format-defaults .control-choice-group {
@@ -814,7 +814,7 @@ body {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: var(--menu-gap) 0;
+  gap: var(--menu-gap);
 }
 
 .notebook-defaults-section .control-field > .control-choice-group,
@@ -942,7 +942,7 @@ body {
 .guide-controls {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
+  gap: var(--menu-gap);
 }
 
 .control-choice-group[aria-label="Desk"] {
@@ -955,7 +955,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: var(--menu-gap);
   padding: 3px 6px;
   border: var(--border-sm) solid rgba(17, 17, 17, 0.18);
   border-radius: 6px;
@@ -1222,7 +1222,7 @@ body {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 0;
+  gap: var(--menu-gap);
 }
 
 .palette-preview-label,
@@ -5177,6 +5177,12 @@ body {
   gap: var(--menu-gap);
 }
 
+.text-panel-style-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--menu-gap);
+}
+
 .calendar-size-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5961,7 +5967,7 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   align-content: start;
-  gap: calc(var(--menu-gap) * 2);
+  gap: var(--menu-gap);
   width: var(--main-menu-width);
   max-width: calc(100vw - 28px);
   padding: 8px;
@@ -6231,7 +6237,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   min-height: var(--color-swatch-size);
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 0;
+  gap: var(--menu-gap);
   padding: 0;
 }
 
@@ -6287,21 +6293,20 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 }
 
 .planner-main-menu .text-panel-format {
-  grid-template-columns: max-content repeat(2, minmax(0, 1fr));
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  column-gap: 0;
+  gap: var(--menu-gap);
   justify-content: start;
 }
 
-.planner-main-menu .text-panel-format .widget-panel-title {
-  grid-row: 1 / span 2;
-  align-self: center;
+.planner-main-menu .text-panel-style-options {
+  grid-column: 2;
 }
 
 .planner-main-menu .text-panel-align-control {
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 0;
+  gap: var(--menu-gap);
 }
 
 .planner-main-menu .text-panel-alignment-grid {
@@ -6335,7 +6340,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 .planner-main-menu .item-calendar-attributes-grid .widget-option-control {
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  gap: 0;
+  gap: var(--menu-gap);
   min-height: var(--color-swatch-size);
   padding: 0;
   overflow: visible;
@@ -6426,8 +6431,8 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   }
 
   .planner-main-menu .text-panel-format {
-    grid-template-columns: max-content repeat(2, minmax(0, 96px));
-    column-gap: 0;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: var(--menu-gap);
     justify-content: start;
   }
 }
