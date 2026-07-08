@@ -67,7 +67,6 @@
      --font-sofia-sans-ec: "Sofia Sans Extra Condensed", sans-serif;
      --font-symbol: "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", sans-serif;
      --font-size-1x: 7.5rem;
-     --menu-font-size-lg: 5rem;
      --font-size-lg: clamp(2rem, 2rem, 2rem);
      --font-size-md: clamp(1.5rem, 1.5rem, 1.5rem);
      --font-size-sm: clamp(1rem, 1rem, 1rem);
@@ -5308,7 +5307,7 @@ body {
 
 .planner-main-menu .keyboard-control-title {
      font-family: inherit;
-     font-size: var(--menu-font-size-lg);
+     font-size: var(--font-size-md);
      font-style: normal;
      font-weight: 400;
      line-height: 1;
@@ -5591,7 +5590,7 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
      background: transparent;
      color: inherit;
      font-family: inherit;
-     font-size: var(--font-size-1x);
+     font-size: var(--font-size-lg);
      font-style: normal;
      font-weight: 400;
      line-height: 1;
@@ -5828,7 +5827,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
      border-bottom: var(--border-sm) solid rgba(17, 17, 17, 0.18);
      color: var(--color-gray1);
      font-family: inherit;
-     font-size: var(--menu-font-size-lg);
+     font-size: var(--font-size-md);
      font-style: normal;
      font-weight: 400;
      line-height: 1;
