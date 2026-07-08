@@ -2879,8 +2879,7 @@ body {
   vector-effect: non-scaling-stroke;
 }
 
-.planner-item-sticker[data-has-clear-fill="true"],
-.planner-item-sticker[data-has-clear-fill="true"][data-dot-grid="true"] {
+.planner-item-sticker[data-has-clear-fill="true"] {
   background: transparent;
 }
 
@@ -2901,38 +2900,6 @@ body {
   overflow: visible;
   border-color: transparent;
   background: transparent;
-}
-
-.planner-item-sticker[data-dot-grid="true"] {
-  background:
-    radial-gradient(
-      circle at 1px 1px,
-      var(--dot-grid-color) 0 1px,
-      transparent 1.35px
-    ),
-    var(--widget-box-fill);
-  background-position:
-    calc(
-        var(--sticker-dot-grid-offset-x, 0px) +
-          var(
-            --sticker-dot-grid-size-x,
-            calc(100% / var(--sticker-grid-units))
-          ) -
-          1px
-      )
-      calc(
-        var(--sticker-dot-grid-offset-y, 0px) +
-          var(
-            --sticker-dot-grid-size-y,
-            calc(100% / var(--sticker-grid-units))
-          ) -
-          1px
-      ),
-    0 0;
-  background-size:
-    var(--sticker-dot-grid-size-x, calc(100% / var(--sticker-grid-units)))
-      var(--sticker-dot-grid-size-y, calc(100% / var(--sticker-grid-units))),
-    auto;
 }
 
 .sticker-text {

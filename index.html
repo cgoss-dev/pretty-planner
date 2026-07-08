@@ -10,7 +10,7 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;600&family=Bungee&family=Bungee+Outline&family=Bungee+Shade&family=Dancing+Script:wght@400..700&family=Caveat:wght@400..700&family=Miltonian&family=Permanent+Marker&family=Rock+Salt&family=Sedgwick+Ave+Display&family=Sofia+Sans+Extra+Condensed:ital,wght@0,1..1000;1,1..1000&display=swap"
     />
-    <link rel="stylesheet" href="style.css?v=planner-storage-530" />
+    <link rel="stylesheet" href="style.css?v=planner-storage-531" />
   </head>
   <body>
     <main class="planner-desk">
@@ -151,6 +151,55 @@
               class="keyboard-control-section defaults-section notebook-defaults-section"
             >
               <div class="keyboard-control-title">Pages</div>
+              <div class="palette-preview" aria-label="Accent color preview">
+                <span class="palette-preview-label">
+                  <span class="control-title-line">Accent</span>
+                  <span class="control-title-line">Color</span>
+                </span>
+                <select
+                  class="accent-color-select"
+                  data-setting="accent-color"
+                  aria-label="Accent color"
+                >
+                  <option value="Red" selected>Red</option>
+                  <option value="Orange">Orange</option>
+                  <option value="Amber">Amber</option>
+                  <option value="Gold">Gold</option>
+                  <option value="Yellow">Yellow</option>
+                  <option value="Lime">Lime</option>
+                  <option value="Green">Green</option>
+                  <option value="Sky">Sky</option>
+                  <option value="Blue">Blue</option>
+                  <option value="Violet">Violet</option>
+                  <option value="Purple">Purple</option>
+                  <option value="Magenta">Magenta</option>
+                  <option value="Custom">Custom</option>
+                </select>
+                <div
+                  class="palette-swatches"
+                  data-accent-palette-swatches
+                ></div>
+              </div>
+
+              <div class="palette-preview" aria-label="Palette preview">
+                <span class="palette-preview-label">
+                  <span class="control-title-line">Paper</span>
+                  <span class="control-title-line">Color</span>
+                </span>
+                <select
+                  class="paper-color-select"
+                  data-setting="paper-color"
+                  aria-label="Paper color"
+                >
+                  <option value="White" selected>White</option>
+                  <option value="Custom">Custom</option>
+                </select>
+                <div
+                  class="palette-swatches"
+                  data-palette-preview-swatches
+                ></div>
+              </div>
+
               <div class="control-field">
                 <span>Guides</span>
                 <div class="guide-controls">
@@ -265,55 +314,6 @@
                 </div>
               </div>
 
-              <div class="palette-preview" aria-label="Palette preview">
-                <span class="palette-preview-label">
-                  <span class="control-title-line">Paper</span>
-                  <span class="control-title-line">Color</span>
-                </span>
-                <select
-                  class="paper-color-select"
-                  data-setting="paper-color"
-                  aria-label="Paper color"
-                >
-                  <option value="White" selected>White</option>
-                  <option value="Custom">Custom</option>
-                </select>
-                <div
-                  class="palette-swatches"
-                  data-palette-preview-swatches
-                ></div>
-              </div>
-
-              <div class="palette-preview" aria-label="Accent color preview">
-                <span class="palette-preview-label">
-                  <span class="control-title-line">Accent</span>
-                  <span class="control-title-line">Color</span>
-                </span>
-                <select
-                  class="accent-color-select"
-                  data-setting="accent-color"
-                  aria-label="Accent color"
-                >
-                  <option value="Red" selected>Red</option>
-                  <option value="Orange">Orange</option>
-                  <option value="Amber">Amber</option>
-                  <option value="Gold">Gold</option>
-                  <option value="Yellow">Yellow</option>
-                  <option value="Lime">Lime</option>
-                  <option value="Green">Green</option>
-                  <option value="Sky">Sky</option>
-                  <option value="Blue">Blue</option>
-                  <option value="Violet">Violet</option>
-                  <option value="Purple">Purple</option>
-                  <option value="Magenta">Magenta</option>
-                  <option value="Custom">Custom</option>
-                </select>
-                <div
-                  class="palette-swatches"
-                  data-accent-palette-swatches
-                ></div>
-              </div>
-
               <div class="page-panel-actions">
                 <button
                   class="control-action-button"
@@ -354,20 +354,17 @@
               class="keyboard-control-section defaults-section dates-defaults-section"
             >
               <div class="keyboard-control-title">Dates</div>
-              <label class="widget-panel-row text-panel-control">
+              <div class="date-order-control">
                 <span class="widget-panel-title">
-                  <span class="control-title-line">Week</span>
-                  <span class="control-title-line">Start</span>
+                  <span class="control-title-line">Date</span>
+                  <span class="control-title-line">Order</span>
                 </span>
-                <select
-                  class="native-select"
-                  data-default-control="date-week-start"
-                  aria-label="Default calendar week start"
-                >
-                  <option value="monday" selected>Monday</option>
-                  <option value="sunday">Sunday</option>
-                </select>
-              </label>
+                <div
+                  class="date-order-picker"
+                  data-date-order-picker
+                  aria-label="Default date order"
+                ></div>
+              </div>
               <label class="widget-panel-row text-panel-control">
                 <span class="widget-panel-title">
                   <span class="control-title-line">Time</span>
@@ -382,17 +379,20 @@
                   <option value="24" selected>24hr</option>
                 </select>
               </label>
-              <div class="date-order-control">
+              <label class="widget-panel-row text-panel-control">
                 <span class="widget-panel-title">
-                  <span class="control-title-line">Date</span>
-                  <span class="control-title-line">Order</span>
+                  <span class="control-title-line">Week</span>
+                  <span class="control-title-line">Start</span>
                 </span>
-                <div
-                  class="date-order-picker"
-                  data-date-order-picker
-                  aria-label="Default date order"
-                ></div>
-              </div>
+                <select
+                  class="native-select"
+                  data-default-control="date-week-start"
+                  aria-label="Default calendar week start"
+                >
+                  <option value="monday" selected>Monday</option>
+                  <option value="sunday">Sunday</option>
+                </select>
+              </label>
               <div class="date-format-defaults">
                 <span class="widget-panel-title">Year</span>
                 <div
@@ -661,12 +661,12 @@
       </div>
     </main>
 
-    <script src="config.js?v=planner-storage-217"></script>
+    <script src="config.js?v=planner-storage-218"></script>
     <script src="ui.js?v=planner-storage-242"></script>
     <script src="widgets-calendars.js?v=planner-storage-106"></script>
-    <script src="widgets.js?v=planner-storage-413"></script>
-    <script src="storage.js?v=planner-storage-61"></script>
+    <script src="widgets.js?v=planner-storage-415"></script>
+    <script src="storage.js?v=planner-storage-62"></script>
     <script src="controls.js?v=planner-storage-215"></script>
-    <script src="app.js?v=planner-storage-311"></script>
+    <script src="app.js?v=planner-storage-312"></script>
   </body>
 </html>

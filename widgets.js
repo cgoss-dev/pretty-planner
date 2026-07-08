@@ -551,7 +551,6 @@ function setItemStyle(item, style) {
     style.borderWidth || item.dataset.borderWidth || "1";
   item.dataset.borderEnabled =
     style.borderEnabled || item.dataset.borderEnabled || "true";
-  item.dataset.dotGrid = style.dotGrid || item.dataset.dotGrid || "false";
   const hasClearFill = item.dataset.fillColor === "transparent";
   const hasClearBorder = item.dataset.borderEnabled !== "true";
 
@@ -589,10 +588,6 @@ function setItemStyle(item, style) {
   const borderColorSwatches = controls.querySelector(
     "[data-style-swatches='border-color']",
   );
-  const dotGridInput = controls.querySelector(
-    "[data-style-control='dot-grid']",
-  );
-
   if (fillInput) {
     setPaletteControlValue(fillInput, fillSwatches, item.dataset.fillColor);
   }
@@ -618,10 +613,6 @@ function setItemStyle(item, style) {
         item.dataset.borderEnabled !== "true" ||
         !isMainMenuControlVisibleForItem(item, control.dataset.mainMenuControl);
     });
-
-  if (dotGridInput) {
-    dotGridInput.checked = item.dataset.dotGrid === "true";
-  }
 
   controls.querySelectorAll("select").forEach(updateCustomSelectDisplay);
 }
@@ -1116,7 +1107,6 @@ function setItemBox(item, box) {
   item.style.height = `${box.height}px`;
   item.style.setProperty("--item-width", `${box.width}px`);
   item.style.setProperty("--item-height", `${box.height}px`);
-  updateStickerDotGrid(item, page, box);
   updatePageFlagMetrics(item, page, box);
   updateItemSizeLabel(item);
   if (
@@ -1134,36 +1124,6 @@ function setItemBox(item, box) {
     renderWeeklyVertical(item);
   }
   updateCalendarTextOverflow(item);
-}
-
-function updateStickerDotGrid(item, page, box) {
-  if (item.dataset.itemType !== "sticker") {
-    return;
-  }
-
-  if (!page) {
-    item.style.setProperty(
-      "--sticker-dot-grid-size-x",
-      `${box.width / stickerGridUnits}px`,
-    );
-    item.style.setProperty(
-      "--sticker-dot-grid-size-y",
-      `${box.height / stickerGridUnits}px`,
-    );
-    item.style.setProperty("--sticker-dot-grid-offset-x", "0px");
-    item.style.setProperty("--sticker-dot-grid-offset-y", "0px");
-    return;
-  }
-
-  const grid = getGridSize(page);
-  const origin = getGridSnapOrigin(page);
-  const offsetX = (((box.x - origin.x) % grid.x) + grid.x) % grid.x;
-  const offsetY = (((box.y - origin.y) % grid.y) + grid.y) % grid.y;
-
-  item.style.setProperty("--sticker-dot-grid-size-x", `${grid.x}px`);
-  item.style.setProperty("--sticker-dot-grid-size-y", `${grid.y}px`);
-  item.style.setProperty("--sticker-dot-grid-offset-x", `${-offsetX}px`);
-  item.style.setProperty("--sticker-dot-grid-offset-y", `${-offsetY}px`);
 }
 
 function updatePageFlagMetrics(item, page, box) {
@@ -2757,7 +2717,6 @@ function applyStyleToActionItems(item, style) {
       borderColor: style.borderColor ?? targetItem.dataset.borderColor,
       borderWidth: style.borderWidth ?? targetItem.dataset.borderWidth,
       borderEnabled: style.borderEnabled ?? targetItem.dataset.borderEnabled,
-      dotGrid: style.dotGrid ?? targetItem.dataset.dotGrid,
     });
   });
   notifyTemplateChanged();
@@ -3777,8 +3736,6 @@ function makePlannerItem(type = "sticker") {
   const borderColorTitle = document.createElement("span");
   const borderColorInput = document.createElement("select");
   const borderColorSwatches = document.createElement("div");
-  const dotGridLabel = document.createElement("label");
-  const dotGridInput = document.createElement("input");
   const textElement = document.createElement("div");
   const tocElement = document.createElement("div");
   const textToggleLabel = document.createElement("label");
@@ -4107,12 +4064,6 @@ function makePlannerItem(type = "sticker") {
   borderColorInput.setAttribute("aria-label", "Widget border palette");
   borderColorSwatches.className = "color-panel-swatches";
   borderColorSwatches.dataset.styleSwatches = "border-color";
-  dotGridLabel.className = "widget-panel-row";
-  dotGridLabel.dataset.mainMenuControl = "options.dot-grid";
-  setControlTitle(dotGridLabel, ["Dot", "Grid"]);
-  dotGridInput.type = "checkbox";
-  dotGridInput.dataset.styleControl = "dot-grid";
-  dotGridInput.setAttribute("aria-label", "Show sticker dot grid");
   textElement.className = "sticker-text";
   textElement.dataset.themePart = "text";
   textElement.hidden = true;
@@ -4302,7 +4253,7 @@ function makePlannerItem(type = "sticker") {
   deleteButton.setAttribute("aria-label", "Delete planner item");
   weekNumberLabel.className = "widget-panel-row widget-option-control";
   weekNumberLabel.dataset.mainMenuControl = "options.week-number-format";
-  setControlTitle(weekNumberLabel, ["Week", "#"]);
+  setControlTitle(weekNumberLabel, ["Show", "Week #"]);
   weekNumberInput.type = "checkbox";
   weekNumberInput.dataset.widgetControl = "week-number-format";
   weekNumberInput.setAttribute("aria-label", "Show week number column");
@@ -4601,7 +4552,6 @@ function makePlannerItem(type = "sticker") {
     borderColorInput,
     borderColorSwatches,
   );
-  dotGridLabel.append(dotGridInput);
   textToggleLabel.classList.add("text-panel-settings-control-no-toggle");
   textToggleLabel.append(textTitle, textFontSelect);
   textSizeLabel.append(textSizeTitle, textSizeGroup);
@@ -4618,16 +4568,16 @@ function makePlannerItem(type = "sticker") {
   textLineHeightLabel.append(textLineHeightSelect);
   textPanel.append(
     textPanelTitle,
-    fillLabel,
-    borderToggleLabel,
-    borderSizeLabel,
-    borderColorLabel,
-    textColorLabel,
     textToggleLabel,
-    textLineHeightLabel,
     textSizeLabel,
+    textLineHeightLabel,
     textFormatGroup,
+    textColorLabel,
     textAlignLabel,
+    borderToggleLabel,
+    borderColorLabel,
+    borderSizeLabel,
+    fillLabel,
   );
   monthLabel.append(monthSelect);
   yearLabel.append(yearSelect);
@@ -4683,16 +4633,15 @@ function makePlannerItem(type = "sticker") {
   weekNumberLabel.append(weekNumberInput);
   if (isCalendarItemType(type)) {
     calendarAttributesGrid.append(
-      calendarSizeLabel,
-      weekdayLabelLabel,
       shareWeekendsLabel,
-      weekNotesLabel,
+      weekdayLabelLabel,
       dateModeLabel,
       monthLabel,
       dateOffsetLabel,
       yearLabel,
+      calendarSizeLabel,
+      weekNotesLabel,
       startDayLabel,
-      weekNumberLabel,
       visibleDaysLabel,
       diaryLayoutLabel,
       diaryTitleLinesLabel,
@@ -4730,7 +4679,7 @@ function makePlannerItem(type = "sticker") {
   }
   actionsPanel.append(layoutActionGroup);
   if (hasWidgetControls) {
-    widgetPanel.append(widgetPanelSectionTitle, textTocLabel);
+    widgetPanel.append(widgetPanelSectionTitle);
   }
   if (isCalendarItemType(type)) {
     const monthYearVisibilityLabel =
@@ -4742,11 +4691,12 @@ function makePlannerItem(type = "sticker") {
 
     widgetPanel.append(
       monthYearVisibilityLabel,
+      weekNumberLabel,
       ...Array.from(calendarAttributesGrid.children),
     );
   }
-  if (type === "sticker") {
-    widgetPanel.append(dotGridLabel);
+  if (hasWidgetControls) {
+    widgetPanel.append(textTocLabel);
   }
   [
     monthSelect,
@@ -4854,7 +4804,6 @@ function makePlannerItem(type = "sticker") {
           borderColor: "#ccc",
           borderWidth: "1",
           borderEnabled: "true",
-          dotGrid: "false",
         },
   );
   setStickerTextSettings(
@@ -5102,11 +5051,6 @@ function makePlannerItem(type = "sticker") {
   sendBackwardButton.addEventListener("click", (event) => {
     event.stopPropagation();
     moveActionItemsLayer(item, "backward");
-  });
-  dotGridInput.addEventListener("change", () => {
-    applyStyleToActionItems(item, {
-      dotGrid: dotGridInput.checked ? "true" : "false",
-    });
   });
   borderToggleInput.addEventListener("change", () => {
     applyStyleToActionItems(item, {
@@ -5444,7 +5388,6 @@ function copyItemConfiguration(source, target) {
     borderColor: source.dataset.borderColor,
     borderWidth: source.dataset.borderWidth,
     borderEnabled: source.dataset.borderEnabled,
-    dotGrid: source.dataset.dotGrid,
   });
   if (source.dataset.themeMode) {
     target.dataset.themeMode = source.dataset.themeMode;

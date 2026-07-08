@@ -87,7 +87,6 @@ function serializePlannerItem(item) {
       borderColor: item.dataset.borderColor || null,
       borderWidth: item.dataset.borderWidth || null,
       borderEnabled: item.dataset.borderEnabled || null,
-      dotGrid: item.dataset.dotGrid || null,
       pageFlagSide: item.dataset.pageFlagSide || null,
       themeMode: item.dataset.themeMode || null,
     },
@@ -650,8 +649,7 @@ function restorePlannerItemSettings(item, itemData) {
     style.fillColor ||
     style.borderColor ||
     style.borderWidth ||
-    style.borderEnabled ||
-    style.dotGrid
+    style.borderEnabled
   ) {
     if (style.themeMode) {
       item.dataset.themeMode = style.themeMode;
@@ -662,7 +660,6 @@ function restorePlannerItemSettings(item, itemData) {
       borderColor: style.borderColor || item.dataset.borderColor,
       borderWidth: style.borderWidth || item.dataset.borderWidth,
       borderEnabled: style.borderEnabled || item.dataset.borderEnabled,
-      dotGrid: style.dotGrid || item.dataset.dotGrid,
     });
   }
   if (item.dataset.itemType === "page-flag") {

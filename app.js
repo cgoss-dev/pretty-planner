@@ -270,7 +270,6 @@ const factoryPlannerDefaults = {
     color: fixedWidgetLineColor,
     weight: fixedWidgetLineWeight,
     fill: "var(--color-white)",
-    dotGrid: "false",
     perimeter: {
       enabled: "true",
       color: fixedWidgetLineColor,
@@ -502,7 +501,6 @@ function getPlannerDefaultItemStyle(type = "sticker") {
     borderColor: fixedWidgetLineColor,
     borderWidth: fixedWidgetLineWeight,
     borderEnabled: "true",
-    dotGrid: plannerDefaultSettings.grid.dotGrid,
   };
 }
 
