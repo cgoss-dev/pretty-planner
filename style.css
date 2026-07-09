@@ -95,7 +95,7 @@
   --arrow-control-fill: var(--tint-50);
   --arrow-active-fill: var(--color-gray3);
   --arrow-border: var(--border-sm) solid var(--color-gray4);
-  --widget-box-fill: var(--sticker-fill, var(--color-white));
+  --widget-box-fill: var(--sticker-fill, var(--tint-50));
   --calendar-tint-alpha: 0.25;
   --calendar-shaded-overlay: var(--tint-50);
   --calendar-tint: var(--calendar-shaded-overlay);
@@ -171,7 +171,7 @@
   --spread-page-shift: 0px;
   --page-left-shift: 0px;
   --page-right-shift: 0px;
-  --menu-fill: var(--color-white);
+  --menu-fill: var(--tint-50);
   --notebook-layout-width: 132vw;
 
   --notebook-width: 1220px;
@@ -2631,8 +2631,7 @@ body {
   padding: var(--menu-gap);
 }
 
-.add-panel-actions,
-.page-panel-actions {
+.add-panel-actions {
   grid-column: 1 / -1;
   width: 100%;
   display: grid;
@@ -2643,23 +2642,37 @@ body {
 }
 
 .page-panel-actions {
-  padding-top: var(--menu-gap);
-}
-
-.add-panel-actions {
+  grid-column: 1 / -1;
+  width: 100%;
+  display: grid;
+  grid-template-columns: var(--menu-label-width) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--menu-gap);
   margin-top: var(--menu-gap);
 }
 
 .page-panel-actions-title {
-  grid-column: 1 / -1;
+  grid-column: 1;
   color: var(--color-gray1);
   font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
   line-height: 1.1;
   text-align: left;
 }
 
+.page-panel-action-buttons {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--menu-gap);
+  min-width: 0;
+}
+
+.page-panel-action-buttons .control-action-button {
+  min-width: 0;
+}
+
 .page-count-status {
-  grid-column: 1 / -1;
+  grid-column: 2;
   justify-self: center;
   color: var(--color-gray2);
   font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
@@ -5987,7 +6000,7 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
   padding: var(--menu-gap);
   border: var(--menu-border);
   border-radius: var(--menu-radius);
-  background: var(--color-white);
+  background: var(--menu-fill);
   color: var(--color-gray1);
   font-family: var(--font-annotation-mono);
   filter: drop-shadow(0 8px 12px var(--shade-25));
@@ -6004,7 +6017,7 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
   width: auto;
   min-width: 0;
   grid-template-rows: auto;
-  background: var(--color-white);
+  background: var(--menu-fill);
   filter: drop-shadow(0 6px 8px var(--shade-25));
 }
 
