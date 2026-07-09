@@ -15,10 +15,10 @@
   --color-gray4: #ccc;
   --color-white: #fff;
   --color-rainbow: #f00;
-  --accent-ring: var(--color-gray3);
-  --accent-ring-soft: var(--color-gray4);
-  --accent-ring-strong: var(--color-gray2);
-  --selection-fill: var(--color-gray4);
+  --accent-ring: var(--color-rainbow);
+  --accent-ring-soft: var(--color-rainbow);
+  --accent-ring-strong: var(--color-rainbow);
+  --selection-fill: var(--color-rainbow);
 
   /* NOTE: Transparent Black Overlays */
   --shade-25: rgba(0, 0, 0, 0.25);
@@ -95,20 +95,20 @@
   --arrow-control-fill: var(--tint-50);
   --arrow-active-fill: var(--color-gray3);
   --arrow-border: var(--border-sm) solid var(--color-gray4);
-  --widget-box-fill: var(--sticker-fill, var(--tint-50));
+  --widget-box-fill: var(--sticker-fill, var(--color-white));
   --calendar-tint-alpha: 0.25;
-  --calendar-shaded-overlay: var(--tint-50);
-  --calendar-tint: var(--calendar-shaded-overlay);
-  --calendar-weekday-header-tint: var(--calendar-shaded-overlay);
+  --calendar-shaded-overlay: var(--color-gray4);
+  --calendar-tint: var(--tint-50);
+  --calendar-weekday-header-tint: var(--tint-50);
   --calendar-tint-background:
     linear-gradient(var(--calendar-tint), var(--calendar-tint)),
-    var(--widget-box-fill);
+    var(--calendar-shaded-overlay);
   --calendar-weekday-header-background:
     linear-gradient(
       var(--calendar-weekday-header-tint),
       var(--calendar-weekday-header-tint)
     ),
-    var(--sticker-fill-opaque, var(--widget-box-fill));
+    var(--calendar-shaded-overlay);
   --desk: var(--color-white);
   --desk-image: none;
   --desk-size: auto;
@@ -652,10 +652,6 @@ body {
   gap: var(--menu-gap);
 }
 
-.notebook-panel > .keyboard-control-section + .keyboard-control-section {
-  margin-top: 0;
-}
-
 .control-section {
   display: grid;
   gap: var(--menu-gap);
@@ -742,19 +738,6 @@ body {
   border: var(--menu-border);
   border-radius: var(--menu-radius);
   background: var(--color-white);
-}
-
-.keyboard-control-section + .keyboard-control-section {
-  margin-top: var(--menu-gap);
-}
-
-.keyboard-control-section + .keyboard-control-section::before {
-  content: "";
-  position: absolute;
-  top: calc(var(--menu-gap) * -1);
-  left: 0;
-  right: 0;
-  border-top: var(--menu-divider);
 }
 
 .defaults-section {
@@ -1097,6 +1080,11 @@ body {
   cursor: pointer;
   font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
   text-align: center;
+}
+
+.custom-select[data-custom-select="font"] .custom-select-option,
+.custom-select[data-custom-select="text-font"] .custom-select-option {
+  font-size: var(--font-size-md);
 }
 
 .custom-select-option:last-child {
@@ -1447,8 +1435,7 @@ body {
     var(--color-white);
 }
 
-.palette-hex-button.palette-swatch,
-.palette-hex-button.color-panel-swatch {
+.palette-hex-button.palette-swatch {
   border: var(--border-sm) solid transparent;
   background:
     linear-gradient(var(--color-white), var(--color-white)) padding-box,
@@ -1468,6 +1455,13 @@ body {
         var(--color-magenta)
       )
       border-box;
+  color: var(--color-gray1);
+  line-height: 1;
+}
+
+.palette-hex-button.color-panel-swatch {
+  border: var(--menu-border);
+  background: var(--menu-control-fill);
   color: var(--color-gray1);
   line-height: 1;
 }
@@ -2603,8 +2597,14 @@ body {
   background:
     linear-gradient(var(--calendar-tint), var(--calendar-tint)) 0 0 / 100% 12.5%
       no-repeat,
-    linear-gradient(90deg, var(--calendar-tint) 0 12.5%, transparent 12.5%) 0
-      0 / 100% 100% no-repeat,
+    linear-gradient(var(--tint-50), var(--tint-50)) 0 0 / 12.5% 100%
+      no-repeat,
+    linear-gradient(
+        90deg,
+        var(--calendar-shaded-overlay) 0 12.5%,
+        transparent 12.5%
+      )
+      0 0 / 100% 100% no-repeat,
     linear-gradient(
         90deg,
         transparent 0 calc(12.5% - 0.5px),
@@ -3066,9 +3066,11 @@ body {
           )
         )
     ),
+    linear-gradient(var(--tint-50), var(--tint-50)),
     linear-gradient(
         90deg,
-        var(--calendar-tint) 0 var(--toc-left-column-width, 22.222222%),
+        var(--calendar-shaded-overlay) 0
+          var(--toc-left-column-width, 22.222222%),
         transparent var(--toc-left-column-width, 22.222222%)
       )
       0 0 / 100% 100% no-repeat,
@@ -3111,14 +3113,8 @@ body {
   box-sizing: border-box;
   min-width: 0;
   min-height: 0;
-  border-top: var(--widget-perimeter-line-width, var(--border-sm)) solid
-    var(--widget-perimeter-line-color, var(--toc-grid-line-color));
-  border-right: var(--widget-perimeter-line-width, var(--border-sm)) solid
-    var(--widget-perimeter-line-color, var(--toc-grid-line-color));
-  border-bottom: var(--border-sm) solid var(--toc-grid-line-color);
-  border-left: var(--widget-perimeter-line-width, var(--border-sm)) solid
-    var(--widget-perimeter-line-color, var(--toc-grid-line-color));
-  background: var(--calendar-tint-background);
+  border: 0;
+  background: transparent;
   color: var(--color-gray1);
 }
 
@@ -3265,9 +3261,11 @@ body {
           )
         )
     ),
+    linear-gradient(var(--tint-50), var(--tint-50)),
     linear-gradient(
         90deg,
-        var(--calendar-tint) 0 var(--toc-left-column-width, 22.222222%),
+        var(--calendar-shaded-overlay) 0
+          var(--toc-left-column-width, 22.222222%),
         transparent var(--toc-left-column-width, 22.222222%)
       )
       0 0 / 100% 100% no-repeat,
@@ -3283,8 +3281,7 @@ body {
 }
 
 .toc-title {
-  border-bottom-color: var(--widget-title-line-color);
-  border-bottom-width: var(--widget-title-line-width);
+  border-bottom: 0;
 }
 
 .mini-month-cell,
@@ -3304,8 +3301,7 @@ body {
 .diary-view-date-label {
   border-right-color: var(--widget-title-line-color);
   border-right-width: var(--widget-title-line-width);
-  border-bottom-color: var(--widget-title-line-color);
-  border-bottom-width: var(--widget-title-line-width);
+  border-bottom: 0;
 }
 
 .perpetual-calendar-day-number {
@@ -3759,10 +3755,7 @@ body {
 
 .calendar-current-day-number {
   font-weight: 800;
-}
-
-.planner-item-mini-month .mini-month-day-number.calendar-current-day-number {
-  color: var(--color-red);
+  color: var(--color-rainbow);
 }
 
 .weekNumber {
@@ -3906,6 +3899,10 @@ body {
   color: var(--color-gray1);
 }
 
+.mini-month-month {
+  background: transparent;
+}
+
 .mini-month-week {
   place-items: center;
   padding: 0;
@@ -3989,7 +3986,7 @@ body {
   display: grid;
   align-items: end;
   justify-items: center;
-  background: var(--calendar-tint-background);
+  background: transparent;
 }
 
 .perpetual-calendar-title-year,
@@ -4326,7 +4323,7 @@ body {
 .weekly-view-date,
 .weekly-view-date.weekly-view-weekend,
 .weekly-view-date.weekly-view-shared-weekend {
-  background: var(--calendar-weekday-header-background);
+  background: transparent;
 }
 
 .weekly-view-edge-right {
@@ -4598,7 +4595,7 @@ body {
   min-height: 0;
   padding: 3px;
   border-right: var(--border-sm) solid var(--color-gray4);
-  background: var(--calendar-weekday-header-background);
+  background: transparent;
 }
 
 .diary-view.is-title-one-line .diary-view-date-label {
@@ -4650,7 +4647,7 @@ body {
 }
 
 .diary-view-weekend .diary-view-date-label {
-  background: var(--calendar-tint-background);
+  background: transparent;
 }
 
 .diary-view-edge-bottom {
@@ -5400,6 +5397,7 @@ body {
 .text-panel-settings-control select,
 .text-panel-settings-control .custom-select summary {
   min-height: calc(var(--menu-control-size) * 1.5);
+  font-size: var(--font-size-md);
 }
 
 .text-panel-control .button-select {
@@ -6233,14 +6231,6 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   background: var(--color-white);
 }
 
-.planner-main-menu
-  .control-object-shell
-  .widget-panel.is-docked
-  .text-panel
-  + .widget-options-panel:not([hidden]) {
-  margin-top: var(--menu-row-gap);
-}
-
 .planner-main-menu .widget-panel.is-docked .widget-panel-page[hidden] {
   display: none;
 }
@@ -6496,9 +6486,11 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
           )
         )
     ),
+    linear-gradient(var(--tint-50), var(--tint-50)),
     linear-gradient(
         90deg,
-        var(--calendar-tint) 0 var(--toc-left-column-width, 22.222222%),
+        var(--calendar-shaded-overlay) 0
+          var(--toc-left-column-width, 22.222222%),
         transparent var(--toc-left-column-width, 22.222222%)
       )
       0 0 / 100% 100% no-repeat,
@@ -6514,8 +6506,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 }
 
 .toc-title {
-  border-bottom-color: var(--widget-title-line-color);
-  border-bottom-width: var(--widget-title-line-width);
+  border-bottom: 0;
 }
 
 .mini-month-cell,
@@ -6535,8 +6526,7 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
 .diary-view-date-label {
   border-right-color: var(--widget-title-line-color);
   border-right-width: var(--widget-title-line-width);
-  border-bottom-color: var(--widget-title-line-color);
-  border-bottom-width: var(--widget-title-line-width);
+  border-bottom: 0;
 }
 
 .perpetual-calendar-day-number {
@@ -6585,38 +6575,6 @@ body.is-single-page-viewport .planner-main-menu .control-panel-page {
   align-self: end;
   text-align: center;
   white-space: nowrap;
-}
-
-.toc-title,
-.toc-title-name,
-.mini-month-month,
-.perpetual-calendar-title,
-.weekly-view-date,
-.weekly-view-date-label,
-.weekly-view-time-heading,
-.weekly-view-sunday-mid-marker,
-.diary-view-date-label,
-.diary-view-date-label .calendar-date-part,
-.diary-view-weekend .diary-view-date-label {
-  border-width: 0;
-  background: transparent;
-  color: #000;
-}
-
-.planner-item .toc-title,
-.planner-item .toc-title-name,
-.planner-item .mini-month-month,
-.planner-item .perpetual-calendar-title,
-.planner-item .weekly-view-date,
-.planner-item .weekly-view-date-label,
-.planner-item .weekly-view-time-heading,
-.planner-item .weekly-view-sunday-mid-marker,
-.planner-item .diary-view-date-label,
-.planner-item .diary-view-date-label .calendar-date-part,
-.planner-item .diary-view-weekend .diary-view-date-label {
-  border-width: 0;
-  background: transparent;
-  color: #000;
 }
 
 .planner-item-weekly-view .weekly-view-time,

@@ -544,7 +544,7 @@ function clampTocBox(item, page, box) {
 
 function setItemStyle(item, style) {
   item.dataset.fillColor =
-    style.fillColor || item.dataset.fillColor || "var(--tint-50)";
+    style.fillColor || item.dataset.fillColor || "var(--color-white)";
   item.dataset.borderColor =
     style.borderColor || item.dataset.borderColor || "#ccc";
   item.dataset.borderWidth =
@@ -4801,7 +4801,7 @@ function makePlannerItem(type = "sticker") {
     typeof getPlannerDefaultItemStyle === "function"
       ? getPlannerDefaultItemStyle(type)
       : {
-          fillColor: "var(--tint-50)",
+          fillColor: "var(--color-white)",
           borderColor: "#ccc",
           borderWidth: "1",
           borderEnabled: "true",

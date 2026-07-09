@@ -269,7 +269,7 @@ const factoryPlannerDefaults = {
   grid: {
     color: fixedWidgetLineColor,
     weight: fixedWidgetLineWeight,
-    fill: "var(--tint-50)",
+    fill: "var(--color-white)",
     perimeter: {
       enabled: "true",
       color: fixedWidgetLineColor,
