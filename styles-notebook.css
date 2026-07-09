@@ -1,0 +1,875 @@
+/* NOTE: Notebook Cover, Pages, Spine, And Dot Grid */
+.notebook {
+  position: relative;
+  z-index: 2;
+  width: var(--notebook-width);
+  aspect-ratio: var(--notebook-screen-aspect);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  transform: translate(var(--view-pan-x), var(--view-pan-y))
+    scale(var(--view-zoom));
+  transform-origin: center center;
+  filter: drop-shadow(0 28px 26px var(--paper-shadow));
+  perspective: 1800px;
+  transform-style: preserve-3d;
+  --turn-sheet-left: var(--page-turn-right);
+  --turn-sheet-radius: 0 var(--border-radius) var(--border-radius) 0;
+  --turn-sheet-origin: left center;
+  --turn-sheet-start: rotateY(0deg);
+  --turn-sheet-mid: rotateY(-90deg);
+  --turn-sheet-end: rotateY(-180deg);
+  --turn-sheet-spine-shadow: linear-gradient(
+    90deg,
+    var(--shade-25),
+    var(--shade-25) calc(var(--dot-grid-size-x) * 0.45),
+    transparent calc(var(--dot-grid-size-x) * 1.05)
+  );
+  --turn-sheet-surface-shading: linear-gradient(
+    90deg,
+    transparent,
+    transparent 16%,
+    var(--tint-25) 52%,
+    var(--shade-25)
+  );
+  --turn-sheet-page-number-mask-position: 100% 100%;
+  --turn-sheet-spine-corner-mask-position: 0 0, 0 100%;
+  --turn-sheet-spine-corner-mask-shape: polygon(0 0, 100% 0, 0 100%);
+  --turn-sheet-spine-edge: polygon(
+    calc(var(--spine-notch-width) * 2) 0,
+    100% 0,
+    100% 100%,
+    calc(var(--spine-notch-width) * 2) 100%,
+    0 calc(100% - var(--spine-notch-height)),
+    0 var(--spine-notch-height)
+  );
+}
+
+:root:not([data-paper="letter"]) {
+  --opposite-page-shift: calc(
+    var(--notebook-width) * var(--page-spine-gap-ratio)
+  );
+  --spread-page-shift: calc(var(--opposite-page-shift) / 2);
+  --page-left-shift: var(--spread-page-shift);
+  --page-right-shift: calc(var(--spread-page-shift) * -1);
+}
+
+:root:not([data-paper="letter"]) .notebook {
+  --turn-sheet-left: 50%;
+}
+
+:root:not([data-paper="letter"]) .notebook.is-turning-previous {
+  --turn-sheet-left: var(--page-spread-left-left);
+}
+
+.notebook::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  top: calc((100% - var(--page-screen-height)) / 2);
+  left: calc(var(--page-spine-x) - (var(--spine-notch-width) / 2));
+  width: var(--spine-notch-width);
+  height: var(--page-screen-height);
+  pointer-events: none;
+  clip-path: polygon(
+    0 0,
+    50% var(--spine-notch-height),
+    100% 0,
+    100% 100%,
+    50% calc(100% - var(--spine-notch-height)),
+    0 100%
+  );
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--shade-25) 38%,
+    var(--color-gray3) 50%,
+    var(--shade-25) 62%,
+    transparent
+  );
+}
+
+.notebook-spine-edge {
+  position: absolute;
+  z-index: 5;
+  left: calc(var(--page-spine-x) - (var(--spine-notch-width) / 2));
+  width: var(--spine-notch-width);
+  height: var(--spine-notch-height);
+  pointer-events: none;
+}
+
+.notebook-spine-edge-top {
+  top: calc((100% - var(--page-screen-height)) / 2);
+}
+
+.notebook-spine-edge-bottom {
+  bottom: calc((100% - var(--page-screen-height)) / 2);
+}
+
+.notebook-spine-edge::before,
+.notebook-spine-edge::after {
+  content: "";
+  position: absolute;
+  width: var(--border-sm);
+  height: calc(var(--spine-notch-width) * 0.72);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, var(--shade-25), var(--color-gray4)),
+    linear-gradient(180deg, var(--color-gray4), transparent);
+  transform-origin: top center;
+}
+
+.notebook-spine-edge-top::before {
+  top: 0;
+  left: 0;
+  transform: rotate(-45deg);
+}
+
+.notebook-spine-edge-top::after {
+  top: 0;
+  right: 0;
+  transform: rotate(45deg);
+}
+
+.notebook-spine-edge-bottom::before,
+.notebook-spine-edge-bottom::after {
+  bottom: 0;
+  transform-origin: bottom center;
+  background:
+    linear-gradient(0deg, var(--shade-25), var(--color-gray4)),
+    linear-gradient(0deg, var(--color-gray4), transparent);
+}
+
+.notebook-spine-edge-bottom::before {
+  left: 0;
+  transform: rotate(45deg);
+}
+
+.notebook-spine-edge-bottom::after {
+  right: 0;
+  transform: rotate(-45deg);
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  width: var(--page-screen-width);
+  height: var(--page-screen-height);
+  align-self: center;
+  aspect-ratio: var(--page-aspect);
+  min-width: 0;
+  padding: clamp(28px, 4vw, 60px);
+  overflow: visible;
+  --dot-x: var(--dot-grid-size-x);
+  --dot-grid-position: 0 0;
+  --grid-snap-origin-x: 0;
+  --grid-snap-origin-y: 0;
+  --dot-repeat-position-x: calc(
+    var(--grid-snap-origin-x) * var(--dot-grid-size-x)
+  );
+  --dot-repeat-position-y: calc(
+    var(--grid-snap-origin-y) * var(--dot-grid-size-y)
+  );
+  --dot-repeat-position: calc(
+      var(--dot-repeat-position-x) + var(--dot-grid-size-x) - 1px
+    )
+    calc(var(--dot-repeat-position-y) + var(--dot-grid-size-y) - 1px);
+  --dot-edge-mask-width: 2px;
+  --dot-edge-mask-height: 2px;
+  --dot-bottom-mask-height: calc(var(--dot-grid-size-y) * 0.5);
+  --outside-edge-dot-mask-width: 0px;
+  --outside-edge-dot-mask-position: 100% 0;
+  --page-number-dot-mask-position: calc(100% - var(--dot-grid-size-x) + 1px)
+    calc(100% - var(--dot-grid-size-y) + 1px);
+  --half-page-x: var(--half-x);
+  --third-x-start: var(--third-x-1);
+  --third-x-end: var(--third-x-2);
+  --fourth-x-start: var(--fourth-x-1);
+  --fourth-x-mid: var(--fourth-x-2);
+  --fourth-x-end: var(--fourth-x-3);
+  background:
+    linear-gradient(var(--paper), var(--paper)) 0 0 / 100%
+      var(--dot-edge-mask-height) no-repeat,
+    linear-gradient(var(--paper), var(--paper)) 0 0 / var(--dot-edge-mask-width)
+      100% no-repeat,
+    linear-gradient(var(--paper), var(--paper)) 0 100% / 100%
+      var(--dot-bottom-mask-height) no-repeat,
+    linear-gradient(var(--paper), var(--paper)),
+    linear-gradient(var(--paper), var(--paper)),
+    radial-gradient(
+      circle at 1px 1px,
+      var(--dot-grid-color) 0 1px,
+      transparent 1.35px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      var(--third-guide-color) 0 8px,
+      transparent 8px 14px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      var(--third-guide-color) 0 8px,
+      transparent 8px 14px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      var(--third-guide-color) 0 8px,
+      transparent 8px 14px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      var(--third-guide-color) 0 8px,
+      transparent 8px 14px
+    ),
+    linear-gradient(
+      90deg,
+      transparent calc(var(--fourth-x-start) - 4px),
+      var(--fourth-guide-color) var(--fourth-x-start),
+      transparent calc(var(--fourth-x-start) + 4px),
+      transparent calc(var(--fourth-x-mid) - 4px),
+      var(--fourth-guide-color) var(--fourth-x-mid),
+      transparent calc(var(--fourth-x-mid) + 4px),
+      transparent calc(var(--fourth-x-end) - 4px),
+      var(--fourth-guide-color) var(--fourth-x-end),
+      transparent calc(var(--fourth-x-end) + 4px)
+    ),
+    linear-gradient(
+      180deg,
+      transparent calc(var(--fourth-y-1) - 4px),
+      var(--fourth-guide-color) var(--fourth-y-1),
+      transparent calc(var(--fourth-y-1) + 4px),
+      transparent calc(var(--fourth-y-2) - 4px),
+      var(--fourth-guide-color) var(--fourth-y-2),
+      transparent calc(var(--fourth-y-2) + 4px),
+      transparent calc(var(--fourth-y-3) - 4px),
+      var(--fourth-guide-color) var(--fourth-y-3),
+      transparent calc(var(--fourth-y-3) + 4px)
+    ),
+    var(--paper);
+  background-size:
+    100% var(--dot-edge-mask-height),
+    var(--dot-edge-mask-width) 100%,
+    100% var(--dot-bottom-mask-height),
+    var(--outside-edge-dot-mask-width) 100%,
+    var(--dot-grid-size-x) var(--dot-grid-size-y),
+    var(--dot-grid-size-x) var(--dot-grid-size-y),
+    4px calc(100% - var(--dot-grid-size-y)),
+    4px calc(100% - var(--dot-grid-size-y)),
+    calc(100% - var(--dot-grid-size-x)) 4px,
+    calc(100% - var(--dot-grid-size-x)) 4px,
+    100% calc(100% - var(--dot-grid-size-y)),
+    calc(100% - var(--dot-grid-size-x)) 100%,
+    auto;
+  background-position:
+    var(--dot-grid-position),
+    0 0,
+    0 100%,
+    var(--outside-edge-dot-mask-position),
+    var(--page-number-dot-mask-position),
+    var(--dot-repeat-position),
+    calc(var(--third-x-start) - 2px) var(--dot-grid-size-y),
+    calc(var(--third-x-end) - 2px) var(--dot-grid-size-y),
+    var(--dot-grid-size-x) calc(var(--third-y-1) - 2px),
+    var(--dot-grid-size-x) calc(var(--third-y-2) - 2px),
+    0 var(--dot-grid-size-y),
+    var(--dot-grid-size-x) 0,
+    0 0;
+  background-repeat:
+    no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, no-repeat,
+    no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  border: 0;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  transition:
+    filter 180ms ease,
+    transform 180ms ease;
+}
+
+.page.is-corner-hover {
+  cursor: pointer;
+}
+
+.page.is-missing-page {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* NOTE: Page Turn Animation */
+.page-turn-sheet {
+  position: absolute;
+  z-index: 6;
+  left: var(--turn-sheet-left);
+  top: calc((100% - var(--page-screen-height)) / 2);
+  width: var(--page-spread-width);
+  height: var(--page-screen-height);
+  border-radius: var(--turn-sheet-radius);
+  pointer-events: none;
+  opacity: 0;
+  background:
+    var(--turn-sheet-spine-shadow), var(--turn-sheet-surface-shading),
+    linear-gradient(var(--paper), var(--paper)),
+    linear-gradient(var(--paper), var(--paper)),
+    linear-gradient(var(--paper), var(--paper)),
+    linear-gradient(var(--paper), var(--paper)),
+    linear-gradient(var(--paper), var(--paper)),
+    linear-gradient(var(--paper), var(--paper)),
+    linear-gradient(var(--paper), var(--paper)),
+    radial-gradient(
+      circle at 1px 1px,
+      var(--dot-grid-color) 0 1px,
+      transparent 1.35px
+    ),
+    var(--paper);
+  background-size:
+    100% 100%,
+    100% 100%,
+    100% var(--dot-grid-size-y),
+    var(--dot-grid-size-x) 100%,
+    var(--dot-grid-size-x) 100%,
+    100% calc(var(--dot-grid-size-y) * 0.5),
+    calc(var(--dot-grid-size-x) * 2) calc(var(--dot-grid-size-y) * 2),
+    calc(var(--spine-notch-width) * 2) var(--spine-notch-height),
+    calc(var(--spine-notch-width) * 2) var(--spine-notch-height),
+    var(--dot-grid-size-x) var(--dot-grid-size-y),
+    auto;
+  background-position:
+    0 0,
+    0 0,
+    0 0,
+    0 0,
+    100% 0,
+    0 100%,
+    var(--turn-sheet-page-number-mask-position),
+    var(--turn-sheet-spine-corner-mask-position),
+    calc(var(--dot-grid-size-x) - 1px) calc(var(--dot-grid-size-y) - 1px),
+    0 0;
+  background-repeat:
+    no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
+    no-repeat, no-repeat, repeat, no-repeat;
+  box-shadow: 0 18px 18px var(--shade-25);
+  clip-path: var(--turn-sheet-spine-edge);
+  transform: var(--turn-sheet-start);
+  transform-origin: var(--turn-sheet-origin);
+  transform-style: preserve-3d;
+}
+
+.notebook.is-turning-previous {
+  --turn-sheet-left: var(--page-turn-left);
+  --turn-sheet-radius: var(--border-radius) 0 0 var(--border-radius);
+  --turn-sheet-origin: right center;
+  --turn-sheet-start: rotateY(0deg);
+  --turn-sheet-mid: rotateY(92deg);
+  --turn-sheet-end: rotateY(180deg);
+  --turn-sheet-spine-shadow: linear-gradient(
+    270deg,
+    var(--shade-25),
+    var(--shade-25) calc(var(--dot-grid-size-x) * 0.45),
+    transparent calc(var(--dot-grid-size-x) * 1.05)
+  );
+  --turn-sheet-surface-shading: linear-gradient(
+    270deg,
+    transparent,
+    transparent 16%,
+    var(--tint-25) 52%,
+    var(--shade-25)
+  );
+  --turn-sheet-page-number-mask-position: 0 100%;
+  --turn-sheet-spine-corner-mask-position: 100% 0, 100% 100%;
+  --turn-sheet-spine-corner-mask-shape: polygon(100% 0, 100% 100%, 0 0);
+  --turn-sheet-spine-edge: polygon(
+    0 0,
+    calc(100% - (var(--spine-notch-width) * 2)) 0,
+    100% var(--spine-notch-height),
+    100% calc(100% - var(--spine-notch-height)),
+    calc(100% - (var(--spine-notch-width) * 2)) 100%,
+    0 100%
+  );
+}
+
+.notebook.is-turning .page-turn-sheet {
+  opacity: 1;
+  animation: page-turn-roll 760ms cubic-bezier(0.32, 0.02, 0.18, 1) both;
+}
+
+@keyframes page-turn-roll {
+  0% {
+    transform: var(--turn-sheet-start);
+  }
+
+  50% {
+    box-shadow: 0 24px 18px var(--shade-25);
+    transform: var(--turn-sheet-mid);
+  }
+
+  100% {
+    transform: var(--turn-sheet-end);
+  }
+}
+
+.page-left::after,
+.page-right::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  width: max(10px, calc(var(--dot-grid-size-x) * 0.65));
+  pointer-events: none;
+  background: var(--paper);
+}
+
+.page-left::before,
+.page-right::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  width: calc(var(--page-notch-width) / 2);
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    var(--paper) 0 var(--page-notch-height),
+    transparent var(--page-notch-height) calc(100% - var(--page-notch-height)),
+    var(--paper) calc(100% - var(--page-notch-height)) 100%
+  );
+}
+
+.page-left::before {
+  right: 0;
+}
+
+.page-right::before {
+  left: 0;
+}
+
+.page-left::after {
+  right: 0;
+}
+
+.page-right::after {
+  left: 0;
+}
+
+.page-number,
+.page-behind-number,
+.page-corner-fold,
+.page-corner-fold-number {
+  position: absolute;
+  color: var(--color-gray1);
+  font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.page-number,
+.page-behind-number,
+.page-corner-fold-number {
+  --page-number-x-offset: var(
+    --page-number-badge-x-offset,
+    max(10px, calc(var(--dot-grid-size-x) * 0.75))
+  );
+  --page-number-y-offset: var(
+    --page-number-badge-y-offset,
+    max(8px, calc(var(--dot-grid-size-y) * 0.55))
+  );
+}
+
+.page-number,
+.page-corner-fold-number {
+  display: grid;
+  width: var(
+    --page-number-badge-width,
+    max(22px, calc(var(--dot-grid-size-x) * 1.7))
+  );
+  height: var(
+    --page-number-badge-height,
+    max(22px, calc(var(--dot-grid-size-y) * 1.7))
+  );
+  place-items: center;
+  border-radius: 999px;
+  background: var(--paper);
+  border: var(--border-sm) solid var(--paper);
+  box-shadow: none;
+}
+
+.page-number {
+  bottom: var(--page-number-y-offset);
+  z-index: var(--page-number-z, 4);
+}
+
+.page-left .page-number {
+  left: var(--page-number-x-offset);
+}
+
+.page-right .page-number {
+  right: var(--page-number-x-offset);
+}
+
+.page-behind-number,
+.page-corner-fold {
+  bottom: 0;
+  width: calc(var(--dot-grid-size-x) * 3);
+  height: calc(var(--dot-grid-size-y) * 3);
+  opacity: 0;
+}
+
+.page-behind-number {
+  z-index: var(--page-behind-number-z, 4);
+  display: grid;
+  align-items: end;
+  background: var(--paper);
+  transition: opacity 160ms ease;
+}
+
+.page-left .page-behind-number,
+.page-left .page-corner-fold {
+  left: 0;
+}
+
+.page-right .page-behind-number,
+.page-right .page-corner-fold {
+  right: 0;
+}
+
+.page-left .page-behind-number {
+  justify-items: start;
+  padding: 0 0 var(--page-number-y-offset) var(--page-number-x-offset);
+  border-radius: 0 0 0 var(--border-radius);
+}
+
+.page-right .page-behind-number {
+  justify-items: end;
+  padding: 0 var(--page-number-x-offset) var(--page-number-y-offset) 0;
+  border-radius: 0 0 var(--border-radius) 0;
+}
+
+.page-corner-fold {
+  z-index: var(--page-corner-fold-z, 4);
+  display: grid;
+  --fold-border-color: var(--page-corner-fold-border-color, var(--color-gray3));
+  --page-corner-fold-fill: var(--page-corner-fold-top-fill, var(--paper));
+  --page-corner-fold-bottom-shade: var(--shade-25);
+  place-items: center;
+  overflow: hidden;
+  font-size: 0;
+  filter: none;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.page-corner-fold-bottom,
+.page-corner-fold-top,
+.page-corner-fold-top-border,
+.page-corner-fold::before {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.page-corner-fold::before {
+  content: "";
+  z-index: 2;
+  background: var(--page-corner-fold-bottom-shade);
+  pointer-events: none;
+}
+
+.page-corner-fold-bottom {
+  z-index: var(--page-corner-fold-bottom-z, 0);
+  background: var(--page-corner-fold-bottom-fill, var(--paper));
+}
+
+.page-left .page-corner-fold-bottom {
+  border-bottom-left-radius: var(--border-radius);
+}
+
+.page-right .page-corner-fold-bottom {
+  border-bottom-right-radius: var(--border-radius);
+}
+
+.page-corner-fold-top {
+  z-index: 3;
+  background: var(--page-corner-fold-fill);
+}
+
+.page-corner-fold-top-border {
+  z-index: 4;
+  fill: none;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.page-corner-fold-top-border-path {
+  stroke: var(--fold-border-color);
+  stroke-width: var(--border-sm);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.page-corner-fold-number {
+  color: var(--page-corner-fold-number-color, var(--color-gray1));
+  background: var(--page-corner-fold-number-fill, var(--paper));
+}
+
+.page-corner-fold-number-bottom {
+  z-index: 1;
+}
+
+.page-corner-fold-number-top {
+  z-index: 5;
+}
+
+.page-left .page-corner-fold {
+  border-top: var(--border-sm) solid var(--fold-border-color);
+  border-right: var(--border-sm) solid var(--fold-border-color);
+  border-radius: 0 var(--border-radius) 0 0;
+  transform: translate(-2px, 2px) rotate(-5deg);
+  transform-origin: left bottom;
+}
+
+.page-left .page-corner-fold-top-border-path {
+  d: path("M 1 1 L 99 99");
+}
+
+.page-left .page-corner-fold-top {
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+.page-left .page-corner-fold::before {
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
+}
+
+.page-left .page-corner-fold-number-top {
+  /* Left page folded corner top number badge. */
+  top: 35%;
+  right: 35%;
+  transform: translate(50%, -50%) rotate(-90deg);
+}
+
+.page-left .page-corner-fold-number-bottom {
+  /* Left page folded corner bottom number badge. */
+  bottom: 35%;
+  left: 35%;
+  transform: translate(-50%, 50%);
+}
+
+.page-right .page-corner-fold {
+  border-top: var(--border-sm) solid var(--fold-border-color);
+  border-left: var(--border-sm) solid var(--fold-border-color);
+  border-radius: var(--border-radius) 0 0 0;
+  transform: translate(2px, 2px) rotate(5deg);
+  transform-origin: right bottom;
+}
+
+.page-right .page-corner-fold-top-border-path {
+  d: path("M 99 1 L 1 99");
+}
+
+.page-right .page-corner-fold-top {
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.page-right .page-corner-fold::before {
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+.page-right .page-corner-fold-number-top {
+  /* Right page folded corner top number badge. */
+  top: 35%;
+  left: 35%;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.page-right .page-corner-fold-number-bottom {
+  /* Right page folded corner bottom number badge. */
+  right: 35%;
+  bottom: 35%;
+  transform: translate(50%, 50%);
+}
+
+.page-corner-fold-overlay {
+  position: absolute;
+  z-index: 29;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  font-size: 0;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease,
+    visibility 0ms linear 160ms;
+}
+
+.page-corner-fold-overlay.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(0, 0) rotate(0deg);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease,
+    visibility 0ms;
+}
+
+.page-corner-fold-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--paper);
+}
+
+.page-corner-fold-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-top: var(--border-sm) solid var(--color-gray3);
+}
+
+.page-corner-fold-overlay.is-left::before {
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+.page-corner-fold-overlay.is-left {
+  transform: translate(-2px, 2px) rotate(-5deg);
+  transform-origin: left bottom;
+}
+
+.page-corner-fold-overlay.is-left::after {
+  border-right: var(--border-sm) solid var(--color-gray3);
+  border-top-right-radius: var(--border-radius);
+  background: linear-gradient(
+    45deg,
+    transparent calc(50% - 0.5px),
+    var(--color-gray3) calc(50% - 0.5px) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px)
+  );
+}
+
+.page-corner-fold-overlay.is-right::before {
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.page-corner-fold-overlay.is-right {
+  transform: translate(2px, 2px) rotate(5deg);
+  transform-origin: right bottom;
+}
+
+.page-corner-fold-overlay.is-visible {
+  transform: translate(0, 0) rotate(0deg);
+}
+
+.page-corner-fold-overlay.is-right::after {
+  border-left: var(--border-sm) solid var(--color-gray3);
+  border-top-left-radius: var(--border-radius);
+  background: linear-gradient(
+    135deg,
+    transparent calc(50% - 0.5px),
+    var(--color-gray3) calc(50% - 0.5px) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px)
+  );
+}
+
+.page-corner-fold-overlay-number {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  width: var(
+    --page-number-badge-width,
+    max(22px, calc(var(--dot-grid-size-x) * 1.7))
+  );
+  height: var(
+    --page-number-badge-height,
+    max(22px, calc(var(--dot-grid-size-y) * 1.7))
+  );
+  place-items: center;
+  border: var(--border-sm) solid var(--paper);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--color-gray1);
+  font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
+  line-height: 1;
+}
+
+.page-corner-fold-overlay.is-left .page-corner-fold-overlay-number {
+  top: 35%;
+  right: 35%;
+  transform: translate(50%, -50%) rotate(-90deg);
+}
+
+.page-corner-fold-overlay.is-right .page-corner-fold-overlay-number {
+  top: 35%;
+  left: 35%;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.page.can-turn-page.is-corner-hover .page-number {
+  opacity: 0;
+}
+
+.page.can-turn-page.is-corner-hover .page-behind-number,
+.page.can-turn-page.is-corner-hover .page-corner-fold {
+  opacity: 1;
+}
+
+.page.can-turn-page.is-corner-hover .page-corner-fold {
+  transform: translate(0, 0) rotate(0deg);
+}
+
+.page.is-drag-over {
+  outline: var(--border-md) solid var(--accent-ring-soft);
+  outline-offset: -8px;
+}
+
+.page-left {
+  --dot-x: var(--dot-grid-size-x);
+  --dot-grid-position: calc(100% + var(--dot-grid-size-x)) 0;
+  --page-number-dot-mask-position: calc(var(--dot-grid-size-x) - 1px)
+    calc(100% - var(--dot-grid-size-y) + 1px);
+  --half-page-x: var(--half-left-x);
+  --third-x-start: var(--third-left-x-1);
+  --third-x-end: var(--third-left-x-2);
+  --fourth-x-start: var(--fourth-left-x-1);
+  --fourth-x-mid: var(--fourth-left-x-2);
+  --fourth-x-end: var(--fourth-left-x-3);
+  justify-self: center;
+  transform: translateX(var(--page-left-shift));
+  border-radius: var(--border-radius) 0 0 var(--border-radius);
+  clip-path: polygon(
+    0 0,
+    calc(100% - (var(--page-notch-width) / 2)) 0,
+    100% var(--page-notch-height),
+    100% calc(100% - var(--page-notch-height)),
+    calc(100% - (var(--page-notch-width) / 2)) 100%,
+    0 100%
+  );
+}
+
+.page-right {
+  --outside-edge-dot-mask-width: var(--dot-grid-size-x);
+  --page-number-dot-mask-position: calc(100% - var(--dot-grid-size-x) + 1px)
+    calc(100% - var(--dot-grid-size-y) + 1px);
+  --half-page-x: var(--half-right-x);
+  --third-x-start: var(--third-right-x-1);
+  --third-x-end: var(--third-right-x-2);
+  --fourth-x-start: var(--fourth-right-x-1);
+  --fourth-x-mid: var(--fourth-right-x-2);
+  --fourth-x-end: var(--fourth-right-x-3);
+  justify-self: center;
+  transform: translateX(var(--page-right-shift));
+  border-radius: 0 var(--border-radius) var(--border-radius) 0;
+  clip-path: polygon(
+    calc(var(--page-notch-width) / 2) 0,
+    100% 0,
+    100% 100%,
+    calc(var(--page-notch-width) / 2) 100%,
+    0 calc(100% - var(--page-notch-height)),
+    0 var(--page-notch-height)
+  );
+}
+
+:root[data-paper="a4"] .page {
+  --dot-bottom-mask-height: var(--dot-grid-size-y);
+}

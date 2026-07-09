@@ -31,7 +31,9 @@ function getDeskTemplateBox(item) {
 }
 
 function getPageTemplateItems() {
-  return getAllPlannerItems().flatMap((item) => {
+  const pageItems = [];
+
+  getAllPlannerItems().forEach((item) => {
     const page = item.dataset.pageId
       ? pages.find(
           (plannerPage) => getPageId(plannerPage) === item.dataset.pageId,
@@ -39,15 +41,17 @@ function getPageTemplateItems() {
       : null;
 
     if (!page) {
-      return [];
+      return;
     }
 
-    return {
+    pageItems.push({
       item,
       page,
       grid: getGridTemplateBox(item, page),
-    };
+    });
   });
+
+  return pageItems;
 }
 
 function resizePageTemplateItems(items) {
@@ -67,104 +71,120 @@ function resizePageTemplateItems(items) {
   });
 }
 
-// NOTE: Converts a live widget into portable storage/template data.
-// 1. Capture shared widget metadata, style, and text settings.
-// 2. Add calendar-only settings only when the item can render calendar state.
-// 3. Save page widgets in grid units and desk widgets as normalized frames.
+function getDatasetBoolean(item, name, fallback = false) {
+  const value = item.dataset[name];
+
+  if (value === undefined) {
+    return fallback;
+  }
+
+  return value === "true";
+}
+
+function getDatasetNumber(item, name, fallback = 0) {
+  const value = Number(item.dataset[name]);
+
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function getStoredWidgetStyle(item) {
+  return {
+    fillColor: item.dataset.fillColor || null,
+    borderColor: item.dataset.borderColor || null,
+    borderWidth: item.dataset.borderWidth || null,
+    borderEnabled: item.dataset.borderEnabled || null,
+    pageFlagSide: item.dataset.pageFlagSide || null,
+    themeMode: item.dataset.themeMode || null,
+  };
+}
+
+function getStoredTextSettings(item) {
+  const textElement = getStickerTextElement(item);
+
+  return {
+    enabled: getDatasetBoolean(item, "textEnabled"),
+    content: isTocItem(item) ? "" : textElement?.textContent || "",
+    appearsInToc: getDatasetBoolean(item, "textAppearsInToc"),
+    size: item.dataset.textSize || null,
+    font: item.dataset.textFont || null,
+    color: item.dataset.textColor || null,
+    bold: item.dataset.textBold || null,
+    italic: item.dataset.textItalic || null,
+    underline: item.dataset.textUnderline || null,
+    strike: item.dataset.textStrike || null,
+    align: item.dataset.textAlign || null,
+    yAlign: item.dataset.textYAlign || null,
+    lineHeight: item.dataset.textLineHeight || null,
+  };
+}
+
+function getStoredCalendarSettings(item) {
+  return {
+    weekNumbers: getDatasetBoolean(item, "weekNumbers", true),
+    weekNumberFormat:
+      item.dataset.weekNumberFormat ||
+      (item.dataset.weekNumbers === "false" ? "off" : "no-outlines"),
+    weekStart: item.dataset.weekStart || "monday",
+    weekdayLabelFormat: item.dataset.weekdayLabelFormat || "d",
+    dateOrder: item.dataset.dateOrder || "month,date,year,day",
+    yearFormat: item.dataset.dateYearFormat || "yyyy",
+    monthFormat: item.dataset.dateMonthFormat || "full",
+    dayFormat: item.dataset.dateDayFormat || "ddd",
+    dateMode: item.dataset.dateMode || "fixed",
+    dateOffset: getDatasetNumber(item, "dateOffset"),
+    titleVisible: getDatasetBoolean(item, "calendarTitleVisible", true),
+    monthDisplay: item.dataset.monthDisplay || "full",
+    monthVisible: item.dataset.monthDisplay !== "none",
+    month: getDatasetNumber(item, "month"),
+    monthLabel: calendarMonthNames[getDatasetNumber(item, "month")],
+    yearDisplay: item.dataset.yearDisplay || "full",
+    yearVisible: item.dataset.yearDisplay !== "none",
+    year: getDatasetNumber(item, "year", new Date().getFullYear()),
+    startDay: getDatasetNumber(item, "startDay", 1),
+    visibleDays: getDatasetNumber(item, "visibleDays", 7),
+    diaryLayout: item.dataset.diaryLayout || "horizontal",
+    diaryMonthYearVisible: item.dataset.diaryMonthYearVisible !== "false",
+    diaryTitleLines: item.dataset.diaryTitleLines || "two",
+    timeIncrement: getDatasetNumber(item, "timeIncrement", 30),
+    startTime: item.dataset.startTime || "06:00",
+    timeFormat: item.dataset.timeFormat || "24",
+    timeVisible: item.dataset.timeVisible !== "false",
+    weeklyMonthYearVisible: item.dataset.weeklyMonthYearVisible !== "false",
+    shareWeekends: getDatasetBoolean(item, "shareWeekends"),
+    pageSize: item.dataset.calendarPageSize || null,
+    weekNotes: item.dataset.weekNotes || "off",
+    dayNotes: isCalendarTextItem(item) ? getCalendarDayNotes(item) : null,
+    dayTextAppearsInToc: getDatasetBoolean(item, "dayTextAppearsInToc"),
+    dayText: isCalendarTextItem(item)
+      ? {
+          size: item.dataset.dayTextSize || null,
+          font: item.dataset.dayTextFont || null,
+          color: item.dataset.dayTextColor || null,
+          bold: item.dataset.dayTextBold || null,
+          italic: item.dataset.dayTextItalic || null,
+          underline: item.dataset.dayTextUnderline || null,
+          strike: item.dataset.dayTextStrike || null,
+          align: item.dataset.dayTextAlign || null,
+          yAlign: item.dataset.dayTextYAlign || null,
+          lineHeight: item.dataset.dayTextLineHeight || null,
+        }
+      : null,
+  };
+}
+
+// NOTE: Converts one live widget into portable storage data.
 function serializePlannerItem(item) {
   const pageId = item.dataset.pageId || "";
   const page = pageId
     ? pages.find((plannerPage) => getPageId(plannerPage) === pageId) || null
     : null;
-  const textElement = getStickerTextElement(item);
-  const isTextItem = isStickerTextItem(item);
   const baseItem = {
     id: item.dataset.templateId,
     type: item.dataset.itemType || "sticker",
     groupId: item.dataset.groupId || null,
-    style: {
-      fillColor: item.dataset.fillColor || null,
-      borderColor: item.dataset.borderColor || null,
-      borderWidth: item.dataset.borderWidth || null,
-      borderEnabled: item.dataset.borderEnabled || null,
-      pageFlagSide: item.dataset.pageFlagSide || null,
-      themeMode: item.dataset.themeMode || null,
-    },
-    widget: isCalendarItem(item)
-      ? {
-          weekNumbers: item.dataset.weekNumbers !== "false",
-          weekNumberFormat:
-            item.dataset.weekNumberFormat ||
-            (item.dataset.weekNumbers === "false" ? "off" : "no-outlines"),
-          weekStart: item.dataset.weekStart || "monday",
-          weekdayLabelFormat: item.dataset.weekdayLabelFormat || "d",
-          dateOrder: item.dataset.dateOrder || "month,date,year,day",
-          yearFormat: item.dataset.dateYearFormat || "yyyy",
-          monthFormat: item.dataset.dateMonthFormat || "full",
-          dayFormat: item.dataset.dateDayFormat || "ddd",
-          dateMode: item.dataset.dateMode || "fixed",
-          dateOffset: Number(item.dataset.dateOffset) || 0,
-          titleVisible: item.dataset.calendarTitleVisible !== "false",
-          monthDisplay: item.dataset.monthDisplay || "full",
-          monthVisible: item.dataset.monthDisplay !== "none",
-          month: Number(item.dataset.month) || 0,
-          monthLabel: calendarMonthNames[Number(item.dataset.month) || 0],
-          yearDisplay: item.dataset.yearDisplay || "full",
-          yearVisible: item.dataset.yearDisplay !== "none",
-          year: Number(item.dataset.year) || new Date().getFullYear(),
-          startDay: Number(item.dataset.startDay) || 1,
-          visibleDays: Number(item.dataset.visibleDays) || 7,
-          diaryLayout: item.dataset.diaryLayout || "horizontal",
-          diaryMonthYearVisible: item.dataset.diaryMonthYearVisible !== "false",
-          diaryTitleLines: item.dataset.diaryTitleLines || "two",
-          timeIncrement: Number(item.dataset.timeIncrement) || 30,
-          startTime: item.dataset.startTime || "06:00",
-          timeFormat: item.dataset.timeFormat || "24",
-          timeVisible: item.dataset.timeVisible !== "false",
-          weeklyMonthYearVisible:
-            item.dataset.weeklyMonthYearVisible !== "false",
-          shareWeekends: item.dataset.shareWeekends === "true",
-          pageSize: item.dataset.calendarPageSize || null,
-          weekNotes: item.dataset.weekNotes || "off",
-          dayNotes: isCalendarTextItem(item) ? getCalendarDayNotes(item) : null,
-          dayTextAppearsInToc: item.dataset.dayTextAppearsInToc === "true",
-          dayText: isCalendarTextItem(item)
-            ? {
-                size: item.dataset.dayTextSize || null,
-                font: item.dataset.dayTextFont || null,
-                color: item.dataset.dayTextColor || null,
-                bold: item.dataset.dayTextBold || null,
-                italic: item.dataset.dayTextItalic || null,
-                underline: item.dataset.dayTextUnderline || null,
-                strike: item.dataset.dayTextStrike || null,
-                align: item.dataset.dayTextAlign || null,
-                yAlign: item.dataset.dayTextYAlign || null,
-                lineHeight: item.dataset.dayTextLineHeight || null,
-              }
-            : null,
-        }
-      : null,
-    text: isTextItem
-      ? {
-          enabled: item.dataset.textEnabled === "true",
-          content: isTocItem(item)
-            ? ""
-            : textElement
-              ? textElement.textContent
-              : "",
-          appearsInToc: item.dataset.textAppearsInToc === "true",
-          size: item.dataset.textSize || null,
-          font: item.dataset.textFont || null,
-          color: item.dataset.textColor || null,
-          bold: item.dataset.textBold || null,
-          italic: item.dataset.textItalic || null,
-          underline: item.dataset.textUnderline || null,
-          strike: item.dataset.textStrike || null,
-          align: item.dataset.textAlign || null,
-          yAlign: item.dataset.textYAlign || null,
-          lineHeight: item.dataset.textLineHeight || null,
-        }
-      : null,
+    style: getStoredWidgetStyle(item),
+    widget: isCalendarItem(item) ? getStoredCalendarSettings(item) : null,
+    text: isStickerTextItem(item) ? getStoredTextSettings(item) : null,
   };
 
   if (page) {
@@ -639,6 +659,10 @@ function getStoredItemGrid(itemData) {
   };
 }
 
+function sharesWeekendSpaceByDefault(type) {
+  return type === "full-month" || type === "weekly-view";
+}
+
 // NOTE: Load The Planner Back From Browser Storage
 function restorePlannerItemSettings(item, itemData) {
   const style = itemData.style || {};
@@ -686,11 +710,11 @@ function restorePlannerItemSettings(item, itemData) {
       normalizeStoredBoolean(text.appearsInToc) || "false";
   }
   if (isCalendarItem(item)) {
-    const defaultShareWeekends =
-      item.dataset.itemType === "full-month" ||
-      item.dataset.itemType === "weekly-view"
-        ? "true"
-        : "false";
+    const defaultShareWeekends = sharesWeekendSpaceByDefault(
+      item.dataset.itemType,
+    )
+      ? "true"
+      : "false";
 
     if (isCalendarTextItem(item)) {
       const dayText = widget.dayText || {};
@@ -776,22 +800,6 @@ function restorePlannerItemSettings(item, itemData) {
         widget.pageSize,
       weekNotes: widget.weekNotes,
     });
-    if (isCalendarTextItem(item)) {
-      const dayText = widget.dayText || {};
-
-      setCalendarDayTextSettings(item, {
-        size: dayText.size,
-        font: dayText.font,
-        color: dayText.color,
-        bold: normalizeStoredBoolean(dayText.bold),
-        italic: normalizeStoredBoolean(dayText.italic),
-        underline: normalizeStoredBoolean(dayText.underline),
-        strike: normalizeStoredBoolean(dayText.strike),
-        align: dayText.align,
-        yAlign: dayText.yAlign,
-        lineHeight: dayText.lineHeight,
-      });
-    }
   }
   if (itemData.groupId) {
     item.dataset.groupId = itemData.groupId;

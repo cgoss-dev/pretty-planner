@@ -1,0 +1,52 @@
+/* NOTE: Printing */
+@page {
+  size: var(--print-spread-width) var(--print-page-height);
+  margin: 0;
+}
+
+@media print {
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  html,
+  body,
+  .planner-desk {
+    width: var(--print-spread-width);
+    height: var(--print-page-height);
+    min-height: var(--print-page-height);
+    overflow: hidden;
+  }
+
+  .planner-desk {
+    display: block;
+    padding: 0;
+    background: transparent;
+  }
+
+  .notebook {
+    width: var(--print-spread-width);
+    height: var(--print-page-height);
+    aspect-ratio: auto;
+    filter: none;
+  }
+
+  .page {
+    width: var(--print-page-width);
+    height: var(--print-page-height);
+    aspect-ratio: auto;
+    border-radius: 0;
+  }
+
+  .planner-main-menu,
+  .control-panel,
+  .sticker-source,
+  .page-flag-source {
+    display: none;
+  }
+
+  .widget-panel {
+    display: none;
+  }
+}
