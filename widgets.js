@@ -569,8 +569,20 @@ function setItemStyle(item, style) {
   item.style.setProperty("--widget-box-fill", bodyFill);
   if (usesAccentFill) {
     item.style.setProperty("--widget-accent-fill", item.dataset.fillColor);
+    item.style.setProperty("--calendar-shaded-overlay", item.dataset.fillColor);
+    item.style.setProperty(
+      "--calendar-tint-background",
+      `linear-gradient(var(--calendar-tint), var(--calendar-tint)), ${item.dataset.fillColor}`,
+    );
+    item.style.setProperty(
+      "--calendar-weekday-header-background",
+      `linear-gradient(var(--calendar-weekday-header-tint), var(--calendar-weekday-header-tint)), ${item.dataset.fillColor}`,
+    );
   } else {
     item.style.removeProperty("--widget-accent-fill");
+    item.style.removeProperty("--calendar-shaded-overlay");
+    item.style.removeProperty("--calendar-tint-background");
+    item.style.removeProperty("--calendar-weekday-header-background");
   }
   if (hasClearFill) {
     item.style.setProperty("--calendar-tint-alpha", "0");

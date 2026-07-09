@@ -1580,6 +1580,9 @@ function renderMiniMonth(item) {
   const weekNumbersEnabled = weekNumberFormat !== "off";
   const weekNumberOutlines = weekNumberFormat === "outlines";
   const weekStart = item.dataset.weekStart || "monday";
+  const weekdayLabelFormat = normalizeWeekdayLabelFormat(
+    item.dataset.weekdayLabelFormat,
+  );
   const shareWeekends =
     item.dataset.itemType === "full-month"
       ? true
@@ -2840,11 +2843,11 @@ function getVisibleCalendarDisplay(
   currentDisplay,
   fallback = "full",
 ) {
-  if (nextDisplay && nextDisplay !== "none") {
+  if (nextDisplay) {
     return nextDisplay;
   }
 
-  if (currentDisplay && currentDisplay !== "none") {
+  if (currentDisplay) {
     return currentDisplay;
   }
 
