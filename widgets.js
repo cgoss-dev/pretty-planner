@@ -9,13 +9,13 @@ function getThemeColorValue(colorKey) {
     gray3: "var(--color-gray3)",
     gray4: "var(--color-gray4)",
     paper: "var(--paper)",
-    tint30: "var(--tint-30)",
-    tint70: "var(--tint-70)",
-    shade10: "var(--shade-10)",
-    shade30: "var(--shade-30)",
+    tint25: "var(--tint-25)",
+    tint50: "var(--tint-50)",
+    tint75: "var(--tint-75)",
+    shade25: "var(--shade-25)",
     shade50: "var(--shade-50)",
-    shade70: "var(--shade-70)",
-    tertiary8: "var(--tertiary-08)",
+    shade75: "var(--shade-75)",
+    sky: "var(--color-sky)",
   };
 
   return colorMap[colorKey] || colorKey || "";
@@ -155,7 +155,7 @@ function applyTextThemeToElement(
     (element.classList.contains("mini-month-day-number") ||
       element.classList.contains("perpetual-calendar-day-number"))
   ) {
-    element.style.color = "var(--tertiary-01)";
+    element.style.color = "var(--color-red)";
     element.style.fontWeight = "800";
   }
 }
@@ -4087,9 +4087,10 @@ function makePlannerItem(type = "sticker") {
   [
     ["10", "SM: 10px"],
     ["15", "MD: 15px"],
-    ["25", "LG: 25px"],
-    ["50", "1X: 50px"],
-    ["75", "2X: 75px"],
+    ["30", "LG: 30px"],
+    ["60", "1X: 60px"],
+    ["90", "2X: 90px"],
+    ["120", "3X: 120px"],
   ].forEach(([value, label]) => {
     const button = document.createElement("button");
 

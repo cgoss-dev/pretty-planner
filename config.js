@@ -400,40 +400,40 @@
           colors: [
             {
               label: "F00",
-              value: "var(--tertiary-01)",
+              value: "var(--color-red)",
               ink: "var(--color-white)",
             },
             {
               label: "F40",
-              value: "var(--tertiary-02)",
+              value: "var(--color-orange)",
               ink: "var(--color-white)",
             },
-            { label: "F80", value: "var(--tertiary-03)" },
-            { label: "FC0", value: "var(--tertiary-04)" },
-            { label: "FF0", value: "var(--tertiary-05)" },
-            { label: "8F0", value: "var(--tertiary-06)" },
-            { label: "0F0", value: "var(--tertiary-07)" },
+            { label: "F80", value: "var(--color-amber)" },
+            { label: "FC0", value: "var(--color-gold)" },
+            { label: "FF0", value: "var(--color-yellow)" },
+            { label: "8F0", value: "var(--color-lime)" },
+            { label: "0F0", value: "var(--color-green)" },
             {
               label: "08F",
-              value: "var(--tertiary-08)",
+              value: "var(--color-sky)",
               ink: "var(--color-white)",
             },
             {
               label: "00F",
-              value: "var(--tertiary-09)",
+              value: "var(--color-blue)",
               ink: "var(--color-white)",
             },
             {
               label: "40F",
-              value: "var(--tertiary-10)",
+              value: "var(--color-violet)",
               ink: "var(--color-white)",
             },
             {
               label: "80F",
-              value: "var(--tertiary-11)",
+              value: "var(--color-purple)",
               ink: "var(--color-white)",
             },
-            { label: "F0F", value: "var(--tertiary-12)" },
+            { label: "F0F", value: "var(--color-magenta)" },
           ],
         },
       },
@@ -441,7 +441,7 @@
       deskColors: {
         pink: {
           label: "Pink",
-          color: "var(--tertiary-03)",
+          color: "var(--color-amber)",
         },
         gray: {
           label: "Gray",
