@@ -5304,8 +5304,11 @@ body {
 }
 
 .date-offset-stepper-button {
+  box-sizing: border-box;
   width: var(--menu-control-size);
+  min-width: var(--menu-control-size);
   height: var(--menu-control-size);
+  min-height: var(--menu-control-size);
   padding: 0;
   border: var(--menu-border);
   border-radius: var(--menu-radius);

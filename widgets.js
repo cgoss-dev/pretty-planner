@@ -363,6 +363,13 @@ function isTocItem(item) {
   return isTocItemType(item?.dataset?.itemType);
 }
 
+function isAccentFillItem(item) {
+  return (
+    isTocItem(item) ||
+    (typeof isCalendarItem === "function" && isCalendarItem(item))
+  );
+}
+
 function getTocItems(items) {
   return items.filter(isTocItem);
 }
@@ -549,15 +556,22 @@ function setItemStyle(item, style) {
     style.borderEnabled || item.dataset.borderEnabled || "true";
   const hasClearFill = item.dataset.fillColor === "transparent";
   const hasClearBorder = item.dataset.borderEnabled !== "true";
+  const usesAccentFill = isAccentFillItem(item);
+  const bodyFill = usesAccentFill ? "var(--color-white)" : item.dataset.fillColor;
 
   item.dataset.hasClearFill = String(hasClearFill);
   item.dataset.hasClearBorder = String(hasClearBorder);
   delete item.dataset.fillAlpha;
   delete item.dataset.borderAlpha;
   applyDefaultGridLineStyles(item);
-  item.style.setProperty("--sticker-fill", item.dataset.fillColor);
-  item.style.setProperty("--sticker-fill-opaque", item.dataset.fillColor);
-  item.style.setProperty("--widget-box-fill", item.dataset.fillColor);
+  item.style.setProperty("--sticker-fill", bodyFill);
+  item.style.setProperty("--sticker-fill-opaque", bodyFill);
+  item.style.setProperty("--widget-box-fill", bodyFill);
+  if (usesAccentFill) {
+    item.style.setProperty("--widget-accent-fill", item.dataset.fillColor);
+  } else {
+    item.style.removeProperty("--widget-accent-fill");
+  }
   if (hasClearFill) {
     item.style.setProperty("--calendar-tint-alpha", "0");
   } else {
@@ -3775,8 +3789,10 @@ function makePlannerItem(type = "sticker") {
   const dateOffsetNextButton = document.createElement("button");
   const calendarSizeLabel = document.createElement("div");
   const calendarSizeOptions = document.createElement("div");
-  const titleVisibleLabel = document.createElement("label");
-  const titleVisibleInput = document.createElement("input");
+  const monthVisibleLabel = document.createElement("label");
+  const monthVisibleInput = document.createElement("input");
+  const yearVisibleLabel = document.createElement("label");
+  const yearVisibleInput = document.createElement("input");
   const monthLabel = document.createElement("label");
   const monthSelect = document.createElement("select");
   const yearLabel = document.createElement("label");
@@ -3787,8 +3803,6 @@ function makePlannerItem(type = "sticker") {
   const visibleDaysSelect = document.createElement("select");
   const diaryLayoutLabel = document.createElement("label");
   const diaryLayoutSelect = document.createElement("select");
-  const diaryMonthYearVisibleLabel = document.createElement("label");
-  const diaryMonthYearVisibleInput = document.createElement("input");
   const diaryTitleLinesLabel = document.createElement("label");
   const diaryTitleLinesSelect = document.createElement("select");
   const timeIncrementLabel = document.createElement("div");
@@ -3797,8 +3811,6 @@ function makePlannerItem(type = "sticker") {
   const startTimeSelect = document.createElement("select");
   const timeVisibleLabel = document.createElement("div");
   const timeVisibleInput = document.createElement("input");
-  const weeklyMonthYearVisibleLabel = document.createElement("label");
-  const weeklyMonthYearVisibleInput = document.createElement("input");
   const timeFormatLabel = document.createElement("div");
   const timeFormatSelect = document.createElement("select");
   const shareWeekendsLabel = document.createElement("label");
@@ -4343,16 +4355,20 @@ function makePlannerItem(type = "sticker") {
     button.setAttribute("aria-pressed", "false");
     calendarSizeOptions.append(button);
   });
-  titleVisibleLabel.className = "widget-panel-row widget-option-control";
-  titleVisibleLabel.dataset.mainMenuControl = "options.calendar-title-visible";
-  setControlTitle(titleVisibleLabel, ["Show", "Mo/Yr"]);
-  titleVisibleInput.type = "checkbox";
-  titleVisibleInput.dataset.widgetControl = "calendar-title-visible";
-  titleVisibleInput.setAttribute(
-    "aria-label",
-    "Show calendar month and year row",
-  );
-  titleVisibleInput.checked = true;
+  monthVisibleLabel.className = "widget-panel-row widget-option-control";
+  monthVisibleLabel.dataset.mainMenuControl = "options.display-month";
+  setControlTitle(monthVisibleLabel, ["Show", "Month"]);
+  monthVisibleInput.type = "checkbox";
+  monthVisibleInput.dataset.widgetControl = "month-visible";
+  monthVisibleInput.setAttribute("aria-label", "Show month");
+  monthVisibleInput.checked = true;
+  yearVisibleLabel.className = "widget-panel-row widget-option-control";
+  yearVisibleLabel.dataset.mainMenuControl = "options.display-year";
+  setControlTitle(yearVisibleLabel, ["Show", "Year"]);
+  yearVisibleInput.type = "checkbox";
+  yearVisibleInput.dataset.widgetControl = "year-visible";
+  yearVisibleInput.setAttribute("aria-label", "Show year");
+  yearVisibleInput.checked = true;
   monthLabel.className = "widget-panel-row widget-option-control";
   monthLabel.dataset.mainMenuControl = "options.month";
   monthLabel.dataset.dateModeVisibility = "fixed";
@@ -4420,18 +4436,6 @@ function makePlannerItem(type = "sticker") {
     option.textContent = label;
     diaryLayoutSelect.append(option);
   });
-  diaryMonthYearVisibleLabel.className =
-    "widget-panel-row widget-option-control";
-  diaryMonthYearVisibleLabel.dataset.mainMenuControl =
-    "options.diary-month-year-visible";
-  setControlTitle(diaryMonthYearVisibleLabel, ["Show", "Mo/Yr"]);
-  diaryMonthYearVisibleInput.type = "checkbox";
-  diaryMonthYearVisibleInput.checked = false;
-  diaryMonthYearVisibleInput.dataset.widgetControl = "diary-month-year-visible";
-  diaryMonthYearVisibleInput.setAttribute(
-    "aria-label",
-    "Show month and year in Daily Diary titles",
-  );
   diaryTitleLinesLabel.className = "widget-panel-row widget-option-control";
   diaryTitleLinesLabel.dataset.mainMenuControl = "options.diary-title-lines";
   setControlTitle(diaryTitleLinesLabel, ["Title", "Lines"]);
@@ -4478,19 +4482,6 @@ function makePlannerItem(type = "sticker") {
   timeVisibleInput.checked = true;
   timeVisibleInput.dataset.widgetControl = "time-visible";
   timeVisibleInput.setAttribute("aria-label", "Show Schedule View time column");
-  weeklyMonthYearVisibleLabel.className =
-    "widget-panel-row widget-option-control";
-  weeklyMonthYearVisibleLabel.dataset.mainMenuControl =
-    "options.weekly-month-year-visible";
-  setControlTitle(weeklyMonthYearVisibleLabel, ["Show", "Mo/Yr"]);
-  weeklyMonthYearVisibleInput.type = "checkbox";
-  weeklyMonthYearVisibleInput.checked = false;
-  weeklyMonthYearVisibleInput.dataset.widgetControl =
-    "weekly-month-year-visible";
-  weeklyMonthYearVisibleInput.setAttribute(
-    "aria-label",
-    "Show month and year in Schedule View dates",
-  );
   timeFormatLabel.className = "widget-panel-row widget-option-control";
   timeFormatLabel.dataset.mainMenuControl = "options.time-format";
   setControlTitle(timeFormatLabel, "Format");
@@ -4626,7 +4617,8 @@ function makePlannerItem(type = "sticker") {
   );
   dateOffsetLabel.append(dateOffsetStepper);
   calendarSizeLabel.append(calendarSizeOptions);
-  titleVisibleLabel.append(titleVisibleInput);
+  monthVisibleLabel.append(monthVisibleInput);
+  yearVisibleLabel.append(yearVisibleInput);
   weekNumberLabel.append(weekNumberInput);
   if (isCalendarItemType(type)) {
     calendarAttributesGrid.append(
@@ -4651,12 +4643,10 @@ function makePlannerItem(type = "sticker") {
   startDayLabel.append(startDaySelect);
   visibleDaysLabel.append(visibleDaysSelect);
   diaryLayoutLabel.append(diaryLayoutSelect);
-  diaryMonthYearVisibleLabel.append(diaryMonthYearVisibleInput);
   diaryTitleLinesLabel.append(diaryTitleLinesSelect);
   timeIncrementLabel.append(timeIncrementSelect);
   startTimeLabel.append(startTimeSelect);
   timeVisibleLabel.append(timeVisibleInput);
-  weeklyMonthYearVisibleLabel.append(weeklyMonthYearVisibleInput);
   timeFormatLabel.append(timeFormatSelect);
   shareWeekendsLabel.append(shareWeekendsInput);
   weekNotesLabel.append(weekNotesSelect);
@@ -4679,15 +4669,9 @@ function makePlannerItem(type = "sticker") {
     widgetPanel.append(widgetPanelSectionTitle);
   }
   if (isCalendarItemType(type)) {
-    const monthYearVisibilityLabel =
-      type === "weekly-view"
-        ? weeklyMonthYearVisibleLabel
-        : type === "diary-view"
-          ? diaryMonthYearVisibleLabel
-          : titleVisibleLabel;
-
     widgetPanel.append(
-      monthYearVisibilityLabel,
+      monthVisibleLabel,
+      yearVisibleLabel,
       weekNumberLabel,
       ...Array.from(calendarAttributesGrid.children),
     );
@@ -5238,9 +5222,14 @@ function makePlannerItem(type = "sticker") {
 
     applyDateOffsetValue(String(currentValue + 1));
   });
-  titleVisibleInput.addEventListener("change", () => {
+  monthVisibleInput.addEventListener("change", () => {
     applyCalendarWidgetSettingsToActionItems(item, {
-      titleVisible: titleVisibleInput.checked ? "true" : "false",
+      monthDisplay: monthVisibleInput.checked ? "full" : "none",
+    });
+  });
+  yearVisibleInput.addEventListener("change", () => {
+    applyCalendarWidgetSettingsToActionItems(item, {
+      yearDisplay: yearVisibleInput.checked ? "full" : "none",
     });
   });
   monthSelect.addEventListener("change", () => {
@@ -5320,13 +5309,6 @@ function makePlannerItem(type = "sticker") {
       diaryLayout: diaryLayoutSelect.value,
     });
   });
-  diaryMonthYearVisibleInput.addEventListener("change", () => {
-    applyCalendarWidgetSettingsToActionItems(item, {
-      diaryMonthYearVisible: diaryMonthYearVisibleInput.checked
-        ? "true"
-        : "false",
-    });
-  });
   diaryTitleLinesSelect.addEventListener("change", () => {
     applyCalendarWidgetSettingsToActionItems(item, {
       diaryTitleLines: diaryTitleLinesSelect.value,
@@ -5350,13 +5332,6 @@ function makePlannerItem(type = "sticker") {
   timeVisibleInput.addEventListener("change", () => {
     applyCalendarWidgetSettingsToActionItems(item, {
       timeVisible: timeVisibleInput.checked ? "true" : "false",
-    });
-  });
-  weeklyMonthYearVisibleInput.addEventListener("change", () => {
-    applyCalendarWidgetSettingsToActionItems(item, {
-      weeklyMonthYearVisible: weeklyMonthYearVisibleInput.checked
-        ? "true"
-        : "false",
     });
   });
   shareWeekendsInput.addEventListener("change", () => {
