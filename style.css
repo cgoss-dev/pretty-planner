@@ -96,8 +96,9 @@
   --arrow-active-fill: var(--color-gray3);
   --arrow-border: var(--border-sm) solid var(--color-gray4);
   --widget-box-fill: var(--sticker-fill, var(--color-white));
+  --widget-accent-fill: var(--color-gray4);
   --calendar-tint-alpha: 0.25;
-  --calendar-shaded-overlay: var(--color-gray4);
+  --calendar-shaded-overlay: var(--widget-accent-fill);
   --calendar-tint: var(--tint-50);
   --calendar-weekday-header-tint: var(--tint-50);
   --calendar-tint-background:
@@ -3755,7 +3756,7 @@ body {
 
 .calendar-current-day-number {
   font-weight: 800;
-  color: var(--color-rainbow);
+  font-size: var(--font-size-md);
 }
 
 .weekNumber {

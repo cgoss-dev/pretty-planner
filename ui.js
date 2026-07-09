@@ -43,6 +43,7 @@ function getPaletteLabelForColor(colorValue) {
     ...getPaperPaletteColors(),
     ...getAccentPaletteColors(),
     ...getGrayPaletteColors(),
+    ...colorPaletteOrder.flatMap((paletteKey) => getPalette(paletteKey).colors),
     getClearPaletteColor(),
   ];
   const match = allColors.find((color) => color.value === colorValue);

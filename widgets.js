@@ -150,12 +150,8 @@ function applyTextThemeToElement(
     defaultText?.yAlign || "center",
   );
 
-  if (
-    element.classList.contains("calendar-current-day-number") &&
-    (element.classList.contains("mini-month-day-number") ||
-      element.classList.contains("perpetual-calendar-day-number"))
-  ) {
-    element.style.color = "var(--color-red)";
+  if (element.classList.contains("calendar-current-day-number")) {
+    element.style.fontSize = "var(--font-size-md)";
     element.style.fontWeight = "800";
   }
 }
