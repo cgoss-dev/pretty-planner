@@ -1,4 +1,4 @@
-// NOTE: One Place For The Main Planner Knobs
+// One Place For The Main Planner Knobs
 (function () {
   const initialNotebookPageCount = 10;
   const perpetualCalendarLeftColumnGridUnits = 1.25;

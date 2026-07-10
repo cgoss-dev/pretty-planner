@@ -1,4 +1,4 @@
-/* NOTE: Widget Tray Buttons */
+/* Widget Tray Buttons */
 .sticker-source {
   position: absolute;
   z-index: 1;
@@ -278,7 +278,7 @@
   pointer-events: none;
 }
 
-/* NOTE: Planner Items Sitting On The Desk Or Page */
+/* Planner Items Sitting On The Desk Or Page */
 .planner-item {
   border: var(--sticker-border-size, var(--border-sm)) solid
     var(--sticker-border-color, var(--color-gray4));
@@ -820,7 +820,7 @@
   max-height: none;
 }
 
-/* NOTE: Widget Tray Mini Preview Pictures */
+/* Widget Tray Mini Preview Pictures */
 .mini-month-source,
 .full-month-source,
 .perpetual-calendar-source,

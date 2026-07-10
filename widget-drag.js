@@ -1,4 +1,4 @@
-// NOTE: Drag Items, Resize Items, And Move The Control Panel
+// Drag Items, Resize Items, And Move The Control Panel
 function markGridState(item, isOnGrid, page = null) {
   item.classList.toggle("is-on-grid", isOnGrid);
   if (isOnGrid && page) {
@@ -451,7 +451,7 @@ function startControlPanelMove(event) {
 }
 
 function getControlPanelVerticalResizeMode(event) {
-  // NOTE: Main menu is a floating panel now, so it no longer has a drawer resize edge
+  // Main menu is a floating panel now, so it no longer has a drawer resize edge
   return "";
 }
 

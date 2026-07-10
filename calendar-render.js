@@ -1,4 +1,4 @@
-// NOTE: Draw The Calendar Widgets
+// Draw The Calendar Widgets
 function getWeekStartDate(date, weekStart) {
   const nextDate = new Date(
     date.getFullYear(),

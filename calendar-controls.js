@@ -1,4 +1,4 @@
-// NOTE: Calendar Widget Option Controls
+// Calendar Widget Option Controls
 function syncStartDayOptions(select, year, month, selectedDay) {
   if (!select) {
     return;

@@ -1,4 +1,4 @@
-// NOTE: Widget Sizes, Clear Fills, And Box Styling
+// Widget Sizes, Clear Fills, And Box Styling
 function updateCalendarGridMetrics(item, page, box) {
   if (
     item.dataset.itemType !== "full-month" &&

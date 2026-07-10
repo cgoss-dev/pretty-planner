@@ -1,4 +1,4 @@
-// NOTE: Start The App And Connect The Buttons
+// Start The App And Connect The Buttons
 function startPlanner() {
   window.prettyPlanner = {
     serializeTemplate: serializePlannerTemplate,
@@ -61,7 +61,6 @@ function startPlanner() {
   });
   insertPageButton?.addEventListener("click", insertFocusedPage);
   deletePageButton?.addEventListener("click", deleteFocusedPage);
-  clearPageButton?.addEventListener("click", clearFocusedPage);
   clearBookButton?.addEventListener("click", clearCurrentBook);
   document.addEventListener(
     "click",

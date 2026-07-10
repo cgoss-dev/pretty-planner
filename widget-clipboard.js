@@ -1,4 +1,4 @@
-// NOTE: Copy, Paste, Duplicate, And Delete Items
+// Copy, Paste, Duplicate, And Delete Items
 function copyItemConfiguration(source, target) {
   setItemStyle(target, {
     fillColor: source.dataset.fillColor,

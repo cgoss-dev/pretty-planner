@@ -1,4 +1,4 @@
-// NOTE: Creates a collapsible control section button and places the provided controls under it.
+// Creates a collapsible control section button and places the provided controls under it.
 function createControlSection(title, elements = [], isOpen = false) {
   const section = document.createElement("section");
   const toggle = document.createElement("button");
@@ -49,7 +49,7 @@ function setControlSectionOpen(section, isOpen) {
   body.hidden = !isOpen;
 }
 
-// NOTE: Closes a control section and any inline color matrix it contains.
+// Closes a control section and any inline color matrix it contains.
 function closeControlSection(section) {
   if (!section) {
     return;
@@ -67,7 +67,7 @@ function closeControlSections(root = document) {
     .forEach(closeControlSection);
 }
 
-// NOTE: Opens one control section and closes its sibling sections in the same panel.
+// Opens one control section and closes its sibling sections in the same panel.
 function openControlSection(section) {
   const panel = section?.closest(".control-panel-page, .widget-panel-page");
 
@@ -89,7 +89,7 @@ function toggleControlSection(section) {
   openControlSection(section);
 }
 
-// NOTE: Attaches click behavior to control section buttons and keeps all sections closed by default.
+// Attaches click behavior to control section buttons and keeps all sections closed by default.
 function initializeControlSections(root = document) {
   root.querySelectorAll("[data-control-section]").forEach((section) => {
     const toggle = section.querySelector(
@@ -135,7 +135,7 @@ function initializeControlSections(root = document) {
   });
 }
 
-// NOTE: Converts the Notebook tab's current controls into one-open-at-a-time section buttons.
+// Converts the Notebook tab's current controls into one-open-at-a-time section buttons.
 function initializeNotebookControlSections() {
   const pagePanel = document.querySelector("[data-control-panel-page='page']");
 

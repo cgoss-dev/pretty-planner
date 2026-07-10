@@ -1,4 +1,4 @@
-/* NOTE: Notebook Cover, Pages, Spine, And Dot Grid */
+/* Notebook Cover, Pages, Spine, And Dot Grid */
 .notebook {
   position: relative;
   z-index: 2;
@@ -293,7 +293,7 @@
   pointer-events: none;
 }
 
-/* NOTE: Page Turn Animation */
+/* Page Turn Animation */
 .page-turn-sheet {
   position: absolute;
   z-index: 6;

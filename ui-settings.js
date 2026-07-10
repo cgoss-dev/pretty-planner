@@ -1,4 +1,4 @@
-// NOTE: What Happens When Notebook Controls Change
+// What Happens When Notebook Controls Change
 function changePlannerSetting() {
   plannerConfig = buildPlannerConfig();
   applyPlannerConfig();

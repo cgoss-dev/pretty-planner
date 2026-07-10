@@ -1,4 +1,4 @@
-// NOTE: Calendar Date And Time Helpers
+// Calendar Date And Time Helpers
 function getCalendarDayNotes(item) {
   try {
     return JSON.parse(item.dataset.dayNotes || "{}");

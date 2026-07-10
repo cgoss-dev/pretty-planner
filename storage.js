@@ -1,9 +1,9 @@
-// NOTE: Save The Planner Into Browser Storage
+// Save The Planner Into Browser Storage
 function getPageId(page) {
   return page === pages[0] ? "left" : "right";
 }
 
-// NOTE: Page templates use grid units so saved widgets survive paper, zoom, and viewport changes.
+// Page templates use grid units so saved widgets survive paper, zoom, and viewport changes.
 function getGridTemplateBox(item, page) {
   const grid = getGridSize(page);
   const origin = getGridSnapOrigin(page);
@@ -17,7 +17,7 @@ function getGridTemplateBox(item, page) {
   };
 }
 
-// NOTE: Desk items are not tied to paper, so their frame is saved as a percentage of the desk.
+// Desk items are not tied to paper, so their frame is saved as a percentage of the desk.
 function getDeskTemplateBox(item) {
   const deskRect = plannerDesk.getBoundingClientRect();
   const box = getItemBox(item);
@@ -172,7 +172,7 @@ function getStoredCalendarSettings(item) {
   };
 }
 
-// NOTE: Converts one live widget into portable storage data.
+// Converts one live widget into portable storage data.
 function serializePlannerItem(item) {
   const pageId = item.dataset.pageId || "";
   const page = pageId
@@ -205,7 +205,7 @@ function serializePlannerItem(item) {
   };
 }
 
-// NOTE: Public export shape for consumers that need the whole visible planner layout.
+// Public export shape for consumers that need the whole visible planner layout.
 function serializePlannerTemplate() {
   return {
     schemaVersion: templateSchemaVersion,
@@ -326,7 +326,7 @@ function writePlannerState(state) {
   } catch {}
 }
 
-// NOTE: Save enough state to undo the last meaningful storage write.
+// Save enough state to undo the last meaningful storage write.
 let plannerUndoState = null;
 let isApplyingPlannerUndo = false;
 
@@ -365,7 +365,7 @@ function setSelectValue(select, value) {
   }
 }
 
-// NOTE: Stores user-facing controls separately from the current book so settings follow paper changes.
+// Stores user-facing controls separately from the current book so settings follow paper changes.
 function serializePlannerSettings() {
   return {
     paper: paperSelect?.value || "letter",
@@ -428,7 +428,7 @@ function restoreSavedSettings() {
   restorePlannerSettings(readPlannerState().settings);
 }
 
-// NOTE: A book is the current paper-size-specific planner: page count, spread position, and widgets.
+// A book is the current paper-size-specific planner: page count, spread position, and widgets.
 function serializePlannerBook() {
   return {
     schemaVersion: plannerStateSchemaVersion,
@@ -663,7 +663,7 @@ function sharesWeekendSpaceByDefault(type) {
   return type === "full-month" || type === "weekly-view";
 }
 
-// NOTE: Load The Planner Back From Browser Storage
+// Load The Planner Back From Browser Storage
 function restorePlannerItemSettings(item, itemData) {
   const style = itemData.style || {};
   const text = itemData.text || {};
@@ -806,7 +806,7 @@ function restorePlannerItemSettings(item, itemData) {
   }
 }
 
-// NOTE: Rebuilds a saved widget, then places it using the coordinate system it was saved with.
+// Rebuilds a saved widget, then places it using the coordinate system it was saved with.
 function restorePlannerItem(itemData) {
   const type = normalizePlannerItemType(itemData.type || "sticker");
   const isPagePlacement = itemData.placement === "page" || itemData.page;
@@ -915,7 +915,7 @@ function getStoredPageCount(book) {
   );
 }
 
-// NOTE: Restores one paper-size-specific book and falls back to an empty planner if saved data is bad.
+// Restores one paper-size-specific book and falls back to an empty planner if saved data is bad.
 function restorePlannerBook(paperKey = plannerConfig.paperKey) {
   const book = getStoredBook(paperKey);
   let removedUnsupportedItems = false;

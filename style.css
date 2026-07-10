@@ -7,7 +7,7 @@
 }
 
 :root {
-  /* NOTE: Basic Colors */
+  /* Basic Colors */
   --color-black: #000;
   --color-gray1: #333;
   --color-gray2: #666;
@@ -20,17 +20,17 @@
   --accent-ring-strong: var(--color-rainbow);
   --selection-fill: var(--color-rainbow);
 
-  /* NOTE: Transparent Black Overlays */
+  /* Transparent Black Overlays */
   --shade-25: rgba(0, 0, 0, 0.25);
   --shade-50: rgba(0, 0, 0, 0.5);
   --shade-75: rgba(0, 0, 0, 0.75);
 
-  /* NOTE: Transparent White Overlays */
+  /* Transparent White Overlays */
   --tint-25: rgba(255, 255, 255, 0.25);
   --tint-50: rgba(255, 255, 255, 0.5);
   --tint-75: rgba(255, 255, 255, 0.75);
 
-  /* NOTE: Rainbow Swatch Colors */
+  /* Rainbow Swatch Colors */
   --color-red: #f00;
   --color-orange: #f40;
   --color-amber: #f80;
@@ -44,9 +44,9 @@
   --color-purple: #80f;
   --color-magenta: #f0f;
 
-  /* NOTE: Shared Sizes, Fonts, And Layout Knobs */
-  --border-lg: 3px;
-  --border-md: 2px;
+  /* Shared Sizes, Fonts, And Layout Knobs */
+  --border-lg: 5px;
+  --border-md: 3px;
   --border-sm: 1px;
   --border-radius: 10px;
   --font-noto-sans-mono: "Noto Sans Mono", monospace;
@@ -63,11 +63,11 @@
   --font-sofia-sans-ec: "Sofia Sans Extra Condensed", sans-serif;
   --font-symbol:
     "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", sans-serif;
-  --font-size-3x: 120px;
-  --font-size-2x: 90px;
+  --font-size-3x: 100px;
+  --font-size-2x: 80px;
   --font-size-1x: 60px;
-  --font-size-lg: 30px;
-  --font-size-md: 15px;
+  --font-size-lg: 40px;
+  --font-size-md: 20px;
   --font-size-sm: 10px;
   --menu-control-size: 24px;
   --menu-gap: 4px;
@@ -208,7 +208,7 @@
   box-sizing: border-box;
 }
 
-/* NOTE: Whole App Page And Desk Background */
+/* Whole App Page And Desk Background */
 html,
 body {
   margin: 0;
@@ -248,7 +248,7 @@ body {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: clamp(8px, 2vw, 28px); /* NOTE: page padding */
+  padding: clamp(8px, 2vw, 28px); /* page padding */
   background: var(--desk-image), var(--desk);
   background-size: var(--desk-size), auto;
   background-position:

@@ -1,6 +1,6 @@
-// NOTE: Calendar widget previews, date helpers, sizing, rendering, and option controls.
+// Calendar widget previews, date helpers, sizing, rendering, and option controls.
 
-// NOTE: Tiny Preview Pictures In The Widget Tray
+// Tiny Preview Pictures In The Widget Tray
 function createCalendarSourcePreviewCell(
   row,
   column,

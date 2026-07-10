@@ -1,4 +1,4 @@
-// NOTE: Shared Planner UI Modules
+// Shared Planner UI Modules
 const paletteSelectionHandlers = new WeakMap();
 
 function setPaletteSelectionHandler(target, handler) {
@@ -456,29 +456,29 @@ function getHexPopover() {
   popover.hidden = true;
   popover.innerHTML = `
           <div class="color-panel-hex-swatch-cell">
-               <span class="color-panel-hex-preview" data-color-panel-hex-preview aria-hidden="true"></span>
+              <span class="color-panel-hex-preview" data-color-panel-hex-preview aria-hidden="true"></span>
           </div>
           <label class="color-panel-hex-hex-cell" data-color-panel-hex-cell tabindex="0">
-               <span>HEX</span>
-               <input type="text" inputmode="text" maxlength="7" value="#FFFFFF" aria-label="Hex color" data-color-panel-hex-hex tabindex="-1" readonly>
+              <span>HEX</span>
+              <input type="text" inputmode="text" maxlength="7" value="#FFFFFF" aria-label="Hex color" data-color-panel-hex-hex tabindex="-1" readonly>
           </label>
           <label data-color-panel-hex-cell tabindex="0">
-               <span>R</span>
-               <input type="text" inputmode="numeric" maxlength="3" value="255" aria-label="Red" data-color-panel-hex-channel="red" tabindex="-1" readonly>
+              <span>R</span>
+              <input type="text" inputmode="numeric" maxlength="3" value="255" aria-label="Red" data-color-panel-hex-channel="red" tabindex="-1" readonly>
           </label>
           <label data-color-panel-hex-cell tabindex="0">
-               <span>G</span>
-               <input type="text" inputmode="numeric" maxlength="3" value="255" aria-label="Green" data-color-panel-hex-channel="green" tabindex="-1" readonly>
+              <span>G</span>
+              <input type="text" inputmode="numeric" maxlength="3" value="255" aria-label="Green" data-color-panel-hex-channel="green" tabindex="-1" readonly>
           </label>
           <label data-color-panel-hex-cell tabindex="0">
-               <span>B</span>
-               <input type="text" inputmode="numeric" maxlength="3" value="238" aria-label="Blue" data-color-panel-hex-channel="blue" tabindex="-1" readonly>
+              <span>B</span>
+              <input type="text" inputmode="numeric" maxlength="3" value="238" aria-label="Blue" data-color-panel-hex-channel="blue" tabindex="-1" readonly>
           </label>
           <label data-color-panel-hex-cell tabindex="0">
-               <span>A</span>
-               <input type="text" inputmode="numeric" maxlength="3" value="100" aria-label="Alpha" data-color-panel-hex-channel="alpha" tabindex="-1" readonly>
+              <span>A</span>
+              <input type="text" inputmode="numeric" maxlength="3" value="100" aria-label="Alpha" data-color-panel-hex-channel="alpha" tabindex="-1" readonly>
           </label>
-     `;
+  `;
   document.body.append(popover);
 
   const cells = Array.from(

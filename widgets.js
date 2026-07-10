@@ -1,4 +1,4 @@
-// NOTE: Widget Theme Defaults
+// Widget Theme Defaults
 let plannerThemesData = null;
 let plannerWidgetThemeSlots = null;
 
@@ -354,7 +354,7 @@ async function loadPlannerThemeData() {
   }
 }
 
-// NOTE: Table Of Contents Helpers
+// Table Of Contents Helpers
 function isTocItemType(type) {
   return type === "toc";
 }
@@ -680,11 +680,6 @@ function applyMainMenuControlVisibility(item) {
 
 window.applyMainMenuControlVisibility = applyMainMenuControlVisibility;
 
-// NOTE: Table Of Contents, And Page Ins/Rmv Rules
-function getClearPageSides() {
-  return PageControls.getClearPageSides();
-}
-
 function isStickerTextItemType(type) {
   return type === "sticker" || type === "page-flag" || type === "toc";
 }
@@ -948,23 +943,6 @@ function deleteFocusedPage() {
     setFocusedPageNumber,
     syncNotebookSpread,
     applyViewControls,
-    notifyTemplateChanged,
-  });
-}
-
-function clearFocusedPage() {
-  PageControls.clearFocusedPage({
-    clearItems,
-    getFocusedPageItems: () => {
-      const pageSides = new Set(getClearPageSides());
-
-      return getAllPlannerItems().filter(
-        (item) =>
-          item.dataset.pageId &&
-          getItemSpreadIndex(item) === currentSpreadIndex &&
-          pageSides.has(item.dataset.pageId),
-      );
-    },
     notifyTemplateChanged,
   });
 }

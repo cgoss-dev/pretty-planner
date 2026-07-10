@@ -1,4 +1,4 @@
-// NOTE: Item Position, Size, And Grid Snapping
+// Item Position, Size, And Grid Snapping
 function getPageFromPoint(clientX, clientY) {
   return pages.find((page) => {
     const rect = page.getBoundingClientRect();

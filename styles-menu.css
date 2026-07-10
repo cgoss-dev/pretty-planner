@@ -1,4 +1,4 @@
-/* NOTE: Panel Surface Styling */
+/* Panel Surface Styling */
 .control-panel {
   filter: drop-shadow(0 8px 12px var(--shade-25));
 }
@@ -168,7 +168,7 @@
   display: none;
 }
 
-/* NOTE: Floating Control Panel With Side Tabs */
+/* Floating Control Panel With Side Tabs */
 .control-panel {
   left: var(--control-panel-anchor-left);
   top: var(--control-panel-anchor-top);
@@ -279,7 +279,7 @@
   pointer-events: none;
 }
 
-/* NOTE: Single Page View On Smaller Screens */
+/* Single Page View On Smaller Screens */
 body.is-single-page-viewport {
   overflow: auto;
 }
@@ -382,7 +382,7 @@ body.is-single-page-viewport .planner-desk > .page-flag-source {
   display: none;
 }
 
-/* NOTE: Docked Main Menu */
+/* Docked Main Menu */
 .planner-main-menu {
   position: absolute;
   z-index: 260;

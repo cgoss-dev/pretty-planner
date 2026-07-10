@@ -1,4 +1,4 @@
-// NOTE: Page Turns, Page Numbers, And Corner Folds
+// Page Turns, Page Numbers, And Corner Folds
 window.PageControls = (() => {
   let pageTurnTimer = 0;
 
@@ -312,10 +312,6 @@ window.PageControls = (() => {
     }, PlannerRootControls.controls.pageCornerFlip.animation.spreadSyncDelayMs);
   }
 
-  function getClearPageSides() {
-    return [getFocusedPageSide()];
-  }
-
   function insertFocusedPage({
     notebookPageCount,
     maxNotebookPageCount,
@@ -376,15 +372,6 @@ window.PageControls = (() => {
     setFocusedPageNumber(Math.min(focusedPageNumber, notebookPageCount - 1));
     syncNotebookSpread();
     applyViewControls();
-    notifyTemplateChanged();
-  }
-
-  function clearFocusedPage({
-    clearItems,
-    getFocusedPageItems,
-    notifyTemplateChanged,
-  }) {
-    clearItems(getFocusedPageItems());
     notifyTemplateChanged();
   }
 
@@ -493,7 +480,6 @@ window.PageControls = (() => {
     getFocusedPageNumber,
     getFocusedPageSide,
     getFocusedPageState,
-    getClearPageSides,
     getNotebookPageCountState,
     getPageSideForPageNumber,
     getSpreadCountForPageCount,
@@ -508,7 +494,6 @@ window.PageControls = (() => {
     },
     normalizeNotebookPageCount,
     clearCurrentBook,
-    clearFocusedPage,
     deleteFocusedPage,
     syncNotebookSpread,
     turnNotebookSpread,
@@ -518,7 +503,7 @@ window.PageControls = (() => {
   };
 })();
 
-// NOTE: Keyboard command labels and rendering helpers for the Controls menu tab
+// Keyboard command labels and rendering helpers for the Controls menu tab
 window.KeyboardControls = (() => {
   const groups = [
     {
@@ -539,7 +524,7 @@ window.KeyboardControls = (() => {
   ];
 
   function getGroups() {
-    // NOTE: Returns the keyboard control groups used by the Controls tab
+    // Returns the keyboard control groups used by the Controls tab
     return groups.map((group) => ({
       ...group,
       controls: group.controls.map((control) => ({ ...control })),
@@ -547,7 +532,7 @@ window.KeyboardControls = (() => {
   }
 
   function makeKeyElement(key) {
-    // NOTE: Builds the visual key label for one keyboard command
+    // Builds the visual key label for one keyboard command
     const element = document.createElement("kbd");
 
     element.className = "keyboard-control-key";
@@ -557,7 +542,7 @@ window.KeyboardControls = (() => {
   }
 
   function renderControlsPanel(container) {
-    // NOTE: Renders the keyboard command reference into the Controls panel
+    // Renders the keyboard command reference into the Controls panel
     if (!container) {
       return;
     }

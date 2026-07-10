@@ -1,4 +1,4 @@
-// NOTE: Things The App Grabs From The HTML
+// Things The App Grabs From The HTML
 const pages = Array.from(document.querySelectorAll("[data-page]"));
 const plannerDesk = document.querySelector(".planner-desk");
 const plannerMainMenu = document.querySelector("[data-planner-main-menu]");
@@ -9,7 +9,6 @@ const sourceItems = Array.from(document.querySelectorAll("[data-create-item]"));
 const insertPageButton = document.querySelector("[data-insert-page]");
 const deletePageButton = document.querySelector("[data-delete-page]");
 const pageCountStatus = document.querySelector("[data-page-count-status]");
-const clearPageButton = document.querySelector("[data-clear-page]");
 const clearBookButton = document.querySelector("[data-clear-book]");
 const paperSelect = document.querySelector("[data-setting='paper']");
 const paperColorSelect = document.querySelector("[data-setting='paper-color']");

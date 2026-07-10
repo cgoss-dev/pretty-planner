@@ -1,4 +1,4 @@
-/* NOTE: Item Dragging, Selection, And Resize Handles */
+/* Item Dragging, Selection, And Resize Handles */
 .planner-item.is-dragging {
   z-index: 30;
   cursor: grabbing;
@@ -165,7 +165,7 @@
   display: block;
 }
 
-/* NOTE: Selection Controls And Popup Menus */
+/* Selection Controls And Popup Menus */
 .widget-panel {
   position: absolute;
   z-index: 45;

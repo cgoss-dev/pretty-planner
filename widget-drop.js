@@ -1,4 +1,4 @@
-// NOTE: Drop Items Onto Pages Or Back Onto The Desk
+// Drop Items Onto Pages Or Back Onto The Desk
 function placeItemOnDesk(item, event) {
   const itemRect = item.getBoundingClientRect();
   const deskRect = plannerDesk.getBoundingClientRect();

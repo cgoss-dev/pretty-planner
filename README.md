@@ -22,7 +22,7 @@ The CSS follows the same visible-feature structure:
 
 Use comments to explain intent, data shape, and non-obvious constraints. Let the code explain simple assignments.
 
-- Start large files with `// NOTE:` section headers that say what the region owns.
+- Start large files with `// ` section headers that say what the region owns.
 - Before a dense function, write a short checklist of what it does in order.
 - Inside a function, comment only the branches where a future reader would ask "why?"
 - Prefer domain words from the app: `book`, `spread`, `page`, `grid`, `desk`, `widget`, `template`.
@@ -32,7 +32,7 @@ Use comments to explain intent, data shape, and non-obvious constraints. Let the
 Example:
 
 ```js
-// NOTE: Converts a live widget into storage data.
+// Converts a live widget into storage data.
 // 1. Capture shared style and text settings.
 // 2. Add calendar-only settings when the widget needs them.
 // 3. Store page widgets in grid units and desk widgets as normalized frames.

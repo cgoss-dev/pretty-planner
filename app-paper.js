@@ -1,4 +1,4 @@
-// NOTE: Paper Size, Grid Size, And Planner Measurements
+// Paper Size, Grid Size, And Planner Measurements
 function buildPlannerConfig() {
   const paperKey = paperSelect ? paperSelect.value : "letter";
   const gridKey = getGridKeyForPaper(paperKey);

@@ -12,3 +12,4 @@
 - Do not change nearby systems unless requested.
 - For CSS, prefer existing gray variables: `--color-gray1` through `--color-gray4`.
 - If we have an opportunity to use an existing variable instead of raw code, please point it out.
+- Do not add or remove "Note" to the beginning of comments.

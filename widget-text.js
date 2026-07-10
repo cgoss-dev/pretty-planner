@@ -1,4 +1,4 @@
-// NOTE: Text Inside Notes, Titles, And Calendars
+// Text Inside Notes, Titles, And Calendars
 function getStickerTextElement(item) {
   if (isTocItem(item)) {
     return item.querySelector(".toc-widget");
@@ -18,7 +18,7 @@ function getTextYAlignValue(value = "top") {
 }
 
 function normalizeEditablePlainText(textElement) {
-  // NOTE: Strips pasted rich text markup while preserving the visible text
+  // Strips pasted rich text markup while preserving the visible text
   if (!textElement) {
     return;
   }
@@ -34,7 +34,7 @@ function normalizeEditablePlainText(textElement) {
 }
 
 function insertPlainTextAtSelection(text) {
-  // NOTE: Inserts clipboard text without carrying over HTML styles
+  // Inserts clipboard text without carrying over HTML styles
   const selection = window.getSelection();
 
   if (!selection || !selection.rangeCount) {
@@ -55,7 +55,7 @@ function insertPlainTextAtSelection(text) {
 }
 
 function handlePlainTextPaste(event) {
-  // NOTE: Keeps pasted text from importing spans, backgrounds, or other source styling
+  // Keeps pasted text from importing spans, backgrounds, or other source styling
   const text = event.clipboardData?.getData("text/plain");
 
   if (text === undefined || text === null) {

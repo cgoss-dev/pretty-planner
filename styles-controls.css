@@ -1,4 +1,4 @@
-/* NOTE: Floating Control Panel */
+/* Floating Control Panel */
 .control-panel {
   position: absolute;
   z-index: 200;
@@ -190,7 +190,7 @@
   display: none;
 }
 
-/* NOTE: Top Tabs Inside The Control Panel */
+/* Top Tabs Inside The Control Panel */
 .control-panel-tabs {
   display: flex;
   align-items: end;
@@ -620,7 +620,7 @@
   white-space: nowrap;
 }
 
-/* NOTE: Form Fields, Choices, And Drop-Down Menus */
+/* Form Fields, Choices, And Drop-Down Menus */
 .control-panel label,
 .control-field,
 .guide-controls {
@@ -888,7 +888,7 @@
   font: 400 var(--font-size-sm) var(--font-noto-sans-mono);
 }
 
-/* NOTE: Color Swatches, Hex Picker, And Color Matrix */
+/* Color Swatches, Hex Picker, And Color Matrix */
 .palette-preview .palette-swatches {
   grid-template-columns: var(--color-swatch-size);
   padding: var(--menu-gap);

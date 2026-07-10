@@ -1,4 +1,4 @@
-// NOTE: Zoom And Which Page You Are Looking At
+// Zoom And Which Page You Are Looking At
 function applyViewControls(zoomAnchor = null) {
   const zoom = viewZoomLevels[viewZoomIndex];
   const shouldCenterFocusedPage = isSinglePageViewport || viewZoomIndex > 0;
@@ -164,7 +164,7 @@ function changeViewZoom(direction, zoomAnchor = null) {
 }
 
 function cycleViewZoom() {
-  // NOTE: Cycles through zoom levels with one key, wrapping back to 100% after the closest zoom
+  // Cycles through zoom levels with one key, wrapping back to 100% after the closest zoom
   const nextZoomIndex =
     viewZoomIndex >= viewZoomLevels.length - 1 ? 0 : viewZoomIndex + 1;
 
@@ -418,7 +418,7 @@ function jumpNotebookSpread(spreadIndex) {
 }
 
 function handlePageTurnKey(event) {
-  // NOTE: Uses comma/period for previous/next page, chevrons or Home/End for notebook ends
+  // Uses comma/period for previous/next page, chevrons or Home/End for notebook ends
   const isBookStartKey =
     event.key === "Home" ||
     event.key === "<" ||
@@ -469,7 +469,7 @@ function handlePageTurnKey(event) {
 }
 
 function handleMousePageTurnButton(event) {
-  // NOTE: Uses browser back/forward mouse side buttons to turn planner pages instead of browser history.
+  // Uses browser back/forward mouse side buttons to turn planner pages instead of browser history.
   const isPageTurnButton = event.button === 3 || event.button === 4;
 
   if (!isPageTurnButton) {
@@ -512,7 +512,7 @@ function handleMousePageTurnButton(event) {
 }
 
 function closeColorMatrixFromOutsidePointer(event) {
-  // NOTE: Closes the Color Panel as soon as the user points anywhere outside it.
+  // Closes the Color Panel as soon as the user points anywhere outside it.
   if (
     !colorMatrixPopover ||
     colorMatrixPopover.hidden ||
@@ -527,7 +527,7 @@ function closeColorMatrixFromOutsidePointer(event) {
 }
 
 function isTypingFieldShortcutTarget(target) {
-  // NOTE: Detects fields where letter or arrow shortcuts should not interrupt text entry
+  // Detects fields where letter or arrow shortcuts should not interrupt text entry
   const input = target?.closest?.("textarea, [contenteditable='true'], input");
 
   if (!input) {
@@ -552,7 +552,7 @@ function isTypingFieldShortcutTarget(target) {
 }
 
 function isPanelControlShortcutTarget(target) {
-  // NOTE: Lets focused panel controls receive Enter instead of reopening the selected widget panel
+  // Lets focused panel controls receive Enter instead of reopening the selected widget panel
   return Boolean(
     target?.closest?.(
       "button, input, select, textarea, [contenteditable='true'], .custom-select",
@@ -586,7 +586,7 @@ function insertTextEditLineBreak(editingTarget) {
 }
 
 function handleTextEditEnterKey(event) {
-  // NOTE: Keeps Enter for starting text edit mode; Shift+Enter owns new lines while editing.
+  // Keeps Enter for starting text edit mode; Shift+Enter owns new lines while editing.
   if (
     event.defaultPrevented ||
     event.altKey ||
@@ -611,7 +611,7 @@ function handleTextEditEnterKey(event) {
 }
 
 function handleMenuEnterKey(event) {
-  // NOTE: Activates the focused panel control with E or Enter while the control panel is open
+  // Activates the focused panel control with E or Enter while the control panel is open
   if (
     event.defaultPrevented ||
     activeAction ||
@@ -646,7 +646,7 @@ function handleMenuEnterKey(event) {
 }
 
 function getKeyboardDirection(event) {
-  // NOTE: Normalizes WASD and arrow keys to one shared movement vocabulary
+  // Normalizes WASD and arrow keys to one shared movement vocabulary
   const directions = {
     ArrowLeft: "left",
     ArrowRight: "right",
@@ -662,12 +662,12 @@ function getKeyboardDirection(event) {
 }
 
 function isCancelKey(event) {
-  // NOTE: Treats Delete as the right-hand companion to Escape for backing out of actions
+  // Treats Delete as the right-hand companion to Escape for backing out of actions
   return event.key === "Escape" || event.key === "Delete";
 }
 
 function getKeyboardCursorPage() {
-  // NOTE: Finds the current page for the keyboard grid cursor
+  // Finds the current page for the keyboard grid cursor
   const page = pages.find(
     (plannerPage) => getPageId(plannerPage) === keyboardCursor.pageSide,
   );
@@ -692,7 +692,7 @@ function getKeyboardCursorPage() {
 }
 
 function getKeyboardGridMetrics(page) {
-  // NOTE: Returns page grid metrics for cursor labels and keyboard movement
+  // Returns page grid metrics for cursor labels and keyboard movement
   const grid = getGridSize(page);
   const origin = getGridSnapOrigin(page);
 
@@ -705,21 +705,21 @@ function getKeyboardGridMetrics(page) {
 }
 
 function getKeyboardCursorPageNumber() {
-  // NOTE: Matches the cursor label page number to the page badge number
+  // Matches the cursor label page number to the page badge number
   const side = keyboardCursor.pageSide;
 
   return getCurrentSpreadPageNumber(side);
 }
 
 function getKeyboardCursorLabel() {
-  // NOTE: Formats the cursor anchor as page, row, and column
+  // Formats the cursor anchor as page, row, and column
   const pageSide = keyboardCursor.pageSide === "right" ? "PR" : "PL";
 
   return `${pageSide}${getKeyboardCursorPageNumber()} R${keyboardCursor.row} C${keyboardCursor.column}`;
 }
 
 function getKeyboardCursorAnchor(page = getKeyboardCursorPage()) {
-  // NOTE: Returns the page-local upper-left anchor point for keyboard actions
+  // Returns the page-local upper-left anchor point for keyboard actions
   if (!page) {
     return null;
   }
@@ -734,7 +734,7 @@ function getKeyboardCursorAnchor(page = getKeyboardCursorPage()) {
 }
 
 function setKeyboardCursor(page, column, row) {
-  // NOTE: Moves the keyboard grid cursor to a clamped row and column on a page
+  // Moves the keyboard grid cursor to a clamped row and column on a page
   if (!page) {
     return;
   }
@@ -751,7 +751,7 @@ function setKeyboardCursor(page, column, row) {
 }
 
 function setKeyboardCursorFromBox(item, page = getItemPage(item)) {
-  // NOTE: Moves the keyboard cursor to an item's upper-left grid anchor
+  // Moves the keyboard cursor to an item's upper-left grid anchor
   if (!item || !page) {
     return;
   }
@@ -765,7 +765,7 @@ function setKeyboardCursorFromBox(item, page = getItemPage(item)) {
 }
 
 function syncKeyboardCursorWithFocusedPage() {
-  // NOTE: Initializes or clamps the cursor when the visible page or paper grid changes
+  // Initializes or clamps the cursor when the visible page or paper grid changes
   const focusedSide = getFocusedPageSide();
   const page =
     pages.find((plannerPage) => getPageId(plannerPage) === focusedSide) ||
@@ -786,7 +786,7 @@ function syncKeyboardCursorWithFocusedPage() {
 }
 
 function shouldShowKeyboardCursor() {
-  // NOTE: Shows the cursor only when keyboard page actions are relevant
+  // Shows the cursor only when keyboard page actions are relevant
   return Boolean(
     pageGridCursor &&
     hasUsedKeyboardCursor &&
@@ -796,7 +796,7 @@ function shouldShowKeyboardCursor() {
 }
 
 function wakeKeyboardCursor() {
-  // NOTE: Reveals the keyboard cursor after directional-key use, then dims it after three idle seconds
+  // Reveals the keyboard cursor after directional-key use, then dims it after three idle seconds
   hasUsedKeyboardCursor = true;
   isKeyboardCursorActive = true;
   window.clearTimeout(keyboardCursorIdleTimer);
@@ -810,7 +810,7 @@ function wakeKeyboardCursor() {
 }
 
 function hideKeyboardCursorForPointer() {
-  // NOTE: Leaves keyboard navigation when the user goes back to pointer navigation
+  // Leaves keyboard navigation when the user goes back to pointer navigation
   if (!hasUsedKeyboardCursor) {
     return;
   }
@@ -823,14 +823,14 @@ function hideKeyboardCursorForPointer() {
 }
 
 function scheduleKeyboardCursorUpdate() {
-  // NOTE: Refreshes the page navigation cursor after layout, pan, and turn animation transforms settle
+  // Refreshes the page navigation cursor after layout, pan, and turn animation transforms settle
   requestAnimationFrame(() => {
     requestAnimationFrame(updateKeyboardCursor);
   });
 }
 
 function updateKeyboardCursor() {
-  // NOTE: Positions the visible page cursor and updates its anchor label
+  // Positions the visible page cursor and updates its anchor label
   if (!pageGridCursor) {
     return;
   }
@@ -856,7 +856,7 @@ function updateKeyboardCursor() {
 }
 
 function moveKeyboardCursor(direction) {
-  // NOTE: Moves the page grid cursor by one row or column
+  // Moves the page grid cursor by one row or column
   const page = getKeyboardCursorPage();
 
   if (!page) {
@@ -885,7 +885,7 @@ function moveKeyboardCursor(direction) {
 }
 
 function getItemAtKeyboardCursor() {
-  // NOTE: Finds the topmost visible widget under the cursor anchor
+  // Finds the topmost visible widget under the cursor anchor
   const page = getKeyboardCursorPage();
   const anchor = getKeyboardCursorAnchor(page);
 
@@ -916,7 +916,7 @@ function getItemAtKeyboardCursor() {
 }
 
 function activateKeyboardCursor() {
-  // NOTE: Selects, edits, or clears based on what sits under the keyboard cursor
+  // Selects, edits, or clears based on what sits under the keyboard cursor
   const item = getItemAtKeyboardCursor();
 
   if (!item) {
@@ -1212,7 +1212,7 @@ function stepBackWidgetFocus() {
 }
 
 function handleKeyboardCursorActivateKey(event) {
-  // NOTE: Uses E or Enter as the page cursor activate key when the menu is closed
+  // Uses E or Enter as the page cursor activate key when the menu is closed
   if (
     event.defaultPrevented ||
     activeAction ||
@@ -1246,7 +1246,7 @@ function handleKeyboardCursorActivateKey(event) {
 }
 
 function getKeyboardPlacementPage() {
-  // NOTE: Finds the visible page that should receive a keyboard-placed widget
+  // Finds the visible page that should receive a keyboard-placed widget
   const cursorPage = getKeyboardCursorPage();
 
   if (cursorPage && !cursorPage.classList.contains("is-missing-page")) {
@@ -1268,7 +1268,7 @@ function getKeyboardPlacementPage() {
 }
 
 function centerKeyboardPlacementItem(item, page) {
-  // NOTE: Centers a newly keyboard-created widget on the active page grid
+  // Centers a newly keyboard-created widget on the active page grid
   if (!page || isFullPageCalendarType(item.dataset.itemType)) {
     return;
   }
@@ -1299,7 +1299,7 @@ function centerKeyboardPlacementItem(item, page) {
 }
 
 function placeKeyboardPlacementItemAtCursor(item, page) {
-  // NOTE: Places a new keyboard widget with its upper-left corner on the cursor anchor
+  // Places a new keyboard widget with its upper-left corner on the cursor anchor
   if (!page || isFullPageCalendarType(item.dataset.itemType)) {
     return;
   }
@@ -1325,7 +1325,7 @@ function placeKeyboardPlacementItemAtCursor(item, page) {
 }
 
 function startKeyboardSourcePlacement(source) {
-  // NOTE: Creates a widget from the menu and starts keyboard placement
+  // Creates a widget from the menu and starts keyboard placement
   if (activeAction || !source?.matches?.("[data-create-item]")) {
     return false;
   }
@@ -1382,7 +1382,7 @@ function startKeyboardSourcePlacement(source) {
 }
 
 function moveKeyboardPlacementItem(direction) {
-  // NOTE: Moves the keyboard-held widget by one grid cell in the requested direction
+  // Moves the keyboard-held widget by one grid cell in the requested direction
   const item = activeAction?.item;
   const page = activeAction?.page;
 
@@ -1418,7 +1418,7 @@ function moveKeyboardPlacementItem(direction) {
 }
 
 function finishKeyboardPlacement() {
-  // NOTE: Places the keyboard-held widget and saves the planner state
+  // Places the keyboard-held widget and saves the planner state
   if (activeAction?.type !== "keyboard-source") {
     return;
   }
@@ -1436,7 +1436,7 @@ function finishKeyboardPlacement() {
 }
 
 function cancelKeyboardPlacement() {
-  // NOTE: Removes a keyboard-created widget when placement is cancelled
+  // Removes a keyboard-created widget when placement is cancelled
   if (activeAction?.type !== "keyboard-source") {
     return;
   }
@@ -1455,7 +1455,7 @@ function cancelKeyboardPlacement() {
 }
 
 function handleKeyboardPlacementKey(event) {
-  // NOTE: Handles WASD/arrow movement, E/Enter placement, and Delete/Escape cancel while placing a widget
+  // Handles WASD/arrow movement, E/Enter placement, and Delete/Escape cancel while placing a widget
   if (
     activeAction?.type !== "keyboard-source" ||
     event.altKey ||
@@ -1487,7 +1487,7 @@ function handleKeyboardPlacementKey(event) {
 }
 
 function getSelectedTextEditItem() {
-  // NOTE: Returns the single selected planner item that can enter text editing
+  // Returns the single selected planner item that can enter text editing
   if (
     selectedItems.size !== 1 ||
     !selectedItem ||
@@ -1502,7 +1502,7 @@ function getSelectedTextEditItem() {
 }
 
 function startSelectedItemTextEditing(item) {
-  // NOTE: Starts text editing for the selected planner item using its primary editable text area
+  // Starts text editing for the selected planner item using its primary editable text area
   const stickerText = item.querySelector(".sticker-text");
 
   if (stickerText) {
@@ -1521,7 +1521,7 @@ function startSelectedItemTextEditing(item) {
 }
 
 function handleSelectedTextEditKey(event) {
-  // NOTE: Uses Enter to edit selected text widgets or open selected widget actions
+  // Uses Enter to edit selected text widgets or open selected widget actions
   if (
     event.defaultPrevented ||
     activeAction ||
@@ -1567,7 +1567,7 @@ function handleSelectedTextEditKey(event) {
 }
 
 function syncCurrentActionUi() {
-  // NOTE: Reflects the current action on shared UI hooks
+  // Reflects the current action on shared UI hooks
   controlPanel.classList.toggle(
     "is-browse-context",
     plannerAction === "browse",
@@ -1576,7 +1576,7 @@ function syncCurrentActionUi() {
 }
 
 function enterBrowseAction() {
-  // NOTE: Returns to the base planner action and closes any main menu panel
+  // Returns to the base planner action and closes any main menu panel
   plannerAction = "browse";
   mainMenuContext = "root";
   syncCurrentActionUi();
@@ -1585,7 +1585,7 @@ function enterBrowseAction() {
 }
 
 function enterKeyboardMenuBranch(branch, tabName) {
-  // NOTE: Opens a numbered main menu context backed by a control panel tab
+  // Opens a numbered main menu context backed by a control panel tab
   mainMenuContext = branch;
   syncCurrentActionUi();
   selectControlPanelTab(tabName);
@@ -1594,7 +1594,7 @@ function enterKeyboardMenuBranch(branch, tabName) {
 }
 
 function returnToMainMenuRoot() {
-  // NOTE: Goes one level up from a main menu context to the top-level choices
+  // Goes one level up from a main menu context to the top-level choices
   mainMenuContext = "root";
   closeControlPanel();
   renderKeyHints();
@@ -1632,7 +1632,7 @@ function toggleMainMenuFromKeyboard(event) {
 }
 
 function openSelectedObjectActionsFromKeyboard() {
-  // NOTE: Opens selected object popup menu from actions > Object via number key
+  // Opens selected object popup menu from actions > Object via number key
   if (!selectedItem || !selectedItems.size) {
     return false;
   }
@@ -1651,7 +1651,7 @@ function openSelectedObjectActionsFromKeyboard() {
 }
 
 function toggleSelectedGroupFromKeyboard() {
-  // NOTE: Groups or ungroups selected objects from actions > Object via number key
+  // Groups or ungroups selected objects from actions > Object via number key
   const items = getKeyboardGroupItems();
 
   if (!items.length) {
@@ -1668,7 +1668,7 @@ function toggleSelectedGroupFromKeyboard() {
 }
 
 function deleteSelectedItemsFromKeyboard() {
-  // NOTE: Deletes selected objects from actions > Object via number key
+  // Deletes selected objects from actions > Object via number key
   if (!selectedItem || !selectedItems.size) {
     return false;
   }
@@ -1680,7 +1680,7 @@ function deleteSelectedItemsFromKeyboard() {
 }
 
 function handleMainMenuNumberKey(event) {
-  // NOTE: Uses number keys for the current action stack and context-specific choices
+  // Uses number keys for the current action stack and context-specific choices
   if (
     event.defaultPrevented ||
     activeAction ||
@@ -1775,12 +1775,12 @@ function handleMainMenuNumberKey(event) {
 }
 
 function handleNumberedMenuTabKey(event) {
-  // NOTE: Backward wrapper for the numeric current action stack
+  // Backward wrapper for the numeric current action stack
   handleMainMenuNumberKey(event);
 }
 
 function handleSelectedDeleteKey(event) {
-  // NOTE: Deletes an explicit widget selection without treating Delete as a generic back key
+  // Deletes an explicit widget selection without treating Delete as a generic back key
   if (
     event.defaultPrevented ||
     activeAction ||
@@ -1827,7 +1827,7 @@ function handleUndoShortcut(event) {
 }
 
 function handleCancelKey(event) {
-  // NOTE: Uses Escape to step back through open planner UI without deleting selection
+  // Uses Escape to step back through open planner UI without deleting selection
   if (
     event.defaultPrevented ||
     activeAction ||
@@ -1870,7 +1870,7 @@ function handleCancelKey(event) {
 }
 
 function handleTextEditFinishKey(event) {
-  // NOTE: Uses Escape to finish active text editing by leaving the editable text field.
+  // Uses Escape to finish active text editing by leaving the editable text field.
   if (
     event.defaultPrevented ||
     event.altKey ||
@@ -1896,7 +1896,7 @@ function handleTextEditFinishKey(event) {
 }
 
 function finishTextEditingFromOutsidePointer(event) {
-  // NOTE: Leaves text editing when pointer input starts outside the widget being edited
+  // Leaves text editing when pointer input starts outside the widget being edited
   const editingTarget = document.querySelector("[contenteditable='true']");
 
   if (!editingTarget) {
@@ -1913,14 +1913,14 @@ function finishTextEditingFromOutsidePointer(event) {
 }
 
 function finishAllTextEditing() {
-  // NOTE: Ends any active widget text entry before layout actions such as dragging.
+  // Ends any active widget text entry before layout actions such as dragging.
   document
     .querySelectorAll("[contenteditable='true']")
     .forEach((editingTarget) => editingTarget.blur());
 }
 
 function blockSpacebarShortcut(event) {
-  // NOTE: Prevents Space from acting as a custom planner keyboard control outside typing fields
+  // Prevents Space from acting as a custom planner keyboard control outside typing fields
   if (
     event.defaultPrevented ||
     event.altKey ||
@@ -1940,7 +1940,7 @@ function blockSpacebarShortcut(event) {
 }
 
 function getActiveControlPanelPage() {
-  // NOTE: Finds the currently visible control panel page for keyboard scrolling
+  // Finds the currently visible control panel page for keyboard scrolling
   const activeTabName = controlPanelTabs.find(
     (tab) => tab.getAttribute("aria-selected") === "true",
   )?.dataset.controlPanelTab;
@@ -1953,7 +1953,7 @@ function getActiveControlPanelPage() {
 }
 
 function getMenuFocusableElements() {
-  // NOTE: Gets visible controls in the active panel for arrow-key panel navigation
+  // Gets visible controls in the active panel for arrow-key panel navigation
   const activePanel = getActiveControlPanelPage();
 
   if (!activePanel) {
@@ -1985,7 +1985,7 @@ function getMenuFocusableElements() {
 }
 
 function getElementGeometry(element) {
-  // NOTE: Calculates the screen center point used for spatial keyboard focus movement
+  // Calculates the screen center point used for spatial keyboard focus movement
   const rect = element.getBoundingClientRect();
 
   return {
@@ -2001,7 +2001,7 @@ function getMenuFocusCandidateScore(
   candidateGeometry,
   direction,
 ) {
-  // NOTE: Scores possible menu focus targets by direction first, then nearest visual distance
+  // Scores possible menu focus targets by direction first, then nearest visual distance
   const deltaX = candidateGeometry.x - fromGeometry.x;
   const deltaY = candidateGeometry.y - fromGeometry.y;
   const absX = Math.abs(deltaX);
@@ -2041,7 +2041,7 @@ function getMenuFocusCandidateScore(
 }
 
 function moveMenuFocus(direction) {
-  // NOTE: Moves focus spatially to the closest visible control in the requested menu direction
+  // Moves focus spatially to the closest visible control in the requested menu direction
   const focusableElements = getMenuFocusableElements();
 
   if (!focusableElements.length) {
@@ -2102,7 +2102,7 @@ function moveMenuFocus(direction) {
 }
 
 function activateMenuFocusedElement(element) {
-  // NOTE: Activates the visible menu tile or native control currently selected by keyboard navigation
+  // Activates the visible menu tile or native control currently selected by keyboard navigation
   if (element.matches(".control-choice")) {
     const input = element.querySelector("input");
 
@@ -2121,7 +2121,7 @@ function activateMenuFocusedElement(element) {
 }
 
 function scrollActiveMenuPanel(direction, distance = 64) {
-  // NOTE: Scrolls the active panel when spatial focus cannot move farther vertically
+  // Scrolls the active panel when spatial focus cannot move farther vertically
   const activePanel = getActiveControlPanelPage();
 
   if (!activePanel) {
@@ -2137,7 +2137,7 @@ function scrollActiveMenuPanel(direction, distance = 64) {
 }
 
 function handleMainMenuArrowKey(event) {
-  // NOTE: Uses arrow keys to move through visible controls in the open menu
+  // Uses arrow keys to move through visible controls in the open menu
   if (
     activeAction ||
     !controlPanel.classList.contains("is-open") ||
@@ -2185,7 +2185,7 @@ function handleMainMenuArrowKey(event) {
 }
 
 function handleMainMenuWasdKey(event) {
-  // NOTE: Uses WASD to move through visible controls in the open menu
+  // Uses WASD to move through visible controls in the open menu
   if (
     event.defaultPrevented ||
     activeAction ||
@@ -2221,7 +2221,7 @@ function handleMainMenuWasdKey(event) {
 }
 
 function handleViewZoomKey(event) {
-  // NOTE: Cycles zoom levels with Z when the user is not typing or moving an object
+  // Cycles zoom levels with Z when the user is not typing or moving an object
   if (
     event.defaultPrevented ||
     activeAction ||
@@ -2241,7 +2241,7 @@ function handleViewZoomKey(event) {
 }
 
 function handlePageFocusNavigationKey(event) {
-  // NOTE: Moves widget focus between real widgets/targets, falling back to the legacy grid cursor outside widget
+  // Moves widget focus between real widgets/targets, falling back to the legacy grid cursor outside widget
   if (
     event.defaultPrevented ||
     activeAction ||
@@ -2271,7 +2271,7 @@ function handlePageFocusNavigationKey(event) {
 }
 
 function getKeyboardGroupItems() {
-  // NOTE: Gets the current selection that can be grouped or ungrouped from the keyboard
+  // Gets the current selection that can be grouped or ungrouped from the keyboard
   if (!selectedItems.size) {
     return [];
   }
@@ -2282,11 +2282,11 @@ function getKeyboardGroupItems() {
 }
 
 function toggleGroupFromKeyboard(event) {
-  // NOTE: Numeric object controls own keyboard group/ungroup now
+  // Numeric object controls own keyboard group/ungroup now
 }
 
 function toggleGuidesFromKeyboard(event) {
-  // NOTE: Toggles every page guide checkbox on or off as one keyboard command
+  // Toggles every page guide checkbox on or off as one keyboard command
   if (
     event.defaultPrevented ||
     event.altKey ||
@@ -2316,7 +2316,7 @@ function toggleGuidesFromKeyboard(event) {
 }
 
 function getKeyHintState() {
-  // NOTE: Chooses the visible current-action label and keyboard actions for the planner state
+  // Chooses the visible current-action label and keyboard actions for the planner state
   if (activeAction?.type === "keyboard-source") {
     return {
       mode: "Current Action > Place Widget",
@@ -2464,7 +2464,7 @@ function getKeyHintState() {
 }
 
 function renderKeyHints() {
-  // NOTE: Renders the upper-left keyboard shortcut popup for the current app state
+  // Renders the upper-left keyboard shortcut popup for the current app state
   if (!hintPanel) {
     return;
   }
@@ -2509,7 +2509,7 @@ function renderKeyHints() {
 }
 
 function syncControlPanelHintAnchor() {
-  // NOTE: Attaches the control panel position to the bottom-left of the hint panel
+  // Attaches the control panel position to the bottom-left of the hint panel
   if (!hintPanel || !controlPanel || !plannerDesk) {
     return;
   }

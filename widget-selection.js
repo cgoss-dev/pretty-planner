@@ -1,4 +1,4 @@
-// NOTE: Click Items, Select Items, And Open Item Menus
+// Click Items, Select Items, And Open Item Menus
 function clearDragOver() {
   pages.forEach((page) => page.classList.remove("is-drag-over"));
 }
@@ -762,7 +762,7 @@ function closeItemMenus(exceptItem = null) {
 }
 
 function closeFloatingWidgetPanelsFromOutsidePointer(event) {
-  // NOTE: Dismisses right-click widget popup menus when the pointer starts outside the popup menu
+  // Dismisses right-click widget popup menus when the pointer starts outside the popup menu
   if (event.target.closest(".widget-panel, .widget-popup-menu")) {
     return;
   }
@@ -848,7 +848,7 @@ function updateGroupButton(button, items = Array.from(selectedItems)) {
   );
 }
 
-// NOTE: Bring Forward, Send Back, Group, And Shared Actions
+// Bring Forward, Send Back, Group, And Shared Actions
 function getActionItems(item) {
   const controlsActionItems = getControlsActionItems(getWidgetPanel(item));
 

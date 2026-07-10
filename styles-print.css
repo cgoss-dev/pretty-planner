@@ -1,4 +1,4 @@
-/* NOTE: Printing */
+/* Printing */
 @page {
   size: var(--print-spread-width) var(--print-page-height);
   margin: 0;

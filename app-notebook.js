@@ -1,4 +1,4 @@
-// NOTE: Drawing The Notebook Pages
+// Drawing The Notebook Pages
 function getViewZoom() {
   return viewZoomLevels[viewZoomIndex].value;
 }

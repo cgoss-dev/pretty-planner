@@ -1,4 +1,4 @@
-// NOTE: Build New Items And Their Option Controls
+// Build New Items And Their Option Controls
 function makePlannerItem(type = "sticker") {
   const hasWidgetControls = type === "sticker" || isCalendarItemType(type);
   const item = document.createElement("div");
@@ -284,7 +284,7 @@ function makePlannerItem(type = "sticker") {
   displayWeekStartLabel.dataset.mainMenuControl = "options.display-week-start";
   setControlTitle(displayWeekStartLabel, ["Week", "Start"]);
   displayWeekStartSelect.dataset.widgetControl = "display-week-start";
-  displayWeekStartSelect.setAttribute("aria-label", "Display week start");
+  displayWeekStartSelect.setAttribute("aria-label", "Display Week Start");
   [
     ["monday", "Mon"],
     ["sunday", "Sun"],
@@ -409,11 +409,11 @@ function makePlannerItem(type = "sticker") {
   textSizeGroup.setAttribute("aria-label", "Sticker text size");
   [
     ["10", "SM: 10px"],
-    ["15", "MD: 15px"],
-    ["30", "LG: 30px"],
+    ["20", "MD: 20px"],
+    ["40", "LG: 40px"],
     ["60", "1X: 60px"],
-    ["90", "2X: 90px"],
-    ["120", "3X: 120px"],
+    ["80", "2X: 80px"],
+    ["100", "3X: 100px"],
   ].forEach(([value, label]) => {
     const button = document.createElement("button");
 
